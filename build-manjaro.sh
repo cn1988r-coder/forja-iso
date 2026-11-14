@@ -528,14 +528,14 @@ while IFS= read -r -d "" package_list; do
   : > "$filtered_list"
   while IFS= read -r line || [[ -n "$line" ]]; do
     read -r -a fields <<< "$line"
-    if [[ -z "${fields[0]:-}" || "${fields[0]}" == \\#* ]]; then
+    if [[ -z "${fields[0]:-}" || "${fields[0]}" == \#* ]]; then
       printf "%s\n" "$line" >> "$filtered_list"
       continue
     fi
     package_index=-1
     for index in "${!fields[@]}"; do
-      [[ "${fields[$index]}" == #* ]] && break
-      [[ "${fields[$index]}" == \\>* ]] && continue
+      [[ "${fields[$index]}" == \#* ]] && break
+      [[ "${fields[$index]}" == \>* ]] && continue
       package_index="$index"
       break
     done
