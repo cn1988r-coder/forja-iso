@@ -44,12 +44,12 @@ jobs:
           set -euo pipefail
           ruby -e 'require "yaml"; YAML.load_file(".github/workflows/build-manjaro-mate.yml")'
           grep -Fq 'workflow_dispatch:' .github/workflows/build-manjaro-mate.yml
+          grep -Fq "inputs.kernel || 'lts'" .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_DISTRIBUTION=manjaro' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_DESKTOP=mate' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_KERNEL="$FORJA_KERNEL"' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'RUNNER_TEMP/forja-manjaro:/tmp/forja-manjaro' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'filesystem real do runner' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'workflow_dispatch:' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'find forja-output -type f -name' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'sha256sum --check' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'permissions:' .github/workflows/build-manjaro-mate.yml
