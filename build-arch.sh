@@ -81,7 +81,7 @@ legacy = {
     "galculator", "evince", "exo", "garcon", "xfconf", "tumbler",
 }
 packages = [p for p in packages if p not in legacy and not p.startswith(("nvidia", "lib32-nvidia", "catalyst", "lib32-catalyst"))]
-common = ["xorg-server", "networkmanager", "linux-firmware", "materia-gtk-theme", kernel]
+common = ["xorg-server", "networkmanager", "linux-firmware", "materia-gtk-theme", "bibata-cursor-theme", kernel]
 optional_common = ["network-manager-applet", "firefox", "archinstall"]
 desktop_packages = {
  "xfce": ["xfce4", "xfce4-goodies", "lightdm", "lightdm-gtk-greeter"],
@@ -154,6 +154,32 @@ if removed:
 path.write_text("\n".join(filtered) + "\n")
 print(f"Preflight Arch: {len(filtered)} pacotes mantidos; {len(removed)} ausentes removidos.")
 PY
+# Bibata como cursor padrão do sistema e de novos usuários.
+mkdir -p "$PROFILE/airootfs/usr/share/icons/default" \
+         "$PROFILE/airootfs/etc/skel/.config/gtk-3.0" \
+         "$PROFILE/airootfs/etc/skel/.config/gtk-4.0"
+cat > "$PROFILE/airootfs/usr/share/icons/default/index.theme" <<'CURSOR'
+[Icon Theme]
+Name=Default
+Comment=Forja default cursor
+Inherits=Bibata-Modern-Ice
+CURSOR
+for settings in \
+  "$PROFILE/airootfs/etc/gtk-3.0/settings.ini" \
+  "$PROFILE/airootfs/etc/gtk-4.0/settings.ini" \
+  "$PROFILE/airootfs/etc/skel/.config/gtk-3.0/settings.ini" \
+  "$PROFILE/airootfs/etc/skel/.config/gtk-4.0/settings.ini"; do
+  mkdir -p "$(dirname "$settings")"
+  if [[ -f "$settings" ]]; then
+    grep -q '^gtk-cursor-theme-name=' "$settings" && sed -i 's/^gtk-cursor-theme-name=.*/gtk-cursor-theme-name=Bibata-Modern-Ice/' "$settings" || printf '\ngtk-cursor-theme-name=Bibata-Modern-Ice\n' >> "$settings"
+  else
+    cat > "$settings" <<'GTK'
+[Settings]
+gtk-theme-name=Materia-dark
+gtk-cursor-theme-name=Bibata-Modern-Ice
+GTK
+  fi
+done
 # Tema GTK Materia Dark como padrão em todos os ambientes desta ISO.
 mkdir -p "$PROFILE/airootfs/etc/gtk-3.0" "$PROFILE/airootfs/etc/gtk-4.0" \
          "$PROFILE/airootfs/etc/skel/.config/gtk-3.0" \
