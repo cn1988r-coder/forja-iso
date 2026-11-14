@@ -2,7 +2,7 @@
 
 Compilador de ISOs x86_64 para **Arch Linux** e **Manjaro**, com preparação e compilação em nuvem.
 
-## Opções
+## Opções disponíveis
 
 - **Distribuição:** Arch Linux ou Manjaro.
 - **Arch Linux:** MATE, XFCE ou GNOME.
@@ -12,18 +12,30 @@ Compilador de ISOs x86_64 para **Arch Linux** e **Manjaro**, com preparação e 
 
 ## Compilação Manjaro MATE
 
-O workflow **Build Manjaro MATE ISO** está em `Actions`. Ele é iniciado manualmente, permite selecionar o kernel LTS ou latest, prepara o ambiente de compilação, gera a ISO, verifica o checksum e publica os arquivos como artefato por 7 dias.
+O workflow **Build Manjaro MATE ISO** fica na seção `Actions` e é iniciado manualmente. Ele permite selecionar o kernel LTS ou latest, prepara o ambiente de compilação, gera a ISO e verifica o checksum SHA-256.
 
-A compilação ainda precisa ser executada e concluída com sucesso para confirmar que todos os pacotes e etapas de geração funcionam no ambiente de nuvem. A validação de código não substitui esse teste.
+A entrega é publicada em uma **GitHub Release**, não como artefato temporário do Actions. A ISO é dividida em partes menores que o limite individual de 2 GiB do GitHub Releases. Baixe todas as partes `.part-*`, o arquivo `.iso.sha256` e o `build-info.txt`.
+
+Para reconstruir e verificar a ISO no Linux, coloque todos os arquivos na mesma pasta e execute:
+
+```bash
+cat NOME.iso.part-* > NOME.iso
+sha256sum --check NOME.iso.sha256
+```
+
+O checksum precisa terminar com `OK`. Releases não expiram automaticamente. Depois de baixar e conferir os arquivos, exclua manualmente a Release se quiser liberar o espaço de armazenamento.
+
+A validação automática do código e a pré-validação dos ambientes não substituem uma compilação real. A ISO só poderá ser considerada gerada depois que o workflow de build terminar com sucesso.
 
 ## Estrutura
 
 - `build-cloud.sh`: entrada comum para a compilação em contêiner.
 - `build-manjaro.sh`: perfil e compilação Manjaro MATE.
 - `build-arch.sh`: perfil e compilação Arch Linux.
-- `build-shelly.sh`: compilação e publicação local dos pacotes Shelly e Bibata.
+- `build-shelly.sh`: compilação de Shelly e Bibata para o repositório local usado durante a geração da ISO.
+- `eu-project-iso-main/ci/shelly/`: fontes e arquivos de configuração usados na compilação do pacote Shelly.
 - `.github/workflows/validate.yml`: validação estática e pré-validação sem gerar ISO.
-- `.github/workflows/build-manjaro-mate.yml`: compilação manual da ISO Manjaro MATE em nuvem.
+- `.github/workflows/build-manjaro-mate.yml`: compilação manual da ISO Manjaro MATE em nuvem e publicação em GitHub Release.
 
 ## Verificação final
 
