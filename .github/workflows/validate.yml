@@ -119,18 +119,20 @@ jobs:
           grep -Fq "'clickgen>=2.1.8'" build-shelly.sh
           echo "Perfis Manjaro XFCE e GNOME verificados."
 
-      - name: Validate supported build choices
+      - name: Validate supported build choices and Materia Dark defaults
         shell: bash
         run: |
           set -euo pipefail
           for desktop in xfce mate gnome; do
-            grep -Fq "$desktop" .github/workflows/build-iso.yml
+            grep -Fq "$desktop" build-arch.sh
+            grep -Fq "$desktop" build-manjaro.sh
           done
           for kernel in lts latest; do
-            grep -Fq "$kernel" .github/workflows/build-iso.yml
+            grep -Fq "$kernel" build-arch.sh
+            grep -Fq "$kernel" build-manjaro.sh
           done
-          grep -Fq 'FORJA_DISTRIBUTION: ${{ inputs.distribution }}' .github/workflows/build-iso.yml
-          grep -Fq 'bash /forja-ci/build-cloud.sh' .github/workflows/build-iso.yml
+          grep -Fq 'FORJA_DISTRIBUTION' build-cloud.sh
+          grep -Fq 'exec bash "/forja-ci/build-$FORJA_DISTRIBUTION.sh"' build-cloud.sh
           grep -Fq -- '--branch v17.1' build-manjaro.sh
           grep -Fq '["pacman", "-Sl"]' build-manjaro.sh
           grep -Fq 'available = {}' build-manjaro.sh
@@ -150,5 +152,13 @@ jobs:
           grep -Fq 'nvidia*' build-manjaro.sh
           ! grep -Fq 'mate-terminal:xfce4-terminal' build-manjaro.sh
           ! grep -Fq '("mate-terminal", "xfce4-terminal")' build-arch.sh
-          ! grep -Fq 'kde' .github/workflows/build-iso.yml
+          # O tema precisa ser obrigatório nas duas bases e aplicado aos três desktops.
+          grep -Fq '"materia-gtk-theme"' build-arch.sh
+          grep -Fq 'materia-gtk-theme' build-manjaro.sh
+          grep -Fq 'gtk-theme-name=Materia-dark' build-arch.sh
+          grep -Fq 'gtk-theme-name=Materia-dark' build-manjaro.sh
+          grep -Fq "gtk-theme='Materia-dark'" build-arch.sh
+          grep -Fq "gtk-theme='Materia-dark'" build-manjaro.sh
+          grep -Fq 'ThemeName" type="string" value="Materia-dark"' build-arch.sh
+          grep -Fq 'ThemeName" type="string" value="Materia-dark"' build-manjaro.sh
           ! grep -Fq 'forja_agent.py' .github/workflows/validate.yml
