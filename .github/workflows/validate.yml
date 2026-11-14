@@ -9,6 +9,10 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: forja-validation-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
