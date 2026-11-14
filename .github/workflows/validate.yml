@@ -142,7 +142,7 @@ jobs:
           grep -Fq 'x-scheme-handler/https=firefox.desktop' build-manjaro.sh
           grep -Fq 'shelly-flatpak-backend' build-manjaro.sh
           grep -Fq 'moniker' build-manjaro.sh
-          grep -Fq 'MATE_OPTIONAL_PACKAGES=' build-manjaro.sh
+          grep -Fq 'MATE_REQUIRED_PACKAGES=(' build-manjaro.sh
           grep -Fq 'mate) SOURCE=""' build-manjaro.sh
           grep -Fq 'cp "$PROFILE_ROOT/shared/Packages-Root" "$TARGET/Packages-Root"' build-manjaro.sh
           grep -Fq 'lightdm-slick-greeter' build-manjaro.sh
