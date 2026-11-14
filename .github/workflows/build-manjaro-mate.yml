@@ -37,27 +37,26 @@ jobs:
           sudo apt-get install -y shellcheck
           shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh build-shelly.sh
 
-      - name: Authenticate MEGA and prepare destination before build
+      - name: Authenticate Google Drive and prepare destination before build
         shell: bash
         env:
-          MEGA_EMAIL: ${{ secrets.MEGA_EMAIL }}
-          MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
+          GOOGLE_DRIVE_RCLONE_CONFIG: ${{ secrets.GOOGLE_DRIVE_RCLONE_CONFIG }}
           KERNEL: ${{ inputs.kernel }}
         run: |
           set -Eeuo pipefail
-          if [[ -z "${MEGA_EMAIL:-}" || -z "${MEGA_PASSWORD:-}" ]]; then
-            echo "ERRO: cadastre MEGA_EMAIL e MEGA_PASSWORD nos secrets do repositório. A compilação foi bloqueada antes de começar." >&2
+          if [[ -z "${GOOGLE_DRIVE_RCLONE_CONFIG:-}" ]]; then
+            echo "ERRO: falta o secret GOOGLE_DRIVE_RCLONE_CONFIG com a configuração OAuth do rclone para Google Drive. A compilação foi bloqueada antes de começar." >&2
             exit 1
           fi
           sudo apt-get update -qq
           sudo apt-get install -y rclone
-          config="$RUNNER_TEMP/rclone-mega.conf"
-          rclone config create mega mega user "$MEGA_EMAIL" pass "$MEGA_PASSWORD" --config "$config"
+          config="$RUNNER_TEMP/rclone-google-drive.conf"
+          printf '%s\\n' "$GOOGLE_DRIVE_RCLONE_CONFIG" > "$config"
           chmod 600 "$config"
-          # Testa a autenticação e cria a pasta de destino antes de consumir recursos com a ISO.
-          rclone lsd mega: --config "$config"
-          rclone mkdir "mega:Forja-ISO/Manjaro-MATE/$KERNEL" --config "$config"
-          echo "Conta MEGA autenticada e destino preparado."
+          # Testa a autorização e prepara a pasta antes de consumir recursos com a ISO.
+          rclone lsd gdrive: --config "$config"
+          rclone mkdir "gdrive:Forja-ISO/Manjaro-MATE/$KERNEL" --config "$config"
+          echo "Google Drive autenticado e destino preparado."
 
       - name: Free disk space for ISO build
         shell: bash
@@ -115,19 +114,19 @@ jobs:
           grep -Fxq 'BASE=Manjaro' forja-output/build-info.txt
           echo "iso=$iso" >> "$GITHUB_OUTPUT"
 
-      - name: Upload verified ISO to MEGA
+      - name: Upload verified ISO to Google Drive
         shell: bash
         env:
           ISO_PATH: ${{ steps.verify.outputs.iso }}
           KERNEL: ${{ inputs.kernel }}
         run: |
           set -Eeuo pipefail
-          test -s "$RUNNER_TEMP/rclone-mega.conf"
-          config="$RUNNER_TEMP/rclone-mega.conf"
-          remote="mega:Forja-ISO/Manjaro-MATE/$KERNEL/$GITHUB_RUN_ID"
+          test -s "$RUNNER_TEMP/rclone-google-drive.conf"
+          config="$RUNNER_TEMP/rclone-google-drive.conf"
+          remote="gdrive:Forja-ISO/Manjaro-MATE/$KERNEL/$GITHUB_RUN_ID"
           iso_dir="$(dirname "$ISO_PATH")"
           iso_name="$(basename "$ISO_PATH")"
-          # Envia a ISO integral, checksum e metadados para a conta MEGA.
+          # Envia a ISO integral, checksum e metadados para o Google Drive.
           rclone copy "$iso_dir" "$remote" \
             --config "$config" \
             --include "$iso_name" \
@@ -143,7 +142,7 @@ jobs:
           echo "Upload concluído: $remote"
           rm -f "$config"
 
-      - name: Remove temporary MEGA configuration
+      - name: Remove temporary Google Drive configuration
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/rclone-mega.conf"
+        run: rm -f "$RUNNER_TEMP/rclone-google-drive.conf"
