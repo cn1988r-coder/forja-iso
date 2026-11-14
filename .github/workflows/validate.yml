@@ -38,6 +38,20 @@ jobs:
           shellcheck -S warning -e SC1091 \
             build-cloud.sh build-arch.sh build-manjaro.sh build-shelly.sh
 
+      - name: Validate Manjaro cloud build workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          ruby -e 'require "yaml"; YAML.load_file(".github/workflows/build-manjaro-mate.yml")'
+          grep -Fq 'workflow_dispatch:' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'FORJA_DISTRIBUTION=manjaro' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'FORJA_DESKTOP=mate' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'FORJA_KERNEL="$FORJA_KERNEL"' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'find forja-output -type f -name' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'sha256sum --check' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'forja-output/**/*.iso' .github/workflows/build-manjaro-mate.yml
+          echo "Workflow de compilação Manjaro MATE validado estruturalmente."
+
       - name: Validate embedded Python blocks
         shell: bash
         run: |
