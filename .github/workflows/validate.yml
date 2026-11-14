@@ -36,7 +36,6 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y shellcheck
           shellcheck -S warning -e SC1091 \
-            build-cloud.sh build-arch.sh build-manjaro.sh build-shelly.sh \
             build-cloud.sh build-arch.sh build-manjaro.sh build-shelly.sh
 
       - name: Validate embedded Python blocks
