@@ -112,7 +112,8 @@ jobs:
           grep -Fq 'FORJA_DISTRIBUTION: ${{ inputs.distribution }}' .github/workflows/build-iso.yml
           grep -Fq 'bash /forja-ci/build-cloud.sh' .github/workflows/build-iso.yml
           grep -Fq -- '--branch v17.1' build-manjaro.sh
-          grep -Fq '["pacman", "-Sl", "core"]' build-manjaro.sh
-          grep -Fq 'available = set()' build-manjaro.sh
+          grep -Fq '["pacman", "-Sl"]' build-manjaro.sh
+          grep -Fq 'available = {}' build-manjaro.sh
+          grep -Fq 'Ignore release candidates' build-manjaro.sh
           grep -Fq 'kind == "latest"' build-manjaro.sh
           grep -Fq 'moniker' build-manjaro.sh
