@@ -280,12 +280,10 @@ PKGS
       exit 23
     fi
   done
-  for package in bibata-cursor-theme; do
-    if ! pacman --config "$PACMAN_CONF" -Si "$package" >/dev/null 2>&1; then
-      echo "ERRO: pacote visual AUR nÃ£o publicado no repositÃ³rio local: $package" >&2
-      exit 24
-    fi
-  done
+  if ! pacman --config "$PACMAN_CONF" -Si bibata-cursor-theme >/dev/null 2>&1; then
+    echo "ERRO: pacote visual AUR não publicado no repositório local: bibata-cursor-theme" >&2
+    exit 24
+  fi
   echo "Preflight do nÃºcleo MATE, rede, Bluetooth e temas visuais aprovado."
 fi
 
