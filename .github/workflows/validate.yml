@@ -29,6 +29,34 @@ jobs:
           bash -n eu-project-iso-main/ci/build-manjaro.sh
           bash -n eu-project-iso-main/ci/build-shelly.sh
 
+      - name: Validate embedded Python blocks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          paths = [
+              Path("build-arch.sh"),
+              Path("build-manjaro.sh"),
+              Path("build-shelly.sh"),
+              Path("eu-project-iso-main/ci/build-arch.sh"),
+              Path("eu-project-iso-main/ci/build-manjaro.sh"),
+              Path("eu-project-iso-main/ci/build-shelly.sh"),
+          ]
+          count = 0
+          for path in paths:
+              source = path.read_text(encoding="utf-8")
+              blocks = re.findall(r"<<'PY'\\s*\\n(.*?)^PY$", source, re.S | re.M)
+              for index, block in enumerate(blocks, 1):
+                  compile(block, f"{path}:python-block-{index}", "exec")
+                  count += 1
+          if count == 0:
+              raise SystemExit("Nenhum bloco Python embutido foi validado.")
+          print(f"{count} blocos Python embutidos validados.")
+          PY
+
       - name: Verify Shelly source checksums
         shell: bash
         run: |
@@ -85,4 +113,6 @@ jobs:
           grep -Fq 'bash /forja-ci/build-cloud.sh' .github/workflows/build-iso.yml
           grep -Fq -- '--branch v17.1' build-manjaro.sh
           grep -Fq '["pacman", "-Sl", "core"]' build-manjaro.sh
-          grep -Fq 'available_kernels' build-manjaro.sh || grep -Fq 'available = set()' build-manjaro.sh
+          grep -Fq 'available = set()' build-manjaro.sh
+          grep -Fq 'kind == "latest"' build-manjaro.sh
+          grep -Fq 'moniker' build-manjaro.sh
