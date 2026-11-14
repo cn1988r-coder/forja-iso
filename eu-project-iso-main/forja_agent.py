@@ -131,7 +131,7 @@ def build_manjaro(profile):
     if not shutil.which("buildiso") or not shutil.which("pkexec"): raise RuntimeError("Instale manjaro-tools-iso e polkit.")
     WORK.mkdir(parents=True,exist_ok=True); profiles=WORK/"iso-profiles"
     if not (profiles/".git").is_dir():
-        run(["git","clone","--depth","1","https://gitlab.manjaro.org/profiles-and-settings/iso-profiles.git",str(profiles)],progress=8)
+        run(["git","clone","--depth","1","https://code.manjaro.org/profiles/iso-profiles.git",str(profiles)],progress=8)
     source=profiles/"manjaro/xfce"; target=profiles/"manjaro/mate-custom"
     if not (source/"Packages-Desktop").is_file() or not (source/"profile.conf").is_file(): raise RuntimeError("Perfil XFCE oficial não contém a estrutura esperada.")
     if target.exists(): shutil.rmtree(target)
