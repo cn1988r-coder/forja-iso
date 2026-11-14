@@ -439,6 +439,11 @@ print(package)
 PY
 )"
 echo "Kernel selecionado: $KERNEL_PKG"
+if [[ "${FORJA_PREFLIGHT_ONLY:-0}" == "1" ]]; then
+  echo "PREFLIGHT_OK: Manjaro/$DESKTOP/$KERNEL ($KERNEL_PKG). ISO build intentionally skipped."
+  exit 0
+fi
+
 cd "$PROFILE_ROOT"
 buildiso -f -p "forja-$DESKTOP" -b stable -k "$KERNEL_PKG" -r "$CHROOTS" -t "$OUT" -v
 
