@@ -150,6 +150,11 @@ user-session=mate
 greeter-session=lightdm-gtk-greeter
 LIGHTDM
 fi
+if [[ "${FORJA_PREFLIGHT_ONLY:-0}" == "1" ]]; then
+  echo "PREFLIGHT_OK: Arch/$DESKTOP/$KERNEL. ISO build intentionally skipped."
+  exit 0
+fi
+
 mkarchiso -v -w "$WORK/work" -o "$OUT" "$PROFILE"
 ISO="$(find "$OUT" -maxdepth 1 -type f -name '*.iso' -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)"
 test -n "$ISO" && test -s "$ISO"
