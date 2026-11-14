@@ -1,6 +1,13 @@
 name: Build Manjaro MATE ISO
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "build-cloud.sh"
+      - "build-manjaro.sh"
+      - "build-shelly.sh"
+      - ".github/workflows/build-manjaro-mate.yml"
   workflow_dispatch:
     inputs:
       kernel:
