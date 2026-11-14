@@ -197,6 +197,23 @@ elif [[ "$DESKTOP" == xfce ]]; then
 </channel>
 XFCONF
 fi
+if [[ "$DESKTOP" == gnome || "$DESKTOP" == mate ]]; then
+  mkdir -p "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants"
+  cat > "$PROFILE/airootfs/etc/systemd/system/forja-dconf-update.service" <<'UNIT'
+[Unit]
+Description=Compile Forja system dconf defaults
+Before=display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/dconf update
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+  ln -sfn /usr/lib/systemd/system/forja-dconf-update.service "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants/forja-dconf-update.service"
+fi
 
 WANTS="$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants"
 mkdir -p "$WANTS"
