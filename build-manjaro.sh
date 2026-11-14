@@ -279,6 +279,7 @@ DCPROFILE
       cat > "$overlay/etc/dconf/db/local.d/00-forja-theme" <<'DCCONF'
 [org/gnome/desktop/interface]
 gtk-theme='Materia-dark'
+cursor-theme='Bibata-Modern-Ice'
 color-scheme='prefer-dark'
 DCCONF
     elif [[ "$DESKTOP" == xfce ]]; then
@@ -288,6 +289,7 @@ DCCONF
 <channel name="xsettings" version="1.0">
   <property name="Net" type="empty">
     <property name="ThemeName" type="string" value="Materia-dark"/>
+    <property name="CursorThemeName" type="string" value="Bibata-Modern-Ice"/>
   </property>
 </channel>
 XFCONF
@@ -343,7 +345,7 @@ LIGHTDM
         mv "$overlay/etc/lightdm/lightdm.conf.forja" "$overlay/etc/lightdm/lightdm.conf"
       fi
       if [[ -f "$overlay/etc/lightdm/lightdm-slick-greeter.conf" ]]; then
-        sed -i -E 's/^icon-theme-name[[:space:]]*=.*/icon-theme-name = Adwaita/; s/^cursor-theme-name[[:space:]]*=.*/cursor-theme-name = Adwaita/' "$overlay/etc/lightdm/lightdm-slick-greeter.conf"
+        sed -i -E 's/^icon-theme-name[[:space:]]*=.*/icon-theme-name = Adwaita/; s/^cursor-theme-name[[:space:]]*=.*/cursor-theme-name = Bibata-Modern-Ice/' "$overlay/etc/lightdm/lightdm-slick-greeter.conf"
       fi
     fi
   fi
