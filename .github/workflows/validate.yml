@@ -119,9 +119,6 @@ jobs:
           grep -Fq "'clickgen>=2.1.8'" build-shelly.sh
           echo "Perfis Manjaro XFCE e GNOME verificados."
 
-      - name: Validate Python syntax
-        run: python3 -m py_compile eu-project-iso-main/forja_agent.py
-
       - name: Validate supported build choices
         shell: bash
         run: |
@@ -145,3 +142,9 @@ jobs:
           grep -Fq 'x-scheme-handler/https=firefox.desktop' build-manjaro.sh
           grep -Fq 'shelly-flatpak-backend' build-manjaro.sh
           grep -Fq 'moniker' build-manjaro.sh
+          grep -Fq 'MATE_OPTIONAL_PACKAGES=' build-manjaro.sh
+          grep -Fq 'nvidia*' build-manjaro.sh
+          ! grep -Fq 'mate-terminal:xfce4-terminal' build-manjaro.sh
+          ! grep -Fq '("mate-terminal", "xfce4-terminal")' build-arch.sh
+          ! grep -Fq 'kde' .github/workflows/build-iso.yml
+          ! grep -Fq 'forja_agent.py' .github/workflows/validate.yml
