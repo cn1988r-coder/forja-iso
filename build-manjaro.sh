@@ -198,8 +198,10 @@ DCPROFILE
       cat > "$overlay/etc/dconf/db/local.d/00-forja-visual" <<'DCCONF'
 [org/mate/interface]
 icon-theme='Papirus-Dark'
-cursor-theme='Bibata-Modern-Ice'
 gtk-theme='Materia-dark'
+
+[org/mate/peripherals-mouse]
+cursor-theme='Bibata-Modern-Ice'
 
 [org/mate/marco/general]
 theme='Materia-dark'
