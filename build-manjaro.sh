@@ -13,7 +13,7 @@ PACMAN_CONF=""
 pacman_info() {
   if [[ -n "$PACMAN_CONF" ]]; then pacman --config "$PACMAN_CONF" -Si "$1"; else pacman -Si "$1"; fi
 }
-case "$DESKTOP" in xfce|mate|gnome) ;; *) echo "Desktop invÃ¡lido: $DESKTOP"; exit 2;; esac
+case "$DESKTOP" in mate) ;; *) echo "ERRO: a base Manjaro da Forja oferece exclusivamente MATE (recebido: $DESKTOP)."; exit 2;; esac
 case "$KERNEL" in latest|lts) ;; *) echo "Kernel invÃ¡lido: $KERNEL"; exit 2;; esac
 
 echo "== Forja Cloud Builder: Manjaro / $DESKTOP / $KERNEL =="
