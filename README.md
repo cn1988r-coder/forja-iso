@@ -30,7 +30,7 @@ A ISO só é enviada depois que o workflow confirma que existe exatamente uma IS
 - `build-shelly.sh`: compilação de Shelly e Bibata para o repositório local usado durante a geração da ISO.
 - `eu-project-iso-main/ci/shelly/`: fontes e arquivos de configuração usados na compilação do pacote Shelly.
 - `.github/workflows/validate.yml`: validação estática e pré-validação sem gerar ISO.
-- `.github/workflows/build-manjaro-mate.yml`: compilação manual da ISO Manjaro MATE em nuvem e publicação em GitHub Release.
+- `.github/workflows/build-manjaro-mate.yml`: compilação manual da ISO Manjaro MATE em nuvem e envio privado para a conta MEGA.
 
 ## Verificação final
 

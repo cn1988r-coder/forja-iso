@@ -8,7 +8,8 @@ REPO_DIR="$REPO_ROOT/forja-shelly/x86_64"
 mkdir -p "$PKG_SRC" "$PKG_OUT" "$REPO_DIR"
 
 echo "== Preparando Shelly-ALPM a partir do upstream verificado =="
-BUILD_PACKAGES=(base-devel sudo git libarchive curl sqlite gnupg pkgconf gtk4 clang gettext flatpak ripgrep go-md2man binutils pacman-contrib python python-pip)
+# repo-add is provided by pacman; this builder does not use pacman-contrib utilities.
+BUILD_PACKAGES=(base-devel sudo git libarchive curl sqlite gnupg pkgconf gtk4 clang gettext flatpak ripgrep go-md2man binutils python python-pip)
 MISSING_BUILD_PACKAGES=()
 for package in "${BUILD_PACKAGES[@]}"; do
   if ! pacman -Si "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" >/dev/null 2>&1; then
