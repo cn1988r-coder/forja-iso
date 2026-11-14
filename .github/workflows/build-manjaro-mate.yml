@@ -65,7 +65,7 @@ jobs:
       - name: Build Manjaro MATE ISO
         shell: bash
         env:
-          FORJA_KERNEL: ${{ inputs.kernel }}
+          FORJA_KERNEL: ${{ inputs.kernel || 'lts' }}
         run: |
           set -Eeuo pipefail
           # O buildiso cria OverlayFS dentro do chroot. O upperdir precisa
@@ -115,7 +115,7 @@ jobs:
         id: upload_iso
         uses: actions/upload-artifact@v7
         with:
-          name: Forja-Manjaro-MATE-${{ inputs.kernel }}
+          name: Forja-Manjaro-MATE-${{ inputs.kernel || 'lts' }}
           path: ${{ steps.verify.outputs.iso }}
           if-no-files-found: error
           retention-days: 1
@@ -126,7 +126,7 @@ jobs:
         shell: bash
         env:
           ARTIFACT_URL: ${{ steps.upload_iso.outputs.artifact-url }}
-          KERNEL: ${{ inputs.kernel }}
+          KERNEL: ${{ inputs.kernel || 'lts' }}
         run: |
           set -Eeuo pipefail
           test -n "$ARTIFACT_URL"
