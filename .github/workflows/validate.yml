@@ -161,4 +161,19 @@ jobs:
           grep -Fq "gtk-theme='Materia-dark'" build-manjaro.sh
           grep -Fq 'ThemeName" type="string" value="Materia-dark"' build-arch.sh
           grep -Fq 'ThemeName" type="string" value="Materia-dark"' build-manjaro.sh
+          # Bibata deve ser instalado e definido como cursor padrão em todas as bases.
+          grep -Fq '"bibata-cursor-theme"' build-arch.sh
+          grep -Fq "Inherits=Bibata-Modern-Ice" build-arch.sh
+          grep -Fq "gtk-cursor-theme-name=Bibata-Modern-Ice" build-arch.sh
+          grep -Fq "cursor-theme='Bibata-Modern-Ice'" build-arch.sh
+          grep -Fq 'bibata-cursor-theme' build-manjaro.sh
+          grep -Fq "Inherits=Bibata-Modern-Ice" build-manjaro.sh
+          grep -Fq "gtk-cursor-theme-name=Bibata-Modern-Ice" build-manjaro.sh
+          grep -Fq "cursor-theme='Bibata-Modern-Ice'" build-manjaro.sh
+          grep -Fq 'CursorThemeName" type="string" value="Bibata-Modern-Ice"' build-arch.sh
+          grep -Fq 'CursorThemeName" type="string" value="Bibata-Modern-Ice"' build-manjaro.sh
+          # Pacotes de wallpapers oficiais do perfil Manjaro.
+          for wallpaper in manjaro-wallpapers-18.0 wallpapers-2018 wallpapers-juhraya illyria-wallpaper; do
+            grep -Fq "$wallpaper" build-manjaro.sh
+          done
           ! grep -Fq 'forja_agent.py' .github/workflows/validate.yml
