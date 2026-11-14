@@ -81,7 +81,7 @@ legacy = {
     "galculator", "evince", "exo", "garcon", "xfconf", "tumbler",
 }
 packages = [p for p in packages if p not in legacy and not p.startswith(("nvidia", "lib32-nvidia", "catalyst", "lib32-catalyst"))]
-common = ["xorg-server", "networkmanager", "linux-firmware", kernel]
+common = ["xorg-server", "networkmanager", "linux-firmware", "materia-gtk-theme", kernel]
 optional_common = ["network-manager-applet", "firefox", "archinstall"]
 desktop_packages = {
  "xfce": ["xfce4", "xfce4-goodies", "lightdm", "lightdm-gtk-greeter"],
@@ -154,6 +154,43 @@ if removed:
 path.write_text("\n".join(filtered) + "\n")
 print(f"Preflight Arch: {len(filtered)} pacotes mantidos; {len(removed)} ausentes removidos.")
 PY
+# Tema GTK Materia Dark como padrão em todos os ambientes desta ISO.
+mkdir -p "$PROFILE/airootfs/etc/gtk-3.0" "$PROFILE/airootfs/etc/gtk-4.0" \
+         "$PROFILE/airootfs/etc/skel/.config/gtk-3.0" \
+         "$PROFILE/airootfs/etc/skel/.config/gtk-4.0"
+for settings in \
+  "$PROFILE/airootfs/etc/gtk-3.0/settings.ini" \
+  "$PROFILE/airootfs/etc/gtk-4.0/settings.ini" \
+  "$PROFILE/airootfs/etc/skel/.config/gtk-3.0/settings.ini" \
+  "$PROFILE/airootfs/etc/skel/.config/gtk-4.0/settings.ini"; do
+  cat > "$settings" <<'GTK'
+[Settings]
+gtk-theme-name=Materia-dark
+GTK
+done
+if [[ "$DESKTOP" == gnome ]]; then
+  mkdir -p "$PROFILE/airootfs/etc/dconf/profile" "$PROFILE/airootfs/etc/dconf/db/local.d"
+  cat > "$PROFILE/airootfs/etc/dconf/profile/user" <<'DCPROFILE'
+user-db:user
+system-db:local
+DCPROFILE
+  cat > "$PROFILE/airootfs/etc/dconf/db/local.d/00-forja-theme" <<'DCCONF'
+[org/gnome/desktop/interface]
+gtk-theme='Materia-dark'
+color-scheme='prefer-dark'
+DCCONF
+elif [[ "$DESKTOP" == xfce ]]; then
+  mkdir -p "$PROFILE/airootfs/etc/xdg/xfce4/xfconf/xfce-perchannel-xml"
+  cat > "$PROFILE/airootfs/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml" <<'XFCONF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xsettings" version="1.0">
+  <property name="Net" type="empty">
+    <property name="ThemeName" type="string" value="Materia-dark"/>
+  </property>
+</channel>
+XFCONF
+fi
+
 WANTS="$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants"
 mkdir -p "$WANTS"
 ln -sfn /usr/lib/systemd/system/NetworkManager.service "$WANTS/NetworkManager.service"
