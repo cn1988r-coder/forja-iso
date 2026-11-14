@@ -212,7 +212,7 @@ RemainAfterExit=yes
 [Install]
 WantedBy=multi-user.target
 UNIT
-  ln -sfn /usr/lib/systemd/system/forja-dconf-update.service "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants/forja-dconf-update.service"
+  ln -sfn /etc/systemd/system/forja-dconf-update.service "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants/forja-dconf-update.service"
 fi
 
 WANTS="$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants"
