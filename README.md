@@ -14,18 +14,13 @@ Compilador de ISOs x86_64 para **Arch Linux** e **Manjaro**, com preparação e 
 
 O workflow **Build Manjaro MATE ISO** fica na seção `Actions` e é iniciado manualmente. Ele permite selecionar o kernel LTS ou latest, prepara o ambiente de compilação, gera a ISO e verifica o checksum SHA-256.
 
-A entrega é publicada em uma **GitHub Release**, não como artefato temporário do Actions. A ISO é dividida em partes menores que o limite individual de 2 GiB do GitHub Releases. Baixe todas as partes `.part-*`, o arquivo `.iso.sha256` e o `build-info.txt`.
+A entrega é enviada diretamente para a conta **MEGA** configurada nos secrets do repositório. O workflow envia a ISO integral, o checksum SHA-256 e o arquivo `build-info.txt`, organizados em:
 
-Para reconstruir e verificar a ISO no Linux, coloque todos os arquivos na mesma pasta e execute:
+`MEGA:/Forja-ISO/Manjaro-MATE/<kernel>/<id-da-execução>/`
 
-```bash
-cat NOME.iso.part-* > NOME.iso
-sha256sum --check NOME.iso.sha256
-```
+Antes de iniciar uma compilação, o workflow verifica se os secrets `MEGA_EMAIL` e `MEGA_PASSWORD` estão configurados. As credenciais não são exibidas nos logs. Configure esses dois secrets em **Settings → Secrets and variables → Actions → New repository secret**. Use o e-mail da conta MEGA e a senha da conta. Não coloque as credenciais diretamente nos arquivos do repositório.
 
-O checksum precisa terminar com `OK`. Releases não expiram automaticamente. Depois de baixar e conferir os arquivos, exclua manualmente a Release se quiser liberar o espaço de armazenamento.
-
-A validação automática do código e a pré-validação dos ambientes não substituem uma compilação real. A ISO só poderá ser considerada gerada depois que o workflow de build terminar com sucesso.
+A ISO só é enviada depois que o workflow confirma que existe exatamente uma ISO válida, confere o checksum e valida os metadados. O upload usa rclone e mantém os arquivos privados na conta MEGA; nenhum link público é criado automaticamente.
 
 ## Estrutura
 
