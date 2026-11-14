@@ -29,6 +29,19 @@ jobs:
           bash -n eu-project-iso-main/ci/build-manjaro.sh
           bash -n eu-project-iso-main/ci/build-shelly.sh
 
+      - name: Run ShellCheck
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y shellcheck
+          shellcheck -S warning -e SC1091 \
+            build-cloud.sh build-arch.sh build-manjaro.sh build-shelly.sh \
+            eu-project-iso-main/ci/build-cloud.sh \
+            eu-project-iso-main/ci/build-arch.sh \
+            eu-project-iso-main/ci/build-manjaro.sh \
+            eu-project-iso-main/ci/build-shelly.sh
+
       - name: Validate embedded Python blocks
         shell: bash
         run: |
