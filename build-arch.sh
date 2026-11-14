@@ -211,6 +211,8 @@ DCCONF
     cat > "$PROFILE/airootfs/etc/dconf/db/local.d/00-forja-theme" <<'DCCONF'
 [org/mate/interface]
 gtk-theme='Materia-dark'
+
+[org/mate/peripherals-mouse]
 cursor-theme='Bibata-Modern-Ice'
 DCCONF
   fi
