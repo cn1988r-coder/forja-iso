@@ -105,14 +105,17 @@ enable_systemd=('NetworkManager' 'bluetooth')
 enable_systemd_live=('NetworkManager' 'bluetooth' 'manjaro-live' 'mhwd-live' 'pacman-init' 'mirrors-live')
 MATE_PROFILE
   cat > "$TARGET/Packages-Desktop" <<'MATE_PACKAGES'
-mate
+mate-desktop
+mate-menus
+mate-polkit
+mate-media
 mate-session-manager
 mate-panel
 mate-control-center
 mate-settings-daemon
 marco
 lightdm
-lightdm-gtk-greeter
+lightdm-slick-greeter
 network-manager-applet
 bluez
 bluez-utils
@@ -210,7 +213,7 @@ CURSOR
       cat > "$overlay/etc/lightdm/lightdm.conf.d/50-forja-$DESKTOP.conf" <<LIGHTDM
 [Seat:*]
 user-session=$SESSION
-greeter-session=lightdm-gtk-greeter
+greeter-session=lightdm-slick-greeter
 LIGHTDM
       if [[ -f "$overlay/etc/lightdm/lightdm.conf" ]]; then
         awk -v session="$SESSION" '
@@ -218,7 +221,7 @@ LIGHTDM
           /^\[Seat:\*\][[:space:]]*$/ {
             in_seat=1; found=1; print
             print "user-session=" session
-            print "greeter-session=lightdm-gtk-greeter"
+            print "greeter-session=lightdm-slick-greeter"
             next
           }
           /^\[/ { in_seat=0 }
@@ -229,14 +232,14 @@ LIGHTDM
               print ""
               print "[Seat:*]"
               print "user-session=" session
-              print "greeter-session=lightdm-gtk-greeter"
+              print "greeter-session=lightdm-slick-greeter"
             }
           }
         ' "$overlay/etc/lightdm/lightdm.conf" > "$overlay/etc/lightdm/lightdm.conf.forja"
         mv "$overlay/etc/lightdm/lightdm.conf.forja" "$overlay/etc/lightdm/lightdm.conf"
       fi
-      if [[ -f "$overlay/etc/lightdm/lightdm-gtk-greeter.conf" ]]; then
-        sed -i -E 's/^icon-theme-name[[:space:]]*=.*/icon-theme-name = Adwaita/; s/^cursor-theme-name[[:space:]]*=.*/cursor-theme-name = Adwaita/' "$overlay/etc/lightdm/lightdm-gtk-greeter.conf"
+      if [[ -f "$overlay/etc/lightdm/lightdm-slick-greeter.conf" ]]; then
+        sed -i -E 's/^icon-theme-name[[:space:]]*=.*/icon-theme-name = Adwaita/; s/^cursor-theme-name[[:space:]]*=.*/cursor-theme-name = Adwaita/' "$overlay/etc/lightdm/lightdm-slick-greeter.conf"
       fi
     fi
   fi
@@ -258,7 +261,7 @@ done
 if [[ "$DESKTOP" == mate ]]; then
   MATE_CORE_PACKAGES=(
     mate-session-manager mate-panel mate-control-center mate-settings-daemon
-    marco lightdm lightdm-gtk-greeter firefox networkmanager
+    mate-desktop mate-menus mate-polkit mate-media marco lightdm lightdm-slick-greeter firefox networkmanager
     network-manager-applet bluez bluez-utils blueman
     systemd grub efibootmgr mkinitcpio calamares linux-firmware
     manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db
@@ -272,7 +275,7 @@ if [[ "$DESKTOP" == mate ]]; then
     exit 22
   fi
   # Só aplicativos nativos MATE; nunca usar utilitários XFCE como substitutos.
-  MATE_OPTIONAL_PACKAGES=(caja mate-terminal mate-calc mate-system-monitor mate-power-manager mate-screensaver mate-notification-daemon mate-themes mate-icon-theme engrampa atril eom pluma mate-applets dconf)
+  MATE_OPTIONAL_PACKAGES=(caja mate-terminal mate-calc mate-system-monitor mate-power-manager mate-screensaver mate-notification-daemon mate-themes mate-icon-theme mate-applets mate-backgrounds engrampa atril eom pluma dconf-editor)
   for package in "${MATE_OPTIONAL_PACKAGES[@]}"; do
     if pacman_info "$package" >/dev/null 2>&1; then
       printf '%s\\n' "$package" >> "$TARGET/Packages-Desktop"
@@ -345,9 +348,9 @@ done < <(find -L "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
 BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
 case "$DESKTOP" in
-  xfce) DESKTOP_CORE_PACKAGES=(xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 lightdm lightdm-gtk-greeter) ;;
+  xfce) DESKTOP_CORE_PACKAGES=(xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 lightdm lightdm-slick-greeter) ;;
   gnome) DESKTOP_CORE_PACKAGES=(gnome-shell gdm gnome-control-center nautilus) ;;
-  mate) DESKTOP_CORE_PACKAGES=(mate mate-session-manager mate-panel mate-control-center mate-settings-daemon marco lightdm lightdm-gtk-greeter firefox) ;;
+  mate) DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-media marco lightdm lightdm-slick-greeter firefox) ;;
 esac
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
