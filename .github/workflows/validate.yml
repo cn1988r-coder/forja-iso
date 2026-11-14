@@ -52,8 +52,11 @@ jobs:
             test -f "/tmp/manjaro-iso-profiles/manjaro/$desktop/profile.conf"
             test -f "/tmp/manjaro-iso-profiles/manjaro/$desktop/Packages-Desktop"
           done
-          echo "=== Manjaro v17.1 KDE display manager ==="
-          grep -nE 'displaymanager|plasma-login-manager|sddm' /tmp/manjaro-iso-profiles/manjaro/kde/profile.conf /tmp/manjaro-iso-profiles/manjaro/kde/Packages-Desktop || true
+          grep -Fxq 'displaymanager="sddm"' /tmp/manjaro-iso-profiles/manjaro/kde/profile.conf
+          grep -Eq '^[[:space:]]*sddm([[:space:]]|$)' /tmp/manjaro-iso-profiles/manjaro/kde/Packages-Desktop
+          grep -Fq 'kde) DESKTOP_CORE_PACKAGES=(sddm plasma-desktop plasma-workspace kwin)' build-manjaro.sh
+          grep -Fq 'kde) DM=sddm ;;' build-manjaro.sh
+          echo "Manjaro v17.1 KDE: SDDM confirmado no perfil e no construtor."
 
       - name: Validate Python syntax
         run: python3 -m py_compile eu-project-iso-main/forja_agent.py
