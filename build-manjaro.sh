@@ -26,7 +26,7 @@ for package in "${BUILD_TOOLS[@]}"; do
   fi
 done
 if (("${#MISSING_BUILD_TOOLS[@]}")); then
-  printf "ERRO: dependências do construtor Manjaro ausentes: %s\\n" "${MISSING_BUILD_TOOLS[*]}" >&2
+  printf "ERRO: dependências do construtor Manjaro ausentes: %s\n" "${MISSING_BUILD_TOOLS[*]}" >&2
   exit 10
 fi
 pacman -S --needed --noconfirm "${BUILD_TOOLS[@]}"
@@ -144,7 +144,7 @@ else
 fi
 
 # Materia Dark é obrigatório em todas as ISOs e ambientes gráficos.
-grep -Fxq 'materia-gtk-theme' "$TARGET/Packages-Desktop" || printf '%s\\n' 'materia-gtk-theme' >> "$TARGET/Packages-Desktop"
+grep -Fxq 'materia-gtk-theme' "$TARGET/Packages-Desktop" || printf '%s\n' 'materia-gtk-theme' >> "$TARGET/Packages-Desktop"
 if ! pacman_info materia-gtk-theme >/dev/null 2>&1; then
   echo "ERRO: materia-gtk-theme não está disponível nos repositórios Manjaro Stable." >&2
   exit 24
@@ -165,10 +165,10 @@ for wallpaper_package in manjaro-wallpapers-18.0 wallpapers-2018 wallpapers-juhr
     echo "ERRO: pacote de wallpaper Manjaro ausente no Stable: $wallpaper_package" >&2
     exit 26
   fi
-  grep -Fxq "$wallpaper_package" "$TARGET/Packages-Desktop" || printf '%s\\n' "$wallpaper_package" >> "$TARGET/Packages-Desktop"
+  grep -Fxq "$wallpaper_package" "$TARGET/Packages-Desktop" || printf '%s\n' "$wallpaper_package" >> "$TARGET/Packages-Desktop"
 done
 # Bibata é compilado no repositório local Forja e obrigatório em todas as variantes.
-grep -Fxq 'bibata-cursor-theme' "$TARGET/Packages-Desktop" || printf '%s\\n' 'bibata-cursor-theme' >> "$TARGET/Packages-Desktop"
+grep -Fxq 'bibata-cursor-theme' "$TARGET/Packages-Desktop" || printf '%s\n' 'bibata-cursor-theme' >> "$TARGET/Packages-Desktop"
 if ! pacman --config "$PACMAN_CONF" -Si bibata-cursor-theme >/dev/null 2>&1; then
   echo "ERRO: Bibata não está disponível no repositório local Forja." >&2
   exit 27
@@ -379,7 +379,7 @@ if [[ "$DESKTOP" == mate ]]; then
     if ! pacman_info "$package" >/dev/null 2>&1; then MATE_MISSING_CORE+=("$package"); fi
   done
   if (("${#MATE_MISSING_CORE[@]}")); then
-    printf 'ERRO: componentes essenciais MATE/LightDM/rede/Bluetooth ausentes: %s\\n' "${MATE_MISSING_CORE[*]}" >&2
+    printf 'ERRO: componentes essenciais MATE/LightDM/rede/Bluetooth ausentes: %s\n' "${MATE_MISSING_CORE[*]}" >&2
     exit 22
   fi
   # Conjunto completo dos grupos oficiais mate e mate-extra, listado por
@@ -395,13 +395,13 @@ if [[ "$DESKTOP" == mate ]]; then
   MATE_MISSING_PACKAGES=()
   for package in "${MATE_REQUIRED_PACKAGES[@]}"; do
     if pacman_info "$package" >/dev/null 2>&1; then
-      printf '%s\\n' "$package" >> "$TARGET/Packages-Desktop"
+      printf '%s\n' "$package" >> "$TARGET/Packages-Desktop"
     else
       MATE_MISSING_PACKAGES+=("$package")
     fi
   done
   if (("${#MATE_MISSING_PACKAGES[@]}")); then
-    printf 'ERRO: pacotes obrigatórios do MATE ausentes no Manjaro Stable: %s\\n' "${MATE_MISSING_PACKAGES[*]}" >&2
+    printf 'ERRO: pacotes obrigatórios do MATE ausentes no Manjaro Stable: %s\n' "${MATE_MISSING_PACKAGES[*]}" >&2
     exit 23
   fi
   awk '!seen[$0]++' "$TARGET/Packages-Desktop" > "$TARGET/Packages-Desktop.unique"
@@ -446,21 +446,21 @@ while IFS= read -r -d '' package_list; do
       break
     done
     if [[ -z "$package" || "$package" == KERNEL || "$package" == KERNEL-* ]]; then
-      printf '%s\\n' "$line" >> "$filtered_list"
+      printf '%s\n' "$line" >> "$filtered_list"
       continue
     fi
     case "$package" in
       gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|gnome-icon-theme|gnome-themes-standard|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|gtk-xfce-engine|xf86-input-keyboard|xf86-input-mouse|xdg-su|manjaro-documentation-en|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|xfce4*|xfconf|exo|garcon|thunar|tumbler|menulibre|mugshot|ristretto|mousepad|parole|orage|catfish|xfburn|xfdesktop*|xfwm4*|galculator|evince|manjaro-xfce-settings|manjaro-xfce-minimal-settings|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*)
         echo "Forja: pacote legado/XFCE/NVIDIA removido: $package" >&2
-        printf '# Forja: pacote legado removido: %s\\n' "$package" >> "$filtered_list"
+        printf '# Forja: pacote legado removido: %s\n' "$package" >> "$filtered_list"
         continue
         ;;
     esac
     if pacman_info "$package" >/dev/null 2>&1; then
-      printf '%s\\n' "$line" >> "$filtered_list"
+      printf '%s\n' "$line" >> "$filtered_list"
     else
       echo "Aviso: pacote ausente removido: $package (lista $resolved_list)" >&2
-      printf '# Forja: pacote ausente removido: %s\\n' "$package" >> "$filtered_list"
+      printf '# Forja: pacote ausente removido: %s\n' "$package" >> "$filtered_list"
     fi
   done < "$resolved_list"
   mv "$filtered_list" "$resolved_list"
@@ -482,7 +482,7 @@ for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
   fi
 done
 if (("${#MISSING_CORE_PACKAGES[@]}")); then
-  printf "ERRO: componentes essenciais ausentes para Manjaro/%s: %s\\n" "$DESKTOP" "${MISSING_CORE_PACKAGES[*]}" >&2
+  printf "ERRO: componentes essenciais ausentes para Manjaro/%s: %s\n" "$DESKTOP" "${MISSING_CORE_PACKAGES[*]}" >&2
   exit 25
 fi
 echo "Preflight de componentes essenciais Manjaro/$DESKTOP aprovado."
