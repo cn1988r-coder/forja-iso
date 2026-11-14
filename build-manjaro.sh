@@ -247,6 +247,23 @@ DCCONF
 </channel>
 XFCONF
     fi
+    if [[ "$DESKTOP" == gnome || "$DESKTOP" == mate ]]; then
+      mkdir -p "$overlay/etc/systemd/system/multi-user.target.wants"
+      cat > "$overlay/etc/systemd/system/forja-dconf-update.service" <<'UNIT'
+[Unit]
+Description=Compile Forja system dconf defaults
+Before=display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/dconf update
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+      ln -sfn /usr/lib/systemd/system/forja-dconf-update.service "$overlay/etc/systemd/system/multi-user.target.wants/forja-dconf-update.service"
+    fi
     # XFCE e MATE usam LightDM. GNOME e KDE mantêm seus próprios
     # gerenciadores (GDM/Plasma Login Manager) e não recebem configuração LightDM.
     if [[ "$DESKTOP" == mate || "$DESKTOP" == xfce ]]; then
