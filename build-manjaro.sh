@@ -134,7 +134,6 @@ pipewire-pulse
 wireplumber
 papirus-icon-theme
 bibata-cursor-theme
-materia-gtk-theme
 MATE_PACKAGES
 else
   test -f "$SOURCE/Packages-Desktop" && test -f "$SOURCE/profile.conf" || {
@@ -142,6 +141,13 @@ else
     exit 21
   }
   cp -a "$SOURCE" "$TARGET"
+fi
+
+# Materia Dark é obrigatório em todas as ISOs e ambientes gráficos.
+grep -Fxq 'materia-gtk-theme' "$TARGET/Packages-Desktop" || printf '%s\\n' 'materia-gtk-theme' >> "$TARGET/Packages-Desktop"
+if ! pacman_info materia-gtk-theme >/dev/null 2>&1; then
+  echo "ERRO: materia-gtk-theme não está disponível nos repositórios Manjaro Stable." >&2
+  exit 24
 fi
 
 # Shelly-ALPM is built locally and served over HTTP to buildiso.
@@ -204,6 +210,42 @@ CURSOR
       # No papirus-folders customization package or service is required.
       rm -f "$overlay/etc/systemd/system/forja-papirus-cyan.service"
       rm -f "$overlay/etc/systemd/system/multi-user.target.wants/forja-papirus-cyan.service"
+    fi
+    # Tema GTK Materia Dark como padrão global e para novos usuários.
+    mkdir -p "$overlay/etc/gtk-3.0" "$overlay/etc/gtk-4.0" \
+             "$overlay/etc/skel/.config/gtk-3.0" \
+             "$overlay/etc/skel/.config/gtk-4.0"
+    for settings in \
+      "$overlay/etc/gtk-3.0/settings.ini" \
+      "$overlay/etc/gtk-4.0/settings.ini" \
+      "$overlay/etc/skel/.config/gtk-3.0/settings.ini" \
+      "$overlay/etc/skel/.config/gtk-4.0/settings.ini"; do
+      cat > "$settings" <<'GTK'
+[Settings]
+gtk-theme-name=Materia-dark
+GTK
+    done
+    if [[ "$DESKTOP" == gnome ]]; then
+      mkdir -p "$overlay/etc/dconf/profile" "$overlay/etc/dconf/db/local.d"
+      cat > "$overlay/etc/dconf/profile/user" <<'DCPROFILE'
+user-db:user
+system-db:local
+DCPROFILE
+      cat > "$overlay/etc/dconf/db/local.d/00-forja-theme" <<'DCCONF'
+[org/gnome/desktop/interface]
+gtk-theme='Materia-dark'
+color-scheme='prefer-dark'
+DCCONF
+    elif [[ "$DESKTOP" == xfce ]]; then
+      mkdir -p "$overlay/etc/xdg/xfce4/xfconf/xfce-perchannel-xml"
+      cat > "$overlay/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml" <<'XFCONF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xsettings" version="1.0">
+  <property name="Net" type="empty">
+    <property name="ThemeName" type="string" value="Materia-dark"/>
+  </property>
+</channel>
+XFCONF
     fi
     # XFCE e MATE usam LightDM. GNOME e KDE mantêm seus próprios
     # gerenciadores (GDM/Plasma Login Manager) e não recebem configuração LightDM.
@@ -298,7 +340,7 @@ if [[ "$DESKTOP" == mate ]]; then
   fi
   awk '!seen[$0]++' "$TARGET/Packages-Desktop" > "$TARGET/Packages-Desktop.unique"
   mv "$TARGET/Packages-Desktop.unique" "$TARGET/Packages-Desktop"
-  for package in papirus-icon-theme bibata-cursor-theme materia-gtk-theme; do
+  for package in papirus-icon-theme bibata-cursor-theme; do
     if ! pacman_info "$package" >/dev/null 2>&1; then
       sed -i "/^$package$/d" "$TARGET/Packages-Desktop"
       echo "Aviso: tema opcional indisponível, removido: $package" >&2
@@ -363,9 +405,9 @@ done < <(find -L "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
 BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
 case "$DESKTOP" in
-  xfce) DESKTOP_CORE_PACKAGES=(xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 lightdm lightdm-slick-greeter) ;;
-  gnome) DESKTOP_CORE_PACKAGES=(gnome-shell gdm gnome-control-center nautilus) ;;
-  mate) DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-media marco lightdm lightdm-slick-greeter firefox) ;;
+  xfce) DESKTOP_CORE_PACKAGES=(xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 lightdm lightdm-slick-greeter materia-gtk-theme) ;;
+  gnome) DESKTOP_CORE_PACKAGES=(gnome-shell gdm gnome-control-center nautilus materia-gtk-theme) ;;
+  mate) DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-media marco lightdm lightdm-slick-greeter firefox materia-gtk-theme) ;;
 esac
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
