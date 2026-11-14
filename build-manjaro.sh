@@ -159,6 +159,21 @@ Server = http://127.0.0.1:8765/$repo/$arch
 REPO
 if [[ "$DESKTOP" != mate ]]; then printf '\nshelly\nshelly-flatpak-backend\n' >> "$TARGET/Packages-Desktop"; fi
 
+# Pacotes oficiais de wallpapers do Manjaro em todas as variantes Manjaro.
+for wallpaper_package in manjaro-wallpapers-18.0 wallpapers-2018 wallpapers-juhraya illyria-wallpaper; do
+  if ! pacman_info "$wallpaper_package" >/dev/null 2>&1; then
+    echo "ERRO: pacote de wallpaper Manjaro ausente no Stable: $wallpaper_package" >&2
+    exit 26
+  fi
+  grep -Fxq "$wallpaper_package" "$TARGET/Packages-Desktop" || printf '%s\\n' "$wallpaper_package" >> "$TARGET/Packages-Desktop"
+done
+# Bibata é compilado no repositório local Forja e obrigatório em todas as variantes.
+grep -Fxq 'bibata-cursor-theme' "$TARGET/Packages-Desktop" || printf '%s\\n' 'bibata-cursor-theme' >> "$TARGET/Packages-Desktop"
+if ! pacman --config "$PACMAN_CONF" -Si bibata-cursor-theme >/dev/null 2>&1; then
+  echo "ERRO: Bibata não está disponível no repositório local Forja." >&2
+  exit 27
+fi
+
 # Materialize overlay symlinks before editing so no shared profile outside this
 # custom profile is changed. Remove desktop-specific defaults for MATE and set
 # its LightDM session without inheriting another desktop profile.
@@ -211,6 +226,36 @@ CURSOR
       rm -f "$overlay/etc/systemd/system/forja-papirus-cyan.service"
       rm -f "$overlay/etc/systemd/system/multi-user.target.wants/forja-papirus-cyan.service"
     fi
+    # Cursor Bibata como padrão do sistema e de novos usuários em todos os desktops.
+    mkdir -p "$overlay/usr/share/icons/default" \
+             "$overlay/etc/skel/.config/gtk-3.0" \
+             "$overlay/etc/skel/.config/gtk-4.0"
+    cat > "$overlay/usr/share/icons/default/index.theme" <<'CURSOR'
+[Icon Theme]
+Name=Default
+Comment=Forja default cursor
+Inherits=Bibata-Modern-Ice
+CURSOR
+    for settings in \
+      "$overlay/etc/gtk-3.0/settings.ini" \
+      "$overlay/etc/gtk-4.0/settings.ini" \
+      "$overlay/etc/skel/.config/gtk-3.0/settings.ini" \
+      "$overlay/etc/skel/.config/gtk-4.0/settings.ini"; do
+      mkdir -p "$(dirname "$settings")"
+      if [[ -f "$settings" ]]; then
+        if grep -q '^gtk-cursor-theme-name=' "$settings"; then
+          sed -i 's/^gtk-cursor-theme-name=.*/gtk-cursor-theme-name=Bibata-Modern-Ice/' "$settings"
+        else
+          printf '\ngtk-cursor-theme-name=Bibata-Modern-Ice\n' >> "$settings"
+        fi
+      else
+        cat > "$settings" <<'GTK'
+[Settings]
+gtk-theme-name=Materia-dark
+gtk-cursor-theme-name=Bibata-Modern-Ice
+GTK
+      fi
+    done
     # Tema GTK Materia Dark como padrão global e para novos usuários.
     mkdir -p "$overlay/etc/gtk-3.0" "$overlay/etc/gtk-4.0" \
              "$overlay/etc/skel/.config/gtk-3.0" \
