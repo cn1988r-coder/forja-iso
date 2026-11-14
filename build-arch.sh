@@ -192,6 +192,7 @@ for settings in \
   cat > "$settings" <<'GTK'
 [Settings]
 gtk-theme-name=Materia-dark
+gtk-cursor-theme-name=Bibata-Modern-Ice
 GTK
 done
 if [[ "$DESKTOP" == gnome || "$DESKTOP" == mate ]]; then
