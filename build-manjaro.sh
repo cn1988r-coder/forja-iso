@@ -66,7 +66,7 @@ PROFILE_REPO="https://code.manjaro.org/profiles/iso-profiles.git"
 for attempt in 1 2 3 4 5 6 7 8; do
   echo "Obtendo perfis oficiais: tentativa $attempt/8"
   if git -c http.version=HTTP/1.1 clone --depth 1 --single-branch --branch v17.1 "$PROFILE_REPO" "$PROFILE_ROOT" \
-      && [[ -d "$PROFILE_ROOT/shared" && -d "$PROFILE_ROOT/manjaro/gnome" && -d "$PROFILE_ROOT/manjaro/xfce" ]]; then
+      && [[ -d "$PROFILE_ROOT/shared" ]]; then
     PROFILE_READY=1
     break
   fi
@@ -150,9 +150,9 @@ Server = http://127.0.0.1:8765/$repo/$arch
 REPO
 if [[ "$DESKTOP" != mate ]]; then printf '\nshelly\nshelly-flatpak-backend\n' >> "$TARGET/Packages-Desktop"; fi
 
-# The XFCE profile is only a base for shared Manjaro boot/installer files.
-# Materialize overlays before editing so no shared profile outside this custom
-# clone is changed. Remove XFCE-only defaults and force the MATE LightDM session.
+# Materialize overlay symlinks before editing so no shared profile outside this
+# custom profile is changed. Remove desktop-specific defaults for MATE and set
+# its LightDM session without inheriting another desktop profile.
 for overlay_name in desktop-overlay live-overlay; do
   overlay="$TARGET/$overlay_name"
   if [[ -L "$overlay" ]]; then
