@@ -14,13 +14,9 @@ Compilador de ISOs x86_64 para **Arch Linux** e **Manjaro**, com preparação e 
 
 O workflow **Build Manjaro MATE ISO** fica na seção `Actions` e é iniciado manualmente. Ele permite selecionar o kernel LTS ou latest, prepara o ambiente de compilação, gera a ISO e verifica o checksum SHA-256.
 
-A entrega é enviada diretamente para a conta **MEGA** configurada nos secrets do repositório. O workflow envia a ISO integral, o checksum SHA-256 e o arquivo `build-info.txt`, organizados em:
+A ISO completa é publicada como um artefato temporário do próprio GitHub Actions, sem divisão em partes e sem envio para Google Drive ou MEGA. O artefato é configurado para expirar após **1 dia (24 horas)**. O link de download aparece no resumo da execução do workflow.
 
-`MEGA:/Forja-ISO/Manjaro-MATE/<kernel>/<id-da-execução>/`
-
-Antes de iniciar uma compilação, o workflow verifica se os secrets `MEGA_EMAIL` e `MEGA_PASSWORD` estão configurados. As credenciais não são exibidas nos logs. Configure esses dois secrets em **Settings → Secrets and variables → Actions → New repository secret**. Use o e-mail da conta MEGA e a senha da conta. Não coloque as credenciais diretamente nos arquivos do repositório.
-
-A ISO só é enviada depois que o workflow confirma que existe exatamente uma ISO válida, confere o checksum e valida os metadados. O upload usa rclone e mantém os arquivos privados na conta MEGA; nenhum link público é criado automaticamente.
+O GitHub pode enviar automaticamente uma notificação por e-mail quando a execução terminar. Para recebê-la, a conta precisa estar inscrita nas notificações do repositório e com **Actions → Email** ativado nas configurações de notificações do GitHub. O e-mail de notificação leva à execução; o link direto para a ISO fica no resumo dessa execução. O download exige login no GitHub e permissão de leitura do repositório.
 
 ## Estrutura
 
@@ -30,7 +26,7 @@ A ISO só é enviada depois que o workflow confirma que existe exatamente uma IS
 - `build-shelly.sh`: compilação de Shelly e Bibata para o repositório local usado durante a geração da ISO.
 - `eu-project-iso-main/ci/shelly/`: fontes e arquivos de configuração usados na compilação do pacote Shelly.
 - `.github/workflows/validate.yml`: validação estática e pré-validação sem gerar ISO.
-- `.github/workflows/build-manjaro-mate.yml`: compilação manual da ISO Manjaro MATE em nuvem e envio privado para a conta MEGA.
+- `.github/workflows/build-manjaro-mate.yml`: compilação manual da ISO Manjaro MATE em nuvem e publicação temporária do artefato no GitHub Actions.
 
 ## Verificação final
 
