@@ -37,6 +37,28 @@ jobs:
           sudo apt-get install -y shellcheck
           shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh build-shelly.sh
 
+      - name: Authenticate MEGA and prepare destination before build
+        shell: bash
+        env:
+          MEGA_EMAIL: ${{ secrets.MEGA_EMAIL }}
+          MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
+          KERNEL: ${{ inputs.kernel }}
+        run: |
+          set -Eeuo pipefail
+          if [[ -z "${MEGA_EMAIL:-}" || -z "${MEGA_PASSWORD:-}" ]]; then
+            echo "ERRO: cadastre MEGA_EMAIL e MEGA_PASSWORD nos secrets do repositório. A compilação foi bloqueada antes de começar." >&2
+            exit 1
+          fi
+          sudo apt-get update -qq
+          sudo apt-get install -y rclone
+          config="$RUNNER_TEMP/rclone-mega.conf"
+          rclone config create mega mega user "$MEGA_EMAIL" pass "$MEGA_PASSWORD" --config "$config"
+          chmod 600 "$config"
+          # Testa a autenticação e cria a pasta de destino antes de consumir recursos com a ISO.
+          rclone lsd mega: --config "$config"
+          rclone mkdir "mega:Forja-ISO/Manjaro-MATE/$KERNEL" --config "$config"
+          echo "Conta MEGA autenticada e destino preparado."
+
       - name: Free disk space for ISO build
         shell: bash
         run: |
@@ -93,19 +115,6 @@ jobs:
           grep -Fxq 'BASE=Manjaro' forja-output/build-info.txt
           echo "iso=$iso" >> "$GITHUB_OUTPUT"
 
-      - name: Check MEGA credentials before build
-        shell: bash
-        env:
-          MEGA_EMAIL: ${{ secrets.MEGA_EMAIL }}
-          MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
-        run: |
-          set -Eeuo pipefail
-          if [[ -z "${MEGA_EMAIL:-}" || -z "${MEGA_PASSWORD:-}" ]]; then
-            echo "ERRO: configure os secrets MEGA_EMAIL e MEGA_PASSWORD nas configurações do repositório antes de iniciar a compilação." >&2
-            exit 1
-          fi
-          echo "Credenciais MEGA presentes. Nenhum segredo será exibido."
-
       - name: Upload verified ISO to MEGA
         shell: bash
         env:
@@ -115,13 +124,8 @@ jobs:
           KERNEL: ${{ inputs.kernel }}
         run: |
           set -Eeuo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y rclone
-          test -n "${MEGA_EMAIL:-}"
-          test -n "${MEGA_PASSWORD:-}"
+          test -s "$RUNNER_TEMP/rclone-mega.conf"
           config="$RUNNER_TEMP/rclone-mega.conf"
-          rclone config create mega mega user "$MEGA_EMAIL" pass "$MEGA_PASSWORD" --config "$config"
-          chmod 600 "$config"
           remote="mega:Forja-ISO/Manjaro-MATE/$KERNEL/$GITHUB_RUN_ID"
           iso_dir="$(dirname "$ISO_PATH")"
           iso_name="$(basename "$ISO_PATH")"
