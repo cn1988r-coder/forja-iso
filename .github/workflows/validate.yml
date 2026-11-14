@@ -51,11 +51,14 @@ jobs:
           grep -Fq 'sha256sum --check' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'permissions:' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'contents: write' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'split --bytes=1900M' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'gh release create' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'secrets.MEGA_EMAIL' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'secrets.MEGA_PASSWORD' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'rclone config create mega mega' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'rclone copy' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'Forja-ISO/Manjaro-MATE' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'sha256sum --check' .github/workflows/build-manjaro-mate.yml
-          if grep -Fq 'actions/upload-artifact@' .github/workflows/build-manjaro-mate.yml; then
-            echo "ERRO: a ISO não deve ser enviada como artefato do Actions." >&2
+          if grep -Eq 'gh release create|split --bytes=1900M|actions/upload-artifact@' .github/workflows/build-manjaro-mate.yml; then
+            echo "ERRO: o workflow ainda contém o método antigo de entrega por GitHub." >&2
             exit 1
           fi
           echo "Workflow de compilação Manjaro MATE validado estruturalmente."
