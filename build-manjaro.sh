@@ -66,7 +66,7 @@ PROFILE_REPO="https://code.manjaro.org/profiles/iso-profiles.git"
 for attempt in 1 2 3 4 5 6 7 8; do
   echo "Obtendo perfis oficiais: tentativa $attempt/8"
   if git -c http.version=HTTP/1.1 clone --depth 1 --single-branch --branch v17.1 "$PROFILE_REPO" "$PROFILE_ROOT" \
-      && [[ -d "$PROFILE_ROOT/manjaro/xfce" && -d "$PROFILE_ROOT/shared" ]]; then
+      && [[ -d "$PROFILE_ROOT/shared" && -d "$PROFILE_ROOT/manjaro/gnome" && -d "$PROFILE_ROOT/manjaro/xfce" ]]; then
     PROFILE_READY=1
     break
   fi
@@ -83,20 +83,30 @@ done
 case "$DESKTOP" in
   xfce) SOURCE="$PROFILE_ROOT/manjaro/xfce" ;;
   gnome) SOURCE="$PROFILE_ROOT/manjaro/gnome" ;;
-  # v17.1 não publica perfil MATE. A estrutura comum de boot/instalador é\n  # reaproveitada, mas a seleção de pacotes MATE é reconstruída do zero.\n  mate) SOURCE="$PROFILE_ROOT/manjaro/xfce" ;;
+  mate) SOURCE="" ;;
 esac
-test -f "$SOURCE/Packages-Desktop" && test -f "$SOURCE/profile.conf" || {
-  echo "ERRO: perfil-base invÃ¡lido: $SOURCE"
-  exit 21
-}
 
 TARGET="$PROFILE_ROOT/manjaro/forja-$DESKTOP"
 rm -rf "$TARGET"
-cp -a "$SOURCE" "$TARGET"
 
-# Lista própria da edição MATE, sem aplicativos herdados do XFCE.
 if [[ "$DESKTOP" == mate ]]; then
+  # Perfil MATE independente: somente a estrutura compartilhada do Manjaro
+  # é reutilizada. Nenhum arquivo ou configuração do perfil XFCE é copiado.
+  mkdir -p "$TARGET/desktop-overlay" "$TARGET/live-overlay"
+  cp "$PROFILE_ROOT/shared/Packages-Root" "$TARGET/Packages-Root"
+  cp "$PROFILE_ROOT/shared/Packages-Mhwd" "$TARGET/Packages-Mhwd"
+  cp "$PROFILE_ROOT/shared/Packages-Live" "$TARGET/Packages-Live"
+  cp -a "$PROFILE_ROOT/shared/manjaro/live-overlay/." "$TARGET/live-overlay/"
+  cat > "$TARGET/profile.conf" <<'MATE_PROFILE'
+displaymanager="lightdm"
+autologin="true"
+nonfree_mhwd="false"
+enable_systemd=('NetworkManager' 'bluetooth')
+enable_systemd_live=('NetworkManager' 'bluetooth' 'manjaro-live' 'mhwd-live' 'pacman-init' 'mirrors-live')
+MATE_PROFILE
   cat > "$TARGET/Packages-Desktop" <<'MATE_PACKAGES'
+mate
+mate
 mate-session-manager
 mate-panel
 mate-control-center
@@ -124,6 +134,12 @@ papirus-icon-theme
 bibata-cursor-theme
 materia-gtk-theme
 MATE_PACKAGES
+else
+  test -f "$SOURCE/Packages-Desktop" && test -f "$SOURCE/profile.conf" || {
+    echo "ERRO: perfil-base invÃ¡lido: $SOURCE"
+    exit 21
+  }
+  cp -a "$SOURCE" "$TARGET"
 fi
 
 # Shelly-ALPM is built locally and served over HTTP to buildiso.
@@ -227,10 +243,8 @@ LIGHTDM
   fi
 done
 
-# The official XFCE profile inherits shared package lists through symlinks.
-# Stable repositories may no longer carry some legacy packages from those
-# lists. Materialize each list locally and remove only entries that pacman
-# confirms are absent from the synchronized stable databases.
+# Materialize every package list in the selected profile. The MATE profile
+# owns copies of the shared lists so filtering cannot modify upstream files.
 for package_list in "$TARGET"/Packages-*; do
   [[ -f "$package_list" ]] || continue
   if [[ -L "$package_list" ]]; then
@@ -325,7 +339,7 @@ while IFS= read -r -d '' package_list; do
     fi
   done < "$resolved_list"
   mv "$filtered_list" "$resolved_list"
-done < <(find -L "$PROFILE_ROOT/shared" "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
+done < <(find -L "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 
 
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
