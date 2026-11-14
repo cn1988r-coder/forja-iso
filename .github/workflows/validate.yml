@@ -62,8 +62,8 @@ jobs:
           grep -Fq 'rclone lsd mega:' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'rclone mkdir' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'Remove temporary MEGA configuration' .github/workflows/build-manjaro-mate.yml
-          auth_line="$(grep -nF 'name: Authenticate MEGA and prepare destination before build' .github/workflows/build-manjaro-mate.yml | cut -d: -f1)"
-          build_line="$(grep -nF 'name: Build Manjaro MATE ISO' .github/workflows/build-manjaro-mate.yml | cut -d: -f1)"
+          auth_line="$(grep -nF '      - name: Authenticate MEGA and prepare destination before build' .github/workflows/build-manjaro-mate.yml | cut -d: -f1)"
+          build_line="$(grep -nF '      - name: Build Manjaro MATE ISO' .github/workflows/build-manjaro-mate.yml | cut -d: -f1)"
           if (( auth_line >= build_line )); then
             echo "ERRO: a autenticação MEGA precisa acontecer antes da compilação." >&2
             exit 1
