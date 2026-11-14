@@ -192,4 +192,4 @@ jobs:
           for wallpaper in manjaro-wallpapers-18.0 wallpapers-2018 wallpapers-juhraya illyria-wallpaper; do
             grep -Fq "$wallpaper" build-manjaro.sh
           done
-          ! grep -Fq 'forja_agent.py' .github/workflows/validate.yml
+          ! grep -Fq 'forja_agent.py' build-arch.sh build-manjaro.sh build-cloud.sh build-shelly.sh
