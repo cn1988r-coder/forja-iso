@@ -90,7 +90,7 @@ REPO
 python -m http.server 8765 --bind 0.0.0.0 --directory "$REPO_ROOT" > "$WORK/shelly-http.log" 2>&1 &
 HTTP_PID=$!
 printf '%s\n' "$HTTP_PID" > "$WORK/shelly-http.pid"
-for attempt in 1 2 3 4 5 6 7 8 9 10; do
+for _ in {1..10}; do
   if curl -fsS "http://127.0.0.1:8765/forja-shelly/x86_64/forja-shelly.db" >/dev/null; then break; fi
   sleep 1
 done
