@@ -18,7 +18,7 @@ for package in "${ARCH_BUILD_PACKAGES[@]}"; do
   pacman -Si "$package" >/dev/null 2>&1 || MISSING_ARCH_BUILD_PACKAGES+=("$package")
 done
 if (("${#MISSING_ARCH_BUILD_PACKAGES[@]}")); then
-  printf "ERRO: dependências do construtor Arch ausentes: %s\\n" "${MISSING_ARCH_BUILD_PACKAGES[*]}" >&2
+  printf "ERRO: dependências do construtor Arch ausentes: %s\n" "${MISSING_ARCH_BUILD_PACKAGES[*]}" >&2
   exit 10
 fi
 pacman -S --needed --noconfirm "${ARCH_BUILD_PACKAGES[@]}"
