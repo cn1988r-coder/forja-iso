@@ -80,11 +80,13 @@ jobs:
           mapfile -t isos < <(find forja-output -type f -name '*.iso' -size +100M)
           if (( ${#isos[@]} != 1 )); then
             echo "ERRO: esperado exatamente uma ISO válida; encontradas: ${#isos[@]}" >&2
-            find forja-output -maxdepth 1 -type f -printf '%p (%s bytes)\n'
+            find forja-output -type f -printf '%p (%s bytes)\n'
             exit 1
           fi
-          test -s "${isos[0]}.sha256"
-          sha256sum --check "${isos[0]}.sha256"
+          checksum_dir="$(dirname "${isos[0]}")"
+          checksum_file="$(basename "${isos[0]}").sha256"
+          test -s "$checksum_dir/$checksum_file"
+          (cd "$checksum_dir" && sha256sum --check "$checksum_file")
           test -s forja-output/build-info.txt
           grep -Fxq 'DESKTOP=mate' forja-output/build-info.txt
           grep -Fxq 'BASE=Manjaro' forja-output/build-info.txt
