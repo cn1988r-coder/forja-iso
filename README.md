@@ -1,6 +1,6 @@
 # Forja de ISO
 
-Compilador de ISOs x86_64 para **Arch Linux** e **Manjaro**, executado em GitHub Actions.
+Compilador de ISOs x86_64 para **Arch Linux** e **Manjaro**, com preparação e compilação em nuvem.
 
 ## Opções
 
@@ -8,17 +8,23 @@ Compilador de ISOs x86_64 para **Arch Linux** e **Manjaro**, executado em GitHub
 - **Arch Linux:** MATE, XFCE ou GNOME.
 - **Manjaro:** exclusivamente MATE.
 - **Kernel:** LTS ou latest.
+- **Manjaro MATE:** Shelly, Firefox, LightDM com Slick Greeter, Bluetooth, Materia Dark e cursor Bibata.
 
-## Estado atual da compilação
+## Compilação Manjaro MATE
 
-O repositório contém atualmente o workflow **Validate Forja sources**, que executa verificações e pré-validações sem gerar uma ISO. Ainda não existe um workflow **Build Forja ISO** para iniciar a compilação em nuvem e publicar o artefato. Essa automação precisa ser criada e validada antes de ser possível iniciar uma compilação pela aba Actions.
+O workflow **Build Manjaro MATE ISO** está em `Actions`. Ele é iniciado manualmente, permite selecionar o kernel LTS ou latest, prepara o ambiente de compilação, gera a ISO, verifica o checksum e publica os arquivos como artefato por 7 dias.
+
+A compilação ainda precisa ser executada e concluída com sucesso para confirmar que todos os pacotes e etapas de geração funcionam no ambiente de nuvem. A validação de código não substitui esse teste.
 
 ## Estrutura
 
-- Os scripts na raiz são a entrada oficial do workflow.
-- `eu-project-iso-main/ci/shelly` contém o PKGBUILD e os arquivos auxiliares usados para compilar Shelly.
-- A compilação usa imagens de contêiner da distribuição escolhida.
+- `build-cloud.sh`: entrada comum para a compilação em contêiner.
+- `build-manjaro.sh`: perfil e compilação Manjaro MATE.
+- `build-arch.sh`: perfil e compilação Arch Linux.
+- `build-shelly.sh`: compilação e publicação local dos pacotes Shelly e Bibata.
+- `.github/workflows/validate.yml`: validação estática e pré-validação sem gerar ISO.
+- `.github/workflows/build-manjaro-mate.yml`: compilação manual da ISO Manjaro MATE em nuvem.
 
-## Validação
+## Verificação final
 
-A conclusão do workflow e a geração do checksum não substituem o teste de inicialização. Antes de distribuir uma ISO, teste BIOS/UEFI, sessão gráfica, rede e instalador em uma máquina virtual.
+Mesmo com a ISO gerada e checksum válido, ainda é necessário testar a inicialização em BIOS/UEFI, sessão MATE, LightDM, Firefox, Shelly, rede, Bluetooth e instalador Calamares em máquina virtual antes de considerar a imagem pronta para distribuição.
