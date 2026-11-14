@@ -48,7 +48,7 @@ test -x "$ZIG_DIR/zig"
 # build-only dependency explicitly in a private venv and verify the CLI first.
 CLICKGEN_VENV="$WORK/clickgen-venv"
 python -m venv "$CLICKGEN_VENV"
-"$CLICKGEN_VENV/bin/python" -m pip install --disable-pip-version-check --no-cache-dir 'clickgen>=2.0.0'
+"$CLICKGEN_VENV/bin/python" -m pip install --disable-pip-version-check --no-cache-dir 'clickgen>=2.1.8'
 "$CLICKGEN_VENV/bin/ctgen" --help >/dev/null
 
 if ! id shellybuild >/dev/null 2>&1; then
