@@ -48,7 +48,7 @@ jobs:
           count = 0
           for path in paths:
               source = path.read_text(encoding="utf-8")
-              blocks = re.findall(r"<<'PY'\\s*\\n(.*?)^PY$", source, re.S | re.M)
+              blocks = re.findall(r"<<'PY'\s*\n(.*?)^PY$", source, re.S | re.M)
               for index, block in enumerate(blocks, 1):
                   compile(block, f"{path}:python-block-{index}", "exec")
                   count += 1
