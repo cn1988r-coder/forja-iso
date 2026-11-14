@@ -93,62 +93,50 @@ jobs:
           grep -Fxq 'BASE=Manjaro' forja-output/build-info.txt
           echo "iso=$iso" >> "$GITHUB_OUTPUT"
 
-      - name: Prepare release assets (split ISO below GitHub per-file limit)
-        id: release_assets
+      - name: Check MEGA credentials before build
         shell: bash
         env:
-          ISO_PATH: ${{ steps.verify.outputs.iso }}
+          MEGA_EMAIL: ${{ secrets.MEGA_EMAIL }}
+          MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
         run: |
           set -Eeuo pipefail
-          release_dir="$RUNNER_TEMP/forja-release-assets"
-          mkdir -p "$release_dir"
-          iso_name="$(basename "$ISO_PATH")"
-          # GitHub Releases limit each individual asset to less than 2 GiB.
-          # 1900 MiB leaves a safety margin below that limit.
-          split --bytes=1900M --numeric-suffixes=0 --suffix-length=3 \
-            "$ISO_PATH" "$release_dir/$iso_name.part-"
-          cp "${ISO_PATH}.sha256" "$release_dir/"
-          cp forja-output/build-info.txt "$release_dir/"
-          cat > "$release_dir/LEIA-ME.txt" <<EOF
-          ISO Manjaro MATE da Forja
-          Kernel: ${{ inputs.kernel }}
-
-          A ISO foi dividida em partes para respeitar o limite de tamanho por arquivo do GitHub Releases.
-          Baixe TODAS as partes .part-* para a mesma pasta, junto com o arquivo .iso.sha256.
-
-          No Linux, dentro dessa pasta, execute:
-          cat "$iso_name".part-* > "$iso_name"
-          sha256sum --check "$iso_name.sha256"
-
-          Só use a ISO se a verificação SHA-256 terminar com OK.
-          Depois de guardar uma cópia segura, exclua a release na página Releases do repositório
-          para remover os arquivos publicados. Releases não expiram automaticamente.
-          EOF
-          echo "asset_dir=$release_dir" >> "$GITHUB_OUTPUT"
-
-      - name: Publish ISO as a GitHub Release (not an Actions artifact)
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          KERNEL: ${{ inputs.kernel }}
-          ASSET_DIR: ${{ steps.release_assets.outputs.asset_dir }}
-        run: |
-          set -Eeuo pipefail
-          tag="forja-manjaro-mate-$KERNEL-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          mapfile -t assets < <(find "$ASSET_DIR" -maxdepth 1 -type f -printf '%p\\n' | sort)
-          if (( ${#assets[@]} < 4 )); then
-            echo "ERRO: arquivos de entrega insuficientes para publicar a ISO." >&2
+          if [[ -z "${MEGA_EMAIL:-}" || -z "${MEGA_PASSWORD:-}" ]]; then
+            echo "ERRO: configure os secrets MEGA_EMAIL e MEGA_PASSWORD nas configurações do repositório antes de iniciar a compilação." >&2
             exit 1
           fi
-          for asset in "${assets[@]}"; do
-            size="$(stat -c '%s' "$asset")"
-            if (( size >= 2147483648 )); then
-              echo "ERRO: ativo excede o limite de 2 GiB do GitHub Releases: $asset ($size bytes)" >&2
-              exit 1
-            fi
-          done
-          gh release create "$tag" "${assets[@]}" \
-            --repo "$GITHUB_REPOSITORY" \
-            --target "$GITHUB_SHA" \
-            --title "Forja Manjaro MATE - $KERNEL - execução $GITHUB_RUN_ID" \
-            --notes "ISO Manjaro MATE compilada pela Forja. Baixe todas as partes .part-* e o checksum .iso.sha256. Reconstrua com cat NOME.iso.part-* > NOME.iso e valide com sha256sum --check NOME.iso.sha256. Após baixar e conferir, exclua esta release para remover os arquivos."
+          echo "Credenciais MEGA presentes. Nenhum segredo será exibido."
+
+      - name: Upload verified ISO to MEGA
+        shell: bash
+        env:
+          MEGA_EMAIL: ${{ secrets.MEGA_EMAIL }}
+          MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
+          ISO_PATH: ${{ steps.verify.outputs.iso }}
+          KERNEL: ${{ inputs.kernel }}
+        run: |
+          set -Eeuo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y rclone
+          test -n "${MEGA_EMAIL:-}"
+          test -n "${MEGA_PASSWORD:-}"
+          config="$RUNNER_TEMP/rclone-mega.conf"
+          rclone config create mega mega user "$MEGA_EMAIL" pass "$MEGA_PASSWORD" --config "$config"
+          chmod 600 "$config"
+          remote="mega:Forja-ISO/Manjaro-MATE/$KERNEL/$GITHUB_RUN_ID"
+          iso_dir="$(dirname "$ISO_PATH")"
+          iso_name="$(basename "$ISO_PATH")"
+          # Envia a ISO integral, checksum e metadados para a conta MEGA.
+          rclone copy "$iso_dir" "$remote" \
+            --config "$config" \
+            --include "$iso_name" \
+            --include "$iso_name.sha256" \
+            --include "build-info.txt" \
+            --checksum \
+            --transfers 2 \
+            --checkers 4 \
+            --retries 3 \
+            --low-level-retries 10 \
+            --stats 30s
+          rclone ls "$remote" --config "$config"
+          echo "Upload concluído: $remote"
+          rm -f "$config"
