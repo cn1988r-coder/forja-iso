@@ -57,7 +57,7 @@ jobs:
           print(f"{count} blocos Python embutidos validados.")
           PY
 
-      - name: Verify Shelly source checksums
+      - name: Verify Shelly and Bibata source checksums
         shell: bash
         run: |
           set -euo pipefail
