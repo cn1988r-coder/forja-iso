@@ -387,28 +387,32 @@ import json, re, subprocess, sys, urllib.request
 
 kind = sys.argv[1]
 result = subprocess.run(
-    ["pacman", "-Sl", "core"],
+    ["pacman", "-Sl"],
     check=True, capture_output=True, text=True
 )
-available = set()
+available = {}
 for line in result.stdout.splitlines():
     fields = line.split()
-    if len(fields) >= 2 and re.fullmatch(r"linux[0-9]+", fields[1]):
-        available.add(fields[1])
+    if len(fields) < 3 or not re.fullmatch(r"linux[0-9]+", fields[1]):
+        continue
+    package, version = fields[1], fields[2]
+    # Ignore release candidates and other pre-release packages (for example 7.4.0rc2).
+    match = re.fullmatch(r"(\d+)\.(\d+)(?:\.(\d+))?-\d+", version)
+    if not match:
+        continue
+    major, minor = int(match.group(1)), int(match.group(2))
+    patch = int(match.group(3) or 0)
+    if package != "linux" + str(major) + str(minor):
+        continue
+    available[package] = (major, minor, patch)
 
 if not available:
-    raise SystemExit("Nenhum kernel Manjaro foi encontrado no repositório stable.")
-
-def package_key(package):
-    match = re.fullmatch(r"linux(\d)(\d+)", package)
-    if not match:
-        return (-1, -1)
-    return int(match.group(1)), int(match.group(2))
+    raise SystemExit("Nenhum kernel estável foi encontrado nos repositórios Manjaro configurados.")
 
 if kind == "latest":
-    # Latest means newest kernel package actually published in Manjaro stable,
-    # not a newer upstream kernel that Manjaro has not packaged yet.
-    package = max(available, key=package_key)
+    # Latest means newest stable kernel package actually published by Manjaro,
+    # not an upstream release or release candidate that Manjaro has not adopted.
+    package = max(available, key=lambda name: available[name])
 else:
     with urllib.request.urlopen("https://www.kernel.org/releases.json", timeout=30) as response:
         data = json.load(response)
@@ -424,7 +428,7 @@ else:
         if candidate in available:
             candidates.append(((major, minor), candidate))
     if not candidates:
-        raise SystemExit("Nenhum kernel LTS do kernel.org está disponível no Manjaro stable.")
+        raise SystemExit("Nenhum kernel LTS do kernel.org está disponível nos repositórios Manjaro configurados.")
     package = max(candidates, key=lambda item: item[0])[1]
 
 check = subprocess.run(
@@ -432,7 +436,7 @@ check = subprocess.run(
     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
 )
 if check.returncode:
-    raise SystemExit("Kernel Manjaro " + package + " não está disponível no repositório stable.")
+    raise SystemExit("Kernel Manjaro " + package + " não está disponível nos repositórios configurados.")
 print(package)
 PY
 )"
