@@ -106,7 +106,6 @@ enable_systemd_live=('NetworkManager' 'bluetooth' 'manjaro-live' 'mhwd-live' 'pa
 MATE_PROFILE
   cat > "$TARGET/Packages-Desktop" <<'MATE_PACKAGES'
 mate
-mate
 mate-session-manager
 mate-panel
 mate-control-center
