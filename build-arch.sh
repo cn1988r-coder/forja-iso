@@ -22,9 +22,21 @@ if (("${#MISSING_ARCH_BUILD_PACKAGES[@]}")); then
   exit 10
 fi
 pacman -S --needed --noconfirm "${ARCH_BUILD_PACKAGES[@]}"
+rm -f "$WORK/shelly-http.pid"
+SHELLY_HTTP_PID=""
+cleanup_shelly_http() {
+  local pid="${SHELLY_HTTP_PID:-}"
+  if [[ -z "$pid" && -s "$WORK/shelly-http.pid" ]]; then
+    pid="$(cat "$WORK/shelly-http.pid")"
+  fi
+  if [[ "$pid" =~ ^[0-9]+$ ]]; then
+    kill "$pid" >/dev/null 2>&1 || true
+  fi
+}
+trap cleanup_shelly_http EXIT
 bash /forja-ci/build-shelly.sh "$WORK"
 SHELLY_HTTP_PID="$(cat "$WORK/shelly-http.pid")"
-trap 'kill "$SHELLY_HTTP_PID" >/dev/null 2>&1 || true' EXIT
+kill -0 "$SHELLY_HTTP_PID"
 rm -rf "$PROFILE"
 cp -a /usr/share/archiso/configs/releng "$PROFILE"
 cat >> "$PROFILE/pacman.conf" <<'REPO'
