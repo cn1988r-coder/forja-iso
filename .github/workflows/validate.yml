@@ -43,6 +43,18 @@ jobs:
               su -s /bin/bash builder -c "cd /tmp/shelly-source && makepkg --verifysource --noconfirm"
             '
 
+      - name: Inspect Manjaro stable ISO profiles
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --single-branch --branch v17.1 https://code.manjaro.org/profiles/iso-profiles.git /tmp/manjaro-iso-profiles
+          for desktop in xfce gnome kde; do
+            test -f "/tmp/manjaro-iso-profiles/manjaro/$desktop/profile.conf"
+            test -f "/tmp/manjaro-iso-profiles/manjaro/$desktop/Packages-Desktop"
+          done
+          echo "=== Manjaro v17.1 KDE display manager ==="
+          grep -nE 'displaymanager|plasma-login-manager|sddm' /tmp/manjaro-iso-profiles/manjaro/kde/profile.conf /tmp/manjaro-iso-profiles/manjaro/kde/Packages-Desktop || true
+
       - name: Validate Python syntax
         run: python3 -m py_compile eu-project-iso-main/forja_agent.py
 
