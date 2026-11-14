@@ -1,0 +1,87 @@
+name: Build Manjaro MATE ISO
+
+on:
+  workflow_dispatch:
+    inputs:
+      kernel:
+        description: "Kernel da ISO Manjaro MATE"
+        required: true
+        type: choice
+        options:
+          - lts
+          - latest
+        default: lts
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manjaro-mate-iso-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build Manjaro MATE
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate build scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n build-cloud.sh build-manjaro.sh build-shelly.sh
+          sudo apt-get update -qq
+          sudo apt-get install -y shellcheck
+          shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh build-shelly.sh
+
+      - name: Prepare output directory
+        run: mkdir -p "$GITHUB_WORKSPACE/forja-output"
+
+      - name: Build Manjaro MATE ISO
+        shell: bash
+        env:
+          FORJA_KERNEL: ${{ inputs.kernel }}
+        run: |
+          set -Eeuo pipefail
+          docker pull manjarolinux/base:latest
+          docker run --rm \
+            --privileged \
+            --security-opt seccomp=unconfined \
+            -v "$GITHUB_WORKSPACE:/forja-ci:ro" \
+            -v "$GITHUB_WORKSPACE/forja-output:/forja-output" \
+            -e FORJA_DISTRIBUTION=manjaro \
+            -e FORJA_DESKTOP=mate \
+            -e FORJA_KERNEL="$FORJA_KERNEL" \
+            -e FORJA_OUTPUT=/forja-output \
+            manjarolinux/base:latest \
+            bash -lc 'bash /forja-ci/build-cloud.sh'
+
+      - name: Verify ISO and checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t isos < <(find forja-output -maxdepth 1 -type f -name '*.iso' -size +100M)
+          if (( ${#isos[@]} != 1 )); then
+            echo "ERRO: esperado exatamente uma ISO válida; encontradas: ${#isos[@]}" >&2
+            find forja-output -maxdepth 1 -type f -printf '%p (%s bytes)\n'
+            exit 1
+          fi
+          test -s "${isos[0]}.sha256"
+          sha256sum --check "${isos[0]}.sha256"
+          test -s forja-output/build-info.txt
+          grep -Fxq 'DESKTOP=mate' forja-output/build-info.txt
+          grep -Fxq 'BASE=Manjaro' forja-output/build-info.txt
+
+      - name: Upload Manjaro MATE ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: forja-manjaro-mate-${{ inputs.kernel }}
+          path: |
+            forja-output/*.iso
+            forja-output/*.iso.sha256
+            forja-output/build-info.txt
+          if-no-files-found: error
+          retention-days: 7
