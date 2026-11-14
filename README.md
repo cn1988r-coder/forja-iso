@@ -22,7 +22,6 @@ O workflow valida a sintaxe dos scripts antes de iniciar a compilação. A ISO, 
 
 - Os scripts na raiz são a entrada oficial do workflow.
 - `eu-project-iso-main/ci/shelly` contém o PKGBUILD e os arquivos auxiliares usados para compilar Shelly.
-- `eu-project-iso-main/forja_agent.py` é um agente local legado e não participa da compilação em nuvem.
 - A compilação usa imagens de contêiner da distribuição escolhida.
 
 ## Validação
