@@ -69,6 +69,9 @@ jobs:
               cp -a /source /tmp/shelly-source
               chown -R builder:builder /tmp/shelly-source
               su -s /bin/bash builder -c "cd /tmp/shelly-source && makepkg --verifysource --noconfirm"
+              git clone --depth 1 https://aur.archlinux.org/bibata-cursor-theme.git /tmp/bibata-source
+              chown -R builder:builder /tmp/bibata-source
+              su -s /bin/bash builder -c "cd /tmp/bibata-source && makepkg --verifysource --noconfirm"
             '
 
       - name: Inspect Manjaro stable ISO profiles
