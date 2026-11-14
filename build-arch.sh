@@ -6,7 +6,7 @@ KERNEL="${FORJA_KERNEL:-lts}"
 WORK=/tmp/forja-arch
 OUT="${FORJA_OUTPUT:-/forja-output}"
 PROFILE="$WORK/profile"
-case "$DESKTOP" in xfce|mate|gnome|kde) ;; *) echo "Desktop inválido: $DESKTOP"; exit 2;; esac
+case "$DESKTOP" in xfce|mate|gnome) ;; *) echo "Desktop inválido: $DESKTOP"; exit 2;; esac
 case "$KERNEL" in latest) KERNEL_PKG=linux;; lts) KERNEL_PKG=linux-lts;; *) echo "Kernel inválido: $KERNEL"; exit 2;; esac
 mkdir -p "$WORK" "$OUT"
 echo "== Forja Cloud Builder: Arch Linux / $DESKTOP / $KERNEL =="
@@ -67,13 +67,26 @@ def available(package):
 
 packages = [x.strip() for x in path.read_text().splitlines() if x.strip() and not x.lstrip().startswith("#")]
 packages = [p for p in packages if p not in {"linux", "linux-lts"}]
+legacy = {
+    "gtk-theme-breath", "galculator-gtk2", "qpdfview", "gconf", "gksu",
+    "gnome-icon-theme", "gnome-themes-standard", "appimagelauncher",
+    "hexchat", "midori", "pidgin", "sylpheed", "p7zip", "ms-office-online",
+    "pulseaudio-ctl", "steam-manjaro", "pamac", "gtk3-print-backends",
+    "splix", "pyqt5-common", "gtk-xfce-engine", "xf86-input-keyboard",
+    "xf86-input-mouse", "xdg-su", "manjaro-documentation-en", "mlocate",
+    "gcc-libs-multilib", "gcc-multilib", "pkg-config", "lib32-flex",
+    "lib32-mesa-demos", "xfce4", "xfce4-goodies", "xfce4-terminal",
+    "xfce4-power-manager", "xfce4-screensaver", "xfce4-notifyd",
+    "xfce4-taskmanager", "thunar", "ristretto", "mousepad", "parole",
+    "galculator", "evince", "exo", "garcon", "xfconf", "tumbler",
+}
+packages = [p for p in packages if p not in legacy and not p.startswith(("nvidia", "lib32-nvidia", "catalyst", "lib32-catalyst"))]
 common = ["xorg-server", "networkmanager", "linux-firmware", kernel]
 optional_common = ["network-manager-applet", "firefox", "archinstall"]
 desktop_packages = {
  "xfce": ["xfce4", "xfce4-goodies", "lightdm", "lightdm-gtk-greeter"],
  "mate": [],
  "gnome": ["gnome", "gdm"],
- "kde": ["plasma", "konsole", "dolphin", "sddm"],
 }
 if desktop == "mate":
     core = [
@@ -88,18 +101,18 @@ if desktop == "mate":
     fallbacks = [
         ("mate-themes", "adwaita-gtk-theme"),
         ("mate-icon-theme", "adwaita-icon-theme"),
-        ("mate-terminal", "xfce4-terminal"),
-        ("caja", "thunar"),
+        ("mate-terminal", None),
+        ("caja", None),
         ("mate-applets", None),
-        ("mate-power-manager", "xfce4-power-manager"),
-        ("mate-screensaver", "xfce4-screensaver"),
-        ("mate-notification-daemon", "xfce4-notifyd"),
+        ("mate-power-manager", None),
+        ("mate-screensaver", None),
+        ("mate-notification-daemon", None),
         ("engrampa", "xarchiver"),
         ("atril", "evince"),
-        ("eom", "ristretto"),
-        ("pluma", "mousepad"),
-        ("mate-system-monitor", "xfce4-taskmanager"),
-        ("mate-calc", "galculator"),
+        ("eom", None),
+        ("pluma", None),
+        ("mate-system-monitor", None),
+        ("mate-calc", None),
     ]
     for package, fallback in fallbacks:
         if available(package):
@@ -150,7 +163,6 @@ fi
 case "$DESKTOP" in
   xfce|mate) DM=lightdm ;;
   gnome) DM=gdm ;;
-  kde) DM=sddm ;;
 esac
 mkdir -p "$PROFILE/airootfs/etc/systemd/system"
 ln -sfn "/usr/lib/systemd/system/$DM.service" "$PROFILE/airootfs/etc/systemd/system/display-manager.service"
