@@ -133,6 +133,16 @@ gtk-theme='Materia-dark'
 [org/mate/marco/general]
 theme='Materia-dark'
 DCCONF
+      # Firefox is the system default for HTTP/HTTPS and HTML documents.
+      mkdir -p "$overlay/etc/xdg" "$overlay/etc/skel/.config"
+      cat > "$overlay/etc/xdg/mimeapps.list" <<'MIMEAPPS'
+[Default Applications]
+x-scheme-handler/http=firefox.desktop
+x-scheme-handler/https=firefox.desktop
+text/html=firefox.desktop
+application/xhtml+xml=firefox.desktop
+MIMEAPPS
+      install -Dm644 "$overlay/etc/xdg/mimeapps.list" "$overlay/etc/skel/.config/mimeapps.list"
       mkdir -p "$overlay/usr/share/icons/default"
       cat > "$overlay/usr/share/icons/default/index.theme" <<'CURSOR'
 [Icon Theme]
@@ -239,7 +249,7 @@ PKGS
     systemd grub efibootmgr mkinitcpio calamares linux-firmware
     manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db
     networkmanager mate-session-manager mate-panel mate-control-center
-    mate-settings-daemon marco lightdm lightdm-gtk-greeter
+    mate-settings-daemon marco lightdm lightdm-gtk-greeter firefox
     network-manager-applet bluez bluez-utils blueman
     papirus-icon-theme manjaro-wallpapers-18.0 dconf
     bibata-cursor-theme materia-gtk-theme
@@ -346,7 +356,7 @@ case "$DESKTOP" in
   xfce) DESKTOP_CORE_PACKAGES=(xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 lightdm lightdm-gtk-greeter) ;;
   gnome) DESKTOP_CORE_PACKAGES=(gnome-shell gdm gnome-control-center nautilus) ;;
   kde) DESKTOP_CORE_PACKAGES=(plasma-login-manager plasma-desktop plasma-workspace kwin) ;;
-  mate) DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon marco lightdm lightdm-gtk-greeter) ;;
+  mate) DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon marco lightdm lightdm-gtk-greeter firefox) ;;
 esac
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
