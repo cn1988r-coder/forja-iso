@@ -19,7 +19,6 @@ on:
           - mate
           - xfce
           - gnome
-          - kde
         default: mate
       kernel:
         description: Kernel
