@@ -311,7 +311,7 @@ while IFS= read -r -d '' package_list; do
       continue
     fi
     case "$package" in
-      gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|gnome-icon-theme|gnome-themes-standard|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|gtk-xfce-engine|xf86-input-keyboard|xf86-input-mouse|xdg-su|manjaro-documentation-en|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|xfce4*|xfconf|exo|garcon|thunar|tumbler|menulibre|mugshot|ristretto|mousepad|parole|orage|catfish|xfburn|xfdesktop*|xfwm4*|galculator|evince|manjaro-xfce-settings|manjaro-xfce-minimal-settings|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*|nvidia-340xx*|nvidia-390xx*|lib32-nvidia-340xx*|lib32-nvidia-390xx*)
+      gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|gnome-icon-theme|gnome-themes-standard|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|gtk-xfce-engine|xf86-input-keyboard|xf86-input-mouse|xdg-su|manjaro-documentation-en|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|xfce4*|xfconf|exo|garcon|thunar|tumbler|menulibre|mugshot|ristretto|mousepad|parole|orage|catfish|xfburn|xfdesktop*|xfwm4*|galculator|evince|manjaro-xfce-settings|manjaro-xfce-minimal-settings|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*)
         echo "Forja: pacote legado/XFCE/NVIDIA removido: $package" >&2
         printf '# Forja: pacote legado removido: %s\\n' "$package" >> "$filtered_list"
         continue
