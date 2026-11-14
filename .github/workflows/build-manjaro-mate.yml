@@ -37,27 +37,6 @@ jobs:
           sudo apt-get install -y shellcheck
           shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh build-shelly.sh
 
-      - name: Authenticate Google Drive and prepare destination before build
-        shell: bash
-        env:
-          GOOGLE_DRIVE_RCLONE_CONFIG: ${{ secrets.GOOGLE_DRIVE_RCLONE_CONFIG }}
-          KERNEL: ${{ inputs.kernel }}
-        run: |
-          set -Eeuo pipefail
-          if [[ -z "${GOOGLE_DRIVE_RCLONE_CONFIG:-}" ]]; then
-            echo "ERRO: falta o secret GOOGLE_DRIVE_RCLONE_CONFIG com a configuração OAuth do rclone para Google Drive. A compilação foi bloqueada antes de começar." >&2
-            exit 1
-          fi
-          sudo apt-get update -qq
-          sudo apt-get install -y rclone
-          config="$RUNNER_TEMP/rclone-google-drive.conf"
-          printf '%s\n' "$GOOGLE_DRIVE_RCLONE_CONFIG" > "$config"
-          chmod 600 "$config"
-          # Testa a autorização e prepara a pasta antes de consumir recursos com a ISO.
-          rclone lsd gdrive: --config "$config"
-          rclone mkdir "gdrive:Forja-ISO/Manjaro-MATE/$KERNEL" --config "$config"
-          echo "Google Drive autenticado e destino preparado."
-
       - name: Free disk space for ISO build
         shell: bash
         run: |
@@ -114,35 +93,34 @@ jobs:
           grep -Fxq 'BASE=Manjaro' forja-output/build-info.txt
           echo "iso=$iso" >> "$GITHUB_OUTPUT"
 
-      - name: Upload verified ISO to Google Drive
+      - name: Upload complete ISO as a temporary GitHub artifact
+        id: upload_iso
+        uses: actions/upload-artifact@v7
+        with:
+          name: Forja-Manjaro-MATE-${{ inputs.kernel }}
+          path: ${{ steps.verify.outputs.iso }}
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+          archive: false
+
+      - name: Add direct download link to workflow summary
         shell: bash
         env:
-          ISO_PATH: ${{ steps.verify.outputs.iso }}
+          ARTIFACT_URL: ${{ steps.upload_iso.outputs.artifact-url }}
           KERNEL: ${{ inputs.kernel }}
         run: |
           set -Eeuo pipefail
-          test -s "$RUNNER_TEMP/rclone-google-drive.conf"
-          config="$RUNNER_TEMP/rclone-google-drive.conf"
-          remote="gdrive:Forja-ISO/Manjaro-MATE/$KERNEL/$GITHUB_RUN_ID"
-          iso_dir="$(dirname "$ISO_PATH")"
-          iso_name="$(basename "$ISO_PATH")"
-          # Envia a ISO integral, checksum e metadados para o Google Drive.
-          rclone copy "$iso_dir" "$remote" \
-            --config "$config" \
-            --include "$iso_name" \
-            --include "$iso_name.sha256" \
-            --include "build-info.txt" \
-            --checksum \
-            --transfers 2 \
-            --checkers 4 \
-            --retries 3 \
-            --low-level-retries 10 \
-            --stats 30s
-          rclone ls "$remote" --config "$config"
-          echo "Upload concluído: $remote"
-          rm -f "$config"
-
-      - name: Remove temporary Google Drive configuration
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/rclone-google-drive.conf"
+          test -n "$ARTIFACT_URL"
+          {
+            echo "## ISO Manjaro MATE pronta"
+            echo
+            echo "- **Kernel:** $KERNEL"
+            echo "- **Arquivo:** ISO completa, sem divisão em partes"
+            echo "- **Validade:** 24 horas (1 dia)"
+            echo
+            echo "[**BAIXAR A ISO COMPLETA**]($ARTIFACT_URL)"
+            echo
+            echo "O link exige login no GitHub e acesso de leitura ao repositório."
+            echo "O GitHub enviará uma notificação por e-mail quando esta execução terminar, se as notificações de Actions por e-mail estiverem ativadas na conta."
+          } >> "$GITHUB_STEP_SUMMARY"
