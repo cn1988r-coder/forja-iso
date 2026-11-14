@@ -56,6 +56,16 @@ jobs:
           grep -Eq '^[[:space:]]*sddm([[:space:]]|$)' /tmp/manjaro-iso-profiles/manjaro/kde/Packages-Desktop
           grep -Fq 'kde) DESKTOP_CORE_PACKAGES=(sddm plasma-desktop plasma-workspace kwin)' build-manjaro.sh
           grep -Fq 'kde) DM=sddm ;;' build-manjaro.sh
+          grep -Fxq 'displaymanager="lightdm"' /tmp/manjaro-iso-profiles/manjaro/xfce/profile.conf
+          grep -Fxq 'lightdm' /tmp/manjaro-iso-profiles/manjaro/xfce/Packages-Desktop
+          grep -Fxq 'lightdm-gtk-greeter' /tmp/manjaro-iso-profiles/manjaro/xfce/Packages-Desktop
+          grep -Fxq 'displaymanager="gdm"' /tmp/manjaro-iso-profiles/manjaro/gnome/profile.conf
+          grep -Fxq 'gdm' /tmp/manjaro-iso-profiles/manjaro/gnome/Packages-Desktop
+          grep -Fxq 'sddm' /tmp/manjaro-iso-profiles/manjaro/kde/Packages-Desktop
+          for package in plasma-desktop plasma-workspace kwin; do
+            grep -Fxq "$package" /tmp/manjaro-iso-profiles/manjaro/kde/Packages-Desktop
+          done
+          grep -Fq "'clickgen>=2.1.8'" build-shelly.sh
           echo "Manjaro v17.1 KDE: SDDM confirmado no perfil e no construtor."
 
       - name: Validate Python syntax
