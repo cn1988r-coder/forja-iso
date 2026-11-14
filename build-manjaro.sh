@@ -53,7 +53,7 @@ PROFILE_READY=0
 PROFILE_REPO="https://code.manjaro.org/profiles/iso-profiles.git"
 for attempt in 1 2 3 4 5 6 7 8; do
   echo "Obtendo perfis oficiais: tentativa $attempt/8"
-  if git -c http.version=HTTP/1.1 clone --depth 1 --single-branch --branch master "$PROFILE_REPO" "$PROFILE_ROOT" \
+  if git -c http.version=HTTP/1.1 clone --depth 1 --single-branch --branch v17.1 "$PROFILE_REPO" "$PROFILE_ROOT" \
       && [[ -d "$PROFILE_ROOT/manjaro/xfce" && -d "$PROFILE_ROOT/shared" ]]; then
     PROFILE_READY=1
     break
