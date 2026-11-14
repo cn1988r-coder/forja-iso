@@ -37,8 +37,6 @@ jobs:
             -v "$GITHUB_WORKSPACE/eu-project-iso-main/ci/shelly:/source:ro" \
             archlinux:latest bash -lc '
               pacman -Syu --noconfirm --needed base-devel git
-              curl -fL --retry 5 --retry-all-errors https://github.com/Seafoam-Labs/Shelly-ALPM/archive/v3.2.1.tar.gz -o /tmp/shelly-upstream.tar.gz
-              sha256sum /tmp/shelly-upstream.tar.gz
               useradd --create-home builder
               cp -a /source /tmp/shelly-source
               chown -R builder:builder /tmp/shelly-source
