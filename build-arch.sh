@@ -168,17 +168,24 @@ for settings in \
 gtk-theme-name=Materia-dark
 GTK
 done
-if [[ "$DESKTOP" == gnome ]]; then
+if [[ "$DESKTOP" == gnome || "$DESKTOP" == mate ]]; then
   mkdir -p "$PROFILE/airootfs/etc/dconf/profile" "$PROFILE/airootfs/etc/dconf/db/local.d"
   cat > "$PROFILE/airootfs/etc/dconf/profile/user" <<'DCPROFILE'
 user-db:user
 system-db:local
 DCPROFILE
-  cat > "$PROFILE/airootfs/etc/dconf/db/local.d/00-forja-theme" <<'DCCONF'
+  if [[ "$DESKTOP" == gnome ]]; then
+    cat > "$PROFILE/airootfs/etc/dconf/db/local.d/00-forja-theme" <<'DCCONF'
 [org/gnome/desktop/interface]
 gtk-theme='Materia-dark'
 color-scheme='prefer-dark'
 DCCONF
+  else
+    cat > "$PROFILE/airootfs/etc/dconf/db/local.d/00-forja-theme" <<'DCCONF'
+[org/mate/interface]
+gtk-theme='Materia-dark'
+DCCONF
+  fi
 elif [[ "$DESKTOP" == xfce ]]; then
   mkdir -p "$PROFILE/airootfs/etc/xdg/xfce4/xfconf/xfce-perchannel-xml"
   cat > "$PROFILE/airootfs/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml" <<'XFCONF'
