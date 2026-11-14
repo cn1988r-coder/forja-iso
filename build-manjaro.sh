@@ -243,6 +243,7 @@ manjaro-wallpapers-18.0
 dconf
 bibata-cursor-theme
 materia-gtk-theme
+firefox
 PKGS
 
   MATE_CORE_PACKAGES=(
