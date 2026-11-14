@@ -160,4 +160,7 @@ jobs:
           grep -Fq 'kind == "latest"' build-manjaro.sh
           grep -Fq 'FORJA_PREFLIGHT_ONLY' build-arch.sh
           grep -Fq 'FORJA_PREFLIGHT_ONLY' build-manjaro.sh
+          grep -Fq 'firefox' build-manjaro.sh
+          grep -Fq 'x-scheme-handler/https=firefox.desktop' build-manjaro.sh
+          grep -Fq 'shelly-flatpak-backend' build-manjaro.sh
           grep -Fq 'moniker' build-manjaro.sh
