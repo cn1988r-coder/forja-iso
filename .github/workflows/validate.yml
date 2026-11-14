@@ -107,26 +107,28 @@ jobs:
         run: |
           set -euo pipefail
           git clone --depth 1 --single-branch --branch v17.1 https://code.manjaro.org/profiles/iso-profiles.git /tmp/manjaro-iso-profiles
-          for desktop in xfce gnome; do
-            test -f "/tmp/manjaro-iso-profiles/manjaro/$desktop/profile.conf"
-            test -f "/tmp/manjaro-iso-profiles/manjaro/$desktop/Packages-Desktop"
-          done
-          grep -Fxq 'displaymanager="lightdm"' /tmp/manjaro-iso-profiles/manjaro/xfce/profile.conf
-          grep -Fxq 'lightdm' /tmp/manjaro-iso-profiles/manjaro/xfce/Packages-Desktop
-          grep -Fxq 'lightdm-gtk-greeter' /tmp/manjaro-iso-profiles/manjaro/xfce/Packages-Desktop
-          grep -Fxq 'displaymanager="gdm"' /tmp/manjaro-iso-profiles/manjaro/gnome/profile.conf
-          grep -Fxq 'gdm' /tmp/manjaro-iso-profiles/manjaro/gnome/Packages-Desktop
+          test -f /tmp/manjaro-iso-profiles/shared/Packages-Root
+          test -f /tmp/manjaro-iso-profiles/shared/Packages-Live
+          test -f /tmp/manjaro-iso-profiles/shared/Packages-Mhwd
+          grep -Fq 'case "$DESKTOP" in mate)' build-manjaro.sh
+          grep -Fq 'mate) SOURCE=""' build-manjaro.sh
+          grep -Fq 'MATE_PACKAGES' build-manjaro.sh
           grep -Fq "'clickgen>=2.1.8'" build-shelly.sh
-          echo "Perfis Manjaro XFCE e GNOME verificados."
+          echo "Base compartilhada Manjaro e perfil personalizado exclusivamente MATE verificados."
 
       - name: Validate supported build choices and Materia Dark defaults
         shell: bash
         run: |
           set -euo pipefail
+          # Arch mantém as opções próprias; Manjaro aceita somente MATE.
           for desktop in xfce mate gnome; do
             grep -Fq "$desktop" build-arch.sh
-            grep -Fq "$desktop" build-manjaro.sh
           done
+          grep -Fq 'case "$DESKTOP" in mate)' build-manjaro.sh
+          if grep -Eq 'case "\$DESKTOP" in xfce\|mate\|gnome|xfce\|mate\|gnome\)' build-manjaro.sh; then
+            echo "ERRO: Manjaro não pode oferecer XFCE ou GNOME na Forja." >&2
+            exit 1
+          fi
           for kernel in lts latest; do
             grep -Fq "$kernel" build-arch.sh
             grep -Fq "$kernel" build-manjaro.sh
@@ -152,7 +154,7 @@ jobs:
           grep -Fq 'nvidia*' build-manjaro.sh
           ! grep -Fq 'mate-terminal:xfce4-terminal' build-manjaro.sh
           ! grep -Fq '("mate-terminal", "xfce4-terminal")' build-arch.sh
-          # O tema precisa ser obrigatório nas duas bases e aplicado aos três desktops.
+          # O tema precisa ser obrigatório nas duas bases e aplicado aos ambientes suportados.
           grep -Fq '"materia-gtk-theme"' build-arch.sh
           grep -Fq 'materia-gtk-theme' build-manjaro.sh
           grep -Fq 'gtk-theme-name=Materia-dark' build-arch.sh
