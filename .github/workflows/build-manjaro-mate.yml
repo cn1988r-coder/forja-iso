@@ -1,6 +1,14 @@
 name: Build Manjaro MATE ISO
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "build-manjaro.sh"
+      - "build-cloud.sh"
+      - "build-shelly.sh"
+      - ".github/workflows/build-manjaro-mate.yml"
   workflow_dispatch:
     inputs:
       kernel:
@@ -60,12 +68,22 @@ jobs:
           FORJA_KERNEL: ${{ inputs.kernel }}
         run: |
           set -Eeuo pipefail
+          # O buildiso cria OverlayFS dentro do chroot. O upperdir precisa
+          # ficar em filesystem real do runner, não no overlay2 do container.
+          mkdir -p "$RUNNER_TEMP/forja-manjaro"
+          work_fs="$(stat -f -c %T "$RUNNER_TEMP/forja-manjaro")"
+          echo "Filesystem da área de trabalho: $work_fs"
+          if [[ "$work_fs" == overlayfs || "$work_fs" == fuse.* ]]; then
+            echo "ERRO: RUNNER_TEMP não oferece filesystem adequado para upperdir OverlayFS." >&2
+            exit 1
+          fi
           docker pull manjarolinux/base:latest
           docker run --rm \
             --privileged \
             --security-opt seccomp=unconfined \
             -v "$GITHUB_WORKSPACE:/forja-ci:ro" \
             -v "$GITHUB_WORKSPACE/forja-output:/forja-output" \
+            -v "$RUNNER_TEMP/forja-manjaro:/tmp/forja-manjaro" \
             -e FORJA_DISTRIBUTION=manjaro \
             -e FORJA_DESKTOP=mate \
             -e FORJA_KERNEL="$FORJA_KERNEL" \
