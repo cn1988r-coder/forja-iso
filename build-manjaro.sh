@@ -149,7 +149,8 @@ for overlay_name in desktop-overlay live-overlay; do
     # Só remova componentes XFCE quando o perfil escolhido for MATE.
     # Fazer isso nos outros perfis apagava arquivos do próprio XFCE.
     if [[ "$DESKTOP" == mate ]]; then
-      find "$overlay" -depth \\( -iname '*xfce*' -o -iname '*sonar*' \\) -exec rm -rf {} +\n      find "$overlay" -type f \\( -iname '*midori*' -o -iname '*parole*' -o -iname '*ristretto*' -o -iname '*mousepad*' -o -iname '*thunar*' \\) -delete
+      find "$overlay" -depth \( -iname '*xfce*' -o -iname '*sonar*' \) -exec rm -rf {} +
+      find "$overlay" -type f \( -iname '*midori*' -o -iname '*parole*' -o -iname '*ristretto*' -o -iname '*mousepad*' -o -iname '*thunar*' \) -delete
       mkdir -p "$overlay/etc/dconf/profile" "$overlay/etc/dconf/db/local.d"
       cat > "$overlay/etc/dconf/profile/user" <<'DCPROFILE'
 user-db:user
