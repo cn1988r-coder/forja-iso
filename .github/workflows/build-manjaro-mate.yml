@@ -13,7 +13,7 @@ on:
         default: lts
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: manjaro-mate-iso-build
@@ -74,30 +74,81 @@ jobs:
             bash -lc 'bash /forja-ci/build-cloud.sh'
 
       - name: Verify ISO and checksum
+        id: verify
         shell: bash
         run: |
           set -euo pipefail
           mapfile -t isos < <(find forja-output -type f -name '*.iso' -size +100M)
           if (( ${#isos[@]} != 1 )); then
             echo "ERRO: esperado exatamente uma ISO válida; encontradas: ${#isos[@]}" >&2
-            find forja-output -type f -printf '%p (%s bytes)\n'
+            find forja-output -type f -printf '%p (%s bytes)\\n'
             exit 1
           fi
-          checksum_dir="$(dirname "${isos[0]}")"
-          checksum_file="$(basename "${isos[0]}").sha256"
-          test -s "$checksum_dir/$checksum_file"
-          (cd "$checksum_dir" && sha256sum --check "$checksum_file")
+          iso="${isos[0]}"
+          checksum_file="${iso}.sha256"
+          test -s "$checksum_file"
+          (cd "$(dirname "$iso")" && sha256sum --check "$(basename "$checksum_file")")
           test -s forja-output/build-info.txt
           grep -Fxq 'DESKTOP=mate' forja-output/build-info.txt
           grep -Fxq 'BASE=Manjaro' forja-output/build-info.txt
+          echo "iso=$iso" >> "$GITHUB_OUTPUT"
 
-      - name: Upload Manjaro MATE ISO
-        uses: actions/upload-artifact@v4
-        with:
-          name: forja-manjaro-mate-${{ inputs.kernel }}
-          path: |
-            forja-output/**/*.iso
-            forja-output/**/*.iso.sha256
-            forja-output/build-info.txt
-          if-no-files-found: error
-          retention-days: 7
+      - name: Prepare release assets (split ISO below GitHub per-file limit)
+        id: release_assets
+        shell: bash
+        env:
+          ISO_PATH: ${{ steps.verify.outputs.iso }}
+        run: |
+          set -Eeuo pipefail
+          release_dir="$RUNNER_TEMP/forja-release-assets"
+          mkdir -p "$release_dir"
+          iso_name="$(basename "$ISO_PATH")"
+          # GitHub Releases limit each individual asset to less than 2 GiB.
+          # 1900 MiB leaves a safety margin below that limit.
+          split --bytes=1900M --numeric-suffixes=0 --suffix-length=3 \
+            "$ISO_PATH" "$release_dir/$iso_name.part-"
+          cp "${ISO_PATH}.sha256" "$release_dir/"
+          cp forja-output/build-info.txt "$release_dir/"
+          cat > "$release_dir/LEIA-ME.txt" <<EOF
+          ISO Manjaro MATE da Forja
+          Kernel: ${{ inputs.kernel }}
+
+          A ISO foi dividida em partes para respeitar o limite de tamanho por arquivo do GitHub Releases.
+          Baixe TODAS as partes .part-* para a mesma pasta, junto com o arquivo .iso.sha256.
+
+          No Linux, dentro dessa pasta, execute:
+          cat "$iso_name".part-* > "$iso_name"
+          sha256sum --check "$iso_name.sha256"
+
+          Só use a ISO se a verificação SHA-256 terminar com OK.
+          Depois de guardar uma cópia segura, exclua a release na página Releases do repositório
+          para remover os arquivos publicados. Releases não expiram automaticamente.
+          EOF
+          echo "asset_dir=$release_dir" >> "$GITHUB_OUTPUT"
+
+      - name: Publish ISO as a GitHub Release (not an Actions artifact)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KERNEL: ${{ inputs.kernel }}
+          ASSET_DIR: ${{ steps.release_assets.outputs.asset_dir }}
+        run: |
+          set -Eeuo pipefail
+          tag="forja-manjaro-mate-$KERNEL-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          mapfile -t assets < <(find "$ASSET_DIR" -maxdepth 1 -type f -printf '%p\\n' | sort)
+          if (( ${#assets[@]} < 4 )); then
+            echo "ERRO: arquivos de entrega insuficientes para publicar a ISO." >&2
+            exit 1
+          fi
+          for asset in "${assets[@]}"; do
+            size="$(stat -c '%s' "$asset")"
+            if (( size >= 2147483648 )); then
+              echo "ERRO: ativo excede o limite de 2 GiB do GitHub Releases: $asset ($size bytes)" >&2
+              exit 1
+            fi
+          done
+          gh release create "$tag" "${assets[@]}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Forja Manjaro MATE - $KERNEL - execução $GITHUB_RUN_ID" \
+            --notes "ISO Manjaro MATE compilada pela Forja. Baixe todas as partes .part-* e o checksum .iso.sha256. Reconstrua com cat NOME.iso.part-* > NOME.iso e valide com sha256sum --check NOME.iso.sha256. Após baixar e conferir, exclua esta release para remover os arquivos."
