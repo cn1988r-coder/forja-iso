@@ -9,15 +9,9 @@ Compilador de ISOs x86_64 para **Arch Linux** e **Manjaro**, executado em GitHub
 - **Manjaro:** exclusivamente MATE.
 - **Kernel:** LTS ou latest.
 
-## Como iniciar uma compilação
+## Estado atual da compilação
 
-1. Abra a aba **Actions** do repositório.
-2. Selecione **Build Forja ISO**.
-3. Clique em **Run workflow**.
-4. Escolha a distribuição, o ambiente gráfico e o kernel.
-5. Após a conclusão, baixe o artefato da execução.
-
-O workflow valida a sintaxe dos scripts antes de iniciar a compilação. A ISO, o checksum SHA-256 e o arquivo de informações da build são publicados como artefato por sete dias.
+O repositório contém atualmente o workflow **Validate Forja sources**, que executa verificações e pré-validações sem gerar uma ISO. Ainda não existe um workflow **Build Forja ISO** para iniciar a compilação em nuvem e publicar o artefato. Essa automação precisa ser criada e validada antes de ser possível iniciar uma compilação pela aba Actions.
 
 ## Estrutura
 
