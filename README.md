@@ -1,12 +1,11 @@
 # Forja de ISO
 
-Compilador de ISOs x86_64 para **Arch Linux** e **Manjaro**, com preparação e compilação em nuvem.
+Compilador de ISO x86_64 para **Manjaro MATE**, com preparação e compilação em nuvem.
 
 ## Opções disponíveis
 
-- **Distribuição:** Arch Linux ou Manjaro.
-- **Arch Linux:** MATE, XFCE ou GNOME.
-- **Manjaro:** exclusivamente MATE.
+- **Distribuição:** exclusivamente Manjaro.
+- **Ambiente gráfico:** exclusivamente MATE.
 - **Kernel:** LTS ou latest.
 - **Manjaro MATE:** Shelly, Firefox, LightDM com Slick Greeter, Bluetooth, Materia Dark e cursor Bibata.
 
@@ -22,10 +21,9 @@ O GitHub pode enviar automaticamente uma notificação por e-mail quando a execu
 
 - `build-cloud.sh`: entrada comum para a compilação em contêiner.
 - `build-manjaro.sh`: perfil e compilação Manjaro MATE.
-- `build-arch.sh`: perfil e compilação Arch Linux.
 - `build-shelly.sh`: compilação de Shelly e Bibata para o repositório local usado durante a geração da ISO.
 - `eu-project-iso-main/ci/shelly/`: fontes e arquivos de configuração usados na compilação do pacote Shelly.
-- `.github/workflows/validate.yml`: validação estática e pré-validação sem gerar ISO.
+- `.github/workflows/validate.yml`: validação estática e pré-validação Manjaro MATE sem gerar ISO.
 - `.github/workflows/build-manjaro-mate.yml`: compilação manual da ISO Manjaro MATE em nuvem e publicação temporária do artefato no GitHub Actions.
 
 ## Verificação final
