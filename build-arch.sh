@@ -204,12 +204,14 @@ DCPROFILE
     cat > "$PROFILE/airootfs/etc/dconf/db/local.d/00-forja-theme" <<'DCCONF'
 [org/gnome/desktop/interface]
 gtk-theme='Materia-dark'
+cursor-theme='Bibata-Modern-Ice'
 color-scheme='prefer-dark'
 DCCONF
   else
     cat > "$PROFILE/airootfs/etc/dconf/db/local.d/00-forja-theme" <<'DCCONF'
 [org/mate/interface]
 gtk-theme='Materia-dark'
+cursor-theme='Bibata-Modern-Ice'
 DCCONF
   fi
 elif [[ "$DESKTOP" == xfce ]]; then
@@ -219,6 +221,7 @@ elif [[ "$DESKTOP" == xfce ]]; then
 <channel name="xsettings" version="1.0">
   <property name="Net" type="empty">
     <property name="ThemeName" type="string" value="Materia-dark"/>
+    <property name="CursorThemeName" type="string" value="Bibata-Modern-Ice"/>
   </property>
 </channel>
 XFCONF
