@@ -21,7 +21,7 @@ if (("${#MISSING_BUILD_PACKAGES[@]}")); then
 fi
 pacman -S --needed --noconfirm "${BUILD_PACKAGES[@]}"
 
-cp -a /forja-ci/shelly/. "$PKG_SRC/"
+cp -a /forja-ci/eu-project-iso-main/ci/shelly/. "$PKG_SRC/"
 curl -fsSL --retry 5 --retry-all-errors https://ziglang.org/download/index.json -o "$WORK/zig-index.json"
 readarray -t ZIG_META < <(python - "$WORK/zig-index.json" <<'PY'
 import json,sys
