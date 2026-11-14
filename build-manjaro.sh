@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 export LANG=C
-DESKTOP="${FORJA_DESKTOP:-mate}"
+DESKTOP=mate
 KERNEL="${FORJA_KERNEL:-lts}"
 WORK=/tmp/forja-manjaro
 OUT="${FORJA_OUTPUT:-/forja-output}"
@@ -13,7 +13,6 @@ PACMAN_CONF=""
 pacman_info() {
   if [[ -n "$PACMAN_CONF" ]]; then pacman --config "$PACMAN_CONF" -Si "$1"; else pacman -Si "$1"; fi
 }
-case "$DESKTOP" in mate) ;; *) echo "ERRO: a base Manjaro da Forja oferece exclusivamente MATE (recebido: $DESKTOP)."; exit 2;; esac
 case "$KERNEL" in latest|lts) ;; *) echo "Kernel invÃ¡lido: $KERNEL"; exit 2;; esac
 
 echo "== Forja Cloud Builder: Manjaro / $DESKTOP / $KERNEL =="
@@ -80,18 +79,11 @@ done
   exit 20
 }
 
-case "$DESKTOP" in
-  xfce) SOURCE="$PROFILE_ROOT/manjaro/xfce" ;;
-  gnome) SOURCE="$PROFILE_ROOT/manjaro/gnome" ;;
-  mate) SOURCE="" ;;
-esac
-
 TARGET="$PROFILE_ROOT/manjaro/forja-$DESKTOP"
 rm -rf "$TARGET"
 
 if [[ "$DESKTOP" == mate ]]; then
-  # Perfil MATE independente: somente a estrutura compartilhada do Manjaro
-  # é reutilizada. Nenhum arquivo ou configuração do perfil XFCE é copiado.
+  # Perfil MATE próprio, construído sobre os componentes-base do Manjaro.
   mkdir -p "$TARGET/desktop-overlay" "$TARGET/live-overlay"
   cp "$PROFILE_ROOT/shared/Packages-Root" "$TARGET/Packages-Root"
   cp "$PROFILE_ROOT/shared/Packages-Mhwd" "$TARGET/Packages-Mhwd"
@@ -135,12 +127,6 @@ wireplumber
 papirus-icon-theme
 bibata-cursor-theme
 MATE_PACKAGES
-else
-  test -f "$SOURCE/Packages-Desktop" && test -f "$SOURCE/profile.conf" || {
-    echo "ERRO: perfil-base invÃ¡lido: $SOURCE"
-    exit 21
-  }
-  cp -a "$SOURCE" "$TARGET"
 fi
 
 # Materia Dark é obrigatório em todas as ISOs e ambientes gráficos.
@@ -157,7 +143,6 @@ cat > "$TARGET/user-repos.conf" <<'REPO'
 SigLevel = Optional TrustAll
 Server = http://127.0.0.1:8765/$repo/$arch
 REPO
-if [[ "$DESKTOP" != mate ]]; then printf '\nshelly\nshelly-flatpak-backend\n' >> "$TARGET/Packages-Desktop"; fi
 
 # Pacotes oficiais de wallpapers do Manjaro em todas as variantes Manjaro.
 for wallpaper_package in manjaro-wallpapers-18.0 wallpapers-2018 wallpapers-juhraya illyria-wallpaper; do
@@ -185,10 +170,7 @@ for overlay_name in desktop-overlay live-overlay; do
     cp -a "$overlay_source" "$overlay"
   fi
   if [[ -d "$overlay" ]]; then
-    # Só remova componentes XFCE quando o perfil escolhido for MATE.
-    # Fazer isso nos outros perfis apagava arquivos do próprio XFCE.
-    if [[ "$DESKTOP" == mate ]]; then
-      find "$overlay" -depth \( -iname '*xfce*' -o -iname '*sonar*' \) -exec rm -rf {} +
+    # Overlay exclusivo da sessão MATE.
       find "$overlay" -type f \( -iname '*midori*' -o -iname '*parole*' -o -iname '*ristretto*' -o -iname '*mousepad*' -o -iname '*thunar*' \) -delete
       mkdir -p "$overlay/etc/dconf/profile" "$overlay/etc/dconf/db/local.d"
       cat > "$overlay/etc/dconf/profile/user" <<'DCPROFILE'
@@ -227,8 +209,7 @@ CURSOR
       # No papirus-folders customization package or service is required.
       rm -f "$overlay/etc/systemd/system/forja-papirus-cyan.service"
       rm -f "$overlay/etc/systemd/system/multi-user.target.wants/forja-papirus-cyan.service"
-    fi
-    # Cursor Bibata como padrão do sistema e de novos usuários em todos os desktops.
+    # Cursor Bibata como padrão do sistema e de novos usuários da sessão MATE.
     mkdir -p "$overlay/usr/share/icons/default" \
              "$overlay/etc/skel/.config/gtk-3.0" \
              "$overlay/etc/skel/.config/gtk-4.0"
@@ -272,32 +253,7 @@ GTK
 gtk-theme-name=Materia-dark
 GTK
     done
-    if [[ "$DESKTOP" == gnome ]]; then
-      mkdir -p "$overlay/etc/dconf/profile" "$overlay/etc/dconf/db/local.d"
-      cat > "$overlay/etc/dconf/profile/user" <<'DCPROFILE'
-user-db:user
-system-db:local
-DCPROFILE
-      cat > "$overlay/etc/dconf/db/local.d/00-forja-theme" <<'DCCONF'
-[org/gnome/desktop/interface]
-gtk-theme='Materia-dark'
-cursor-theme='Bibata-Modern-Ice'
-color-scheme='prefer-dark'
-DCCONF
-    elif [[ "$DESKTOP" == xfce ]]; then
-      mkdir -p "$overlay/etc/xdg/xfce4/xfconf/xfce-perchannel-xml"
-      cat > "$overlay/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml" <<'XFCONF'
-<?xml version="1.0" encoding="UTF-8"?>
-<channel name="xsettings" version="1.0">
-  <property name="Net" type="empty">
-    <property name="ThemeName" type="string" value="Materia-dark"/>
-    <property name="CursorThemeName" type="string" value="Bibata-Modern-Ice"/>
-  </property>
-</channel>
-XFCONF
-    fi
-    if [[ "$DESKTOP" == gnome || "$DESKTOP" == mate ]]; then
-      mkdir -p "$overlay/etc/systemd/system/multi-user.target.wants"
+    mkdir -p "$overlay/etc/systemd/system/multi-user.target.wants"
       cat > "$overlay/etc/systemd/system/forja-dconf-update.service" <<'UNIT'
 [Unit]
 Description=Compile Forja system dconf defaults
@@ -312,15 +268,10 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 UNIT
       ln -sfn ../forja-dconf-update.service "$overlay/etc/systemd/system/multi-user.target.wants/forja-dconf-update.service"
-    fi
-    # XFCE e MATE usam LightDM. GNOME e KDE mantêm seus próprios
-    # gerenciadores (GDM/Plasma Login Manager) e não recebem configuração LightDM.
-    if [[ "$DESKTOP" == mate || "$DESKTOP" == xfce ]]; then
-      SESSION="$DESKTOP"
       mkdir -p "$overlay/etc/lightdm/lightdm.conf.d"
-      cat > "$overlay/etc/lightdm/lightdm.conf.d/50-forja-$DESKTOP.conf" <<LIGHTDM
+      cat > "$overlay/etc/lightdm/lightdm.conf.d/50-forja-mate.conf" <<'LIGHTDM'
 [Seat:*]
-user-session=$SESSION
+user-session=mate
 greeter-session=lightdm-slick-greeter
 LIGHTDM
       if [[ -f "$overlay/etc/lightdm/lightdm.conf" ]]; then
@@ -349,7 +300,6 @@ LIGHTDM
       if [[ -f "$overlay/etc/lightdm/lightdm-slick-greeter.conf" ]]; then
         sed -i -E 's/^icon-theme-name[[:space:]]*=.*/icon-theme-name = Adwaita/; s/^cursor-theme-name[[:space:]]*=.*/cursor-theme-name = Bibata-Modern-Ice/' "$overlay/etc/lightdm/lightdm-slick-greeter.conf"
       fi
-    fi
   fi
 done
 
@@ -450,8 +400,8 @@ while IFS= read -r -d '' package_list; do
       continue
     fi
     case "$package" in
-      gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|gnome-icon-theme|gnome-themes-standard|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|gtk-xfce-engine|xf86-input-keyboard|xf86-input-mouse|xdg-su|manjaro-documentation-en|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|xfce4*|xfconf|exo|garcon|thunar|tumbler|menulibre|mugshot|ristretto|mousepad|parole|orage|catfish|xfburn|xfdesktop*|xfwm4*|galculator|evince|manjaro-xfce-settings|manjaro-xfce-minimal-settings|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*)
-        echo "Forja: pacote legado/XFCE/NVIDIA removido: $package" >&2
+      gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|xdg-su|manjaro-documentation-en|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*)
+        echo "Forja: pacote legado/NVIDIA removido: $package" >&2
         printf '# Forja: pacote legado removido: %s\n' "$package" >> "$filtered_list"
         continue
         ;;
@@ -470,11 +420,7 @@ done < <(find -L "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
 BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
-case "$DESKTOP" in
-  xfce) DESKTOP_CORE_PACKAGES=(xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 lightdm lightdm-slick-greeter materia-gtk-theme) ;;
-  gnome) DESKTOP_CORE_PACKAGES=(gnome-shell gdm gnome-control-center nautilus materia-gtk-theme) ;;
-  mate) DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-media marco lightdm lightdm-slick-greeter firefox materia-gtk-theme) ;;
-esac
+DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-media marco lightdm lightdm-slick-greeter firefox materia-gtk-theme)
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
   if ! pacman_info "$package" >/dev/null 2>&1; then
@@ -487,12 +433,7 @@ if (("${#MISSING_CORE_PACKAGES[@]}")); then
 fi
 echo "Preflight de componentes essenciais Manjaro/$DESKTOP aprovado."
 
-case "$DESKTOP" in
-  xfce|mate) DM=lightdm ;;
-  gnome) DM=gdm ;;
-  # O perfil Manjaro estável v17.1 usa SDDM; manter o gerenciador
-  # de login fornecido pelo próprio perfil oficial.
-esac
+DM=lightdm
 if grep -q '^#\?displaymanager=' "$TARGET/profile.conf"; then
   sed -i "s/^#\?displaymanager=.*/displaymanager=\"$DM\"/" "$TARGET/profile.conf"
 else
