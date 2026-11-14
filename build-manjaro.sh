@@ -274,15 +274,30 @@ if [[ "$DESKTOP" == mate ]]; then
     printf 'ERRO: componentes essenciais MATE/LightDM/rede/Bluetooth ausentes: %s\\n' "${MATE_MISSING_CORE[*]}" >&2
     exit 22
   fi
-  # Só aplicativos nativos MATE; nunca usar utilitários XFCE como substitutos.
-  MATE_OPTIONAL_PACKAGES=(caja mate-terminal mate-calc mate-system-monitor mate-power-manager mate-screensaver mate-notification-daemon mate-themes mate-icon-theme mate-applets mate-backgrounds engrampa atril eom pluma dconf-editor)
-  for package in "${MATE_OPTIONAL_PACKAGES[@]}"; do
+  # Conjunto completo dos grupos oficiais mate e mate-extra, listado por
+  # pacote individual para permitir validação real com pacman -Si.
+  MATE_REQUIRED_PACKAGES=(
+    caja marco mate-backgrounds mate-control-center mate-desktop
+    mate-icon-theme mate-menus mate-notification-daemon mate-panel
+    mate-polkit mate-session-manager mate-settings-daemon mate-themes
+    mate-user-guide atril engrampa eom mate-applets mate-calc mate-media
+    mate-power-manager mate-screensaver mate-system-monitor mate-terminal
+    mate-utils mozo pluma
+  )
+  MATE_MISSING_PACKAGES=()
+  for package in "${MATE_REQUIRED_PACKAGES[@]}"; do
     if pacman_info "$package" >/dev/null 2>&1; then
       printf '%s\\n' "$package" >> "$TARGET/Packages-Desktop"
     else
-      echo "Aviso: aplicativo MATE opcional indisponível: $package" >&2
+      MATE_MISSING_PACKAGES+=("$package")
     fi
   done
+  if (("${#MATE_MISSING_PACKAGES[@]}")); then
+    printf 'ERRO: pacotes obrigatórios do MATE ausentes no Manjaro Stable: %s\\n' "${MATE_MISSING_PACKAGES[*]}" >&2
+    exit 23
+  fi
+  awk '!seen[$0]++' "$TARGET/Packages-Desktop" > "$TARGET/Packages-Desktop.unique"
+  mv "$TARGET/Packages-Desktop.unique" "$TARGET/Packages-Desktop"
   for package in papirus-icon-theme bibata-cursor-theme materia-gtk-theme; do
     if ! pacman_info "$package" >/dev/null 2>&1; then
       sed -i "/^$package$/d" "$TARGET/Packages-Desktop"
