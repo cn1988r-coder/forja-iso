@@ -1,0 +1,46 @@
+name: Validate Forja sources
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Bash syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n build-cloud.sh build-arch.sh build-manjaro.sh build-shelly.sh
+          bash -n eu-project-iso-main/ci/build-cloud.sh
+          bash -n eu-project-iso-main/ci/build-arch.sh
+          bash -n eu-project-iso-main/ci/build-manjaro.sh
+          bash -n eu-project-iso-main/ci/build-shelly.sh
+
+      - name: Validate Python syntax
+        run: python3 -m py_compile eu-project-iso-main/forja_agent.py
+
+      - name: Validate supported build choices
+        shell: bash
+        run: |
+          set -euo pipefail
+          for desktop in xfce mate gnome kde; do
+            grep -Fq "$desktop" .github/workflows/build-iso.yml
+          done
+          for kernel in lts latest; do
+            grep -Fq "$kernel" .github/workflows/build-iso.yml
+          done
+          grep -Fq 'FORJA_DISTRIBUTION: ${{ inputs.distribution }}' .github/workflows/build-iso.yml
+          grep -Fq 'bash /forja-ci/build-cloud.sh' .github/workflows/build-iso.yml
