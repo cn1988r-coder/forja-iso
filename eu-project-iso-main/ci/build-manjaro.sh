@@ -40,10 +40,22 @@ make -C "$WORK/manjaro-tools" SYSCONFDIR=/etc PREFIX=/usr install_iso
 # Build Shelly from its pinned upstream PKGBUILD and expose it through a local
 # HTTP repository consumed by buildiso. The package is compiled on Manjaro so
 # its libalpm ABI matches the target system.
+rm -f "$WORK/shelly-http.pid"
+SHELLY_HTTP_PID=""
+cleanup_shelly_http() {
+  local pid="${SHELLY_HTTP_PID:-}"
+  if [[ -z "$pid" && -s "$WORK/shelly-http.pid" ]]; then
+    pid="$(cat "$WORK/shelly-http.pid")"
+  fi
+  if [[ "$pid" =~ ^[0-9]+$ ]]; then
+    kill "$pid" >/dev/null 2>&1 || true
+  fi
+}
+trap cleanup_shelly_http EXIT
 bash /forja-ci/build-shelly.sh "$WORK"
 PACMAN_CONF="$WORK/shelly-pacman.conf"
 SHELLY_HTTP_PID="$(cat "$WORK/shelly-http.pid")"
-trap 'kill "$SHELLY_HTTP_PID" >/dev/null 2>&1 || true' EXIT
+kill -0 "$SHELLY_HTTP_PID"
 
 # Use the current official Forgejo endpoint directly. Older manjaro-tools
 # releases still point buildiso -i at the retired gitlab.manjaro.org hostname.
