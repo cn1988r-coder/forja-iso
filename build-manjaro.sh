@@ -335,7 +335,7 @@ BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware 
 case "$DESKTOP" in
   xfce) DESKTOP_CORE_PACKAGES=(xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 lightdm lightdm-gtk-greeter) ;;
   gnome) DESKTOP_CORE_PACKAGES=(gnome-shell gdm gnome-control-center nautilus) ;;
-  kde) DESKTOP_CORE_PACKAGES=(plasma-login-manager plasma-desktop plasma-workspace kwin) ;;
+  kde) DESKTOP_CORE_PACKAGES=(sddm plasma-desktop plasma-workspace kwin) ;;
   mate) DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon marco lightdm lightdm-gtk-greeter) ;;
 esac
 MISSING_CORE_PACKAGES=()
@@ -353,9 +353,9 @@ echo "Preflight de componentes essenciais Manjaro/$DESKTOP aprovado."
 case "$DESKTOP" in
   xfce|mate) DM=lightdm ;;
   gnome) DM=gdm ;;
-  # O perfil Manjaro KDE atual usa plasma-login-manager e identificador
-  # "plasmalogin" em profile.conf, não sddm.
-  kde) DM=plasmalogin ;;
+  # O perfil Manjaro estável v17.1 usa SDDM; manter o gerenciador
+  # de login fornecido pelo próprio perfil oficial.
+  kde) DM=sddm ;;
 esac
 if grep -q '^#\?displaymanager=' "$TARGET/profile.conf"; then
   sed -i "s/^#\?displaymanager=.*/displaymanager=\"$DM\"/" "$TARGET/profile.conf"
