@@ -49,7 +49,15 @@ jobs:
           grep -Fq 'FORJA_KERNEL="$FORJA_KERNEL"' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'find forja-output -type f -name' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'sha256sum --check' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'forja-output/**/*.iso' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'permissions:' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'contents: write' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'split --bytes=1900M' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'gh release create' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'sha256sum --check' .github/workflows/build-manjaro-mate.yml
+          if grep -Fq 'actions/upload-artifact@' .github/workflows/build-manjaro-mate.yml; then
+            echo "ERRO: a ISO não deve ser enviada como artefato do Actions." >&2
+            exit 1
+          fi
           echo "Workflow de compilação Manjaro MATE validado estruturalmente."
 
       - name: Validate embedded Python blocks
