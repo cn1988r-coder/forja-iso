@@ -97,8 +97,24 @@ cp -a "$SOURCE" "$TARGET"
 # Lista própria da edição MATE, sem aplicativos herdados do XFCE.
 if [[ "$DESKTOP" == mate ]]; then
   cat > "$TARGET/Packages-Desktop" <<'MATE_PACKAGES'
-mate
-mate-extra
+mate-session-manager
+mate-panel
+mate-control-center
+mate-settings-daemon
+marco
+caja
+mate-terminal
+mate-calc
+mate-system-monitor
+mate-power-manager
+mate-screensaver
+mate-notification-daemon
+engrampa
+atril
+eom
+pluma
+mate-applets
+dconf
 lightdm
 lightdm-gtk-greeter
 network-manager-applet
@@ -240,7 +256,7 @@ done
 
 if [[ "$DESKTOP" == mate ]]; then
   MATE_CORE_PACKAGES=(
-    mate mate-session-manager mate-panel mate-control-center mate-settings-daemon
+    mate-session-manager mate-panel mate-control-center mate-settings-daemon
     marco lightdm lightdm-gtk-greeter firefox networkmanager
     network-manager-applet bluez bluez-utils blueman
     systemd grub efibootmgr mkinitcpio calamares linux-firmware
