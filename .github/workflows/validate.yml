@@ -29,6 +29,20 @@ jobs:
           bash -n eu-project-iso-main/ci/build-manjaro.sh
           bash -n eu-project-iso-main/ci/build-shelly.sh
 
+      - name: Verify Shelly source checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE/eu-project-iso-main/ci/shelly:/source:ro" \
+            archlinux:latest bash -lc '
+              pacman -Syu --noconfirm --needed base-devel git
+              useradd --create-home builder
+              cp -a /source /tmp/shelly-source
+              chown -R builder:builder /tmp/shelly-source
+              su -s /bin/bash builder -c "cd /tmp/shelly-source && makepkg --verifysource --noconfirm"
+            '
+
       - name: Validate Python syntax
         run: python3 -m py_compile eu-project-iso-main/forja_agent.py
 
