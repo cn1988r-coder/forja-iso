@@ -13,7 +13,7 @@ PACMAN_CONF=""
 pacman_info() {
   if [[ -n "$PACMAN_CONF" ]]; then pacman --config "$PACMAN_CONF" -Si "$1"; else pacman -Si "$1"; fi
 }
-case "$DESKTOP" in xfce|mate|gnome|kde) ;; *) echo "Desktop invÃ¡lido: $DESKTOP"; exit 2;; esac
+case "$DESKTOP" in xfce|mate|gnome) ;; *) echo "Desktop invÃ¡lido: $DESKTOP"; exit 2;; esac
 case "$KERNEL" in latest|lts) ;; *) echo "Kernel invÃ¡lido: $KERNEL"; exit 2;; esac
 
 echo "== Forja Cloud Builder: Manjaro / $DESKTOP / $KERNEL =="
@@ -83,8 +83,7 @@ done
 case "$DESKTOP" in
   xfce) SOURCE="$PROFILE_ROOT/manjaro/xfce" ;;
   gnome) SOURCE="$PROFILE_ROOT/manjaro/gnome" ;;
-  kde) SOURCE="$PROFILE_ROOT/manjaro/kde" ;;
-  mate) SOURCE="$PROFILE_ROOT/manjaro/xfce" ;;
+  # v17.1 não publica perfil MATE. A estrutura comum de boot/instalador é\n  # reaproveitada, mas a seleção de pacotes MATE é reconstruída do zero.\n  mate) SOURCE="$PROFILE_ROOT/manjaro/xfce" ;;
 esac
 test -f "$SOURCE/Packages-Desktop" && test -f "$SOURCE/profile.conf" || {
   echo "ERRO: perfil-base invÃ¡lido: $SOURCE"
@@ -95,6 +94,35 @@ TARGET="$PROFILE_ROOT/manjaro/forja-$DESKTOP"
 rm -rf "$TARGET"
 cp -a "$SOURCE" "$TARGET"
 
+# Lista própria da edição MATE, sem aplicativos herdados do XFCE.
+if [[ "$DESKTOP" == mate ]]; then
+  cat > "$TARGET/Packages-Desktop" <<'MATE_PACKAGES'
+mate
+mate-extra
+lightdm
+lightdm-gtk-greeter
+network-manager-applet
+bluez
+bluez-utils
+blueman
+firefox
+shelly
+shelly-flatpak-backend
+gvfs
+gvfs-mtp
+xdg-user-dirs
+cups
+system-config-printer
+pipewire
+pipewire-alsa
+pipewire-pulse
+wireplumber
+papirus-icon-theme
+bibata-cursor-theme
+materia-gtk-theme
+MATE_PACKAGES
+fi
+
 # Shelly-ALPM is built locally and served over HTTP to buildiso.
 rm -f "$TARGET/user-repos.conf"
 cat > "$TARGET/user-repos.conf" <<'REPO'
@@ -102,7 +130,7 @@ cat > "$TARGET/user-repos.conf" <<'REPO'
 SigLevel = Optional TrustAll
 Server = http://127.0.0.1:8765/$repo/$arch
 REPO
-printf '\nshelly\nshelly-flatpak-backend\n' >> "$TARGET/Packages-Desktop"
+if [[ "$DESKTOP" != mate ]]; then printf '\nshelly\nshelly-flatpak-backend\n' >> "$TARGET/Packages-Desktop"; fi
 
 # The XFCE profile is only a base for shared Manjaro boot/installer files.
 # Materialize overlays before editing so no shared profile outside this custom
@@ -118,7 +146,7 @@ for overlay_name in desktop-overlay live-overlay; do
     # Só remova componentes XFCE quando o perfil escolhido for MATE.
     # Fazer isso nos outros perfis apagava arquivos do próprio XFCE.
     if [[ "$DESKTOP" == mate ]]; then
-      find "$overlay" -depth -iname '*xfce*' -exec rm -rf {} +
+      find "$overlay" -depth \\( -iname '*xfce*' -o -iname '*sonar*' \\) -exec rm -rf {} +\n      find "$overlay" -type f \\( -iname '*midori*' -o -iname '*parole*' -o -iname '*ristretto*' -o -iname '*mousepad*' -o -iname '*thunar*' \\) -delete
       mkdir -p "$overlay/etc/dconf/profile" "$overlay/etc/dconf/db/local.d"
       cat > "$overlay/etc/dconf/profile/user" <<'DCPROFILE'
 user-db:user
@@ -211,103 +239,40 @@ done
 # Full package preflight runs after the desktop-specific list is finalized.
 
 if [[ "$DESKTOP" == mate ]]; then
-  # Keep MATE as the session. Remove XFCE session components and its branding,
-  # but allow selected standalone XFCE utilities as replacements for missing
-  # optional MATE applications.
-  awk 'BEGIN{IGNORECASE=1}
-    /^[[:space:]]*#/ || /^[[:space:]]*$/ {print;next}
-    {
-      p=$1
-      if(p ~ /^>/ && NF > 1) p=$2
-      if(p ~ /^(xfce4|xfce4-[^ ]*|exo|garcon|xfconf|thunar|thunar-[^ ]*|tumbler|menulibre|mugshot|ristretto|mousepad|parole|orage|catfish|xfburn|xfdesktop[^ ]*|xfwm4[^ ]*|galculator|evince|manjaro-xfce-settings|manjaro-xfce-minimal-settings|snapd|snapd-glib|pamac-snap-plugin|gnome-software-snap)$/) next
-      print
-    }' "$TARGET/Packages-Desktop" > "$TARGET/Packages-Desktop.new"
-  mv "$TARGET/Packages-Desktop.new" "$TARGET/Packages-Desktop"
-
-  cat >> "$TARGET/Packages-Desktop" <<'PKGS'
-
-# Forja MATE core and login/session stack
-mate-session-manager
-mate-panel
-mate-control-center
-mate-settings-daemon
-marco
-lightdm
-lightdm-gtk-greeter
-network-manager-applet
-bluez
-bluez-utils
-blueman
-papirus-icon-theme
-manjaro-wallpapers-18.0
-dconf
-bibata-cursor-theme
-materia-gtk-theme
-firefox
-PKGS
-
   MATE_CORE_PACKAGES=(
+    mate mate-session-manager mate-panel mate-control-center mate-settings-daemon
+    marco lightdm lightdm-gtk-greeter firefox networkmanager
+    network-manager-applet bluez bluez-utils blueman
     systemd grub efibootmgr mkinitcpio calamares linux-firmware
     manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db
-    networkmanager mate-session-manager mate-panel mate-control-center
-    mate-settings-daemon marco lightdm lightdm-gtk-greeter firefox
-    network-manager-applet bluez bluez-utils blueman
-    papirus-icon-theme manjaro-wallpapers-18.0 dconf
-    bibata-cursor-theme materia-gtk-theme
   )
   MATE_MISSING_CORE=()
   for package in "${MATE_CORE_PACKAGES[@]}"; do
-    if ! pacman_info "$package" >/dev/null 2>&1; then
-      MATE_MISSING_CORE+=("$package")
-    fi
+    if ! pacman_info "$package" >/dev/null 2>&1; then MATE_MISSING_CORE+=("$package"); fi
   done
   if (("${#MATE_MISSING_CORE[@]}")); then
-    printf 'ERRO: componentes essenciais do MATE/LightDM/rede/Bluetooth ausentes: %s\n' "${MATE_MISSING_CORE[*]}" >&2
+    printf 'ERRO: componentes essenciais MATE/LightDM/rede/Bluetooth ausentes: %s\\n' "${MATE_MISSING_CORE[*]}" >&2
     exit 22
   fi
-
-  # package:fallback. The fallback is a single utility, not the XFCE desktop.
-  MATE_OPTIONAL_PAIRS=(
-    mate-themes:adwaita-gtk-theme
-    mate-icon-theme:adwaita-icon-theme
-    adwaita-icon-theme:
-    adwaita-cursors:
-    mate-terminal:xfce4-terminal
-    caja:thunar
-    mate-applets:
-    mate-power-manager:xfce4-power-manager
-    mate-screensaver:xfce4-screensaver
-    mate-notification-daemon:xfce4-notifyd
-    engrampa:xarchiver
-    atril:evince
-    eom:ristretto
-    pluma:mousepad
-    mate-system-monitor:xfce4-taskmanager
-    mate-calc:galculator
-  )
-  for pair in "${MATE_OPTIONAL_PAIRS[@]}"; do
-    package="${pair%%:*}"
-    fallback="${pair#*:}"
+  # Só aplicativos nativos MATE; nunca usar utilitários XFCE como substitutos.
+  MATE_OPTIONAL_PACKAGES=(caja mate-terminal mate-calc mate-system-monitor mate-power-manager mate-screensaver mate-notification-daemon mate-themes mate-icon-theme engrampa atril eom pluma mate-applets dconf)
+  for package in "${MATE_OPTIONAL_PACKAGES[@]}"; do
     if pacman_info "$package" >/dev/null 2>&1; then
-      printf '%s\n' "$package" >> "$TARGET/Packages-Desktop"
-    elif [[ -n "$fallback" ]] && pacman_info "$fallback" >/dev/null 2>&1; then
-      printf '%s\n' "$fallback" >> "$TARGET/Packages-Desktop"
-      echo "Aviso: $package ausente; usando utilitÃ¡rio equivalente $fallback."
+      printf '%s\\n' "$package" >> "$TARGET/Packages-Desktop"
     else
-      echo "Aviso: $package e seu substituto ${fallback:-nÃ£o definido} nÃ£o estÃ£o disponÃ­veis; utilitÃ¡rio opcional ignorado."
+      echo "Aviso: aplicativo MATE opcional indisponível: $package" >&2
     fi
   done
-  for package in papirus-icon-theme manjaro-wallpapers-18.0 dconf materia-gtk-theme; do
+  for package in papirus-icon-theme bibata-cursor-theme materia-gtk-theme; do
     if ! pacman_info "$package" >/dev/null 2>&1; then
-      echo "ERRO: pacote visual oficial nÃ£o disponÃ­vel no Manjaro: $package" >&2
-      exit 23
+      sed -i "/^$package$/d" "$TARGET/Packages-Desktop"
+      echo "Aviso: tema opcional indisponível, removido: $package" >&2
     fi
   done
   if ! pacman --config "$PACMAN_CONF" -Si bibata-cursor-theme >/dev/null 2>&1; then
-    echo "ERRO: pacote visual AUR não publicado no repositório local: bibata-cursor-theme" >&2
-    exit 24
+    sed -i '/^bibata-cursor-theme$/d' "$TARGET/Packages-Desktop"
   fi
-  echo "Preflight do nÃºcleo MATE, rede, Bluetooth e temas visuais aprovado."
+  echo "Preflight do núcleo MATE, rede e Bluetooth aprovado."
 fi
 
 # Resolve every package list used by the selected profile, including the
@@ -338,12 +303,21 @@ while IFS= read -r -d '' package_list; do
       break
     done
     if [[ -z "$package" || "$package" == KERNEL || "$package" == KERNEL-* ]]; then
-      printf '%s\n' "$line" >> "$filtered_list"
-    elif pacman_info "$package" >/dev/null 2>&1; then
-      printf '%s\n' "$line" >> "$filtered_list"
+      printf '%s\\n' "$line" >> "$filtered_list"
+      continue
+    fi
+    case "$package" in
+      gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|gnome-icon-theme|gnome-themes-standard|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|gtk-xfce-engine|xf86-input-keyboard|xf86-input-mouse|xdg-su|manjaro-documentation-en|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|xfce4*|xfconf|exo|garcon|thunar|tumbler|menulibre|mugshot|ristretto|mousepad|parole|orage|catfish|xfburn|xfdesktop*|xfwm4*|galculator|evince|manjaro-xfce-settings|manjaro-xfce-minimal-settings|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*|nvidia-340xx*|nvidia-390xx*|lib32-nvidia-340xx*|lib32-nvidia-390xx*)
+        echo "Forja: pacote legado/XFCE/NVIDIA removido: $package" >&2
+        printf '# Forja: pacote legado removido: %s\\n' "$package" >> "$filtered_list"
+        continue
+        ;;
+    esac
+    if pacman_info "$package" >/dev/null 2>&1; then
+      printf '%s\\n' "$line" >> "$filtered_list"
     else
       echo "Aviso: pacote ausente removido: $package (lista $resolved_list)" >&2
-      printf '# Forja: pacote ausente removido: %s\n' "$package" >> "$filtered_list"
+      printf '# Forja: pacote ausente removido: %s\\n' "$package" >> "$filtered_list"
     fi
   done < "$resolved_list"
   mv "$filtered_list" "$resolved_list"
@@ -356,8 +330,7 @@ BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware 
 case "$DESKTOP" in
   xfce) DESKTOP_CORE_PACKAGES=(xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 lightdm lightdm-gtk-greeter) ;;
   gnome) DESKTOP_CORE_PACKAGES=(gnome-shell gdm gnome-control-center nautilus) ;;
-  kde) DESKTOP_CORE_PACKAGES=(sddm plasma-desktop plasma-workspace kwin) ;;
-  mate) DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon marco lightdm lightdm-gtk-greeter firefox) ;;
+  mate) DESKTOP_CORE_PACKAGES=(mate mate-session-manager mate-panel mate-control-center mate-settings-daemon marco lightdm lightdm-gtk-greeter firefox) ;;
 esac
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
@@ -376,7 +349,6 @@ case "$DESKTOP" in
   gnome) DM=gdm ;;
   # O perfil Manjaro estável v17.1 usa SDDM; manter o gerenciador
   # de login fornecido pelo próprio perfil oficial.
-  kde) DM=sddm ;;
 esac
 if grep -q '^#\?displaymanager=' "$TARGET/profile.conf"; then
   sed -i "s/^#\?displaymanager=.*/displaymanager=\"$DM\"/" "$TARGET/profile.conf"
