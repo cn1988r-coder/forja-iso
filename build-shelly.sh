@@ -68,7 +68,13 @@ su -s /bin/bash shellybuild -c "cd '$aur_src' && PATH='$CLICKGEN_VENV/bin':\$PAT
 mapfile -t BUILT_PACKAGES < <(find "$PKG_OUT" -maxdepth 1 -type f -name '*.pkg.tar.zst' -print | sort)
 declare -A BUILT_NAMES=()
 for pkg in "${BUILT_PACKAGES[@]}"; do
-  name="$(pacman -Qp --print-format '%n' "$pkg")"
+  # Read the package name from the archive metadata. pacman -Qp does not
+  # support --print-format on the current Arch pacman release.
+  name="$(bsdtar -xOf "$pkg" .PKGINFO | sed -n 's/^pkgname = //p' | head -n1)"
+  if [[ -z "$name" ]]; then
+    echo "ERRO: não foi possível ler pkgname de $pkg" >&2
+    exit 51
+  fi
   BUILT_NAMES["$name"]=1
 done
 for required in shelly shelly-flatpak-backend bibata-cursor-theme; do
