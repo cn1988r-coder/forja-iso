@@ -275,7 +275,7 @@ user-session=mate
 greeter-session=lightdm-slick-greeter
 LIGHTDM
       if [[ -f "$overlay/etc/lightdm/lightdm.conf" ]]; then
-        awk -v session="$SESSION" '
+        awk -v session="mate" '
           BEGIN { in_seat=0; found=0 }
           /^\[Seat:\*\][[:space:]]*$/ {
             in_seat=1; found=1; print
@@ -395,7 +395,7 @@ while IFS= read -r -d '' package_list; do
       package="$token"
       break
     done
-    if [[ -z "$package" || "$package" == KERNEL || "$package" == KERNEL-* ]]; then
+    if [[ -z "$package" || "$package" == KERNEL ]]; then
       printf '%s\n' "$line" >> "$filtered_list"
       continue
     fi
@@ -518,6 +518,44 @@ print(package)
 PY
 )"
 echo "Kernel selecionado: $KERNEL_PKG"
+
+# Resolve entradas KERNEL-* do perfil MHWD com o kernel real selecionado.
+# Drivers antigos que não existem para esse kernel são removidos antes do buildiso.
+while IFS= read -r -d "" package_list; do
+  resolved_list="$(readlink -f "$package_list")"
+  [[ -n "$resolved_list" && -f "$resolved_list" ]] || continue
+  filtered_list="$resolved_list.kernel-filtered"
+  : > "$filtered_list"
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    read -r -a fields <<< "$line"
+    if [[ -z "${fields[0]:-}" || "${fields[0]}" == #* ]]; then
+      printf "%s\n" "$line" >> "$filtered_list"
+      continue
+    fi
+    package_index=-1
+    for index in "${!fields[@]}"; do
+      [[ "${fields[$index]}" == #* ]] && break
+      [[ "${fields[$index]}" == >* ]] && continue
+      package_index="$index"
+      break
+    done
+    if (( package_index >= 0 )) && [[ "${fields[$package_index]}" == KERNEL-* ]]; then
+      original="${fields[$package_index]}"
+      package="${KERNEL_PKG}${original#KERNEL}"
+      if pacman_info "$package" >/dev/null 2>&1; then
+        fields[$package_index]="$package"
+        printf "%s\n" "${fields[*]}" >> "$filtered_list"
+      else
+        echo "Forja: driver MHWD incompatível com $KERNEL_PKG removido: $package" >&2
+        printf "# Forja: driver MHWD indisponível: %s\n" "$package" >> "$filtered_list"
+      fi
+    else
+      printf "%s\n" "$line" >> "$filtered_list"
+    fi
+  done < "$resolved_list"
+  mv "$filtered_list" "$resolved_list"
+done < <(find -L "$TARGET" -type f -name "Packages-*" -print0 | sort -zu)
+
 if [[ "${FORJA_PREFLIGHT_ONLY:-0}" == "1" ]]; then
   echo "PREFLIGHT_OK: Manjaro/$DESKTOP/$KERNEL ($KERNEL_PKG). ISO build intentionally skipped."
   exit 0
