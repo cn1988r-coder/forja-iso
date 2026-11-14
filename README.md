@@ -5,7 +5,8 @@ Compilador de ISOs x86_64 para **Arch Linux** e **Manjaro**, executado em GitHub
 ## Opções
 
 - **Distribuição:** Arch Linux ou Manjaro.
-- **Ambiente gráfico:** MATE, XFCE ou GNOME.
+- **Arch Linux:** MATE, XFCE ou GNOME.
+- **Manjaro:** exclusivamente MATE.
 - **Kernel:** LTS ou latest.
 
 ## Como iniciar uma compilação
