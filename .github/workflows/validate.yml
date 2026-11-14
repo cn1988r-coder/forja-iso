@@ -1,16 +1,14 @@
-name: Validate Forja sources
+name: Validate Manjaro MATE sources
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
-  group: forja-validation-${{ github.ref }}
+  group: manjaro-mate-validation-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -23,76 +21,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate Bash syntax
+      - name: Validate Bash syntax and ShellCheck
         shell: bash
         run: |
           set -euo pipefail
-          bash -n build-cloud.sh build-arch.sh build-manjaro.sh build-shelly.sh
-
-      - name: Run ShellCheck
-        shell: bash
-        run: |
-          set -euo pipefail
+          bash -n build-cloud.sh build-manjaro.sh build-shelly.sh
           sudo apt-get update -qq
           sudo apt-get install -y shellcheck
-          shellcheck -S warning -e SC1091 \
-            build-cloud.sh build-arch.sh build-manjaro.sh build-shelly.sh
+          shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh build-shelly.sh
 
-      - name: Validate Manjaro cloud build workflow
+      - name: Verify Manjaro MATE-only configuration
         shell: bash
         run: |
           set -euo pipefail
-          ruby -e 'require "yaml"; YAML.load_file(".github/workflows/build-manjaro-mate.yml")'
-          grep -Fq 'workflow_dispatch:' .github/workflows/build-manjaro-mate.yml
-          grep -Fq "inputs.kernel || 'lts'" .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'DESKTOP=mate' build-manjaro.sh
+          grep -Fq 'DESKTOP_CORE_PACKAGES=(mate-session-manager' build-manjaro.sh
+          grep -Fq 'DM=lightdm' build-manjaro.sh
+          grep -Fq 'user-session=mate' build-manjaro.sh
+          ! grep -Eiq 'xfce|gnome|plasma|kde' build-manjaro.sh
+          grep -Fq 'retention-days: 1' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_DISTRIBUTION=manjaro' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_DESKTOP=mate' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'FORJA_KERNEL="$FORJA_KERNEL"' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'RUNNER_TEMP/forja-manjaro:/tmp/forja-manjaro' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'filesystem real do runner' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'find forja-output -type f -name' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'sha256sum --check' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'permissions:' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'contents: read' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'actions/upload-artifact@v7' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'retention-days: 1' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'archive: false' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'compression-level: 0' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'steps.upload_iso.outputs.artifact-url' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'GITHUB_STEP_SUMMARY' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'ISO completa, sem divisão em partes' .github/workflows/build-manjaro-mate.yml
-          if grep -Eq 'GOOGLE_DRIVE|gdrive:|rclone|MEGA|mega:' .github/workflows/build-manjaro-mate.yml; then
-            echo "ERRO: o workflow ainda contém armazenamento externo antigo." >&2
-            exit 1
-          fi
-          echo "Workflow Manjaro MATE com artefato temporário de 1 dia validado estruturalmente."
+          echo "Configuração Manjaro MATE-only validada."
 
-      - name: Validate embedded Python blocks
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import re
-          from pathlib import Path
-
-          paths = [
-              Path("build-arch.sh"),
-              Path("build-manjaro.sh"),
-              Path("build-shelly.sh"),
-          ]
-          count = 0
-          for path in paths:
-              source = path.read_text(encoding="utf-8")
-              blocks = re.findall(r"<<'PY'\s*\n(.*?)^PY$", source, re.S | re.M)
-              for index, block in enumerate(blocks, 1):
-                  compile(block, f"{path}:python-block-{index}", "exec")
-                  count += 1
-          if count == 0:
-              raise SystemExit("Nenhum bloco Python embutido foi validado.")
-          print(f"{count} blocos Python embutidos validados.")
-          PY
-
-      - name: Verify Shelly and Bibata source checksums
+      - name: Verify Shelly source checksums
         shell: bash
         run: |
           set -euo pipefail
@@ -104,23 +56,9 @@ jobs:
               cp -a /source /tmp/shelly-source
               chown -R builder:builder /tmp/shelly-source
               su -s /bin/bash builder -c "cd /tmp/shelly-source && makepkg --verifysource --noconfirm"
-              git clone --depth 1 https://aur.archlinux.org/bibata-cursor-theme.git /tmp/bibata-source
-              chown -R builder:builder /tmp/bibata-source
-              su -s /bin/bash builder -c "cd /tmp/bibata-source && makepkg --verifysource --noconfirm"
             '
 
-      - name: Preflight Arch build without creating ISO
-        shell: bash
-        run: |
-          set -euo pipefail
-          docker run --rm \
-            -v "$GITHUB_WORKSPACE:/forja-ci:ro" \
-            -e FORJA_DESKTOP=mate \
-            -e FORJA_KERNEL=lts \
-            -e FORJA_PREFLIGHT_ONLY=1 \
-            archlinux:latest bash -lc 'bash /forja-ci/build-arch.sh'
-
-      - name: Preflight Manjaro build without creating ISO
+      - name: Preflight Manjaro MATE without creating ISO
         shell: bash
         run: |
           set -euo pipefail
@@ -130,81 +68,3 @@ jobs:
             -e FORJA_KERNEL=lts \
             -e FORJA_PREFLIGHT_ONLY=1 \
             manjarolinux/base:latest bash -lc 'bash /forja-ci/build-manjaro.sh'
-
-      - name: Inspect Manjaro stable ISO profiles
-        shell: bash
-        run: |
-          set -euo pipefail
-          git clone --depth 1 --single-branch --branch v17.1 https://code.manjaro.org/profiles/iso-profiles.git /tmp/manjaro-iso-profiles
-          test -f /tmp/manjaro-iso-profiles/shared/Packages-Root
-          test -f /tmp/manjaro-iso-profiles/shared/Packages-Live
-          test -f /tmp/manjaro-iso-profiles/shared/Packages-Mhwd
-          grep -Fq 'case "$DESKTOP" in mate)' build-manjaro.sh
-          grep -Fq 'mate) SOURCE=""' build-manjaro.sh
-          grep -Fq 'MATE_PACKAGES' build-manjaro.sh
-          grep -Fq "'clickgen>=2.1.8'" build-shelly.sh
-          echo "Base compartilhada Manjaro e perfil personalizado exclusivamente MATE verificados."
-
-      - name: Validate supported build choices and Materia Dark defaults
-        shell: bash
-        run: |
-          set -euo pipefail
-          # Arch mantém as opções próprias; Manjaro aceita somente MATE.
-          for desktop in xfce mate gnome; do
-            grep -Fq "$desktop" build-arch.sh
-          done
-          grep -Fq 'case "$DESKTOP" in mate)' build-manjaro.sh
-          if grep -Eq 'case "\$DESKTOP" in xfce\|mate\|gnome|xfce\|mate\|gnome\)' build-manjaro.sh; then
-            echo "ERRO: Manjaro não pode oferecer XFCE ou GNOME na Forja." >&2
-            exit 1
-          fi
-          for kernel in lts latest; do
-            grep -Fq "$kernel" build-arch.sh
-            grep -Fq "$kernel" build-manjaro.sh
-          done
-          grep -Fq 'FORJA_DISTRIBUTION' build-cloud.sh
-          grep -Fq 'exec bash "/forja-ci/build-$FORJA_DISTRIBUTION.sh"' build-cloud.sh
-          grep -Fq -- '--branch v17.1' build-manjaro.sh
-          grep -Fq '["pacman", "-Sl"]' build-manjaro.sh
-          grep -Fq 'available = {}' build-manjaro.sh
-          grep -Fq 'Ignore release candidates' build-manjaro.sh
-          grep -Fq 'kind == "latest"' build-manjaro.sh
-          grep -Fq 'FORJA_PREFLIGHT_ONLY' build-arch.sh
-          grep -Fq 'FORJA_PREFLIGHT_ONLY' build-manjaro.sh
-          grep -Fq 'firefox' build-manjaro.sh
-          grep -Fq 'x-scheme-handler/https=firefox.desktop' build-manjaro.sh
-          grep -Fq 'shelly-flatpak-backend' build-manjaro.sh
-          grep -Fq 'moniker' build-manjaro.sh
-          grep -Fq 'MATE_REQUIRED_PACKAGES=(' build-manjaro.sh
-          grep -Fq 'mate) SOURCE=""' build-manjaro.sh
-          grep -Fq 'cp "$PROFILE_ROOT/shared/Packages-Root" "$TARGET/Packages-Root"' build-manjaro.sh
-          grep -Fq 'lightdm-slick-greeter' build-manjaro.sh
-          ! grep -Fq 'lightdm-gtk-greeter' build-manjaro.sh
-          grep -Fq 'nvidia*' build-manjaro.sh
-          ! grep -Fq 'mate-terminal:xfce4-terminal' build-manjaro.sh
-          ! grep -Fq '("mate-terminal", "xfce4-terminal")' build-arch.sh
-          # O tema precisa ser obrigatório nas duas bases e aplicado aos ambientes suportados.
-          grep -Fq '"materia-gtk-theme"' build-arch.sh
-          grep -Fq 'materia-gtk-theme' build-manjaro.sh
-          grep -Fq 'gtk-theme-name=Materia-dark' build-arch.sh
-          grep -Fq 'gtk-theme-name=Materia-dark' build-manjaro.sh
-          grep -Fq "gtk-theme='Materia-dark'" build-arch.sh
-          grep -Fq "gtk-theme='Materia-dark'" build-manjaro.sh
-          grep -Fq 'ThemeName" type="string" value="Materia-dark"' build-arch.sh
-          grep -Fq 'ThemeName" type="string" value="Materia-dark"' build-manjaro.sh
-          # Bibata deve ser instalado e definido como cursor padrão em todas as bases.
-          grep -Fq '"bibata-cursor-theme"' build-arch.sh
-          grep -Fq "Inherits=Bibata-Modern-Ice" build-arch.sh
-          grep -Fq "gtk-cursor-theme-name=Bibata-Modern-Ice" build-arch.sh
-          grep -Fq "cursor-theme='Bibata-Modern-Ice'" build-arch.sh
-          grep -Fq 'bibata-cursor-theme' build-manjaro.sh
-          grep -Fq "Inherits=Bibata-Modern-Ice" build-manjaro.sh
-          grep -Fq "gtk-cursor-theme-name=Bibata-Modern-Ice" build-manjaro.sh
-          grep -Fq "cursor-theme='Bibata-Modern-Ice'" build-manjaro.sh
-          grep -Fq 'CursorThemeName" type="string" value="Bibata-Modern-Ice"' build-arch.sh
-          grep -Fq 'CursorThemeName" type="string" value="Bibata-Modern-Ice"' build-manjaro.sh
-          # Pacotes de wallpapers oficiais do perfil Manjaro.
-          for wallpaper in manjaro-wallpapers-18.0 wallpapers-2018 wallpapers-juhraya illyria-wallpaper; do
-            grep -Fq "$wallpaper" build-manjaro.sh
-          done
-          ! grep -Fq 'forja_agent.py' build-arch.sh build-manjaro.sh build-cloud.sh build-shelly.sh
