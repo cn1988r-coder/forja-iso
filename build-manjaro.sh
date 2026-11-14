@@ -384,27 +384,58 @@ fi
 # release for LTS and the newest stable release for latest, then map to linuxXY.
 KERNEL_PKG="$(python - "$KERNEL" <<'PY'
 import json, re, subprocess, sys, urllib.request
-kind=sys.argv[1]
-with urllib.request.urlopen("https://www.kernel.org/releases.json", timeout=30) as r:
-    data=json.load(r)
+
+kind = sys.argv[1]
+result = subprocess.run(
+    ["pacman", "-Sl", "core"],
+    check=True, capture_output=True, text=True
+)
+available = set()
+for line in result.stdout.splitlines():
+    fields = line.split()
+    if len(fields) >= 2 and re.fullmatch(r"linux[0-9]+", fields[1]):
+        available.add(fields[1])
+
+if not available:
+    raise SystemExit("Nenhum kernel Manjaro foi encontrado no repositório stable.")
+
+def package_key(package):
+    match = re.fullmatch(r"linux(\d)(\d+)", package)
+    if not match:
+        return (-1, -1)
+    return int(match.group(1)), int(match.group(2))
+
 if kind == "latest":
-    version=data["latest_stable"]["version"]
+    # Latest means newest kernel package actually published in Manjaro stable,
+    # not a newer upstream kernel that Manjaro has not packaged yet.
+    package = max(available, key=package_key)
 else:
-    releases=[x for x in data["releases"] if x.get("moniker") == "longterm"]
-    if not releases:
-        raise SystemExit("Kernel LTS nÃ£o encontrado no catÃ¡logo kernel.org.")
-    version=max((x["version"] for x in releases), key=lambda v: tuple(map(int, re.match(r"^(\d+)\.(\d+)",v).groups())))
-m=re.match(r"^(\d+)\.(\d+)", version)
-if not m:
-    raise SystemExit("VersÃ£o de kernel invÃ¡lida: " + version)
-pkg="linux" + m.group(1) + m.group(2)
-check=subprocess.run(["pacman", "-Si", pkg], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    with urllib.request.urlopen("https://www.kernel.org/releases.json", timeout=30) as response:
+        data = json.load(response)
+    candidates = []
+    for release in data["releases"]:
+        if release.get("moniker") != "longterm":
+            continue
+        match = re.match(r"^(\d+)\.(\d+)", release.get("version", ""))
+        if not match:
+            continue
+        major, minor = int(match.group(1)), int(match.group(2))
+        candidate = "linux" + str(major) + str(minor)
+        if candidate in available:
+            candidates.append(((major, minor), candidate))
+    if not candidates:
+        raise SystemExit("Nenhum kernel LTS do kernel.org está disponível no Manjaro stable.")
+    package = max(candidates, key=lambda item: item[0])[1]
+
+check = subprocess.run(
+    ["pacman", "-Si", package],
+    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+)
 if check.returncode:
-    raise SystemExit("Kernel Manjaro " + pkg + " ainda nÃ£o estÃ¡ disponÃ­vel no repositÃ³rio stable.")
-print(pkg)
+    raise SystemExit("Kernel Manjaro " + package + " não está disponível no repositório stable.")
+print(package)
 PY
 )"
-
 echo "Kernel selecionado: $KERNEL_PKG"
 cd "$PROFILE_ROOT"
 buildiso -f -p "forja-$DESKTOP" -b stable -k "$KERNEL_PKG" -r "$CHROOTS" -t "$OUT" -v
