@@ -66,11 +66,18 @@ chown -R shellybuild:shellybuild "$aur_src"
 su -s /bin/bash shellybuild -c "cd '$aur_src' && PATH='$CLICKGEN_VENV/bin':\$PATH PKGDEST='$PKG_OUT' makepkg --nodeps --noconfirm"
 
 mapfile -t BUILT_PACKAGES < <(find "$PKG_OUT" -maxdepth 1 -type f -name '*.pkg.tar.zst' -print | sort)
-(("${#BUILT_PACKAGES[@]}" == 3)) || {
-  printf 'ERRO: foram gerados %s pacotes; eram esperados shelly, shelly-flatpak-backend e bibata-cursor-theme.\n' "${#BUILT_PACKAGES[@]}" >&2
-  printf '%s\n' "${BUILT_PACKAGES[@]}" >&2
-  exit 50
-}
+declare -A BUILT_NAMES=()
+for pkg in "${BUILT_PACKAGES[@]}"; do
+  name="$(pacman -Qp --print-format '%n' "$pkg")"
+  BUILT_NAMES["$name"]=1
+done
+for required in shelly shelly-flatpak-backend bibata-cursor-theme; do
+  if [[ -z "${BUILT_NAMES[$required]:-}" ]]; then
+    echo "ERRO: pacote obrigatório não foi gerado: $required" >&2
+    printf '%s\\n' "${BUILT_PACKAGES[@]}" >&2
+    exit 50
+  fi
+done
 for pkg in "${BUILT_PACKAGES[@]}"; do
   pacman -Qp "$pkg"
   bsdtar -tf "$pkg" >/dev/null
