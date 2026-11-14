@@ -87,6 +87,28 @@ jobs:
               su -s /bin/bash builder -c "cd /tmp/bibata-source && makepkg --verifysource --noconfirm"
             '
 
+      - name: Preflight Arch build without creating ISO
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/forja-ci:ro" \
+            -e FORJA_DESKTOP=mate \
+            -e FORJA_KERNEL=lts \
+            -e FORJA_PREFLIGHT_ONLY=1 \
+            archlinux:latest bash -lc 'bash /forja-ci/build-arch.sh'
+
+      - name: Preflight Manjaro build without creating ISO
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/forja-ci:ro" \
+            -e FORJA_DESKTOP=mate \
+            -e FORJA_KERNEL=lts \
+            -e FORJA_PREFLIGHT_ONLY=1 \
+            manjarolinux/base:latest bash -lc 'bash /forja-ci/build-manjaro.sh'
+
       - name: Inspect Manjaro stable ISO profiles
         shell: bash
         run: |
@@ -132,4 +154,6 @@ jobs:
           grep -Fq 'available = {}' build-manjaro.sh
           grep -Fq 'Ignore release candidates' build-manjaro.sh
           grep -Fq 'kind == "latest"' build-manjaro.sh
+          grep -Fq 'FORJA_PREFLIGHT_ONLY' build-arch.sh
+          grep -Fq 'FORJA_PREFLIGHT_ONLY' build-manjaro.sh
           grep -Fq 'moniker' build-manjaro.sh
