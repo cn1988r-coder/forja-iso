@@ -25,7 +25,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          bash -n forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo
+          bash -n forja-pamac-pacman/install.sh
+          bash -n forja-pamac-pacman/src/forja-pkexec-sudo
           python3 -m py_compile \
             forja-pamac-pacman/src/forja-store \
             forja-pamac-pacman/src/forja-pacman-transaction \
