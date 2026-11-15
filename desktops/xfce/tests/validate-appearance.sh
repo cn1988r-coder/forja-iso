@@ -41,6 +41,45 @@ grep -q 'value="pulseaudio"' "$ROOT/panel-default.xml"
 grep -q 'value="power-manager-plugin"' "$ROOT/panel-default.xml"
 grep -q 'value="notification-plugin"' "$ROOT/panel-default.xml"
 grep -q 'value="xfce4-clipman-plugin"' "$ROOT/panel-default.xml"
+grep -q 'name="size-max" type="uint" value="20"' "$ROOT/panel-default.xml"
+grep -q 'name="symbolic-icons" type="bool" value="true"' "$ROOT/panel-default.xml"
+grep -q 'name="digital-format" type="string" value="%H:%M  ·  %d %b"' "$ROOT/panel-default.xml"
+grep -q 'name="tooltip-format" type="string" value="%A, %d de %B de %Y"' "$ROOT/panel-default.xml"
+grep -q '#XfcePanelWindow button' "$ROOT/forja-gtk.css"
+grep -q 'margin: 3px 3px' "$ROOT/forja-gtk.css"
+grep -q 'border-radius: 7px' "$ROOT/forja-gtk.css"
+
+# Parse the Xfconf XML and verify that native indicators are grouped at the right.
+python3 - "$ROOT/panel-default.xml" <<'PY'
+import sys
+import xml.etree.ElementTree as ET
+
+root = ET.parse(sys.argv[1]).getroot()
+plugins = root.find("./property[@name='plugins']")
+panels = root.find("./property[@name='panels']/property[@name='panel-1']")
+assert plugins is not None and panels is not None
+expected = {
+    "1": "whiskermenu",
+    "2": "docklike",
+    "3": "xfce4-clipman-plugin",
+    "4": "showdesktop",
+    "5": "separator",
+    "6": "systray",
+    "7": "pulseaudio",
+    "8": "power-manager-plugin",
+    "9": "notification-plugin",
+    "10": "clock",
+}
+for plugin_id, plugin_name in expected.items():
+    node = plugins.find(f"./property[@name='plugin-{plugin_id}']")
+    assert node is not None and node.attrib.get("value") == plugin_name, (plugin_id, plugin_name)
+ids = [node.attrib["value"] for node in panels.findall("./property[@name='plugin-ids']/value")]
+assert ids == list(expected), ids
+separator = plugins.find("./property[@name='plugin-5']")
+assert separator.find("./property[@name='expand']").attrib["value"] == "true"
+clock = plugins.find("./property[@name='plugin-10']")
+assert "%H:%M" in clock.find("./property[@name='digital-format']").attrib["value"]
+PY
 grep -q 'value="showdesktop"' "$ROOT/panel-default.xml"
 grep -q 'name="size-max" type="uint" value="20"' "$ROOT/panel-default.xml"
 grep -q 'name="symbolic-icons" type="bool" value="true"' "$ROOT/panel-default.xml"
