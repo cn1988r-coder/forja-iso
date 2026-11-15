@@ -118,14 +118,7 @@ if ! pacman_info materia-gtk-theme >/dev/null 2>&1; then
   exit 24
 fi
 
-# Pacotes oficiais de wallpapers do Manjaro em todas as variantes Manjaro.
-for wallpaper_package in manjaro-wallpapers-18.0 wallpapers-2018 wallpapers-juhraya illyria-wallpaper; do
-  if ! pacman_info "$wallpaper_package" >/dev/null 2>&1; then
-    echo "ERRO: pacote de wallpaper Manjaro ausente no Stable: $wallpaper_package" >&2
-    exit 26
-  fi
-  grep -Fxq "$wallpaper_package" "$TARGET/Packages-Desktop" || printf '%s\n' "$wallpaper_package" >> "$TARGET/Packages-Desktop"
-done
+# A ISO Forja não inclui pacotes nem imagens de wallpaper.
 # Materialize overlay symlinks before editing so no shared profile outside this
 # custom profile is changed. Remove desktop-specific defaults for MATE and set
 # its LightDM session without inheriting another desktop profile.
@@ -144,15 +137,10 @@ for overlay_name in desktop-overlay live-overlay; do
 user-db:user
 system-db:local
 DCPROFILE
-      install -Dm644 /forja-ci/desktops/mate/forja-mate-wallpaper.svg "$overlay/usr/share/backgrounds/forja/forja-mate-wallpaper.svg"
       cat > "$overlay/etc/dconf/db/local.d/00-forja-visual" <<'DCCONF'
 [org/mate/interface]
 icon-theme='Papirus-Dark'
 gtk-theme='Materia-dark'
-
-[org/mate/desktop/background]
-picture-uri='file:///usr/share/backgrounds/forja/forja-mate-wallpaper.svg'
-picture-options='zoom'
 
 [org/mate/peripherals-mouse]
 left-handed=true
@@ -362,7 +350,7 @@ while IFS= read -r -d '' package_list; do
     fi
     case "$package" in
       # Drivers opcionais incompatíveis/dispensáveis na ISO desktop: módulo RT3562STA legado e módulos de convidado VirtualBox.
-      linux[0-9]*-rt3562sta|linux[0-9]*-virtualbox-guest-modules|gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|xdg-su|manjaro-documentation-en|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*)
+      linux[0-9]*-rt3562sta|linux[0-9]*-virtualbox-guest-modules|gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|xdg-su|manjaro-documentation-en|manjaro-wallpapers-*|wallpapers-2018|wallpapers-juhraya|illyria-wallpaper|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*)
         echo "Forja: pacote legado/NVIDIA removido: $package" >&2
         printf '# Forja: pacote legado removido: %s\n' "$package" >> "$filtered_list"
         continue
@@ -524,7 +512,33 @@ if [[ "${FORJA_PREFLIGHT_ONLY:-0}" == "1" ]]; then
 fi
 
 cd "$PROFILE_ROOT"
-buildiso -f -d xz -p "forja-$DESKTOP" -b stable -k "$KERNEL_PKG" -r "$CHROOTS" -t "$OUT" -v
+# Compressão SquashFS reforçada: XZ com blocos/dicionário de 1 MiB.
+# O wrapper limpa somente caches temporários do sistema-alvo antes da imagem.
+SQFS_WRAPPER_DIR="$WORK/squashfs-bin"
+mkdir -p "$SQFS_WRAPPER_DIR"
+cat > "$SQFS_WRAPPER_DIR/mksquashfs" <<'MKSQUASHFS'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+REAL_MKSQUASHFS=/usr/bin/mksquashfs
+[[ -x "$REAL_MKSQUASHFS" ]] || { echo "ERRO: mksquashfs não encontrado." >&2; exit 40; }
+SOURCE="${1:-}"
+if [[ -d "$SOURCE" && -d "$SOURCE/var/cache/pacman/pkg" ]]; then
+  find "$SOURCE/var/cache/pacman/pkg" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+  for temp_dir in "$SOURCE/var/tmp" "$SOURCE/tmp"; do
+    if [[ -d "$temp_dir" ]]; then
+      find "$temp_dir" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+    fi
+  done
+fi
+exec "$REAL_MKSQUASHFS" "$@" -b 1M -Xdict-size 1M
+MKSQUASHFS
+chmod 0755 "$SQFS_WRAPPER_DIR/mksquashfs"
+"$SQFS_WRAPPER_DIR/mksquashfs" -help-comp xz 2>&1 | grep -q -- '-Xdict-size' || {
+  echo "ERRO: mksquashfs não oferece suporte aos parâmetros XZ avançados." >&2
+  exit 41
+}
+# Não usar -f: ele ativa o conjunto extra do perfil Manjaro.
+PATH="$SQFS_WRAPPER_DIR:$PATH" buildiso -d xz -p "forja-$DESKTOP" -b stable -k "$KERNEL_PKG" -r "$CHROOTS" -t "$OUT" -v
 
 ISO="$(find "$OUT" -type f -name '*.iso' -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)"
 test -n "$ISO" && test -s "$ISO" || {
