@@ -1,6 +1,9 @@
 name: Build Forja OS XFCE ISO
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       kernel:
@@ -82,7 +85,7 @@ jobs:
       - name: Build ISO from the independent Forja XFCE profile
         shell: bash
         env:
-          FORJA_KERNEL: ${{ inputs.kernel }}
+          FORJA_KERNEL: ${{ inputs.kernel || 'lts' }}
         run: |
           set -Eeuo pipefail
           docker pull manjarolinux/base:latest
@@ -130,7 +133,7 @@ jobs:
       - name: Publish temporary ISO download (24 hours)
         uses: actions/upload-artifact@v4
         with:
-          name: forja-os-xfce-iso-${{ inputs.kernel }}
+          name: forja-os-xfce-iso-${{ inputs.kernel || 'lts' }}
           path: ${{ runner.temp }}/forja-iso-output/
           if-no-files-found: error
           compression-level: 0
