@@ -17,7 +17,76 @@ RUN bash -n /src/apply-forja-layout.sh /src/install-branding.sh \
     && shellcheck /src/apply-forja-layout.sh /src/install-branding.sh \
     && grep -q '^adw-gtk-theme$' /src/packages.arch \
     && grep -q '^adw-gtk-theme    && grep -q '^papirus-icon-theme$' /src/packages.arch \
+    && grep -q '^papirus-icon-theme    && grep -q '^bibata-cursor-theme$' /src/packages.arch \
+    && grep -q '^bibata-cursor-theme$' /src/packages.manjaro \
+    && ! grep -q '^materia-gtk-theme$' /src/packages.arch \
+    && ! grep -q '^materia-gtk-theme$' /src/packages.manjaro \
+    && grep -q 'GTK_THEME="adw-gtk3-dark"' /src/apply-forja-layout.sh \
+    && grep -q 'ICON_THEME="Papirus-Dark"' /src/apply-forja-layout.sh \
+    && grep -q 'CURSOR_THEME="Bibata-Modern-Classic"' /src/apply-forja-layout.sh \
+    && grep -q 'set_prop xfwm4 /general/theme string "Materia-dark"' /src/apply-forja-layout.sh
+
+CMD ["bash", "-n", "/src/apply-forja-layout.sh"]
+ /src/packages.manjaro \
+    && grep -q '^materia-gtk-theme    && grep -q '^papirus-icon-theme$' /src/packages.arch \
     && grep -q '^papirus-icon-theme$' /src/packages.manjaro \
+    && grep -q '^bibata-cursor-theme$' /src/packages.arch \
+    && grep -q '^bibata-cursor-theme$' /src/packages.manjaro \
+    && ! grep -q '^materia-gtk-theme$' /src/packages.arch \
+    && ! grep -q '^materia-gtk-theme$' /src/packages.manjaro \
+    && grep -q 'GTK_THEME="adw-gtk3-dark"' /src/apply-forja-layout.sh \
+    && grep -q 'ICON_THEME="Papirus-Dark"' /src/apply-forja-layout.sh \
+    && grep -q 'CURSOR_THEME="Bibata-Modern-Classic"' /src/apply-forja-layout.sh
+
+CMD ["bash", "-n", "/src/apply-forja-layout.sh"]
+ /src/packages.manjaro \
+    && grep -q '^papirus-icon-theme$' /src/packages.arch \
+    && grep -q '^papirus-icon-theme$' /src/packages.manjaro \
+    && grep -q '^bibata-cursor-theme$' /src/packages.arch \
+    && grep -q '^bibata-cursor-theme$' /src/packages.manjaro \
+    && ! grep -q '^materia-gtk-theme$' /src/packages.arch \
+    && ! grep -q '^materia-gtk-theme$' /src/packages.manjaro \
+    && grep -q 'GTK_THEME="adw-gtk3-dark"' /src/apply-forja-layout.sh \
+    && grep -q 'ICON_THEME="Papirus-Dark"' /src/apply-forja-layout.sh \
+    && grep -q 'CURSOR_THEME="Bibata-Modern-Classic"' /src/apply-forja-layout.sh
+
+CMD ["bash", "-n", "/src/apply-forja-layout.sh"]
+ /src/packages.manjaro \
+    && grep -q '^papirus-folders    && grep -q '^bibata-cursor-theme$' /src/packages.arch \
+    && grep -q '^bibata-cursor-theme$' /src/packages.manjaro \
+    && ! grep -q '^materia-gtk-theme$' /src/packages.arch \
+    && ! grep -q '^materia-gtk-theme$' /src/packages.manjaro \
+    && grep -q 'GTK_THEME="adw-gtk3-dark"' /src/apply-forja-layout.sh \
+    && grep -q 'ICON_THEME="Papirus-Dark"' /src/apply-forja-layout.sh \
+    && grep -q 'CURSOR_THEME="Bibata-Modern-Classic"' /src/apply-forja-layout.sh \
+    && grep -q 'set_prop xfwm4 /general/theme string "Materia-dark"' /src/apply-forja-layout.sh
+
+CMD ["bash", "-n", "/src/apply-forja-layout.sh"]
+ /src/packages.manjaro \
+    && grep -q '^materia-gtk-theme    && grep -q '^papirus-icon-theme$' /src/packages.arch \
+    && grep -q '^papirus-icon-theme$' /src/packages.manjaro \
+    && grep -q '^bibata-cursor-theme$' /src/packages.arch \
+    && grep -q '^bibata-cursor-theme$' /src/packages.manjaro \
+    && ! grep -q '^materia-gtk-theme$' /src/packages.arch \
+    && ! grep -q '^materia-gtk-theme$' /src/packages.manjaro \
+    && grep -q 'GTK_THEME="adw-gtk3-dark"' /src/apply-forja-layout.sh \
+    && grep -q 'ICON_THEME="Papirus-Dark"' /src/apply-forja-layout.sh \
+    && grep -q 'CURSOR_THEME="Bibata-Modern-Classic"' /src/apply-forja-layout.sh
+
+CMD ["bash", "-n", "/src/apply-forja-layout.sh"]
+ /src/packages.manjaro \
+    && grep -q '^papirus-icon-theme$' /src/packages.arch \
+    && grep -q '^papirus-icon-theme$' /src/packages.manjaro \
+    && grep -q '^bibata-cursor-theme$' /src/packages.arch \
+    && grep -q '^bibata-cursor-theme$' /src/packages.manjaro \
+    && ! grep -q '^materia-gtk-theme$' /src/packages.arch \
+    && ! grep -q '^materia-gtk-theme$' /src/packages.manjaro \
+    && grep -q 'GTK_THEME="adw-gtk3-dark"' /src/apply-forja-layout.sh \
+    && grep -q 'ICON_THEME="Papirus-Dark"' /src/apply-forja-layout.sh \
+    && grep -q 'CURSOR_THEME="Bibata-Modern-Classic"' /src/apply-forja-layout.sh
+
+CMD ["bash", "-n", "/src/apply-forja-layout.sh"]
+ /src/packages.manjaro \
     && grep -q '^bibata-cursor-theme$' /src/packages.arch \
     && grep -q '^bibata-cursor-theme$' /src/packages.manjaro \
     && ! grep -q '^materia-gtk-theme$' /src/packages.arch \
