@@ -32,6 +32,7 @@ grep -q 'papirus-folders -C grey --theme Papirus-Dark' "$REPO_ROOT/build-manjaro
 grep -q 'adw-gtk3-dark' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'Bibata-Modern-Classic' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'forja-pamac-pacman/install.sh' "$REPO_ROOT/build-manjaro.sh"
+grep -q 'for overlay_name in desktop-overlay live-overlay' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'FORJA_SKIP_STORE_INSTALL:-0' "$REPO_ROOT/build-manjaro.sh"
 
 grep -q 'OnlyShowIn=MATE;XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-update-indicator.desktop"
