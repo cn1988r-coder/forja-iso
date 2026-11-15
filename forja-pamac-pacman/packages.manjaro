@@ -1,7 +1,10 @@
-# Forja Store: GTK3 interface, Pacman and Flatpak backend
+# Dependências da Forja Store: GTK3, Pacman, yay/AUR e Flatpak
 gtk3
 python
 python-gobject
 pacman-contrib
 polkit
 flatpak
+yay
+base-devel
+git
