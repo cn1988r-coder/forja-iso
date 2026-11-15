@@ -78,6 +78,7 @@ MATE_PROFILE
 mate-desktop
 mate-backgrounds
 mate-menus
+fastfetch
 mate-polkit
 mate-session-manager
 mate-panel
@@ -138,6 +139,8 @@ for overlay_name in desktop-overlay live-overlay; do
 user-db:user
 system-db:local
 DCPROFILE
+      install -Dm644 /forja-ci/desktops/mate/forja-mate-wallpaper.svg \
+        "$overlay/usr/share/backgrounds/forja/forja-mate-wallpaper.svg"
       cat > "$overlay/etc/dconf/db/local.d/00-forja-visual" <<'DCCONF'
 [org/mate/interface]
 icon-theme='BigLinux-Icons-Material-Dark'
@@ -149,7 +152,42 @@ cursor-theme='Bibata-Modern-Ice'
 
 [org/mate/marco/general]
 theme='Materia-dark'
+[org/mate/desktop/background]
+picture-filename='/usr/share/backgrounds/forja/forja-mate-wallpaper.svg'
+picture-options='zoom'
 DCCONF
+      # Fastfetch com identidade visual FORJA OS, disponível na sessão Live e instalada.
+      install -Dm644 /dev/null "$overlay/etc/fastfetch/config.jsonc"
+      cat > "$overlay/etc/fastfetch/config.jsonc" <<'FASTFETCH'
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": {
+    "type": "file",
+    "source": "/usr/share/fastfetch/forja-logo.txt",
+    "padding": { "top": 1, "right": 2 }
+  },
+  "display": {
+    "separator": "  "
+  },
+  "modules": [
+    "title", "separator",
+    "os", "host", "kernel", "uptime",
+    "packages", "shell", "display", "de", "wm",
+    "theme", "icons", "terminal", "cpu", "gpu", "memory",
+    "break", "colors"
+  ]
+}
+FASTFETCH
+      install -Dm644 /dev/null "$overlay/usr/share/fastfetch/forja-logo.txt"
+      cat > "$overlay/usr/share/fastfetch/forja-logo.txt" <<'LOGO'
+      [#168cff]   ███████╗ ██████╗ ██████╗      [#ff8a2a]OS
+      [#168cff]   ██╔════╝██╔═══██╗██╔══██╗
+      [#168cff]   █████╗  ██║   ██║██████╔╝
+      [#168cff]   ██╔══╝  ██║   ██║██╔══██╗
+      [#168cff]   ██║     ╚██████╔╝██║  ██║
+      [#168cff]   ╚═╝      ╚═════╝ ╚═╝  ╚═╝
+      [#ff8a2a]       M A N J A R O   M A T E
+LOGO
       # Firefox is the system default for HTTP/HTTPS and HTML documents.
       mkdir -p "$overlay/etc/xdg" "$overlay/etc/skel/.config"
       cat > "$overlay/etc/xdg/mimeapps.list" <<'MIMEAPPS'
@@ -351,7 +389,7 @@ if [[ "$DESKTOP" == mate ]]; then
     lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet
     bluez bluez-utils blueman
     pipewire pipewire-alsa pipewire-pulse wireplumber
-    gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib polkit
+    gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib polkit fastfetch
     systemd grub efibootmgr mkinitcpio calamares linux-firmware
     manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db
   )
@@ -431,7 +469,7 @@ done < <(find -L "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
 BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
-DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit marco caja lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib)
+DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit marco caja lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib fastfetch)
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
   if ! pacman_info "$package" >/dev/null 2>&1; then
