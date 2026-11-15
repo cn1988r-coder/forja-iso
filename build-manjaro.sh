@@ -76,6 +76,7 @@ MATE_PROFILE
   cat > "$TARGET/Packages-Desktop" <<'MATE_PACKAGES'
 # Ambiente MATE mínimo e funcional.
 mate-desktop
+mate-backgrounds
 mate-menus
 mate-polkit
 mate-session-manager
@@ -118,7 +119,7 @@ if ! pacman_info materia-gtk-theme >/dev/null 2>&1; then
   exit 24
 fi
 
-# A ISO Forja não inclui pacotes nem imagens de wallpaper.
+# Preserve os wallpapers nativos do ambiente gráfico; a Forja não força fundo personalizado.
 # Materialize overlay symlinks before editing so no shared profile outside this
 # custom profile is changed. Remove desktop-specific defaults for MATE and set
 # its LightDM session without inheriting another desktop profile.
@@ -410,7 +411,7 @@ while IFS= read -r -d '' package_list; do
     fi
     case "$package" in
       # Drivers opcionais incompatíveis/dispensáveis na ISO desktop: módulo RT3562STA legado e módulos de convidado VirtualBox.
-      linux[0-9]*-rt3562sta|linux[0-9]*-virtualbox-guest-modules|gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|xdg-su|manjaro-documentation-en|papirus-icon-theme|papirus-folders|manjaro-wallpapers-*|wallpapers-2018|wallpapers-juhraya|illyria-wallpaper|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*)
+      linux[0-9]*-rt3562sta|linux[0-9]*-virtualbox-guest-modules|gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|xdg-su|manjaro-documentation-en|papirus-icon-theme|papirus-folders|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*)
         echo "Forja: pacote legado/NVIDIA removido: $package" >&2
         printf '# Forja: pacote legado removido: %s\n' "$package" >> "$filtered_list"
         continue
