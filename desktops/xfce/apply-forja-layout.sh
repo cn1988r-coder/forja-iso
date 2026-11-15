@@ -11,7 +11,9 @@ DOCKLIKE_CSS_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/xfce4-docklike-plugin"
 set_prop() {
   local channel="$1" property="$2" type="$3" value="$4"
   if xfconf-query -c "$channel" -p "$property" -s "$value" >/dev/null 2>&1; then return 0; fi
-  xfconf-query -c "$channel" -p "$property" --create -t "$type" -s "$value" >/dev/null 2>&1
+  xfconf-query -c "$channel" -p "$property" --create -t "$type" -s "$value" >/dev/null 2>&1 || {
+    printf 'Aviso: propriedade XFCE não aplicada: %s/%s\n' "$channel" "$property" >&2
+  }
 }
 set_prop xsettings /Net/ThemeName string "$GTK_THEME"
 set_prop xsettings /Net/IconThemeName string "$ICON_THEME"
@@ -62,7 +64,7 @@ set_prop xfce4-panel /panels/panel-1/autohide-behavior uint 0
 set_prop xfce4-panel /panels/panel-1/position-locked bool true
 xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids -a \
   -t int -s 1 -t int -s 2 -t int -s 7 -t int -s 9 -t int -s 4 \
-  -t int -s 3 -t int -s 6 -t int -s 10 -t int -s 5 -t int -s 8
+  -t int -s 3 -t int -s 6 -t int -s 10 -t int -s 5 -t int -s 8 >/dev/null 2>&1 || true
 set_prop xfce4-panel /plugins/plugin-1 string whiskermenu
 set_prop xfce4-panel /plugins/plugin-2 string docklike
 set_prop xfce4-panel /plugins/plugin-3 string pulseaudio
