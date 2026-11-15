@@ -90,6 +90,10 @@ jobs:
           ! grep -Eiq 'xfce|gnome|plasma|kde' build-manjaro.sh
           grep -Fq 'gh release create' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'COMPRESSION=xz' build-manjaro.sh
+          grep -Fq 'SQFS_WRAPPER_DIR=' build-manjaro.sh
+          grep -Fq -- '-b 1M -Xdict-size 1M' build-manjaro.sh
+          ! grep -Fq 'buildiso -f' build-manjaro.sh
+          ! grep -Fq 'forja-mate-wallpaper.svg' build-manjaro.sh
           grep -Fq 'sha256sum --check' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_DISTRIBUTION=manjaro' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_DESKTOP=mate' .github/workflows/build-manjaro-mate.yml
