@@ -17,15 +17,13 @@ from forja_store_core import (
 
 HELPER = "/usr/lib/forja/forja-pacman-transaction"
 CSS = """
-window { background:#202020; color:#f2f2f2; }
-headerbar { background:#252525; color:#f2f2f2; }
-.sidebar { background:#252525; padding:12px 8px; }
-.sidebar row:selected { background:#454545; }
+.sidebar { padding:12px 8px; }
+.sidebar row:selected { background-color: rgba(255,255,255,0.08); }
 .section-title { font-size:19px; font-weight:bold; }
-.app-card { background:#2d2d2d; border:1px solid #484848; border-radius:9px; padding:12px; }
-.dim-label { color:#bdbdbd; }
-button.suggested-action { background:#555555; color:white; }
-.statusbar { background:#252525; padding:7px 12px; }
+.app-tile { border-radius:10px; padding:10px; }
+.app-tile:hover { background-color: rgba(255,255,255,0.08); }
+.dim-label { opacity:0.72; }
+.statusbar { padding:7px 12px; }
 """
 
 CATEGORIES = [
@@ -139,7 +137,6 @@ class Store(Gtk.Application):
         check.connect("clicked", self.check_updates)
         header.pack_end(check)
         update = Gtk.Button(label="Atualizar tudo")
-        update.get_style_context().add_class("suggested-action")
         update.connect("clicked", self.update_system)
         header.pack_end(update)
         self.window.set_titlebar(header)
@@ -379,7 +376,6 @@ class Store(Gtk.Application):
         self.content.pack_start(Gtk.Label(label=f"{total} atualização(ões) encontrada(s).", xalign=0), False, False, 0)
         if total:
             button = Gtk.Button(label="Atualizar tudo")
-            button.get_style_context().add_class("suggested-action")
             button.set_halign(Gtk.Align.START)
             button.connect("clicked", self.update_system)
             self.content.pack_start(button, False, False, 0)
@@ -423,6 +419,7 @@ class Store(Gtk.Application):
         name, package, summary = app["name"], app["package"], app["summary"]
         source, icon = app["source"], app["icon"]
         button = Gtk.Button()
+        button.get_style_context().add_class("app-tile")
         button.set_relief(Gtk.ReliefStyle.NONE)
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         box.get_style_context().add_class("app-card")
