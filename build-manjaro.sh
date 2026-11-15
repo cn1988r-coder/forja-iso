@@ -74,41 +74,40 @@ enable_systemd=('NetworkManager' 'bluetooth')
 enable_systemd_live=('NetworkManager' 'bluetooth' 'manjaro-live' 'mhwd-live' 'pacman-init' 'mirrors-live')
 MATE_PROFILE
   cat > "$TARGET/Packages-Desktop" <<'MATE_PACKAGES'
+# Ambiente MATE mínimo e funcional.
 mate-desktop
 mate-menus
 mate-polkit
-mate-media
 mate-session-manager
 mate-panel
 mate-control-center
 mate-settings-daemon
 marco
+caja
+
+# Login, rede cabeada/Wi-Fi, Bluetooth e navegador.
 lightdm
 lightdm-slick-greeter
+networkmanager
 network-manager-applet
 bluez
 bluez-utils
 blueman
 firefox
-gvfs
-gvfs-mtp
-xdg-user-dirs
-cups
-system-config-printer
+
+# Áudio, aparência e dependências do Pamac/Forja Software.
 pipewire
 pipewire-alsa
 pipewire-pulse
 wireplumber
-papirus-icon-theme
-bibata-cursor-theme
-gtk4
+materia-gtk-theme
 gtk3
+gtk4
 python
 python-gobject
 libayatana-appindicator
 pacman-contrib
 polkit
-flatpak
 MATE_PACKAGES
 fi
 
@@ -272,28 +271,8 @@ LIGHTDM
   fi
 done
 
-# Configura o Flathub oficial no primeiro boot. Os pacotes do sistema continuam
-# vindo exclusivamente dos espelhos configurados pelo Manjaro/pacman-mirrors.
+# Instala o Pamac/Forja Software na imagem, sem incluir Flatpak.
 if [[ "$DESKTOP" == mate ]]; then
-  mkdir -p "$TARGET/desktop-overlay/etc/systemd/system/multi-user.target.wants"
-  cat > "$TARGET/desktop-overlay/etc/systemd/system/forja-flathub.service" <<'FLATHUB_UNIT'
-[Unit]
-Description=Register the official Flathub Flatpak remote
-Wants=network-online.target
-After=NetworkManager.service network-online.target
-StartLimitIntervalSec=0
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/flatpak remote-add --if-not-exists --system flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-RemainAfterExit=yes
-Restart=on-failure
-RestartSec=30
-
-[Install]
-WantedBy=multi-user.target
-FLATHUB_UNIT
-  ln -sfn ../forja-flathub.service "$TARGET/desktop-overlay/etc/systemd/system/multi-user.target.wants/forja-flathub.service"
   DESTDIR="$TARGET/desktop-overlay" bash /forja-ci/forja-pamac-pacman/install.sh
 fi
 
@@ -313,9 +292,11 @@ done
 if [[ "$DESKTOP" == mate ]]; then
   MATE_CORE_PACKAGES=(
     mate-session-manager mate-panel mate-control-center mate-settings-daemon
-    mate-desktop mate-menus mate-polkit mate-media marco lightdm lightdm-slick-greeter firefox networkmanager
-    network-manager-applet bluez bluez-utils blueman
-    gtk4 gtk3 python python-gobject libayatana-appindicator pacman-contrib polkit flatpak
+    mate-desktop mate-menus mate-polkit marco caja
+    lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet
+    bluez bluez-utils blueman
+    pipewire pipewire-alsa pipewire-pulse wireplumber
+    gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib polkit
     systemd grub efibootmgr mkinitcpio calamares linux-firmware
     manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db
   )
@@ -327,26 +308,9 @@ if [[ "$DESKTOP" == mate ]]; then
     printf 'ERRO: componentes essenciais MATE/LightDM/rede/Bluetooth ausentes: %s\n' "${MATE_MISSING_CORE[*]}" >&2
     exit 22
   fi
-  # Conjunto completo dos grupos oficiais mate e mate-extra, listado por
-  # pacote individual para permitir validação real com pacman -Si.
-  MATE_REQUIRED_PACKAGES=(
-    caja marco mate-backgrounds mate-control-center mate-desktop
-    mate-icon-theme mate-menus mate-notification-daemon mate-panel
-    mate-polkit mate-session-manager mate-settings-daemon mate-themes
-    mate-user-guide atril engrampa eom mate-applets mate-calc mate-media
-    mate-power-manager mate-screensaver mate-system-monitor mate-terminal
-    mate-utils mozo pluma
-  )
-  MATE_MISSING_PACKAGES=()
-  for package in "${MATE_REQUIRED_PACKAGES[@]}"; do
-    if pacman_info "$package" >/dev/null 2>&1; then
-      printf '%s\n' "$package" >> "$TARGET/Packages-Desktop"
-    else
-      MATE_MISSING_PACKAGES+=("$package")
-    fi
-  done
-  if (("${#MATE_MISSING_PACKAGES[@]}")); then
-    printf 'ERRO: pacotes obrigatórios do MATE ausentes no Manjaro Stable: %s\n' "${MATE_MISSING_PACKAGES[*]}" >&2
+  # Caja é o gerenciador de arquivos padrão e faz parte do desktop mínimo.
+  if ! pacman_info caja >/dev/null 2>&1; then
+    echo "ERRO: gerenciador de arquivos Caja ausente no Manjaro Stable." >&2
     exit 23
   fi
   awk '!seen[$0]++' "$TARGET/Packages-Desktop" > "$TARGET/Packages-Desktop.unique"
@@ -413,7 +377,7 @@ done < <(find -L "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
 BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
-DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-media marco lightdm lightdm-slick-greeter firefox materia-gtk-theme)
+DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit marco caja lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib)
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
   if ! pacman_info "$package" >/dev/null 2>&1; then
