@@ -8,6 +8,7 @@ polkit-gnome
 appstream
 archlinux-appstream-data
 flatpak
-yay
+pamac-cli
+libpamac
 base-devel
 git
