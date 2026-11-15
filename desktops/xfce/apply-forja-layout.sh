@@ -30,10 +30,7 @@ set_prop xsettings /Gtk/FontName string "Cantarell 10"
 set_prop xfwm4 /general/theme string "Materia-dark"
 set_prop xfwm4 /general/use_compositing bool true
 
-# Keep Papirus folders neutral instead of introducing accent colors.
-if command -v papirus-folders >/dev/null 2>&1; then
-  papirus-folders -C grey --theme "$ICON_THEME" >/dev/null 2>&1 || true
-fi
+# Papirus-Dark folder recoloring is applied once by the root systemd unit.
 
 # GTK 4 and libadwaita applications use the desktop dark preference.
 if command -v gsettings >/dev/null 2>&1; then
