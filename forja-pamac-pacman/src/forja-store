@@ -241,6 +241,10 @@ class Store(Gtk.Application):
         return GLib.SOURCE_REMOVE
 
     def load_updates(self, *_):
+        refresh = Gtk.Button.new_with_label("Verificar novamente")
+        refresh.set_halign(Gtk.Align.START)
+        refresh.connect("clicked", self.load_updates)
+        self.content.pack_start(refresh, False, False, 0)
         loading = Gtk.Label(label="Verificando atualizações do sistema e Flatpak…", xalign=0)
         self.content.pack_start(loading, False, False, 0)
         self.content.show_all()
