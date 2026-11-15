@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 export LANG=C
-DESKTOP=mate
+DESKTOP="${FORJA_DESKTOP:-mate}"
+case "$DESKTOP" in mate|xfce) ;; *) echo "Desktop inválido: $DESKTOP (use mate ou xfce)." >&2; exit 2;; esac
 KERNEL="${FORJA_KERNEL:-lts}"
 WORK=/tmp/forja-manjaro
 OUT="${FORJA_OUTPUT:-/forja-output}"
@@ -57,10 +58,10 @@ done
 }
 
 TARGET="$PROFILE_ROOT/manjaro/forja-$DESKTOP"
-BASE_PROFILE="$PROFILE_ROOT/manjaro/mate"
+BASE_PROFILE="$PROFILE_ROOT/manjaro/$DESKTOP"
 rm -rf "$TARGET"
 
-if [[ "$DESKTOP" == mate ]]; then
+if [[ "$DESKTOP" == mate || "$DESKTOP" == xfce ]]; then
   mkdir -p "$TARGET"
 
   # Primeiro tenta usar o perfil MATE oficial, como no método da Cloud.
@@ -160,6 +161,11 @@ git
 MATE_PACKAGES
 fi
 
+if [[ "$DESKTOP" == xfce ]]; then
+  # Pacotes próprios da edição XFCE, mantidos fora do perfil MATE.
+  cat /forja-ci/desktops/xfce/packages.manjaro >> "$TARGET/Packages-Desktop"
+fi
+
 # Materia Dark é obrigatório em todas as ISOs e ambientes gráficos.
 grep -Fxq 'materia-gtk-theme' "$TARGET/Packages-Desktop" || printf '%s\n' 'materia-gtk-theme' >> "$TARGET/Packages-Desktop"
 if ! pacman_info materia-gtk-theme >/dev/null 2>&1; then
@@ -178,6 +184,7 @@ for overlay_name in desktop-overlay live-overlay; do
     cp -a "$overlay_source" "$overlay"
   fi
   if [[ -d "$overlay" ]]; then
+    if [[ "$DESKTOP" == mate ]]; then
     # Overlay exclusivo da sessão MATE.
       find "$overlay" -type f \( -iname '*midori*' -o -iname '*parole*' -o -iname '*ristretto*' -o -iname '*mousepad*' -o -iname '*thunar*' \) -delete
       mkdir -p "$overlay/etc/dconf/profile" "$overlay/etc/dconf/db/local.d"
@@ -324,12 +331,74 @@ icon-theme-name=Papirus-Dark
 cursor-theme-name=Bibata-Modern-Ice
 font-name=Noto Sans 10
 GREETER
+    else
+      # Overlay da sessão XFCE: tema escuro, ícones neutros e configuração própria.
+      DESTDIR="$overlay" bash /forja-ci/desktops/xfce/install-branding.sh
+      mkdir -p "$overlay/usr/share/backgrounds" "$overlay/usr/share/icons/default" \
+        "$overlay/etc/gtk-3.0" "$overlay/etc/gtk-4.0" \
+        "$overlay/etc/skel/.config/gtk-3.0" "$overlay/etc/skel/.config/gtk-4.0" \
+        "$overlay/etc/lightdm/lightdm.conf.d"
+      install -Dm644 /forja-ci/desktops/xfce/forja-xfce-wallpaper.svg \
+        "$overlay/usr/share/backgrounds/forja-os-xfce.svg"
+      cat > "$overlay/usr/share/icons/default/index.theme" <<'CURSOR'
+[Icon Theme]
+Name=Default
+Comment=Forja OS default cursor
+Inherits=Bibata-Modern-Ice
+CURSOR
+      for settings in \
+        "$overlay/etc/gtk-3.0/settings.ini" \
+        "$overlay/etc/gtk-4.0/settings.ini" \
+        "$overlay/etc/skel/.config/gtk-3.0/settings.ini" \
+        "$overlay/etc/skel/.config/gtk-4.0/settings.ini"; do
+        cat > "$settings" <<'GTK'
+[Settings]
+gtk-theme-name=Materia-dark
+gtk-icon-theme-name=Papirus-Dark
+gtk-cursor-theme-name=Bibata-Modern-Ice
+gtk-font-name=Noto Sans 10
+GTK
+      done
+      cat > "$overlay/etc/lightdm/lightdm.conf.d/50-forja-xfce.conf" <<'LIGHTDM'
+[Seat:*]
+user-session=xfce
+greeter-session=lightdm-gtk-greeter
+LIGHTDM
+      cat > "$overlay/etc/lightdm/lightdm-gtk-greeter.conf" <<'GREETER'
+[greeter]
+theme-name=Materia-dark
+icon-theme-name=Papirus-Dark
+cursor-theme-name=Bibata-Modern-Ice
+font-name=Noto Sans 10
+GREETER
+      # Mantém o navegador como padrão também na sessão Live e nos novos usuários.
+      mkdir -p "$overlay/etc/xdg" "$overlay/etc/skel/.config"
+      cat > "$overlay/etc/xdg/mimeapps.list" <<'MIMEAPPS'
+[Default Applications]
+x-scheme-handler/http=firefox.desktop
+x-scheme-handler/https=firefox.desktop
+text/html=firefox.desktop
+application/xhtml+xml=firefox.desktop
+MIMEAPPS
+      install -Dm644 "$overlay/etc/xdg/mimeapps.list" "$overlay/etc/skel/.config/mimeapps.list"
+      mkdir -p "$overlay/usr/share/fastfetch" "$overlay/etc/fastfetch"
+      cat > "$overlay/usr/share/fastfetch/forja-logo.txt" <<'LOGO'
+FORJA OS
+LOGO
+      cat > "$overlay/etc/fastfetch/config.jsonc" <<'FASTFETCH'
+{
+  "logo": { "type": "file", "source": "/usr/share/fastfetch/forja-logo.txt" },
+  "display": { "separator": "  " },
+  "modules": ["host", "kernel", "uptime", "packages", "shell", "display", "de", "wm", "theme", "icons", "terminal", "cpu", "gpu", "memory"]
+}
+FASTFETCH
+    fi
   fi
 done
 
 # Papirus é fornecido pelo pacote oficial papirus-icon-theme.
 # Instala a Forja Store independente, integrada diretamente ao Pacman.
-if [[ "$DESKTOP" == mate && "${FORJA_SKIP_STORE_INSTALL:-0}" != "1" ]]; then
+if [[ "$DESKTOP" == mate || "$DESKTOP" == xfce ]] && [[ "${FORJA_SKIP_STORE_INSTALL:-0}" != "1" ]]; then
   DESTDIR="$TARGET/desktop-overlay" bash /forja-ci/forja-pamac-pacman/install.sh
 fi
 
@@ -419,7 +488,7 @@ while IFS= read -r -d '' package_list; do
     fi
     case "$package" in
       # Drivers opcionais incompatíveis/dispensáveis na ISO desktop: módulo RT3562STA legado e módulos de convidado VirtualBox.
-      linux[0-9]*-rt3562sta|linux[0-9]*-virtualbox-guest-modules|gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|xdg-su|manjaro-documentation-en|papirus-folders|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*)
+      linux[0-9]*-rt3562sta|linux[0-9]*-virtualbox-guest-modules|gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|xdg-su|manjaro-documentation-en|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*)
         echo "Forja: pacote legado/NVIDIA removido: $package" >&2
         printf '# Forja: pacote legado removido: %s\n' "$package" >> "$filtered_list"
         continue
@@ -439,7 +508,11 @@ done < <(find -L "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
 BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
-DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media mate-system-monitor mate-terminal mate-calc mate-utils marco caja mozo pluma engrampa atril eom lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme gtk3 python python-gobject pacman-contrib flatpak yay git fastfetch bibata-cursor-theme dconf vlc htop gparted noto-fonts ttf-jetbrains-mono)
+if [[ "$DESKTOP" == mate ]]; then
+  DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media mate-system-monitor mate-terminal mate-calc mate-utils marco caja mozo pluma engrampa atril eom lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme gtk3 python python-gobject pacman-contrib flatpak yay git fastfetch bibata-cursor-theme dconf vlc htop gparted noto-fonts ttf-jetbrains-mono)
+else
+  DESKTOP_CORE_PACKAGES=(xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin xfce4-docklike-plugin xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme papirus-folders bibata-cursor-theme gtk3 gtk4 python python-gobject pacman-contrib polkit)
+fi
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
   if ! pacman_info "$package" >/dev/null 2>&1; then
