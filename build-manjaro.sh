@@ -345,6 +345,7 @@ RemainAfterExit=yes
 [Install]
 WantedBy=multi-user.target
 MIRRORSERVICE
+mkdir -p "$TARGET/rootfs/etc/systemd/system/multi-user.target.wants"
 ln -sfn ../forja-manjaro-mirrors.service "$TARGET/rootfs/etc/systemd/system/multi-user.target.wants/forja-manjaro-mirrors.service"
 
 DM=lightdm
