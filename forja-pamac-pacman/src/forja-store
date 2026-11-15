@@ -66,7 +66,7 @@ def run(args, timeout=90):
         return subprocess.CompletedProcess(args, 127, "", str(exc))
 
 def package_sources():
-    result = run(["pacman", "-Slq"], 120)
+    result = run(["pamac", "list", "--repos", "--quiet"], 120)
     if result.returncode:
         return None, result.stderr or result.stdout or "Falha ao consultar os repositórios Pacman."
     return set(result.stdout.splitlines()), ""
@@ -212,8 +212,8 @@ class Store(Gtk.Application):
 
     def reload_installed(self):
         def worker():
-            repo = run(["pacman", "-Qnq"], 60)
-            foreign = run(["pacman", "-Qmq"], 60)
+            repo = run(["pamac", "list", "--installed", "--quiet"], 60)
+            foreign = run(["pamac", "list", "--foreign", "--quiet"], 60)
             system_flat = run(["flatpak", "list", "--system", "--app", "--columns=application"], 60) if shutil.which("flatpak") else None
             user_flat = run(["flatpak", "list", "--user", "--app", "--columns=application"], 60) if shutil.which("flatpak") else None
             GLib.idle_add(
@@ -339,8 +339,8 @@ class Store(Gtk.Application):
         self.content.pack_start(Gtk.Label(label="Consultando Pacman, AUR e Flatpak…", xalign=0), False, False, 0)
         self.content.show_all()
         def worker():
-            pac = run(["checkupdates"], 180)
-            aur = run(["yay", "-Qua"], 240) if shutil.which("yay") else subprocess.CompletedProcess([], 127, "", "yay não está instalado")
+            pac = run(["pamac", "checkupdates", "--aur", "--quiet"], 240)
+            aur = subprocess.CompletedProcess([], 0, "", "")
             flat_system = run(["flatpak", "remote-ls", "--updates", "--system", "--app",
                                "--columns=application,name,branch"], 180) if shutil.which("flatpak") else subprocess.CompletedProcess([], 127, "", "flatpak não está instalado")
             flat_user = run(["flatpak", "remote-ls", "--updates", "--user", "--app",
@@ -358,7 +358,7 @@ class Store(Gtk.Application):
             return GLib.SOURCE_REMOVE
         self.clear()
         self.heading("Atualizações disponíveis")
-        groups = [("Pacman", pac), ("AUR", aur), ("Flatpak", flat)]
+        groups = [("Pamac · repositórios e AUR", pac), ("Flatpak", flat)]
         total = sum(len(items) for _name, items in groups)
         for source, items in groups:
             if items:
@@ -460,7 +460,7 @@ class Store(Gtk.Application):
             else:
                 errors.append("AppStream")
             if available is not None:
-                repo = run(["pacman", "-Ss", query], 120)
+                repo = run(["pamac", "search", "--no-aur", query], 120)
                 if repo.returncode in (0, 1):
                     results.extend(parse_pacman_search(repo.stdout, "repo"))
                 else:
@@ -468,7 +468,7 @@ class Store(Gtk.Application):
             else:
                 errors.append("Pacman")
             if shutil.which("yay"):
-                aur = run(["yay", "-Ssa", query], 180)
+                aur = run(["pamac", "search", "--aur", query], 180)
                 if aur.returncode in (0, 1):
                     results.extend(parse_pacman_search(aur.stdout, "aur"))
                 else:
@@ -571,7 +571,7 @@ class Store(Gtk.Application):
         self.busy = True
         self.status.set_text(f"Executando {action} · {source} · {name}…")
         def worker():
-            args = ["pkexec", HELPER, action, source, name]
+            args = [HELPER, action, source, name]
             if source == "flatpak":
                 args.append(remote or "flathub")
             result = run(args, 7200)
@@ -596,7 +596,7 @@ class Store(Gtk.Application):
         self.busy = True
         self.status.set_text("Atualizando Pacman, AUR e Flatpak…")
         def worker():
-            system = run(["pkexec", HELPER, "upgrade"], 7200)
+            system = run([HELPER, "upgrade"], 7200)
             userflat = run(["flatpak", "update", "--user", "--noninteractive", "--assumeyes"], 7200) if shutil.which("flatpak") else subprocess.CompletedProcess([], 127, "", "flatpak não instalado")
             code = system.returncode or userflat.returncode
             output = system.stdout + ("\n" + system.stderr if system.stderr else "")
