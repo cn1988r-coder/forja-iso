@@ -86,6 +86,11 @@ MATE_PROFILE
   fi
 
   mkdir -p "$TARGET/desktop-overlay" "$TARGET/live-overlay"
+  # Materializa a lista antes de anexar pacotes, sem alterar symlinks do perfil oficial.
+  if [[ -L "$TARGET/Packages-Desktop" ]]; then
+    cp "$(readlink -f "$TARGET/Packages-Desktop")" "$TARGET/Packages-Desktop.materialized"
+    mv "$TARGET/Packages-Desktop.materialized" "$TARGET/Packages-Desktop"
+  fi
   touch "$TARGET/Packages-Desktop"
 
   # Complementa o perfil-base com os programas e a identidade da Forja OS.
