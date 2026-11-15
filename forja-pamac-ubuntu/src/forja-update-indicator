@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Ayatana AppIndicator prototype for Forja Software updates."""
+"""MATE panel indicator for Ubuntu APT and system Flatpak updates."""
 import subprocess
 import threading
 
@@ -28,21 +28,24 @@ class UpdateIndicator:
         refresh_item = Gtk.MenuItem(label="Procurar atualizações")
         refresh_item.connect("activate", self.refresh)
         self.menu.append(refresh_item)
-        install_item = Gtk.MenuItem(label="Instalar atualizações")
-        install_item.connect("activate", self.upgrade)
-        self.menu.append(install_item)
+        apt_item = Gtk.MenuItem(label="Atualizar Ubuntu")
+        apt_item.connect("activate", lambda *_: self.run(["pkexec", HELPER, "apt-upgrade"]))
+        self.menu.append(apt_item)
+        flatpak_item = Gtk.MenuItem(label="Atualizar Flatpak")
+        flatpak_item.connect("activate", lambda *_: self.run(["pkexec", HELPER, "flatpak-upgrade"]))
+        self.menu.append(flatpak_item)
         self.menu.show_all()
         self.indicator.set_menu(self.menu)
         self.check()
         GLib.timeout_add_seconds(900, self.check)
 
-    def set_state(self, count, error=None):
+    def set_state(self, apt_count, flatpak_count, error=None):
         if error:
             label, icon = "Falha ao consultar atualizações", "dialog-error"
-        elif count:
-            label, icon = f"{count} atualização(ões) disponível(is)", "software-update-available"
         else:
-            label, icon = "Sistema atualizado", "software-update-available"
+            total = apt_count + flatpak_count
+            label = (f"{total} atualização(ões) disponíveis" if total else "Sistema atualizado")
+            icon = "software-update-available"
         self.state.set_label(label)
         self.indicator.set_icon_full(icon, label)
         return GLib.SOURCE_REMOVE
@@ -51,20 +54,30 @@ class UpdateIndicator:
         def worker():
             try:
                 cache = apt.Cache()
-                count = sum(1 for p in cache if p.is_installed and p.is_upgradable)
-                GLib.idle_add(self.set_state, count, None)
+                apt_count = sum(1 for p in cache if p.is_installed and p.is_upgradable)
+                result = subprocess.run([
+                    "/usr/bin/flatpak", "remote-ls", "--system", "--updates", "--app",
+                    "--columns=application",
+                ], check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    timeout=60)
+                flatpak_count = len([line for line in result.stdout.splitlines() if line.strip()])
+                GLib.idle_add(self.set_state, apt_count, flatpak_count, None)
             except Exception as exc:
-                GLib.idle_add(self.set_state, 0, str(exc))
+                GLib.idle_add(self.set_state, 0, 0, str(exc))
         threading.Thread(target=worker, daemon=True).start()
         return GLib.SOURCE_CONTINUE
 
-    def refresh(self, *_):
-        subprocess.Popen(["pkexec", HELPER, "refresh"])
-        GLib.timeout_add_seconds(20, self.check)
+    def run(self, args):
+        def worker():
+            result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                    text=True)
+            GLib.idle_add(self.set_state, 0, 0,
+                          None if result.returncode == 0 else "A operação de atualização falhou.")
+            GLib.timeout_add_seconds(3, self.check)
+        threading.Thread(target=worker, daemon=True).start()
 
-    def upgrade(self, *_):
-        subprocess.Popen(["pkexec", HELPER, "upgrade"])
-        GLib.timeout_add_seconds(20, self.check)
+    def refresh(self, *_):
+        self.run(["pkexec", HELPER, "apt-refresh"])
 
 
 if __name__ == "__main__":
