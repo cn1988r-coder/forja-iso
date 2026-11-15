@@ -1,15 +1,17 @@
 #!/usr/bin/python3
-"""Privileged APT transaction helper. Invoke through pkexec.
+"""Safe privileged transaction helper for Ubuntu APT and system Flatpak.
 
-Only updates packages inside the currently installed Ubuntu release.
-It never invokes do-release-upgrade or changes Ubuntu release series.
+APT upgrades stay inside the configured Ubuntu release. This helper never
+runs do-release-upgrade, full-upgrade or dist-upgrade.
 """
 import re
 import subprocess
 import sys
 
 PACKAGE_RE = re.compile(r"^[a-z0-9][a-z0-9+.-]*(:[a-z0-9-]+)?$")
-APT_ENV = {
+APP_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]+$")
+REMOTE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+ENV = {
     "PATH": "/usr/sbin:/usr/bin:/sbin:/bin",
     "DEBIAN_FRONTEND": "noninteractive",
     "LANG": "C.UTF-8",
@@ -18,37 +20,51 @@ APT_ENV = {
 
 
 def run(args):
-    return subprocess.call(args, env=APT_ENV)
+    return subprocess.call(args, env=ENV)
 
 
 def main():
     if len(sys.argv) < 2:
         return 2
-    action = sys.argv[1]
+    action, *args = sys.argv[1:]
 
-    if action == "refresh" and len(sys.argv) == 2:
+    if action == "apt-refresh" and not args:
         return run(["/usr/bin/apt-get", "update"])
-
-    # Install newly required dependencies when safe, but never remove packages.
-    # This allows normal kernel/meta-package updates without a release upgrade.
-    if action == "upgrade" and len(sys.argv) == 2:
+    if action == "apt-upgrade" and not args:
         return run([
             "/usr/bin/apt-get", "--with-new-pkgs", "upgrade", "-y",
             "-o", "Dpkg::Options::=--force-confold",
         ])
-
-    if action in ("install", "remove") and len(sys.argv) >= 3:
-        packages = sys.argv[2:]
-        if not all(PACKAGE_RE.fullmatch(p) for p in packages):
-            print("Nome de pacote inválido.", file=sys.stderr)
+    if action in ("apt-install", "apt-remove") and args:
+        if not all(PACKAGE_RE.fullmatch(p) for p in args):
+            print("Nome de pacote APT inválido.", file=sys.stderr)
             return 2
-        command = "install" if action == "install" else "remove"
+        verb = "install" if action == "apt-install" else "remove"
+        return run(["/usr/bin/apt-get", verb, "-y", "--", *args])
+
+    if action == "flatpak-refresh" and not args:
+        return run(["/usr/bin/flatpak", "update", "--system", "--appstream"])
+    if action == "flatpak-upgrade" and not args:
+        return run(["/usr/bin/flatpak", "update", "--system", "--noninteractive", "--assumeyes"])
+    if action == "flatpak-install" and len(args) == 2:
+        remote, app_id = args
+        if not REMOTE_RE.fullmatch(remote) or not APP_RE.fullmatch(app_id):
+            print("Remote ou ID Flatpak inválido.", file=sys.stderr)
+            return 2
         return run([
-            "/usr/bin/apt-get", command, "-y", "--",
-            *packages,
+            "/usr/bin/flatpak", "install", "--system", "--noninteractive",
+            "--assumeyes", remote, app_id,
+        ])
+    if action == "flatpak-remove" and len(args) == 1:
+        if not APP_RE.fullmatch(args[0]):
+            print("ID Flatpak inválido.", file=sys.stderr)
+            return 2
+        return run([
+            "/usr/bin/flatpak", "uninstall", "--system", "--noninteractive",
+            "--assumeyes", args[0],
         ])
 
-    print("Operação não permitida. Atualizações de versão do Ubuntu não são suportadas.", file=sys.stderr)
+    print("Operação não permitida.", file=sys.stderr)
     return 2
 
 
