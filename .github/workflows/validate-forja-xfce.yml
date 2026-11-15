@@ -1,89 +1,87 @@
-name: Validate Forja OS XFCE interface
+name: Validate Forja OS XFCE and Store integration
 
 on:
   push:
     branches:
       - forja-xfce-interface
       - feature/forja-xfce-store-integration
+    paths:
+      - 'build-cloud.sh'
+      - 'build-manjaro.sh'
+      - 'desktops/xfce/**'
+      - 'forja-pamac-pacman/**'
+      - '.github/workflows/validate-forja-xfce.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  validate-xfce:
+  validate-xfce-store:
+    name: Static XFCE and Forja Store validation (no ISO build)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate shell syntax
+      - name: Install validation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck desktop-file-utils libxml2-utils
+
+      - name: Validate shell syntax and Python sources
         shell: bash
         run: |
           set -euo pipefail
-          bash -n build-cloud.sh
-          bash -n build-manjaro.sh
-          bash -n desktops/xfce/apply-forja-layout.sh
-          bash -n desktops/xfce/install-branding.sh
+          bash -n build-cloud.sh build-manjaro.sh
+          bash -n desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh
+          bash -n forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo
+          shellcheck -S warning -e SC1091 desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh
+          shellcheck -S warning -e SC1091 forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo
+          python3 -m py_compile forja-pamac-pacman/src/forja-store forja-pamac-pacman/src/forja-pacman-transaction forja-pamac-pacman/src/forja-update-indicator
 
-      - name: Validate SVG and desktop entry
+      - name: Validate appearance, wallpaper and desktop entries
+        shell: bash
         run: |
-          python - <<'PY'
+          set -euo pipefail
+          bash desktops/xfce/tests/validate-appearance.sh
+          desktop-file-validate desktops/xfce/forja-xfce-appearance.desktop forja-pamac-pacman/forja-store.desktop forja-pamac-pacman/forja-update-indicator.desktop
+          xmllint --noout desktops/xfce/forja-flame.svg desktops/xfce/forja-xfce-wallpaper.svg
+          xmllint --noout forja-pamac-pacman/icons/forja-update-current.svg forja-pamac-pacman/icons/forja-update-available.svg forja-pamac-pacman/icons/forja-update-error.svg
+          python3 - <<'PY'
           import configparser
           import xml.etree.ElementTree as ET
-          ET.parse("desktops/xfce/forja-flame.svg")
+          from pathlib import Path
+
           wallpaper = ET.parse("desktops/xfce/forja-xfce-wallpaper.svg").getroot()
-          wallpaper_text = "".join(wallpaper.itertext())
-          assert "FORJA OS" in wallpaper_text
-          assert "FORGE" not in wallpaper_text and "ARCH LINUX" not in wallpaper_text
-          config = configparser.ConfigParser(interpolation=None)
-          config.read("desktops/xfce/forja-xfce-appearance.desktop")
-          entry = config["Desktop Entry"]
+          text = "".join(wallpaper.itertext())
+          assert "FORJA OS" in text
+          assert "FORGE" not in text and "ARCH LINUX" not in text and "MANJARO" not in text
+
+          appearance = configparser.ConfigParser(interpolation=None)
+          appearance.read("desktops/xfce/forja-xfce-appearance.desktop")
+          entry = appearance["Desktop Entry"]
           assert entry["Exec"] == "/usr/lib/forja/apply-xfce-layout.sh"
           assert entry["OnlyShowIn"] == "XFCE;"
+
+          indicator = configparser.ConfigParser(interpolation=None)
+          indicator.read("forja-pamac-pacman/forja-update-indicator.desktop")
+          assert indicator["Desktop Entry"]["OnlyShowIn"] == "MATE;XFCE;"
+          print("SVG, branding and desktop entries validated.")
           PY
 
-      - name: Validate XFCE module wiring
+      - name: Validate XFCE and Store integration wiring
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'FORJA_DESKTOP:-mate' build-cloud.sh
-          grep -q 'mate|xfce' build-cloud.sh
-          grep -q 'DESKTOP="\${FORJA_DESKTOP:-mate}"' build-manjaro.sh
           grep -q 'desktops/xfce/packages.manjaro' build-manjaro.sh
           grep -q 'desktops/xfce/install-branding.sh' build-manjaro.sh
-          grep -q 'xfce4-docklike-plugin' desktops/xfce/packages.manjaro
-          grep -q 'xfce4-whiskermenu-plugin' desktops/xfce/packages.manjaro
-          grep -q 'Papirus-Dark' desktops/xfce/apply-forja-layout.sh
-          grep -q 'papirus-folders -C grey --theme Papirus-Dark' build-manjaro.sh
+          grep -q 'forja-pamac-pacman/install.sh' build-manjaro.sh
+          grep -q 'FORJA_SKIP_STORE_INSTALL:-0' build-manjaro.sh
+          grep -q 'OnlyShowIn=MATE;XFCE;' forja-pamac-pacman/forja-update-indicator.desktop
+          grep -q 'self.busy=True' forja-pamac-pacman/src/forja-store
+          grep -q 'self.busy=False' forja-pamac-pacman/src/forja-store
+          grep -q 'pinned=thunar.desktop;firefox.desktop;' desktops/xfce/apply-forja-layout.sh
           grep -q 'forja-papirus-folders.service' build-manjaro.sh
-          grep -q '^papirus-folders
-          grep -q 'Bibata-Modern-Classic' desktops/xfce/apply-forja-layout.sh
-          grep -q 'forja-os-xfce.svg' desktops/xfce/apply-forja-layout.sh
-          grep -q '^flatpak
- desktops/xfce/packages.manjaro
-          grep -q '^yay
- desktops/xfce/packages.manjaro
-          grep -q '^base-devel
- desktops/xfce/packages.manjaro
-          grep -q '^git
- desktops/xfce/packages.manjaro
-          grep -q 'OnlyShowIn=MATE;XFCE;' forja-pamac-pacman/forja-update-indicator.desktop
-          grep -q 'forja-pamac-pacman/install.sh' build-manjaro.sh
-          python3 -m py_compile forja-pamac-pacman/src/forja-store forja-pamac-pacman/src/forja-pacman-transaction forja-pamac-pacman/src/forja-update-indicator
-          bash -n forja-pamac-pacman/install.sh
- desktops/xfce/packages.manjaro
-          grep -q 'Bibata-Modern-Classic' desktops/xfce/apply-forja-layout.sh
-          grep -q 'forja-os-xfce.svg' desktops/xfce/apply-forja-layout.sh
-          grep -q '^flatpak
- desktops/xfce/packages.manjaro
-          grep -q '^yay
- desktops/xfce/packages.manjaro
-          grep -q '^base-devel
- desktops/xfce/packages.manjaro
-          grep -q '^git
- desktops/xfce/packages.manjaro
-          grep -q 'OnlyShowIn=MATE;XFCE;' forja-pamac-pacman/forja-update-indicator.desktop
-          grep -q 'forja-pamac-pacman/install.sh' build-manjaro.sh
-          python3 -m py_compile forja-pamac-pacman/src/forja-store forja-pamac-pacman/src/forja-pacman-transaction forja-pamac-pacman/src/forja-update-indicator
-          bash -n forja-pamac-pacman/install.sh
+          grep -q 'papirus-folders -C grey --theme Papirus-Dark' build-manjaro.sh
+          echo "XFCE + Forja Store integration wiring validated. No ISO build was run."
