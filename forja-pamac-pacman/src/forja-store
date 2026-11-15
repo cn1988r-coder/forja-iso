@@ -76,7 +76,9 @@ def run(args, timeout=25):
 
 class Store(Gtk.Application):
     def __init__(self):
-        super().__init__(application_id="br.forja.Store")
+        super().__init__(application_id="br.forja.Store", flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
+        self.open_updates = False
+        self.side = None
         self.window = None
         self.content = None
         self.status = None
@@ -88,9 +90,16 @@ class Store(Gtk.Application):
         self.updates = []
         self.flatpak_updates = []
 
+    def do_command_line(self, command_line):
+        self.open_updates = "--updates" in command_line.get_arguments()
+        self.activate()
+        return 0
+
     def do_activate(self):
         if self.window:
             self.window.present()
+            if self.open_updates and self.side:
+                self.side.select_row(self.category_rows["updates"])
             return
         provider = Gtk.CssProvider()
         provider.load_from_data(CSS.encode())
@@ -133,6 +142,7 @@ class Store(Gtk.Application):
             row.key = key
             side.add(row)
             self.category_rows[key] = row
+        self.side = side
         side.connect("row-selected", self.on_category)
         body.pack_start(side, False, False, 0)
 
@@ -153,7 +163,7 @@ class Store(Gtk.Application):
         self.search.connect("search-changed", self.on_search)
         side.select_row(self.category_rows["home"])
         self.window.show_all()
-        if os.environ.get("FORJA_OPEN_UPDATES") == "1":
+        if self.open_updates:
             side.select_row(self.category_rows["updates"])
         self.reload_installed()
 
