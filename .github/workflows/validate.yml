@@ -46,9 +46,15 @@ jobs:
 
           root = pathlib.Path("forja-pamac-pacman/src")
           ui = (root / "forja-store").read_text()
-          assert '"atualizar":"upgrade"' in ui, "Botão Atualizar não está ligado a upgrade"
-          assert '"remover":"remove"' in ui, "Botão Remover não está ligado a remove"
+          assert 'self.transact("remove" if installed else "install", name)' in ui, "Detalhes da aplicação não oferecem instalação/remoção"
+          assert '["pacman", "-Ss", query]' in ui, "Pesquisa não consulta os repositórios Pacman"
+          assert 'Gtk.FlowBox' in ui and 'Aplicativos em destaque' in ui, "Catálogo visual de aplicativos não foi implementado"
           assert 'pacman' in ui.lower(), "A loja não está integrada ao Pacman"
+          indicator = (root / "forja-update-indicator").read_text()
+          assert 'Gtk.StatusIcon' in indicator, "Indicador não usa a área de notificação do painel MATE"
+          assert 'checkupdates' in indicator and 'Instalar atualizações' in indicator
+          assert 'AyatanaAppIndicator' not in indicator, "Indicador antigo não deve depender de Ayatana"
+          assert 'FORJA OS' in indicator or 'Atualizações' in indicator
           assert 'forja-pamac-pacman/install.sh' in pathlib.Path("build-manjaro.sh").read_text(), "Pamac/Forja Software não está instalado na imagem"
 
           module = runpy.run_path(str(root / "forja-pacman-transaction"))
@@ -127,6 +133,8 @@ jobs:
             grep -Fq "$package" build-manjaro.sh
           done
           grep -Fq 'forja-pamac-pacman/install.sh' build-manjaro.sh
+          grep -Fq 'flatpak' build-manjaro.sh
+          ! grep -Eq 'gtk4|libayatana-appindicator' build-manjaro.sh forja-pamac-pacman/packages.manjaro
           grep -Fq 'Forja Store' forja-pamac-pacman/src/forja-store
           grep -Fq 'Name=Forja Store' forja-pamac-pacman/forja-software.desktop
           ! grep -Eiq 'pamac' forja-pamac-pacman/src/forja-store forja-pamac-pacman/install.sh
