@@ -123,6 +123,11 @@ engrampa
 atril
 eom
 fastfetch
+vlc
+htop
+gparted
+noto-fonts
+ttf-jetbrains-mono
 
 # Login, rede, Bluetooth e navegador.
 lightdm
@@ -160,10 +165,9 @@ if ! pacman_info materia-gtk-theme >/dev/null 2>&1; then
   exit 24
 fi
 
-# Preserve os wallpapers nativos do ambiente gráfico; a Forja não força fundo personalizado.
-# Materialize overlay symlinks before editing so no shared profile outside this
-# custom profile is changed. Remove desktop-specific defaults for MATE and set
-# its LightDM session without inheriting another desktop profile.
+# Personalização visual Forja OS: wallpaper próprio, Materia Dark, Papirus-Dark,
+# Bibata, fontes Noto Sans/JetBrains Mono e LightDM estilizado.
+# Materialize overlay symlinks before editing para não alterar arquivos compartilhados.
 for overlay_name in desktop-overlay live-overlay; do
   overlay="$TARGET/$overlay_name"
   if [[ -L "$overlay" ]]; then
@@ -179,10 +183,19 @@ for overlay_name in desktop-overlay live-overlay; do
 user-db:user
 system-db:local
 DCPROFILE
+      install -Dm644 /forja-ci/desktops/mate/forja-mate-wallpaper.svg \
+        "$overlay/usr/share/backgrounds/forja-os-mate.svg"
       cat > "$overlay/etc/dconf/db/local.d/00-forja-visual" <<'DCCONF'
 [org/mate/interface]
-icon-theme='Papirus'
+icon-theme='Papirus-Dark'
 gtk-theme='Materia-dark'
+font-name='Noto Sans 10'
+document-font-name='Noto Sans 10'
+monospace-font-name='JetBrains Mono 11'
+
+[org/mate/background]
+picture-filename='/usr/share/backgrounds/forja-os-mate.svg'
+picture-options='zoom'
 
 [org/mate/peripherals-mouse]
 cursor-theme='Bibata-Modern-Ice'
@@ -257,8 +270,9 @@ CURSOR
       cat > "$settings" <<'GTK'
 [Settings]
 gtk-theme-name=Materia-dark
-gtk-icon-theme-name=Papirus
+gtk-icon-theme-name=Papirus-Dark
 gtk-cursor-theme-name=Bibata-Modern-Ice
+gtk-font-name=Noto Sans 10
 GTK
     done
     mkdir -p "$overlay/etc/systemd/system/multi-user.target.wants"
@@ -305,9 +319,16 @@ LIGHTDM
         ' "$overlay/etc/lightdm/lightdm.conf" > "$overlay/etc/lightdm/lightdm.conf.forja"
         mv "$overlay/etc/lightdm/lightdm.conf.forja" "$overlay/etc/lightdm/lightdm.conf"
       fi
-      if [[ -f "$overlay/etc/lightdm/slick-greeter.conf" ]]; then
-        sed -i -E 's/^icon-theme-name[[:space:]]*=.*/icon-theme-name = Adwaita/; s/^cursor-theme-name[[:space:]]*=.*/cursor-theme-name = Bibata-Modern-Ice/' "$overlay/etc/lightdm/slick-greeter.conf"
-      fi
+      cat > "$overlay/etc/lightdm/slick-greeter.conf" <<'GREETER'
+[Greeter]
+background=/usr/share/backgrounds/forja-os-mate.svg
+draw-user-backgrounds=false
+draw-grid=false
+theme-name=Materia-dark
+icon-theme-name=Papirus-Dark
+cursor-theme-name=Bibata-Modern-Ice
+font-name=Noto Sans 10
+GREETER
   fi
 done
 
@@ -339,7 +360,7 @@ if [[ "$DESKTOP" == mate ]]; then
     pipewire pipewire-alsa pipewire-pulse wireplumber
     mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media
     mate-system-monitor mate-terminal mate-calc mate-utils mozo pluma engrampa atril eom
-    gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib polkit fastfetch bibata-cursor-theme papirus-icon-theme dconf
+    gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib polkit fastfetch bibata-cursor-theme papirus-icon-theme dconf vlc htop gparted noto-fonts ttf-jetbrains-mono
     systemd grub efibootmgr mkinitcpio calamares linux-firmware
     manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db
   )
@@ -423,7 +444,7 @@ done < <(find -L "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
 BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
-DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media mate-system-monitor mate-terminal mate-calc mate-utils marco caja mozo pluma engrampa atril eom lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib fastfetch bibata-cursor-theme dconf)
+DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media mate-system-monitor mate-terminal mate-calc mate-utils marco caja mozo pluma engrampa atril eom lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib fastfetch bibata-cursor-theme dconf vlc htop gparted noto-fonts ttf-jetbrains-mono)
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
   if ! pacman_info "$package" >/dev/null 2>&1; then
