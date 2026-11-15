@@ -83,7 +83,7 @@ grep -q 'whiskermenu-1.rc' "$ROOT/install-branding.sh"
 grep -q 'etc/skel/.config/gtk-3.0/gtk.css' "$ROOT/install-branding.sh"
 ! grep -q 'etc/xdg/gtk-3.0/gtk.css' "$ROOT/install-branding.sh"
 grep -q '#whiskermenu-button:checked' "$ROOT/forja-gtk.css"
-grep -q 'box-shadow:inset 0 -2px 0' "$ROOT/forja-gtk.css"
+grep -Eq 'box-shadow:[[:space:]]*inset[[:space:]]*0[[:space:]]+-2px[[:space:]]+0' "$ROOT/forja-gtk.css"
 grep -q '#whiskermenu-window .category-button:checked' "$ROOT/forja-gtk.css"
 grep -q '#whiskermenu-window .search-area' "$ROOT/forja-gtk.css"
 
