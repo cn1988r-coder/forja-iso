@@ -57,7 +57,7 @@ jobs:
               assert module.main() == 0
               call.assert_called_once_with(["pacman", "-S", "--needed", "firefox"])
 
-          with patch.object(sys, "argv", ["helper", "install", "-R"]), patch.object(module.subprocess, "call") as call:
+          with patch.object(sys, "argv", ["helper", "install", "-R"]), patch.object(subprocess, "call") as call:
               assert module.main() == 2, "Nome iniciado por hífen deveria ser rejeitado"
               call.assert_not_called()
           print("Forja Software: sintaxe, atualização direcionada e validação de argumentos OK.")
