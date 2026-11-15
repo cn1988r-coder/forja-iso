@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - forja-xfce-interface
+      - feature/forja-xfce-store-integration
     paths:
       - 'build-cloud.sh'
       - 'build-manjaro.sh'
