@@ -106,6 +106,44 @@ jobs:
           assert 'CATEGORY_TERMS' not in ui, "Categorias não podem depender de listas estáticas de pacotes"
           assert 'appstream' in packages and 'archlinux-appstream-data' in packages, "Metadados AppStream ausentes do perfil XFCE"
 
+          # Exercise the AppStream and Pacman parsers without requiring a GTK display.
+          import types
+          gi = types.ModuleType("gi")
+          gi.require_version = lambda *_args: None
+          gi_repo = types.ModuleType("gi.repository")
+          class FakeGtk:
+              Application = object
+          gi_repo.Gtk = FakeGtk
+          gi_repo.Gdk = object()
+          gi_repo.GLib = object()
+          gi_repo.Gio = object()
+          sys.modules["gi"] = gi
+          sys.modules["gi.repository"] = gi_repo
+          store_module = runpy.run_path(str(src / "forja-store"))
+          parse_appstream = store_module["parse_appstream"]
+          sample = """Identifier: org.mozilla.firefox.desktop [desktop-application]
+          Name: Firefox
+          Summary: Navegador de internet
+          Package: firefox
+          Icon: stock:firefox
+
+          Identifier: org.example.App.desktop [desktop-application]
+          Name: Aplicativo Exemplo
+          Summary: Aplicativo Flatpak de teste
+          Bundle: flatpak:app/org.example.App/x86_64/stable
+          Icon: stock:application-x-executable
+
+          Identifier: org.example.Library [runtime]
+          Name: Biblioteca
+          Package: example-library
+          """
+          catalog = parse_appstream(sample)
+          assert ("Firefox", "firefox", "Navegador de internet", "repo", "firefox") in catalog
+          assert ("Aplicativo Exemplo", "org.example.App", "Aplicativo Flatpak de teste", "flatpak", "application-x-executable") in catalog
+          assert all(item[1] != "example-library" for item in catalog)
+          parsed_search = store_module["parse_search"]("extra/firefox 1.0-1\\n    Navegador rápido", "repo")
+          assert parsed_search == [("firefox", "firefox", "Navegador rápido", "repo", "application-x-executable")]
+
           module = runpy.run_path(str(src / "forja-pacman-transaction"))
           main, call, shutil = module["main"], module["call"], module["shutil"]
 
