@@ -68,7 +68,7 @@ def run(args, timeout=90):
 def package_sources():
     result = run(["pamac", "list", "--repos", "--quiet"], 120)
     if result.returncode:
-        return None, result.stderr or result.stdout or "Falha ao consultar os repositórios Pacman."
+        return None, result.stderr or result.stdout or "Falha ao consultar os repositórios Pamac."
     return set(result.stdout.splitlines()), ""
 
 def parse_flatpak_catalog(output):
@@ -130,7 +130,7 @@ class Store(Gtk.Application):
         title.set_use_markup(True)
         header.pack_start(title)
         self.search = Gtk.SearchEntry()
-        self.search.set_placeholder_text("Pesquisar aplicativos em Pacman, AUR e Flathub")
+        self.search.set_placeholder_text("Pesquisar aplicativos em Pamac, AUR e Flathub")
         self.search.set_size_request(390, -1)
         header.set_custom_title(self.search)
         check = Gtk.Button(label="Verificar atualizações")
@@ -295,7 +295,7 @@ class Store(Gtk.Application):
                         else:
                             error = result.stderr or result.stdout or "Falha ao consultar o catálogo AppStream."
                 else:
-                    error = error or "Não foi possível consultar os repositórios Pacman."
+                    error = error or "Não foi possível consultar os repositórios Pamac."
             if category in ("all", "flatpak"):
                 if shutil.which("flatpak"):
                     flat = run(["flatpak", "remote-ls", "--system", "--app",
@@ -448,7 +448,7 @@ class Store(Gtk.Application):
         generation = self.query_generation
         self.clear()
         self.heading("Resultados da pesquisa")
-        self.content.pack_start(Gtk.Label(label="Pesquisando em AppStream, Pacman, AUR e Flathub…", xalign=0), False, False, 0)
+        self.content.pack_start(Gtk.Label(label="Pesquisando em AppStream, Pamac, AUR e Flathub…", xalign=0), False, False, 0)
         self.content.show_all()
         def worker():
             results = []
@@ -466,7 +466,7 @@ class Store(Gtk.Application):
                 else:
                     errors.append("Pamac")
             else:
-                errors.append("Pacman")
+                errors.append("Pamac")
             if shutil.which("pamac"):
                 aur = run(["pamac", "search", "--aur", query], 180)
                 if aur.returncode in (0, 1):
