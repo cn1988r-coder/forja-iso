@@ -73,6 +73,8 @@ done
 
 # O sistema instalado precisa do gerador oficial de mirrorlist no primeiro boot.
 grep -Fxq pacman-mirrors "$TARGET/Packages-Root" || printf '%s\n' pacman-mirrors >> "$TARGET/Packages-Root"
+# Btrfs é o formato padrão da instalação e precisa estar disponível no Live/Calamares.
+grep -Fxq btrfs-progs "$TARGET/Packages-Root" || printf '%s\n' btrfs-progs >> "$TARGET/Packages-Root"
 
 # A sessão Live usa apenas os mecanismos de inicialização da base.
 # Todas as configurações XFCE do overlay genérico são descartadas e recriadas
@@ -273,7 +275,7 @@ done < <(find "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
-BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
+BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares btrfs-progs linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
 DESKTOP_CORE_PACKAGES=(plymouth gtk4 libadwaita libnotify pamac-gtk libpamac-flatpak-plugin xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin xfce4-docklike-plugin xfce4-panel-profiles xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders bibata-cursor-theme gtk3 gsettings-desktop-schemas python python-gobject pacman-contrib polkit polkit-gnome flatpak yay git base-devel appstream archlinux-appstream-data)
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
@@ -296,6 +298,10 @@ install -Dm644 /forja-ci/desktops/xfce/plymouth/forja-grub "$TARGET/rootfs/etc/d
 install -Dm644 /forja-ci/desktops/xfce/plymouth/plymouthd.conf "$TARGET/rootfs/etc/plymouth/plymouthd.conf"
 install -Dm644 /forja-ci/desktops/xfce/plymouth/forja.plymouth "$TARGET/rootfs/usr/share/plymouth/themes/forja/forja.plymouth"
 install -Dm644 /forja-ci/desktops/xfce/plymouth/forja.script "$TARGET/rootfs/usr/share/plymouth/themes/forja/forja.script"
+
+# Calamares: Btrfs pré-selecionado para novas instalações, mantendo ext4/f2fs disponíveis.
+install -Dm644 /forja-ci/desktops/xfce/calamares/partition.conf "$TARGET/rootfs/etc/calamares/modules/partition.conf"
+install -Dm644 /forja-ci/desktops/xfce/calamares/mount.conf "$TARGET/rootfs/etc/calamares/modules/mount.conf"
 
 # Repositórios do sistema instalado: pacman usa exclusivamente a mirrorlist
 # gerada pelo utilitário oficial pacman-mirrors do Manjaro.
