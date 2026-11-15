@@ -335,6 +335,7 @@ Description=Generate current official Manjaro mirror list for Forja OS
 Wants=network-online.target
 After=network-online.target
 Before=display-manager.service
+StartLimitIntervalSec=0
 ConditionPathExists=/usr/bin/pacman-mirrors
 
 [Service]
@@ -343,7 +344,6 @@ ExecStart=/usr/bin/pacman-mirrors --fasttrack 10
 TimeoutStartSec=10min
 Restart=on-failure
 RestartSec=30
-StartLimitIntervalSec=0
 RemainAfterExit=yes
 
 [Install]
