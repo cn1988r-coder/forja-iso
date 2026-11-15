@@ -422,9 +422,13 @@ FASTFETCH
 done
 
 # Papirus é fornecido pelo pacote oficial papirus-icon-theme.
-# Instala a Forja Store independente, integrada diretamente ao Pacman.
+# Instala a Forja Store no sistema Live e no sistema instalado.
 if [[ "$DESKTOP" == mate || "$DESKTOP" == xfce ]] && [[ "${FORJA_SKIP_STORE_INSTALL:-0}" != "1" ]]; then
-  DESTDIR="$TARGET/desktop-overlay" bash /forja-ci/forja-pamac-pacman/install.sh
+  for overlay_name in desktop-overlay live-overlay; do
+    store_overlay="$TARGET/$overlay_name"
+    [[ -d "$store_overlay" ]] || continue
+    DESTDIR="$store_overlay" bash /forja-ci/forja-pamac-pacman/install.sh
+  done
 fi
 
 # Materialize every package list in the selected profile. The MATE profile
