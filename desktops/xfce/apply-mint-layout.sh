@@ -50,7 +50,7 @@ set_prop xfce4-panel /panels/panel-1/size uint 40
 set_prop xfce4-panel /panels/panel-1/nrows uint 1
 set_prop xfce4-panel /panels/panel-1/autohide-behavior uint 0
 set_prop xfce4-panel /panels/panel-1/position-locked bool true
-xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids -n -a \
+xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids -a \
   -t int -s 1 -t int -s 2 -t int -s 3 -t int -s 4 -t int -s 5 \
   -t int -s 6 -t int -s 7 -t int -s 8 -t int -s 9
 
@@ -73,8 +73,7 @@ if [[ -s "$ICON_FILE" ]]; then
 fi
 
 # Super abre o Whisker, como no Big Community.
-xfconf-query -c xfce4-keyboard-shortcuts -p /commands/custom/Super_L \
-  -n -t string -s "xfce4-popup-whiskermenu" 2>/dev/null || true
+set_prop xfce4-keyboard-shortcuts /commands/custom/Super_L string xfce4-popup-whiskermenu
 
 # Wallpaper Forja em todos os espaços de trabalho/monitores reconhecidos pelo XFCE.
 if [[ -s "$WALLPAPER" ]]; then
