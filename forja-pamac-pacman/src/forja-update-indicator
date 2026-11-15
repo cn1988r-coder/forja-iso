@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Indicador de atualizações Pacman, AUR e Flatpak para o painel XFCE."""
+"""Indicador de atualizações Pamac e Flatpak para o painel XFCE."""
 import subprocess
 import threading
 import shutil
