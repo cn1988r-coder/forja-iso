@@ -1,32 +1,54 @@
 #!/usr/bin/python3
-"""Privileged APT transaction helper. Invoke through pkexec."""
+"""Privileged APT transaction helper. Invoke through pkexec.
+
+Only updates packages inside the currently installed Ubuntu release.
+It never invokes do-release-upgrade or changes Ubuntu release series.
+"""
 import re
 import subprocess
 import sys
 
 PACKAGE_RE = re.compile(r"^[a-z0-9][a-z0-9+.-]*(:[a-z0-9-]+)?$")
+APT_ENV = {
+    "PATH": "/usr/sbin:/usr/bin:/sbin:/bin",
+    "DEBIAN_FRONTEND": "noninteractive",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+}
 
 
 def run(args):
-    return subprocess.call(args, env={"PATH": "/usr/sbin:/usr/bin:/sbin:/bin"})
+    return subprocess.call(args, env=APT_ENV)
 
 
 def main():
     if len(sys.argv) < 2:
         return 2
     action = sys.argv[1]
+
     if action == "refresh" and len(sys.argv) == 2:
         return run(["/usr/bin/apt-get", "update"])
+
+    # Install newly required dependencies when safe, but never remove packages.
+    # This allows normal kernel/meta-package updates without a release upgrade.
     if action == "upgrade" and len(sys.argv) == 2:
-        return run(["/usr/bin/apt-get", "upgrade", "-y"])
+        return run([
+            "/usr/bin/apt-get", "--with-new-pkgs", "upgrade", "-y",
+            "-o", "Dpkg::Options::=--force-confold",
+        ])
+
     if action in ("install", "remove") and len(sys.argv) >= 3:
         packages = sys.argv[2:]
         if not all(PACKAGE_RE.fullmatch(p) for p in packages):
             print("Nome de pacote inválido.", file=sys.stderr)
             return 2
         command = "install" if action == "install" else "remove"
-        return run(["/usr/bin/apt-get", command, "-y", "--", *packages])
-    print("Operação não permitida.", file=sys.stderr)
+        return run([
+            "/usr/bin/apt-get", command, "-y", "--",
+            *packages,
+        ])
+
+    print("Operação não permitida. Atualizações de versão do Ubuntu não são suportadas.", file=sys.stderr)
     return 2
 
 
