@@ -32,10 +32,11 @@ jobs:
       - name: Validate generator shell syntax
         run: |
           set -euo pipefail
-          bash -n build-cloud.sh build-manjaro.sh
-          bash -n desktops/xfce/apply-forja-layout.sh
-          bash -n desktops/xfce/install-branding.sh
-          bash -n forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo
+          for script in build-cloud.sh build-manjaro.sh \
+            desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh \
+            forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo; do
+            bash -n "$script"
+          done
           python3 -m py_compile forja-pamac-pacman/src/forja-store forja-pamac-pacman/src/forja-pacman-transaction forja-pamac-pacman/src/forja-update-indicator
 
       - name: Install ShellCheck and Docker
