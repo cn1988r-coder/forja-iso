@@ -1,0 +1,74 @@
+name: Validate Forja OS ISO generator (Manjaro preflight)
+
+on:
+  push:
+    branches:
+      - forja-store-full-support
+    paths:
+      - 'build-cloud.sh'
+      - 'build-manjaro.sh'
+      - 'desktops/mate/**'
+      - 'forja-pamac-pacman/**'
+      - '.github/workflows/validate-iso-generator.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'build-cloud.sh'
+      - 'build-manjaro.sh'
+      - 'desktops/mate/**'
+      - 'forja-pamac-pacman/**'
+      - '.github/workflows/validate-iso-generator.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  manjaro-generator-preflight:
+    name: Real Manjaro package/profile preflight (no ISO build)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout Forja OS source
+        uses: actions/checkout@v4
+
+      - name: Validate generator shell syntax
+        run: |
+          set -euo pipefail
+          bash -n build-cloud.sh build-manjaro.sh
+
+      - name: Install ShellCheck and Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck docker.io
+          shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh
+          docker --version
+
+      - name: Pull Manjaro build environment
+        run: docker pull manjarolinux/base:latest
+
+      - name: Execute actual Manjaro generator preflight
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p "$RUNNER_TEMP/forja-manjaro-preflight"
+          docker run --rm \
+            --privileged \
+            --security-opt seccomp=unconfined \
+            -v "$GITHUB_WORKSPACE:/forja-ci:ro" \
+            -v "$RUNNER_TEMP/forja-manjaro-preflight:/tmp/forja-manjaro" \
+            -e FORJA_DISTRIBUTION=manjaro \
+            -e FORJA_DESKTOP=mate \
+            -e FORJA_KERNEL=lts \
+            -e FORJA_PREFLIGHT_ONLY=1 \
+            -e FORJA_OUTPUT=/tmp/forja-output \
+            manjarolinux/base:latest \
+            bash -lc 'bash /forja-ci/build-cloud.sh'
+
+      - name: Confirm ISO build was not started
+        if: always()
+        run: |
+          echo "Este workflow executa o preflight real de pacotes e perfil Manjaro."
+          echo "FORJA_PREFLIGHT_ONLY=1 impede a chamada ao buildiso."
+          echo "Nenhuma ISO é criada ou publicada por este workflow."
