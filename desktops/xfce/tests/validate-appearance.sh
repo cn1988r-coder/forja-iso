@@ -65,7 +65,7 @@ grep -q 'forja-pamac-pacman/install.sh' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'for overlay_name in desktop-overlay live-overlay' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'FORJA_SKIP_STORE_INSTALL:-0' "$REPO_ROOT/build-manjaro.sh"
 
-grep -q 'OnlyShowIn=MATE;XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-update-indicator.desktop"
+grep -q 'OnlyShowIn=XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-update-indicator.desktop"
 grep -q 'forja-update-error.svg' "$REPO_ROOT/forja-pamac-pacman/install.sh"
 grep -q 'icon="forja-update-error"' "$REPO_ROOT/forja-pamac-pacman/src/forja-update-indicator"
 
@@ -97,4 +97,11 @@ grep -q '@define-color forja_surface #303030' "$ROOT/forja-gtk.css"
 grep -q '@define-color forja_text #ffffff' "$ROOT/forja-gtk.css"
 ! grep -qiE '#[0-9a-f]*(00a|08f|f80|f00)' "$ROOT/forja-gtk.css"
 
-echo "Forja XFCE: Adwaita Dark menu palette, black flame icon, Docklike, tray, clock, wallpaper and Store checks passed."
+# Update badge is intentionally white with a gray check; pending updates use a red X.
+grep -q 'stroke="#ffffff"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-current.svg"
+grep -q 'stroke="#777777"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-current.svg"
+grep -q 'stroke="#ffffff"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-available.svg"
+grep -q 'stroke="#e53935"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-available.svg"
+grep -q 'OnlyShowIn=XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-update-indicator.desktop"
+
+echo "Forja XFCE: aparência, painel, Docklike, indicador e integração Store validados."
