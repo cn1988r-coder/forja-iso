@@ -28,6 +28,11 @@ set_prop xsettings /Gtk/CursorThemeName string "$CURSOR_THEME"
 set_prop xsettings /Gtk/CursorThemeSize int 24
 set_prop xsettings /Gtk/FontName string "Cantarell 10"
 
+# Keep Papirus folders neutral instead of introducing accent colors.
+if command -v papirus-folders >/dev/null 2>&1; then
+  papirus-folders -C grey --theme "$ICON_THEME" >/dev/null 2>&1 || true
+fi
+
 # GTK 4 and libadwaita applications use the desktop dark preference.
 if command -v gsettings >/dev/null 2>&1; then
   gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' >/dev/null 2>&1 || true
