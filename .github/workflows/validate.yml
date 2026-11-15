@@ -97,9 +97,10 @@ jobs:
               assert main(["install","flatpak","org.mozilla.firefox"]) == 0
               assert proc.call_args_list[0].args[0][:4] == ["flatpak","remote-add","--if-not-exists","--system"]
               assert proc.call_args_list[1].args[0] == ["flatpak","install","--system","--noninteractive","--assumeyes","flathub","org.mozilla.firefox"]
-          with patch.object(module["subprocess"],"call",return_value=0) as proc:
+          with patch.object(module["subprocess"],"call",side_effect=[0,0]) as proc:
               assert main(["remove","flatpak","org.mozilla.firefox"]) == 0
-              assert proc.call_args[0][0] == ["flatpak","uninstall","--system","--noninteractive","--assumeyes","--delete-data","org.mozilla.firefox"]
+              assert proc.call_args_list[0].args[0] == ["flatpak","info","--system","org.mozilla.firefox"]
+              assert proc.call_args_list[1].args[0] == ["flatpak","uninstall","--system","--noninteractive","--assumeyes","--delete-data","org.mozilla.firefox"]
           with patch.object(module["subprocess"],"call",return_value=1) as proc:
               assert main(["install","flatpak","org.mozilla.firefox"]) == 1
               proc.assert_called_once()
