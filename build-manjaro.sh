@@ -533,7 +533,8 @@ fi
 exec "$REAL_MKSQUASHFS" "$@" -b 1M -Xdict-size 1M
 MKSQUASHFS
 chmod 0755 "$SQFS_WRAPPER_DIR/mksquashfs"
-"$SQFS_WRAPPER_DIR/mksquashfs" -help-comp xz 2>&1 | grep -q -- '-Xdict-size' || {
+XZ_HELP="$("$SQFS_WRAPPER_DIR/mksquashfs" -help-comp xz 2>&1 || true)"
+grep -q -- '-Xdict-size' <<< "$XZ_HELP" || {
   echo "ERRO: mksquashfs não oferece suporte aos parâmetros XZ avançados." >&2
   exit 41
 }
