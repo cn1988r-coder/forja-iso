@@ -532,7 +532,7 @@ else
   printf '\ndisplaymanager="%s"\n' "$DM" >> "$TARGET/profile.conf"
 fi
 
-if [[ "$DESKTOP" == mate ]]; then
+if [[ "$DESKTOP" == mate || "$DESKTOP" == xfce ]]; then
   # Preserve the upstream service set. Remove Snap services and add only the
   # network/Bluetooth services if the profile does not already enable them.
   sed -i "s/'snapd.apparmor'//g; s/'snapd'//g" "$TARGET/profile.conf"
