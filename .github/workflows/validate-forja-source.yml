@@ -103,8 +103,11 @@ jobs:
           assert 'grep -Eq \'^[[:space:]]*Server[[:space:]]*=[[:space:]]*https?://\'' in source
           print("Manjaro pacman.conf, stable mirror branch, HTTPS mirror preference and first-boot mirror service validated.")
           PY
-          mkdir -p /tmp/forja-systemd-root/usr/bin
+          mkdir -p /tmp/forja-systemd-root/usr/bin /tmp/forja-systemd-root/etc/systemd/system
           printf '#!/bin/sh\\nexit 0\\n' > /tmp/forja-systemd-root/usr/bin/pacman-mirrors
           chmod 0755 /tmp/forja-systemd-root/usr/bin/pacman-mirrors
-          systemd-analyze verify --root=/tmp/forja-systemd-root /tmp/forja-manjaro-mirrors.service
+          cp /tmp/forja-manjaro-mirrors.service /tmp/forja-systemd-root/etc/systemd/system/
+          printf '[Unit]\\nDescription=Network online\\n' > /tmp/forja-systemd-root/etc/systemd/system/network-online.target
+          printf '[Unit]\\nDescription=Display manager\\n' > /tmp/forja-systemd-root/etc/systemd/system/display-manager.service
+          systemd-analyze verify --root=/tmp/forja-systemd-root forja-manjaro-mirrors.service
 
