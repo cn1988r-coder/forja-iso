@@ -45,7 +45,7 @@ jobs:
         run: |
           set -euo pipefail
           bash desktops/xfce/tests/validate-appearance.sh
-          desktop-file-validate desktops/xfce/forja-xfce-appearance.desktop forja-pamac-pacman/forja-store.desktop forja-pamac-pacman/forja-update-indicator.desktop
+          desktop-file-validate desktops/xfce/forja-xfce-appearance.desktop forja-pamac-pacman/forja-software.desktop forja-pamac-pacman/forja-update-indicator.desktop
           xmllint --noout desktops/xfce/forja-flame.svg desktops/xfce/forja-xfce-wallpaper.svg
           xmllint --noout forja-pamac-pacman/icons/forja-update-current.svg forja-pamac-pacman/icons/forja-update-available.svg forja-pamac-pacman/icons/forja-update-error.svg
           python3 - <<'PY'
