@@ -8,7 +8,6 @@ on:
       - 'build-cloud.sh'
       - 'build-manjaro.sh'
       - 'desktops/mate/**'
-      - 'forja-pamac-pacman/**'
       - '.github/workflows/validate-iso-generator.yml'
   pull_request:
     branches:
@@ -63,6 +62,7 @@ jobs:
             -e FORJA_DESKTOP=mate \
             -e FORJA_KERNEL=lts \
             -e FORJA_PREFLIGHT_ONLY=1 \
+            -e FORJA_SKIP_STORE_INSTALL=1 \
             -e FORJA_OUTPUT=/tmp/forja-output \
             manjarolinux/base:latest \
             bash -lc 'bash /forja-ci/build-cloud.sh'
