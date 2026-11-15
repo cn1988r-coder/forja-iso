@@ -182,12 +182,12 @@ class Store(Gtk.Application):
             self.content.pack_start(Gtk.Label(label="Falha ao consultar: "+", ".join(errors),xalign=0),False,False,0)
         self.content.pack_start(Gtk.Label(label=f"{total} atualização(ões) encontrada(s).",xalign=0),False,False,0)
         if total:
-            button=Gtk.Button(label="Instalar atualizações"); button.get_style_context().add_class("suggested-action")
+            button=Gtk.Button(label="Atualizar tudo (Pacman + AUR + Flatpak)"); button.get_style_context().add_class("suggested-action")
             button.set_halign(Gtk.Align.START); button.connect("clicked",self.update_system)
             self.content.pack_start(button,False,False,0)
         elif not errors:
             self.content.pack_start(Gtk.Label(label="Tudo em dia.",xalign=0),False,False,0)
-        self.status.set_text(f"Pacman: {len(pac)} · AUR: {len(aur)} · Flatpak: {len(flat)}")
+        self.status.set_text(f"Atualização conjunta · Pacman: {len(pac)} · AUR: {len(aur)} · Flatpak: {len(flat)}")
         self.content.show_all(); return GLib.SOURCE_REMOVE
 
     def add_apps(self,apps):
