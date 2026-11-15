@@ -13,6 +13,7 @@ install -Dm644 "$ROOT/forja-whiskermenu.rc" "$DEST/etc/skel/.config/xfce4/panel/
 
 # A single system-wide panel: Whisker + Docklike + system tray + clock.
 install -Dm644 "$ROOT/panel-default.xml" "$DEST/etc/xdg/xfce4/panel/default.xml"
+install -Dm644 "$ROOT/docklike.rc" "$DEST/etc/skel/.config/xfce4/panel/docklike.rc"
 install -Dm644 "$ROOT/docklike.rc" "$DEST/etc/xdg/xfce4/panel/docklike.rc"
 install -Dm644 "$ROOT/forja-xfce-desktop.xml" "$DEST/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml"
 
