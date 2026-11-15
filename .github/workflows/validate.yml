@@ -62,6 +62,8 @@ jobs:
                         '["flatpak","search","--columns=application,name,description,remotes",query]',
                         '"repo":"Repositório oficial"', '"aur":"AUR"', '"flatpak":"Flatpak"'):
               assert token in ui, f"Pesquisa/origem ausente na loja: {token}"
+          assert '["pacman","-Qnq"]' in ui and '["pacman","-Qmq"]' in ui
+          assert "AUR / pacote externo" in ui, "Pacotes estrangeiros não podem ser identificados como AUR com certeza"
           assert 'self.transact("remove" if installed else "install",source,name)' in ui
           assert '["pkexec",HELPER,action,source,name]' in ui
           assert '["yay","-Qua"]' in ui and '["flatpak","remote-ls","--system","--updates"' in ui
