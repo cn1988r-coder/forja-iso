@@ -92,8 +92,8 @@ jobs:
           grep -Fq 'COMPRESSION=xz' build-manjaro.sh
           grep -Fq 'SQFS_WRAPPER_DIR=' build-manjaro.sh
           grep -Fq -- '-b 1M -Xdict-size 1M' build-manjaro.sh
-          ! grep -Fq 'buildiso -f' build-manjaro.sh
-          ! grep -Fq 'forja-mate-wallpaper.svg' build-manjaro.sh
+          grep -Fq 'buildiso -f' build-manjaro.sh
+          grep -Fq 'forja-mate-wallpaper.svg' build-manjaro.sh
           grep -Fq 'sha256sum --check' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_DISTRIBUTION=manjaro' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_DESKTOP=mate' .github/workflows/build-manjaro-mate.yml
@@ -101,10 +101,17 @@ jobs:
           grep -Fq 'materia-gtk-theme' build-manjaro.sh
           grep -Fq 'papirus-icon-theme' build-manjaro.sh
           grep -Fq 'bibata-cursor-theme' build-manjaro.sh
-          grep -Fq "icon-theme='Papirus'" build-manjaro.sh
+          grep -Fq "icon-theme='Papirus-Dark'" build-manjaro.sh
           grep -Fq "gtk-theme='Materia-dark'" build-manjaro.sh
           grep -Fq "cursor-theme='Bibata-Modern-Ice'" build-manjaro.sh
           grep -Fq 'Inherits=Bibata-Modern-Ice' build-manjaro.sh
+          grep -Fq "picture-filename='/usr/share/backgrounds/forja-os-mate.svg'" build-manjaro.sh
+          grep -Fq 'theme-name=Materia-dark' build-manjaro.sh
+          grep -Fq 'font-name=Noto Sans 10' build-manjaro.sh
+          grep -Fq "monospace-font-name='JetBrains Mono 11'" build-manjaro.sh
+          for package in vlc htop gparted noto-fonts ttf-jetbrains-mono; do
+            grep -Fq "$package" build-manjaro.sh
+          done
           for package in mate-terminal mate-calc mate-utils mate-system-monitor mate-applets pluma engrampa atril eom mozo; do
             grep -Fq "$package" build-manjaro.sh
           done
@@ -112,7 +119,7 @@ jobs:
           for package in networkmanager network-manager-applet bluez bluez-utils blueman firefox calamares; do
             grep -Fq "$package" build-manjaro.sh
           done
-          echo "Configuração Manjaro MATE + Materia Dark + Papirus + Bibata validada."
+          echo "Configuração Forja OS MATE + wallpaper + Materia Dark + Papirus-Dark + Bibata validada."
       - name: Preflight Manjaro MATE without creating ISO
         shell: bash
         run: |
