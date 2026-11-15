@@ -232,4 +232,12 @@ grep -q 'pamac' "$REPO_ROOT/forja-pamac-pacman/src/forja-pacman-transaction"
 grep -q 'parse_flatpak_updates' "$REPO_ROOT/forja-pamac-pacman/src/forja-update-indicator"
 grep -q 'forja_store_core.py' "$REPO_ROOT/forja-pamac-pacman/install.sh"
 
+# Btrfs: pacote presente no sistema Live/instalado, padrão do Calamares e compressão zstd.
+grep -Fxq 'btrfs-progs' "$REPO_ROOT/build-manjaro.sh"
+grep -q 'TARGET/rootfs/etc/calamares/modules/partition.conf' "$REPO_ROOT/build-manjaro.sh"
+grep -q 'TARGET/rootfs/etc/calamares/modules/mount.conf' "$REPO_ROOT/build-manjaro.sh"
+grep -q '^defaultFileSystemType: "btrfs"
+ "$ROOT/calamares/partition.conf"
+grep -q 'availableFileSystemTypes: \["btrfs", "ext4", "f2fs"\]' "$ROOT/calamares/partition.conf"
+grep -q 'compress=zstd:1' "$ROOT/calamares/mount.conf"
 echo "Forja XFCE: aparência, painel, Docklike, indicador e interface Pamac da Forja validados."
