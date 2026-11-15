@@ -1,0 +1,156 @@
+#!/usr/bin/python3
+"""GTK4 package manager prototype using Ubuntu's python-apt backend."""
+import subprocess
+import threading
+
+import apt
+import gi
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gtk, GLib, Gio
+
+HELPER = "/usr/lib/forja/forja-apt-transaction"
+
+
+class ForjaStore(Gtk.Application):
+    def __init__(self):
+        super().__init__(application_id="br.forja.Software")
+        self.cache = None
+        self.window = None
+        self.rows = None
+        self.search = None
+        self.status = None
+        self.mode = "all"
+
+    def do_activate(self):
+        if self.window:
+            self.window.present()
+            return
+        self.window = Gtk.ApplicationWindow(application=self, title="Forja Software")
+        self.window.set_default_size(960, 620)
+        root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        header = Gtk.HeaderBar()
+        self.search = Gtk.SearchEntry()
+        self.search.set_placeholder_text("Pesquisar aplicativos e pacotes")
+        self.search.set_hexpand(True)
+        header.set_title_widget(self.search)
+        refresh = Gtk.Button(label="Atualizar")
+        refresh.connect("clicked", self.refresh_cache)
+        header.pack_end(refresh)
+        self.window.set_titlebar(header)
+
+        body = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
+        sidebar = Gtk.ListBox()
+        sidebar.set_selection_mode(Gtk.SelectionMode.SINGLE)
+        sidebar.set_size_request(180, -1)
+        for label, mode in (("Todos", "all"), ("Instalados", "installed"),
+                            ("Atualizações", "updates")):
+            row = Gtk.ListBoxRow()
+            row.set_child(Gtk.Label(label=label, xalign=0, margin_start=16,
+                                    margin_top=12, margin_bottom=12))
+            row.mode = mode
+            sidebar.append(row)
+        sidebar.connect("row-selected", self.change_mode)
+        body.append(sidebar)
+
+        scroller = Gtk.ScrolledWindow()
+        scroller.set_hexpand(True)
+        scroller.set_vexpand(True)
+        self.rows = Gtk.ListBox()
+        self.rows.set_selection_mode(Gtk.SelectionMode.NONE)
+        scroller.set_child(self.rows)
+        body.append(scroller)
+        root.append(body)
+        self.status = Gtk.Label(label="Lendo os índices locais do APT…", xalign=0,
+                                margin_start=16, margin_end=16,
+                                margin_top=8, margin_bottom=8)
+        root.append(self.status)
+        self.window.set_child(root)
+        self.search.connect("search-changed", lambda *_: self.populate())
+        self.window.present()
+        threading.Thread(target=self.load_cache, daemon=True).start()
+
+    def load_cache(self):
+        try:
+            cache = apt.Cache()
+            GLib.idle_add(self.set_cache, cache, None)
+        except Exception as exc:
+            GLib.idle_add(self.set_cache, None, str(exc))
+
+    def set_cache(self, cache, error):
+        self.cache = cache
+        if error:
+            self.status.set_text("Erro ao ler APT: " + error)
+        else:
+            self.status.set_text(f"{len(cache)} pacotes encontrados.")
+            self.populate()
+        return GLib.SOURCE_REMOVE
+
+    def change_mode(self, _list, row):
+        if row:
+            self.mode = row.mode
+            self.populate()
+
+    def populate(self):
+        if not self.cache or not self.rows:
+            return
+        while child := self.rows.get_first_child():
+            self.rows.remove(child)
+        query = self.search.get_text().strip().lower() if self.search else ""
+        for package in self.cache:
+            installed = package.is_installed
+            upgradable = installed and package.is_upgradable
+            if self.mode == "installed" and not installed:
+                continue
+            if self.mode == "updates" and not upgradable:
+                continue
+            summary = package.candidate.summary if package.candidate else ""
+            if query and query not in package.name.lower() and query not in (summary or "").lower():
+                continue
+            row = Gtk.ListBoxRow()
+            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+            box.set_margin_top(10)
+            box.set_margin_bottom(10)
+            box.set_margin_start(14)
+            box.set_margin_end(14)
+            info = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
+            name = Gtk.Label(label=package.name, xalign=0)
+            name.add_css_class("heading")
+            info.append(name)
+            desc = Gtk.Label(label=summary or "Pacote sem descrição", xalign=0)
+            desc.set_wrap(True)
+            desc.add_css_class("dim-label")
+            info.append(desc)
+            box.append(info)
+            action = "install" if upgradable or not installed else "remove"
+            label = "Atualizar" if upgradable else ("Remover" if installed else "Instalar")
+            button = Gtk.Button(label=label)
+            button.connect("clicked", self.transact, action, package.name)
+            box.append(button)
+            row.set_child(box)
+            self.rows.append(row)
+
+    def transact(self, _button, action, package):
+        self.run_helper(action, package)
+
+    def refresh_cache(self, *_):
+        self.run_helper("refresh")
+
+    def run_helper(self, action, package=None):
+        args = ["pkexec", HELPER, action]
+        if package:
+            args.append(package)
+        self.status.set_text("Aguardando autorização…")
+
+        def worker():
+            result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                    text=True)
+            message = "Operação concluída." if result.returncode == 0 else (
+                "Operação cancelada ou falhou. Código: " + str(result.returncode))
+            GLib.idle_add(self.status.set_text, message)
+            if result.returncode == 0:
+                GLib.idle_add(lambda: threading.Thread(target=self.load_cache, daemon=True).start())
+        threading.Thread(target=worker, daemon=True).start()
+
+
+if __name__ == "__main__":
+    raise SystemExit(ForjaStore().run(None))
