@@ -16,7 +16,7 @@ for package in \
   xfce4-pulseaudio-plugin xfce4-power-manager xfce4-notifyd \
   xfce4-clipman-plugin networkmanager network-manager-applet bluez bluez-utils blueman; do
   grep -Fxq "$package" "$ROOT/packages.manjaro" || {
-    printf 'Pacote obrigatório ausente no perfil XFCE Manjaro: %s\n' "$package" >&2
+    printf 'Pacote obrigatório ausente no perfil XFCE da Forja: %s\n' "$package" >&2
     exit 1
   }
 done
@@ -119,7 +119,7 @@ expected = {
 for key, value in expected.items():
     assert settings.get(key) == value, f"Docklike: {key} esperado {value!r}, recebido {settings.get(key)!r}"
 
-assert "xfce4-docklike-plugin" in packages_path.read_text().splitlines(), "Pacote Docklike ausente do perfil Manjaro"
+assert "xfce4-docklike-plugin" in packages_path.read_text().splitlines(), "Pacote Docklike ausente do perfil Forja"
 xml = ET.parse(panel_path).getroot()
 plugins = xml.find("./property[@name='plugins']")
 panel = xml.find("./property[@name='panels']/property[@name='panel-1']")
@@ -143,7 +143,6 @@ grep -q 'desktops/xfce/profile.conf' "$REPO_ROOT/build-manjaro.sh"
 ! grep -q 'BASE_PROFILE="$PROFILE_ROOT/manjaro/\$DESKTOP"' "$REPO_ROOT/build-manjaro.sh"
 ! grep -q 'cp -a "$BASE_PROFILE/.' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'rm -rf "$TARGET/live-overlay/etc/skel/.config/xfce4"' "$REPO_ROOT/build-manjaro.sh"
-grep -q 'rm -rf "$TARGET/live-overlay/etc/skel/.config/xfce4"' "$REPO_ROOT/build-manjaro.sh" || true
 
 grep -q 'etc/xdg/xfce4/panel/default.xml' "$ROOT/install-branding.sh"
 grep -q 'etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml' "$ROOT/install-branding.sh"
