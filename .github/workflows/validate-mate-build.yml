@@ -1,0 +1,76 @@
+name: Validate Forja OS MATE build code
+
+on:
+  push:
+    branches:
+      - forja-store-full-support
+    paths:
+      - 'build-manjaro.sh'
+      - 'build-cloud.sh'
+      - 'desktops/mate/**'
+      - '.github/workflows/validate-mate-build.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'build-manjaro.sh'
+      - 'build-cloud.sh'
+      - 'desktops/mate/**'
+      - '.github/workflows/validate-mate-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-mate-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate shell syntax
+        run: bash -n build-cloud.sh build-manjaro.sh
+
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Run ShellCheck
+        run: shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh
+
+      - name: Validate Forja OS MATE build configuration
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          build = Path("build-manjaro.sh").read_text()
+          assert re.search(r"^DESKTOP=mate$", build, re.M), "A edição precisa ser MATE"
+          checks = {
+              'LightDM no perfil': 'displaymanager="lightdm"',
+              'Sessão MATE no LightDM': 'user-session=mate',
+              'Greeter do LightDM': 'greeter-session=lightdm-slick-greeter',
+              'Calamares': 'calamares',
+              'Integração da Forja Store': 'forja-pamac-pacman/install.sh',
+              'Wallpaper da Forja': 'forja-mate-wallpaper.svg',
+              'Ícone da edição': 'forja-os-mate.svg',
+              'Sessão MATE': 'mate-session-manager',
+              'Painel MATE': 'mate-panel',
+              'Gerenciador de arquivos Caja': 'caja',
+              'Gerenciador de login': 'lightdm',
+              'NetworkManager': 'networkmanager',
+              'Bluetooth': 'blueman',
+              'Comando buildiso': 'buildiso -f',
+              'Preparação SquashFS': 'SQFS_WRAPPER_DIR=',
+              'Compressor SquashFS': 'mksquashfs',
+              'Metadados XZ': 'COMPRESSION=xz',
+              'Confirmação da ISO': 'BUILDISO_OK=1',
+              'Relatório da ISO': 'ISO_FILE=',
+          }
+          for label, needle in checks.items():
+              assert needle in build, f"Faltando: {label}"
+          print("Validação estrutural do código de geração Forja OS MATE concluída.")
+          print("Nenhuma compilação de ISO foi iniciada.")
+          PY
