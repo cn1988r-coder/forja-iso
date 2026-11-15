@@ -7,6 +7,6 @@ if [[ "${FORJA_DISTRIBUTION:-manjaro}" != manjaro ]]; then
 fi
 case "${FORJA_DESKTOP:-xfce}" in
   xfce) ;;
-  *) echo "Esta edição da Forja OS oferece somente XFCE." >&2; exit 2 ;;
+  *) echo "Forja OS possui somente a edição XFCE." >&2; exit 2 ;;
 esac
 exec bash /forja-ci/build-manjaro.sh
