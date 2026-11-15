@@ -32,9 +32,17 @@ def aur_command(args):
     if not helper:
         print("O helper yay não está instalado. Instale o pacote yay dos repositórios Manjaro.", file=sys.stderr)
         return 127
-    user = desktop_user()
+    try:
+        user = desktop_user()
+    except (KeyError, ValueError, RuntimeError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
     env = ["env", "HOME=" + user.pw_dir, "USER=" + user.pw_name,
            "LOGNAME=" + user.pw_name, "PATH=/usr/local/bin:/usr/bin"]
+    for key in ("DISPLAY", "WAYLAND_DISPLAY", "XDG_RUNTIME_DIR",
+                "DBUS_SESSION_BUS_ADDRESS", "XAUTHORITY", "LANG"):
+        if os.environ.get(key):
+            env.append(key + "=" + os.environ[key])
     command = ["runuser", "-u", user.pw_name, "--", *env, helper,
                "--sudo", "/usr/lib/forja/forja-pkexec-sudo", *args]
     return call(command, 7200)
@@ -60,16 +68,22 @@ def main(argv=None):
         result = call(["pacman", "-Syu", "--noconfirm"], 7200)
         if result:
             return result
-        if shutil.which("yay"):
-            result = aur_command(["-Sua", "--noconfirm"])
-            if result:
-                return result
-        if shutil.which("flatpak"):
-            result = call(["flatpak", "update", "--system", "--noninteractive", "--assumeyes"], 7200)
-        return result
+        if not shutil.which("yay"):
+            print("Dependência ausente: yay (AUR).", file=sys.stderr)
+            return 127
+        result = aur_command(["-Sua", "--noconfirm"])
+        if result:
+            return result
+        if not shutil.which("flatpak"):
+            print("Dependência ausente: flatpak.", file=sys.stderr)
+            return 127
+        return call(["flatpak", "update", "--system", "--noninteractive", "--assumeyes"], 7200)
     if action == "flatpak-upgrade":
         if argv:
             return 2
+        if not shutil.which("flatpak"):
+            print("Dependência ausente: flatpak.", file=sys.stderr)
+            return 127
         return call(["flatpak", "update", "--system", "--noninteractive", "--assumeyes"], 7200)
     if len(argv) != 2:
         return 2
