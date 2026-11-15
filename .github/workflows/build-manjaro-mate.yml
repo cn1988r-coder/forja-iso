@@ -1,12 +1,6 @@
 name: Build Manjaro MATE ISO
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/build-manjaro-mate.yml'
-      - 'build-manjaro.sh'
-      - 'forja-pamac-pacman/**'
   # A fila é consultada automaticamente. Nenhuma ação manual no GitHub é necessária.
   schedule:
     - cron: "*/5 * * * *"
@@ -77,7 +71,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     permissions:
-      contents: read
+      contents: write
       id-token: write
     env:
       FORJA_KERNEL: ${{ inputs.kernel || github.event.client_payload.kernel || needs.check-queue.outputs.kernel || 'lts' }}
@@ -205,22 +199,35 @@ jobs:
             });
             if (!response.ok) throw new Error(`Forja status update failed: ${await response.text()}`);
 
-      - name: Upload complete ISO as a temporary GitHub artifact
-        id: upload_iso
-        uses: actions/upload-artifact@v7
-        with:
-          name: Forja-Manjaro-MATE-${{ inputs.kernel || github.event.client_payload.kernel || needs.check-queue.outputs.kernel || 'lts' }}
-          path: ${{ steps.verify.outputs.iso }}
-          if-no-files-found: error
-          retention-days: 1
-          compression-level: 0
-          archive: false
+      - name: Publish ISO as a permanent GitHub Release
+        id: publish_release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISO_PATH: ${{ steps.verify.outputs.iso }}
+          KERNEL: ${{ env.FORJA_KERNEL }}
+          REQUEST_ID: ${{ env.FORJA_REQUEST_ID }}
+        run: |
+          set -Eeuo pipefail
+          tag="forja-${REQUEST_ID:-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}}"
+          title="Forja Manjaro MATE - Kernel ${KERNEL}"
+          notes="ISO Manjaro MATE gerada pela Forja.\n\nChecksum SHA-256 e informações da compilação incluídos nos arquivos desta publicação."
+          gh release create "$tag" \
+            "$ISO_PATH" \
+            "${ISO_PATH}.sha256" \
+            "forja-output/build-info.txt" \
+            --title "$title" \
+            --notes "$notes"
+          download_url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${tag}/$(basename "$ISO_PATH")"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "download_url=$download_url" >> "$GITHUB_OUTPUT"
+          echo "Release criada: $download_url"
 
       - name: Publish completed build to Forja panel
         if: ${{ success() && env.FORJA_REQUEST_ID != '' }}
         uses: actions/github-script@v7
         env:
-          ARTIFACT_URL: ${{ steps.upload_iso.outputs.artifact-url }}
+          DOWNLOAD_URL: ${{ steps.publish_release.outputs.download_url }}
         with:
           script: |
             const token = await core.getIDToken('forja-iso-worker');
@@ -231,8 +238,8 @@ jobs:
                 id: process.env.FORJA_REQUEST_ID,
                 status: 'complete',
                 progress: 100,
-                stage: 'ISO pronta para download',
-                downloadUrl: process.env.ARTIFACT_URL
+                stage: 'ISO publicada; download disponível',
+                downloadUrl: process.env.DOWNLOAD_URL
               })
             });
             if (!response.ok) throw new Error(`Forja completion update failed: ${await response.text()}`);
@@ -240,6 +247,8 @@ jobs:
       - name: Mark Forja request as failed
         if: ${{ failure() && env.FORJA_REQUEST_ID != '' }}
         uses: actions/github-script@v7
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |
             const token = await core.getIDToken('forja-iso-worker');
@@ -250,28 +259,28 @@ jobs:
                 id: process.env.FORJA_REQUEST_ID,
                 status: 'failed',
                 progress: 0,
-                stage: 'A compilação não foi concluída',
-                error: 'O processo de compilação ou a validação da ISO falhou. Consulte novamente mais tarde.'
+                stage: 'A compilação falhou',
+                error: 'A compilação, a validação da ISO ou a publicação do arquivo falhou. Abra os logs para identificar a etapa e a mensagem exata.',
+                detailsUrl: process.env.RUN_URL
               })
             });
             if (!response.ok) core.warning(`Could not report failure to Forja: ${await response.text()}`);
 
-      - name: Add direct download link to workflow summary
+      - name: Add permanent download link to workflow summary
+        if: ${{ success() }}
         shell: bash
         env:
-          ARTIFACT_URL: ${{ steps.upload_iso.outputs.artifact-url }}
-          KERNEL: ${{ inputs.kernel || github.event.client_payload.kernel || needs.check-queue.outputs.kernel || 'lts' }}
+          DOWNLOAD_URL: ${{ steps.publish_release.outputs.download_url }}
+          KERNEL: ${{ env.FORJA_KERNEL }}
         run: |
           set -Eeuo pipefail
-          test -n "$ARTIFACT_URL"
+          test -n "$DOWNLOAD_URL"
           {
             echo "## ISO Manjaro MATE pronta"
             echo
             echo "- **Kernel:** $KERNEL"
             echo "- **Arquivo:** ISO completa, sem divisão em partes"
-            echo "- **Validade:** 24 horas (1 dia)"
+            echo "- **Disponibilidade:** link permanente na publicação da release"
             echo
-            echo "[**BAIXAR A ISO COMPLETA**]($ARTIFACT_URL)"
-            echo
-            echo "O link exige login no GitHub e acesso de leitura ao repositório."
+            echo "[**BAIXAR A ISO COMPLETA**]($DOWNLOAD_URL)"
           } >> "$GITHUB_STEP_SUMMARY"
