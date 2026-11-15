@@ -22,7 +22,7 @@ Distribuição própria baseada em **Manjaro**, com uma única edição gráfica
 
 ## Forja Store
 
-A loja própria usa Pacman, AUR/yay, Flatpak/Flathub e catálogo AppStream. O catálogo e as operações precisam passar pelas verificações automatizadas e por teste funcional em uma sessão Manjaro XFCE real antes de serem considerados prontos.
+A loja própria usa o Pamac CLI/libpamac como backend para os repositórios Manjaro e AUR, além de Flatpak/Flathub e catálogo AppStream. A interface GTK3 herda o tema ativo do sistema e usa apenas um realce branco discreto ao passar o mouse. O conjunto precisa passar pelas verificações automatizadas e por teste funcional em uma sessão Manjaro XFCE real antes de ser considerado pronto.
 
 ## Estado da entrega
 
