@@ -50,11 +50,10 @@ jobs:
           icon_error = (root / "icons/forja-update-error.svg").read_text().lower()
           for label, svg in (("atualizado", icon_current), ("atualizações disponíveis", icon_available), ("falha de consulta", icon_error)):
               assert "<svg" in svg and "</svg>" in svg, f"Ícone SVG inválido: {label}"
-              assert not any(color in svg for color in ("#ff", "#f80", "#f90", "#3584e4", "orange", "blue")), f"Cor fora da escala de cinza no ícone: {label}"
-              import re
-              for color in re.findall(r"#[0-9a-f]{6}", svg):
-                  rgb = tuple(int(color[i:i+2], 16) for i in (1, 3, 5))
-                  assert max(rgb) - min(rgb) <= 2, f"Cor não é cinza: {color} ({label})"
+          assert 'stroke="#ffffff"' in icon_current and 'stroke="#777777"' in icon_current, "Estado atualizado deve ter escudo branco e V cinza-escuro"
+          assert 'stroke="#ffffff"' in icon_available and 'stroke="#e53935"' in icon_available, "Estado com atualizações deve ter escudo branco e X vermelho"
+          assert 'stroke="#e53935"' not in icon_current, "Estado atualizado não pode exibir X vermelho"
+          assert 'stroke="#777777"' not in icon_available, "Estado com atualizações não pode exibir V cinza"
           assert 'new_from_icon_name("forja-update-current")' in indicator, "O indicador deve iniciar com ícone próprio da Forja"
           assert 'icon="forja-update-available"' in indicator and 'icon="forja-update-current"' in indicator and 'icon="forja-update-error"' in indicator, "Os três estados precisam trocar para os ícones próprios"
           assert 'forja-update-error.svg' in installer, "O ícone de erro precisa ser instalado"
@@ -91,12 +90,13 @@ jobs:
           assert 'flatpak remote-add --if-not-exists --system flathub' in installer
           assert 'yay' in packages and 'base-devel' in packages and 'git' in packages
           assert pathlib.Path(root / "src/forja-pkexec-sudo").is_file()
-          assert 'OnlyShowIn=MATE;XFCE;' in (root / "forja-update-indicator.desktop").read_text()
+          assert 'OnlyShowIn=XFCE;' in (root / "forja-update-indicator.desktop").read_text()
           build = pathlib.Path("build-manjaro.sh").read_text()
-          assert 'DESKTOP="${FORJA_DESKTOP:-mate}"' in build, "A edição MATE precisa continuar como padrão"
-          assert 'forja-pamac-pacman/install.sh' in build, "A Forja Store não está instalada no perfil Manjaro MATE"
-          assert 'forja-mate-wallpaper.svg' in build and 'forja-os-mate.svg' in build, "O wallpaper próprio da Forja OS não está integrado"
-          assert "yay" in build and "base-devel" in build, "Dependências AUR ausentes no perfil MATE"
+          assert 'DESKTOP="${FORJA_DESKTOP:-xfce}"' in build, "XFCE deve ser a única edição e o padrão"
+          assert 'case "$DESKTOP" in xfce)' in build, "O gerador deve rejeitar outras interfaces"
+          assert 'manjaro/xfce' in build, "O perfil oficial XFCE deve ser a base"
+          assert 'forja-pamac-pacman/install.sh' in build, "A Forja Store não está integrada ao perfil XFCE"
+          assert 'desktops/xfce/packages.manjaro' in build, "A lista de pacotes XFCE não está integrada"
 
           module = runpy.run_path(str(src / "forja-pacman-transaction"))
           main, call, shutil = module["main"], module["call"], module["shutil"]
@@ -162,7 +162,7 @@ jobs:
           print("Forja Store: Pacman, AUR/yay, Flatpak, transações, cancelamento e erros validados.")
           PY
 
-      - name: Validate Forja OS MATE build code (without building ISO)
+      - name: Validate Forja OS XFCE-only build code (without building ISO)
         shell: bash
         run: |
           set -euo pipefail
@@ -172,22 +172,21 @@ jobs:
           shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh
           python3 - <<'PY'
           from pathlib import Path
-          import re
           build = Path("build-manjaro.sh").read_text()
-          assert 'DESKTOP="${FORJA_DESKTOP:-mate}"' in build, "A edição MATE precisa continuar como padrão"
-          assert 'displaymanager="lightdm"' in build, "LightDM não está definido no perfil"
-          assert 'user-session=mate' in build, "Sessão MATE não está definida no LightDM"
-          assert 'greeter-session=lightdm-slick-greeter' in build, "Greeter LightDM não está configurado"
-          assert 'calamares' in build, "Calamares não está incluído"
+          cloud = Path("build-cloud.sh").read_text()
+          packages = Path("desktops/xfce/packages.manjaro").read_text()
+          assert 'DESKTOP="${FORJA_DESKTOP:-xfce}"' in build, "XFCE deve ser o padrão"
+          assert 'case "$DESKTOP" in xfce)' in build and 'case "${FORJA_DESKTOP:-xfce}" in' in cloud, "Geradores devem aceitar somente XFCE"
+          assert 'manjaro/xfce' in build, "Perfil oficial XFCE ausente"
+          assert 'displaymanager="lightdm"' in build and 'user-session=xfce' in build, "Sessão XFCE/LightDM ausente"
+          assert 'lightdm-gtk-greeter' in build and 'calamares' in build, "Greeter ou instalador ausente"
           assert 'forja-pamac-pacman/install.sh' in build, "Forja Store não está integrada ao overlay"
-          assert 'forja-mate-wallpaper.svg' in build, "Wallpaper da Forja não está integrado"
-          assert 'forja-os-mate.svg' in build, "Identidade visual Forja OS não está integrada"
-          assert 'mate-session-manager' in build and 'mate-panel' in build and 'caja' in build, "Conjunto essencial MATE incompleto"
-          assert 'lightdm' in build and 'networkmanager' in build and 'blueman' in build, "Componentes de sessão/rede ausentes"
-          assert 'buildiso -f' in build, "Comando de geração da ISO não foi encontrado"
-          assert 'SQFS_WRAPPER_DIR=' in build and 'mksquashfs' in build, "Preparação do SquashFS não foi encontrada"
-          assert 'COMPRESSION=xz' in build, "Metadados de compressão XZ não estão definidos"
-          assert 'BUILDISO_OK=1' in build and 'ISO_FILE=' in build, "Verificação/relatório de saída ISO ausente"
-          print("Código de geração Forja OS MATE: estrutura, sessão, Calamares, Store e pipeline ISO verificados; nenhuma ISO foi compilada.")
+          assert 'desktops/xfce/packages.manjaro' in build, "Lista XFCE não está integrada"
+          assert 'xfce4-session' in packages and 'xfce4-panel' in packages and 'thunar' in packages, "Pacotes essenciais XFCE ausentes"
+          assert 'mate-session-manager' not in packages and 'mate-panel' not in packages, "Pacotes MATE não podem entrar na ISO XFCE"
+          assert 'lightdm' in packages and 'networkmanager' in packages and 'blueman' in packages, "Componentes de sessão/rede ausentes"
+          assert 'buildiso -f' in build and 'SQFS_WRAPPER_DIR=' in build and 'mksquashfs' in build, "Pipeline ISO/SquashFS ausente"
+          assert 'COMPRESSION=xz' in build and 'BUILDISO_OK=1' in build and 'ISO_FILE=' in build, "Verificação/relatório ISO ausente"
+          print("Código de geração Forja OS XFCE-only validado; nenhuma ISO foi compilada.")
           PY
 
