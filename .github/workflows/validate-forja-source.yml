@@ -70,7 +70,8 @@ jobs:
 
           source = Path("build-manjaro.sh").read_text()
           def heredoc(tag, destination):
-              pattern = rf'install -Dm644 /dev/stdin "\\$TARGET/rootfs/{re.escape(destination)}" <<\'{tag}\'\\n(.*?)\\n{tag}'
+              prefix = f'install -Dm644 /dev/stdin "$TARGET/rootfs/{destination}" <<\\'{tag}\\''
+              pattern = re.escape(prefix) + r'\\n(.*?)\\n' + re.escape(tag)
               match = re.search(pattern, source, re.S)
               if not match:
                   raise SystemExit(f"Configuração não encontrada no gerador: {destination}")
@@ -92,6 +93,7 @@ jobs:
           unit = service.read_text()
           assert "ExecStart=/usr/bin/pacman-mirrors --fasttrack 10" in unit
           assert "After=network-online.target" in unit
+          assert "Before=display-manager.service" in unit
           assert "Restart=on-failure" in unit
           assert "pacman-mirrors" in source.split("BASE_CORE_PACKAGES=(", 1)[1].split(")", 1)[0]
           assert 'ln -sfn ../forja-manjaro-mirrors.service' in source
