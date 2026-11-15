@@ -9,3 +9,12 @@ firefox
 papirus-icon-theme
 bibata-cursor-theme
 materia-gtk-theme
+
+# Forja Software and update indicator (Pacman backend)
+gtk4
+gtk3
+python
+python-gobject
+libayatana-appindicator
+pacman-contrib
+polkit
