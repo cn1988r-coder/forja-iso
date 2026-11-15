@@ -51,7 +51,7 @@ class PamacTransactionTests(unittest.TestCase):
                 call.assert_not_called()
 
     def test_flatpak_install_stays_with_flatpak_cli(self):
-        with patch.object(tx.shutil, "which", return_value="/usr/bin/flatpak"):
+        with patch.object(tx.shutil, "which", side_effect=lambda name: "/usr/bin/" + name):
             with patch.object(tx, "call", side_effect=[0, 0]) as call:
                 self.assertEqual(
                     tx.main(["install", "flatpak", "org.example.App", "flathub"]), 0
@@ -63,7 +63,7 @@ class PamacTransactionTests(unittest.TestCase):
                 )
 
     def test_flatpak_id_validation(self):
-        with patch.object(tx.shutil, "which", return_value="/usr/bin/flatpak"):
+        with patch.object(tx.shutil, "which", side_effect=lambda name: "/usr/bin/" + name):
             with patch.object(tx, "call") as call:
                 self.assertEqual(tx.main(["install", "flatpak", "not-an-id"]), 2)
                 call.assert_not_called()
