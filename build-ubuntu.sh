@@ -112,11 +112,11 @@ Papirus e Bibata a partir de fontes compatíveis com Ubuntu e aplicar este perfi
 A base não instala nem configura ambiente gráfico.
 VISUAL_README
 
-# Mantém a instalação na linha LTS e impede propostas automáticas de upgrade
-# para uma nova versão principal. Atualizações normais e de segurança continuam.
+# O atualizador de versão só deve oferecer upgrades entre versões LTS.
+# Ex.: 26.04 LTS -> 28.04 LTS; nunca 26.10 ou 27.04.
 cat > "$ROOTFS/etc/update-manager/release-upgrades" <<'RELEASE'
 [DEFAULT]
-Prompt=never
+Prompt=lts
 RELEASE
 
 cat > "$ROOTFS/etc/apt/apt.conf.d/20auto-upgrades" <<'AUTO'
@@ -124,8 +124,17 @@ APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Unattended-Upgrade "1";
 AUTO
 
-cat > "$ROOTFS/etc/apt/apt.conf.d/52forja-no-release-upgrade" <<'APTCONF'
-# Forja: manter a versão LTS instalada; atualizações de pacotes continuam normais.
+# Atualiza automaticamente os pacotes da LTS instalada, incluindo o pocket
+# -updates e correções de segurança. Não habilita pockets de outra versão.
+cat > "$ROOTFS/etc/apt/apt.conf.d/52forja-unattended-upgrades" <<'APTCONF'
+Unattended-Upgrade::Origins-Pattern {
+  "origin=Ubuntu,codename=${distro_codename}";
+  "origin=Ubuntu,codename=${distro_codename}-updates";
+  "origin=Ubuntu,codename=${distro_codename}-security";
+};
+APTCONF
+
+cat > "$ROOTFS/etc/apt/apt.conf.d/53forja-phased-updates" <<'APTCONF'
 APT::Get::Always-Include-Phased-Updates "true";
 APTCONF
 
