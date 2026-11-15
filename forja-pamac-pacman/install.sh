@@ -21,6 +21,7 @@ install -m 755 "$ROOT/bin/forja-update-indicator" "$(target /usr/bin/forja-updat
 install -m 644 "$ICON" "$(target "/usr/share/icons/hicolor/scalable/apps/$(basename "$ICON")")"
 install -m 644 "$ROOT/icons/forja-update-available.svg" "$(target /usr/share/icons/hicolor/scalable/status/forja-update-available.svg)"
 install -m 644 "$ROOT/icons/forja-update-current.svg" "$(target /usr/share/icons/hicolor/scalable/status/forja-update-current.svg)"
+install -m 644 "$ROOT/icons/forja-update-error.svg" "$(target /usr/share/icons/hicolor/scalable/status/forja-update-error.svg)"
 install -m 644 "$ROOT/forja-update-indicator.desktop" "$(target /etc/xdg/autostart/forja-update-indicator.desktop)"
 install -m 644 "$ROOT/forja-software.desktop" "$(target /usr/share/applications/forja-software.desktop)"
 cat > "$(target /etc/systemd/system/forja-flatpak-setup.service)" <<'UNIT'
