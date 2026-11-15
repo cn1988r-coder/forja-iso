@@ -3,6 +3,9 @@ set -Eeuo pipefail
 
 [[ "$EUID" -eq 0 ]] || { echo "Execute este instalador com sudo." >&2; exit 1; }
 ROOT="$(cd "$(dirname "$0")" && pwd)"
+command -v apt-get >/dev/null 2>&1 || { echo "Este instalador requer Ubuntu com APT." >&2; exit 1; }
+apt-get update
+apt-get install -y python3 python3-apt python3-gi gir1.2-gtk-4.0 gir1.2-gtk-3.0 gir1.2-ayatanaappindicator3-0.1 policykit-1 flatpak
 for file in "$ROOT/src/forja-store" "$ROOT/src/forja-apt-transaction" "$ROOT/src/forja-update-indicator"; do
   [[ -f "$file" ]] || { echo "Arquivo ausente: $file" >&2; exit 1; }
 done
