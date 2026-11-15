@@ -63,7 +63,7 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          find "$RUNNER_TEMP/forja-iso-output" -maxdepth 2 -type f -printf '%p %s bytes\\n'
+          find "$RUNNER_TEMP/forja-iso-output" -maxdepth 2 -type f -printf '%p %s bytes\n'
           test -n "$(find "$RUNNER_TEMP/forja-iso-output" -type f -name '*.iso' -print -quit)"
           test -n "$(find "$RUNNER_TEMP/forja-iso-output" -type f -name '*.iso.sha256' -print -quit)"
 
