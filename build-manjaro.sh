@@ -615,11 +615,11 @@ grep -q -- '-Xdict-size' <<< "$XZ_HELP" || {
   echo "ERRO: mksquashfs não oferece suporte aos parâmetros XZ avançados." >&2
   exit 41
 }
-# Não usar -f: ele ativa o conjunto extra do perfil Manjaro.
+# Usar -f para incluir o conjunto completo de pacotes do perfil Manjaro.
 BUILDISO_OK=0
 for attempt in 1 2 3; do
   echo "Iniciando geração do sistema Live e da ISO (tentativa $attempt/3)..."
-  if PATH="$SQFS_WRAPPER_DIR:$PATH" buildiso -d xz -p "forja-$DESKTOP" -b stable -k "$KERNEL_PKG" -r "$CHROOTS" -t "$OUT" -v; then
+  if PATH="$SQFS_WRAPPER_DIR:$PATH" buildiso -f -d xz -p "forja-$DESKTOP" -b stable -k "$KERNEL_PKG" -r "$CHROOTS" -t "$OUT" -v; then
     BUILDISO_OK=1
     break
   fi
