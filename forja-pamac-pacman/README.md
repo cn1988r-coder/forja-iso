@@ -11,8 +11,8 @@ Loja gráfica própria da Forja OS. É independente do Pamac e utiliza o Pacman 
 
 ## Componentes
 
-- `forja-store`: aplicativo próprio GTK4 com telas Visão geral, Instalados, Pesquisa e Atualizações.
-- `forja-update-indicator`: indicador Ayatana para painéis XFCE e MATE.
+- `forja-store`: aplicativo próprio GTK3 com telas Visão geral, Instalados, Pesquisa e Atualizações.
+- `forja-update-indicator`: indicador GTK3 de área de notificação compatível com os painéis XFCE e MATE.
 - `forja-pacman-transaction`: auxiliar privilegiado restrito para transações Pacman e Flatpak.
 - Ícone e identidade visual próprios da Forja Store.
 
