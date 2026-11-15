@@ -34,6 +34,7 @@ jobs:
           set -euo pipefail
           for script in build-cloud.sh build-manjaro.sh \
             desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh \
+            desktops/xfce/plymouth/forja-mkinitcpio.conf \
             forja-pamac-pacman/install.sh forja-pamac-pacman/build-pamac.sh forja-pamac-pacman/src/forja-pkexec-sudo; do
             bash -n "$script"
           done
