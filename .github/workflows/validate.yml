@@ -101,7 +101,7 @@ jobs:
           grep -Fq 'scour' build-manjaro.sh
           grep -Fq 'biglinux-icons-material.git' build-manjaro.sh
           grep -Fq 'BigLinux-Icons-Material-Dark' build-manjaro.sh
-          grep -Fq 'icon-theme=BigLinux-Icons-Material-Dark' build-manjaro.sh
+          grep -Fq "icon-theme='BigLinux-Icons-Material-Dark'" build-manjaro.sh
           grep -Fq 'Inherits=hicolor' build-manjaro.sh
           grep -Fq 'papirus-icon-theme|papirus-folders|' build-manjaro.sh
           ! grep -Fq 'papirus-icon-theme bibata-cursor-theme' build-manjaro.sh
