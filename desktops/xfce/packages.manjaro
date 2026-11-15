@@ -45,6 +45,7 @@ pipewire-pulse
 wireplumber
 gtk3
 gtk4
+gsettings-desktop-schemas
 python
 python-gobject
 libayatana-appindicator
