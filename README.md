@@ -11,7 +11,7 @@ Compilador de ISO x86_64 para **Manjaro MATE**, com preparação e compilação 
 
 ## Compilação Manjaro MATE
 
-O workflow **Build Manjaro MATE ISO** executa a compilação em nuvem, verifica o checksum SHA-256 e publica a ISO completa como um arquivo de uma GitHub Release.
+O workflow **Build Manjaro MATE ISO** executa a compilação em nuvem, gera a imagem SquashFS com compressão XZ, verifica o checksum SHA-256 e publica a ISO completa como um arquivo de uma GitHub Release.
 
 A página da Forja consulta a fila automaticamente. Quando a ISO termina de compilar e passa na verificação, o workflow cria uma publicação permanente no repositório e grava no pedido o endereço direto do arquivo. O painel passa a exibir **BAIXAR ISO COMPLETA** e mantém o resultado após atualizar a página.
 
