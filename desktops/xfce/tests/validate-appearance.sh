@@ -4,7 +4,7 @@ set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO_ROOT="$(cd -- "$ROOT/../.." && pwd)"
 
-for script in "$ROOT/apply-forja-layout.sh" "$ROOT/install-branding.sh" "$REPO_ROOT/build-manjaro.sh" "$REPO_ROOT/forja-pamac-pacman/install.sh" "$REPO_ROOT/forja-pamac-pacman/build-pamac.sh"; do
+for script in "$ROOT/apply-forja-layout.sh" "$ROOT/install-branding.sh" "$ROOT/plymouth/forja-mkinitcpio.conf" "$REPO_ROOT/build-manjaro.sh" "$REPO_ROOT/forja-pamac-pacman/install.sh" "$REPO_ROOT/forja-pamac-pacman/build-pamac.sh"; do
   bash -n "$script"
 done
 
