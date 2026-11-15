@@ -173,9 +173,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mapfile -t isos < <(find forja-output -type f -name '*.iso' -size +100M)
+          mapfile -t isos < <(find forja-output -type f -name '*.iso' -size +1000M)
           if (( ${#isos[@]} != 1 )); then
-            echo "ERRO: esperado exatamente uma ISO válida; encontradas: ${#isos[@]}" >&2
+            echo "ERRO: esperado exatamente uma ISO completa maior que 1 GB; encontradas: ${#isos[@]}" >&2
             find forja-output -type f -printf '%p (%s bytes)\\n'
             exit 1
           fi
