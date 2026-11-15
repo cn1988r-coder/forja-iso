@@ -90,7 +90,9 @@ jobs:
           grep -Fq 'DM=lightdm' build-manjaro.sh
           grep -Fq 'user-session=mate' build-manjaro.sh
           ! grep -Eiq 'xfce|gnome|plasma|kde' build-manjaro.sh
-          grep -Fq 'retention-days: 1' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'gh release create' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'COMPRESSION=xz' build-manjaro.sh
+          grep -Fq 'sha256sum --check' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_DISTRIBUTION=manjaro' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_DESKTOP=mate' .github/workflows/build-manjaro-mate.yml
           ! grep -Eiq 'shelly' build-manjaro.sh .github/workflows/build-manjaro-mate.yml
