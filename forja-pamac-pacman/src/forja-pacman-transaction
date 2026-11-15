@@ -47,6 +47,15 @@ def aur_command(args):
                "--sudo", "/usr/lib/forja/forja-pkexec-sudo", *args]
     return call(command, 7200)
 
+def flatpak_user_command(user, args):
+    env = ["env", "HOME=" + user.pw_dir, "USER=" + user.pw_name,
+           "LOGNAME=" + user.pw_name, "PATH=/usr/local/bin:/usr/bin"]
+    for key in ("DISPLAY", "WAYLAND_DISPLAY", "XDG_RUNTIME_DIR",
+                "DBUS_SESSION_BUS_ADDRESS", "XAUTHORITY", "LANG"):
+        if os.environ.get(key):
+            env.append(key + "=" + os.environ[key])
+    return call(["runuser", "-u", user.pw_name, "--", *env, "flatpak", *args], 7200)
+
 def ensure_flatpak_remote():
     if not shutil.which("flatpak"):
         print("Flatpak não está instalado.", file=sys.stderr)
@@ -97,8 +106,17 @@ def main(argv=None):
                 return 1
             return call(["flatpak", "install", "--system", "--noninteractive", "--assumeyes", "flathub", name], 7200)
         if action == "remove":
-            scope = "--system" if call(["flatpak", "info", "--system", name]) == 0 else "--user"
-            return call(["flatpak", "uninstall", scope, "--noninteractive", "--assumeyes", "--delete-data", name], 7200)
+            if call(["flatpak", "info", "--system", name]) == 0:
+                return call(["flatpak", "uninstall", "--system", "--noninteractive", "--assumeyes", "--delete-data", name], 7200)
+            try:
+                user = desktop_user()
+            except (KeyError, ValueError, RuntimeError) as exc:
+                print(str(exc), file=sys.stderr)
+                return 1
+            if flatpak_user_command(user, ["info", "--user", name]):
+                print("Aplicativo Flatpak não encontrado nas instalações system/user.", file=sys.stderr)
+                return 1
+            return flatpak_user_command(user, ["uninstall", "--user", "--noninteractive", "--assumeyes", "--delete-data", name])
         return 2
     if not PACKAGE.fullmatch(name):
         print("Nome de pacote inválido.", file=sys.stderr)
