@@ -5,13 +5,14 @@ Loja gráfica própria da Forja OS. É independente do Pamac e utiliza o Pacman 
 ## Repositórios e atualizações
 
 - **Pacotes Manjaro:** utiliza somente os repositórios e a lista de espelhos configurados pelo Manjaro (`pacman` e `pacman-mirrors`). A Forja não é um espelho de pacotes.
+- **Catálogo de aplicativos:** usa metadados AppStream (`appstream` + `archlinux-appstream-data`) para exibir nomes, descrições, ícones e categorias dos aplicativos disponíveis nos repositórios.
 - **Aplicativos Flatpak:** utiliza o Flathub oficial. Nenhum repositório próprio da Forja é adicionado.
 - Atualizações do sistema executam `pacman -Syu`, seguidas das atualizações Flatpak do sistema.
 - A verificação de atualizações usa `checkupdates` e a listagem de atualizações do Flatpak. Não utiliza `pacman -Sy` isoladamente.
 
 ## Componentes
 
-- `forja-store`: aplicativo próprio GTK3 com telas Visão geral, Instalados, Pesquisa e Atualizações.
+- `forja-store`: aplicativo próprio GTK3 com telas Visão geral, catálogo AppStream por categoria, Pesquisa e Atualizações.
 - `forja-update-indicator`: indicador GTK3 de área de notificação integrado exclusivamente ao painel XFCE.
 - `forja-pacman-transaction`: auxiliar privilegiado restrito para transações Pacman e Flatpak.
 - Ícone e identidade visual próprios da Forja Store.
