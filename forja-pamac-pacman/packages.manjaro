@@ -1,9 +1,7 @@
-# Manjaro only
-gtk4
+# Forja Store: GTK3 interface, Pacman and Flatpak backend
 gtk3
 python
 python-gobject
-libayatana-appindicator
 pacman-contrib
 polkit
 flatpak
