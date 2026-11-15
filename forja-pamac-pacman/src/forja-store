@@ -72,11 +72,11 @@ def parse_appstream(output):
         package=fields.get("Package","").split(",")[0].strip()
         bundle=fields.get("Bundle","")
         if package:
-            found.append((package,fields.get("Summary","Aplicativo disponível"),"repo"))
+            found.append((package,"",fields.get("Summary","Aplicativo disponível"),"repo"))
         elif bundle.startswith("flatpak:app/"):
             parts=bundle.split("/")
             if len(parts)>=2:
-                found.append((parts[1],fields.get("Summary","Aplicativo Flatpak"),"flatpak"))
+                found.append((parts[1],"",fields.get("Summary","Aplicativo Flatpak"),"flatpak"))
     return found
 
 class Store(Gtk.Application):
@@ -187,11 +187,12 @@ class Store(Gtk.Application):
                     results.extend(parse_appstream(result.stdout))
             unique=[]; seen=set()
             for item in results:
-                key=(item[0],item[2])
+                key=(item[0],item[3])
                 if key not in seen:
                     seen.add(key); unique.append(item)
             unique.sort(key=lambda item:item[0].casefold())
-            GLib.idle_add(self.show_catalog_results,generation,title,unique)
+            apps=[(name,summary,source) for name,_version,summary,source in unique]
+            GLib.idle_add(self.show_catalog_results,generation,title,apps)
         threading.Thread(target=worker,daemon=True).start()
 
     def show_catalog_results(self,generation,title,results):
