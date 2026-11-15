@@ -94,84 +94,15 @@ XFCE_PROFILE
   fi
   touch "$TARGET/Packages-Desktop"
 
-  # Complementa o perfil-base com os programas e a identidade da Forja OS.
-  # Não substitui a lista oficial: preserva os pacotes próprios do perfil.
-  cat >> "$TARGET/Packages-Desktop" <<'MATE_PACKAGES'
-
-# Forja OS: aplicativos completos do ambiente MATE.
-mate-desktop
-mate-backgrounds
-mate-menus
-mate-session-manager
-mate-panel
-mate-control-center
-mate-settings-daemon
-mate-polkit
-mate-applets
-mate-notification-daemon
-mate-power-manager
-mate-screensaver
-mate-media
-mate-system-monitor
-mate-terminal
-mate-calc
-mate-utils
-marco
-caja
-mozo
-pluma
-engrampa
-atril
-eom
-fastfetch
-vlc
-htop
-gparted
-noto-fonts
-ttf-jetbrains-mono
-
-# Login, rede, Bluetooth e navegador.
-lightdm
-lightdm-slick-greeter
-networkmanager
-network-manager-applet
-bluez
-bluez-utils
-blueman
-firefox
-
-# Áudio, aparência e dependências do Forja Software.
-pipewire
-pipewire-alsa
-pipewire-pulse
-wireplumber
-materia-gtk-theme
-bibata-cursor-theme
-papirus-icon-theme
-dconf
-gtk3
-python
-python-gobject
-pacman-contrib
-polkit
-flatpak
-yay
-base-devel
-git
-MATE_PACKAGES
-fi
-
+  # Inclui somente os pacotes definidos para a edição XFCE.
+  cat /forja-ci/desktops/xfce/packages.manjaro >> "$TARGET/Packages-Desktop"
 if [[ "$DESKTOP" == xfce ]]; then
   # Pacotes próprios da edição XFCE, mantidos fora do perfil MATE.
   cat /forja-ci/desktops/xfce/packages.manjaro >> "$TARGET/Packages-Desktop"
 fi
 
 # Cada edição recebe o tema GTK escuro que realmente configura.
-if [[ "$DESKTOP" == mate ]]; then
-  REQUIRED_GTK_THEME="materia-gtk-theme"
-else
-  REQUIRED_GTK_THEME="adw-gtk-theme"
-fi
+REQUIRED_GTK_THEME="adw-gtk-theme"
 grep -Fxq "$REQUIRED_GTK_THEME" "$TARGET/Packages-Desktop" || printf '%s\n' "$REQUIRED_GTK_THEME" >> "$TARGET/Packages-Desktop"
 if ! pacman_info "$REQUIRED_GTK_THEME" >/dev/null 2>&1; then
   echo "ERRO: $REQUIRED_GTK_THEME não está disponível nos repositórios Manjaro Stable." >&2
@@ -423,7 +354,7 @@ done
 
 # Papirus é fornecido pelo pacote oficial papirus-icon-theme.
 # Instala a Forja Store no sistema Live e no sistema instalado.
-if [[ "$DESKTOP" == mate || "$DESKTOP" == xfce ]] && [[ "${FORJA_SKIP_STORE_INSTALL:-0}" != "1" ]]; then
+if [[ "${FORJA_SKIP_STORE_INSTALL:-0}" != "1" ]]; then
   for overlay_name in desktop-overlay live-overlay; do
     store_overlay="$TARGET/$overlay_name"
     [[ -d "$store_overlay" ]] || continue
@@ -443,46 +374,6 @@ for package_list in "$TARGET"/Packages-*; do
 done
 
 # Full package preflight runs after the desktop-specific list is finalized.
-
-if [[ "$DESKTOP" == mate ]]; then
-  MATE_CORE_PACKAGES=(
-    mate-session-manager mate-panel mate-control-center mate-settings-daemon
-    mate-desktop mate-menus mate-polkit marco caja
-    lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet
-    bluez bluez-utils blueman
-    pipewire pipewire-alsa pipewire-pulse wireplumber
-    mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media
-    mate-system-monitor mate-terminal mate-calc mate-utils mozo pluma engrampa atril eom
-    gtk3 python python-gobject pacman-contrib polkit flatpak yay fastfetch bibata-cursor-theme papirus-icon-theme dconf vlc htop gparted noto-fonts ttf-jetbrains-mono
-    systemd grub efibootmgr mkinitcpio calamares linux-firmware
-    manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db
-  )
-  MATE_MISSING_CORE=()
-  for package in "${MATE_CORE_PACKAGES[@]}"; do
-    if ! pacman_info "$package" >/dev/null 2>&1; then MATE_MISSING_CORE+=("$package"); fi
-  done
-  if (("${#MATE_MISSING_CORE[@]}")); then
-    printf 'ERRO: componentes essenciais MATE/LightDM/rede/Bluetooth ausentes: %s\n' "${MATE_MISSING_CORE[*]}" >&2
-    exit 22
-  fi
-  # Caja é o gerenciador de arquivos padrão e faz parte do desktop mínimo.
-  if ! pacman_info caja >/dev/null 2>&1; then
-    echo "ERRO: gerenciador de arquivos Caja ausente no Manjaro Stable." >&2
-    exit 23
-  fi
-  awk '!seen[$0]++' "$TARGET/Packages-Desktop" > "$TARGET/Packages-Desktop.unique"
-  mv "$TARGET/Packages-Desktop.unique" "$TARGET/Packages-Desktop"
-  # O cursor configurado precisa existir na ISO; não aceitar uma configuração quebrada.
-  pacman_info bibata-cursor-theme >/dev/null 2>&1 || {
-    echo "ERRO: bibata-cursor-theme não está disponível nos repositórios Manjaro configurados." >&2
-    exit 27
-  }
-  pacman_info dconf >/dev/null 2>&1 || {
-    echo "ERRO: dconf não está disponível nos repositórios Manjaro configurados." >&2
-    exit 28
-  }
-  echo "Preflight do núcleo MATE, rede e Bluetooth aprovado."
-fi
 
 # Resolve every package list used by the selected profile, including the
 # shared files reached through >systemd, >extra, >multilib, and >manjaro.
@@ -537,11 +428,7 @@ done < <(find -L "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
 BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
-if [[ "$DESKTOP" == mate ]]; then
-  DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media mate-system-monitor mate-terminal mate-calc mate-utils marco caja mozo pluma engrampa atril eom lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme gtk3 python python-gobject pacman-contrib flatpak yay git fastfetch bibata-cursor-theme dconf vlc htop gparted noto-fonts ttf-jetbrains-mono)
-else
-  DESKTOP_CORE_PACKAGES=(xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin xfce4-docklike-plugin xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders bibata-cursor-theme gtk3 gtk4 gsettings-desktop-schemas python python-gobject pacman-contrib polkit flatpak yay git base-devel)
-fi
+DESKTOP_CORE_PACKAGES=(xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin xfce4-docklike-plugin xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders bibata-cursor-theme gtk3 gtk4 gsettings-desktop-schemas python python-gobject pacman-contrib polkit flatpak yay git base-devel)
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
   if ! pacman_info "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" >/dev/null 2>&1; then
@@ -561,8 +448,7 @@ else
   printf '\ndisplaymanager="%s"\n' "$DM" >> "$TARGET/profile.conf"
 fi
 
-if [[ "$DESKTOP" == mate || "$DESKTOP" == xfce ]]; then
-  # Preserve the upstream service set. Remove Snap services and add only the
+# Preserve the upstream service set. Remove Snap services and add only the
   # network/Bluetooth services if the profile does not already enable them.
   sed -i "s/'snapd.apparmor'//g; s/'snapd'//g" "$TARGET/profile.conf"
   if grep -Eq '^enable_systemd=' "$TARGET/profile.conf"; then
