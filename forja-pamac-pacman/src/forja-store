@@ -56,7 +56,7 @@ def parse_search(output, source):
                 current=(match.group(1),match.group(1),"Pacote disponível",source,"application-x-executable")
                 found.append(current)
         elif current and line.strip():
-            found[-1]=(current[0],current[1],line.strip(),source); current=None
+            found[-1]=(current[0],current[1],line.strip(),source,current[4]); current=None
     return found
 
 def parse_appstream(output):
@@ -275,7 +275,7 @@ class Store(Gtk.Application):
     def search_packages(self,query):
         self.query_generation+=1; generation=self.query_generation
         self.clear(); self.heading("Resultados da pesquisa")
-        self.content.pack_start(Gtk.Label(label="Pesquisando nas três fontes…",xalign=0),False,False,0); self.content.show_all()
+        self.content.pack_start(Gtk.Label(label="Pesquisando no catálogo, Pacman, AUR e Flatpak…",xalign=0),False,False,0); self.content.show_all()
         def worker():
             results=[]
             catalog=run(["appstreamcli","search",query],90) if shutil.which("appstreamcli") else subprocess.CompletedProcess([],127,"")
@@ -304,7 +304,7 @@ class Store(Gtk.Application):
         self.clear(); self.heading("Resultados da pesquisa")
         if results: self.add_apps(results)
         else: self.content.pack_start(Gtk.Label(label="Nenhum resultado encontrado ou fontes indisponíveis.",xalign=0),False,False,0)
-        self.status.set_text(f"{len(results)} resultado(s) em Pacman, AUR e Flatpak.")
+        self.status.set_text(f"{len(results)} resultado(s) em AppStream, Pacman, AUR e Flatpak.")
         self.content.show_all(); return GLib.SOURCE_REMOVE
 
     def show_details(self,_button,name,package,summary,source):
