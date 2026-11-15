@@ -195,13 +195,6 @@ text/html=firefox.desktop
 application/xhtml+xml=firefox.desktop
 MIMEAPPS
       install -Dm644 "$overlay/etc/xdg/mimeapps.list" "$overlay/etc/skel/.config/mimeapps.list"
-      mkdir -p "$overlay/usr/share/icons/default"
-      cat > "$overlay/usr/share/icons/default/index.theme" <<'CURSOR'
-[Icon Theme]
-Name=Default
-Comment=Default cursor theme for Forja MATE
-Inherits=Bibata-Modern-Ice
-CURSOR
       # Keep Papirus Dark's built-in default folder icons.
       # No papirus-folders customization package or service is required.
       rm -f "$overlay/etc/systemd/system/forja-papirus-cyan.service"
