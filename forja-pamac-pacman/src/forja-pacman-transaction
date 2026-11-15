@@ -1,0 +1,33 @@
+#!/usr/bin/python3
+"""Restricted PolicyKit helper for safe full-system pacman transactions."""
+import re
+import sys
+import subprocess
+
+NAME = re.compile(r"^[A-Za-z0-9@._+:-]+$")
+ACTIONS = {"check", "install", "remove", "upgrade"}
+
+def main():
+    if len(sys.argv) < 2 or sys.argv[1] not in ACTIONS:
+        print("Uso: forja-pacman-transaction {check|install|remove|upgrade} [pacote...]")
+        return 2
+    action, packages = sys.argv[1], sys.argv[2:]
+    if action in {"install", "remove"}:
+        if not packages or any(not NAME.fullmatch(p) for p in packages):
+            print("Nome de pacote inválido.")
+            return 2
+    elif packages:
+        print("Esta ação não aceita nomes de pacotes.")
+        return 2
+    if action == "check":
+        return subprocess.call(["checkupdates"])
+    if action == "install":
+        cmd = ["pacman", "-S", "--needed", *packages]
+    elif action == "remove":
+        cmd = ["pacman", "-Rns", *packages]
+    else:
+        cmd = ["pacman", "-Syu"]
+    return subprocess.call(cmd)
+
+if __name__ == "__main__":
+    raise SystemExit(main())
