@@ -29,8 +29,12 @@ class UpdateIndicator:
         self.add_item("Instalar atualizações",self.upgrade)
         self.menu.show_all(); self.icon.connect("activate",self.open_store)
         self.icon.connect("popup-menu",self.popup)
-        GLib.timeout_add_seconds(60,self.check)
+        GLib.timeout_add_seconds(60,self.initial_check)
         GLib.timeout_add_seconds(1800,self.check)
+
+    def initial_check(self):
+        self.check()
+        return GLib.SOURCE_REMOVE
 
     def add_item(self,label,callback):
         item=Gtk.MenuItem(label=label); item.connect("activate",callback); self.menu.append(item)
