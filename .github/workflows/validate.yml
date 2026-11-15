@@ -98,7 +98,6 @@ jobs:
           grep -Fq 'FORJA_DISTRIBUTION=manjaro' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_DESKTOP=mate' .github/workflows/build-manjaro-mate.yml
           ! grep -Eiq 'shelly' build-manjaro.sh .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'scour' build-manjaro.sh
           grep -Fq 'materia-gtk-theme' build-manjaro.sh
           grep -Fq 'papirus-icon-theme' build-manjaro.sh
           grep -Fq 'bibata-cursor-theme' build-manjaro.sh
@@ -106,6 +105,9 @@ jobs:
           grep -Fq "gtk-theme='Materia-dark'" build-manjaro.sh
           grep -Fq "cursor-theme='Bibata-Modern-Ice'" build-manjaro.sh
           grep -Fq 'Inherits=Bibata-Modern-Ice' build-manjaro.sh
+          for package in mate-terminal mate-calc mate-utils mate-system-monitor mate-applets pluma engrampa atril eom mozo; do
+            grep -Fq "$package" build-manjaro.sh
+          done
           grep -Fq 'forja-pamac-pacman/install.sh' build-manjaro.sh
           for package in networkmanager network-manager-applet bluez bluez-utils blueman firefox calamares; do
             grep -Fq "$package" build-manjaro.sh
