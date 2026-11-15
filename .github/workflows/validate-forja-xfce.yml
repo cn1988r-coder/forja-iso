@@ -104,6 +104,10 @@ jobs:
           grep -q 'network-manager-applet' desktops/xfce/packages.manjaro
           grep -q 'blueman' desktops/xfce/packages.manjaro
           grep -q 'forja-black-wallpaper.svg' desktops/xfce/install-branding.sh
+          grep -q 'wallpapers-2018' build-manjaro.sh
+          grep -q 'wallpapers-juhraya' build-manjaro.sh
+          grep -q 'illyria-wallpaper' build-manjaro.sh
+          grep -q 'manjaro-xfce-settings' build-manjaro.sh
           grep -q 'value="docklike"' desktops/xfce/panel-default.xml
           ! grep -q 'value="tasklist"' desktops/xfce/panel-default.xml
           ! grep -q 'panel-2' desktops/xfce/panel-default.xml
