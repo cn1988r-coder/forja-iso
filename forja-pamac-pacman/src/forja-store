@@ -91,7 +91,10 @@ class Store(Gtk.Application):
             sub=Gtk.Label(label=f"{version} · {desc}",xalign=0); sub.add_css_class("dim-label"); info.append(sub); info.set_hexpand(True); box.append(info)
             b=Gtk.Button(label=action); b.connect("clicked",self.transact,action.lower(),name); box.append(b); row.set_child(box); self.rows.append(row)
     def transact(self,_b,action,name):
-        act="install" if action=="instalar" else "remove"
+        act={"instalar":"install","atualizar":"upgrade","remover":"remove"}.get(action)
+        if act is None:
+            self.status.set_text("Ação não reconhecida.")
+            return
         self.status.set_text("Aguardando autorização do sistema…")
         def worker():
             p=subprocess.run(["pkexec",HELPER,act,name],text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
