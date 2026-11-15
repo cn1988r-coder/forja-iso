@@ -28,6 +28,19 @@ jobs:
       - name: Checkout Forja OS source
         uses: actions/checkout@v4
 
+      - name: Run Forja source and package-manager checks
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash -n build-cloud.sh build-manjaro.sh
+          bash -n desktops/xfce/apply-forja-layout.sh
+          bash -n desktops/xfce/install-branding.sh
+          bash -n desktops/xfce/tests/validate-appearance.sh
+          bash -n forja-pamac-pacman/build-pamac.sh
+          bash -n forja-pamac-pacman/install.sh
+          python3 -m unittest discover -s forja-pamac-pacman/tests -v
+          bash desktops/xfce/tests/validate-appearance.sh
+
       - name: Prepare dedicated ext4 filesystem for Manjaro OverlayFS
         shell: bash
         run: |
