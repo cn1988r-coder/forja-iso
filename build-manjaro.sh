@@ -14,7 +14,7 @@ case "$KERNEL" in latest|lts) ;; *) echo "Kernel invÃ¡lido: $KERNEL"; exit 2;;
 
 echo "== Forja Cloud Builder: Manjaro / $DESKTOP / $KERNEL =="
 pacman -Syu --noconfirm
-BUILD_TOOLS=(git base-devel make python python-yaml python-jinja python-requests scour curl jq libxslt docbook2x docbook-xsl squashfs-tools dosfstools libisoburn mtools grub efibootmgr cdrtools rsync wget gawk mhwd)
+BUILD_TOOLS=(git base-devel make python python-yaml python-jinja python-requests curl jq libxslt docbook2x docbook-xsl squashfs-tools dosfstools libisoburn mtools grub efibootmgr cdrtools rsync wget gawk mhwd)
 MISSING_BUILD_TOOLS=()
 for package in "${BUILD_TOOLS[@]}"; do
   if ! pacman -Si "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" >/dev/null 2>&1; then
@@ -74,18 +74,32 @@ enable_systemd=('NetworkManager' 'bluetooth')
 enable_systemd_live=('NetworkManager' 'bluetooth' 'manjaro-live' 'mhwd-live' 'pacman-init' 'mirrors-live')
 MATE_PROFILE
   cat > "$TARGET/Packages-Desktop" <<'MATE_PACKAGES'
-# Ambiente MATE mínimo e funcional.
+# Ambiente MATE completo: sessão, painel, ferramentas e aplicativos padrão.
 mate-desktop
 mate-backgrounds
 mate-menus
-fastfetch
-mate-polkit
 mate-session-manager
 mate-panel
 mate-control-center
 mate-settings-daemon
+mate-polkit
+mate-applets
+mate-notification-daemon
+mate-power-manager
+mate-screensaver
+mate-media
+mate-system-monitor
+mate-terminal
+mate-calc
+mate-utils
 marco
 caja
+mozo
+pluma
+engrampa
+atril
+eom
+fastfetch
 
 # Login, rede cabeada/Wi-Fi, Bluetooth e navegador.
 lightdm
@@ -97,7 +111,7 @@ bluez-utils
 blueman
 firefox
 
-# Áudio, aparência e dependências do Pamac/Forja Software.
+# Áudio, aparência e dependências do Forja Software.
 pipewire
 pipewire-alsa
 pipewire-pulse
@@ -300,6 +314,8 @@ if [[ "$DESKTOP" == mate ]]; then
     lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet
     bluez bluez-utils blueman
     pipewire pipewire-alsa pipewire-pulse wireplumber
+    mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media
+    mate-system-monitor mate-terminal mate-calc mate-utils mozo pluma engrampa atril eom
     gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib polkit fastfetch bibata-cursor-theme papirus-icon-theme dconf
     systemd grub efibootmgr mkinitcpio calamares linux-firmware
     manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db
@@ -384,7 +400,7 @@ done < <(find -L "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
 BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
-DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit marco caja lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib fastfetch bibata-cursor-theme dconf)
+DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media mate-system-monitor mate-terminal mate-calc mate-utils marco caja mozo pluma engrampa atril eom lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib fastfetch bibata-cursor-theme dconf)
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
   if ! pacman_info "$package" >/dev/null 2>&1; then
