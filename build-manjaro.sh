@@ -353,7 +353,7 @@ if [[ "$DESKTOP" == mate ]]; then
     pipewire pipewire-alsa pipewire-pulse wireplumber
     mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media
     mate-system-monitor mate-terminal mate-calc mate-utils mozo pluma engrampa atril eom
-    gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib polkit fastfetch bibata-cursor-theme papirus-icon-theme dconf vlc htop gparted noto-fonts ttf-jetbrains-mono
+    gtk3 python python-gobject pacman-contrib polkit flatpak fastfetch bibata-cursor-theme papirus-icon-theme dconf vlc htop gparted noto-fonts ttf-jetbrains-mono
     systemd grub efibootmgr mkinitcpio calamares linux-firmware
     manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db
   )
