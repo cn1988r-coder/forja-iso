@@ -94,11 +94,17 @@ jobs:
           assert "After=network-online.target" in unit
           assert "Before=display-manager.service" in unit
           assert "Restart=on-failure" in unit
+          assert "StartLimitIntervalSec=0" in unit.split("[Service]", 1)[0]
           assert "pacman-mirrors" in source.split("BASE_CORE_PACKAGES=(", 1)[1].split(")", 1)[0]
+          assert 'grep -Fxq pacman-mirrors "$TARGET/Packages-Root"' in source
           assert 'ln -sfn ../forja-manjaro-mirrors.service' in source
+          assert 'pacman-mirrors --api --set-branch stable --protocol https,http' in source
           assert 'pacman-mirrors --fasttrack 10' in source
           assert 'grep -Eq \'^[[:space:]]*Server[[:space:]]*=[[:space:]]*https?://\'' in source
           print("Manjaro pacman.conf, stable mirror branch, HTTPS mirror preference and first-boot mirror service validated.")
           PY
-          systemd-analyze verify /tmp/forja-manjaro-mirrors.service
+          mkdir -p /tmp/forja-systemd-root/usr/bin
+          printf '#!/bin/sh\\nexit 0\\n' > /tmp/forja-systemd-root/usr/bin/pacman-mirrors
+          chmod 0755 /tmp/forja-systemd-root/usr/bin/pacman-mirrors
+          systemd-analyze verify --root=/tmp/forja-systemd-root /tmp/forja-manjaro-mirrors.service
 
