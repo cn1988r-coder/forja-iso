@@ -11,7 +11,7 @@ done
 for package in \
   adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders \
   bibata-cursor-theme noto-fonts ttf-jetbrains-mono gtk3 \
-  gsettings-desktop-schemas appstream archlinux-appstream-data flatpak yay base-devel git \
+  gsettings-desktop-schemas appstream archlinux-appstream-data flatpak pamac-cli libpamac base-devel git \
   xfce4-panel xfce4-docklike-plugin xfce4-whiskermenu-plugin \
   xfce4-pulseaudio-plugin xfce4-power-manager xfce4-notifyd \
   xfce4-clipman-plugin networkmanager network-manager-applet bluez bluez-utils blueman; do
@@ -117,6 +117,6 @@ grep -q 'parse_flatpak_updates' "$REPO_ROOT/forja-pamac-pacman/src/forja-update-
 grep -q 'flatpak remote-ls' "$REPO_ROOT/forja-pamac-pacman/src/forja-store"
 grep -q 'archlinux-appstream-data' "$REPO_ROOT/forja-pamac-pacman/packages.manjaro"
 grep -q '"flatpak", "install"' "$REPO_ROOT/forja-pamac-pacman/src/forja-pacman-transaction"
-grep -q 'yay' "$REPO_ROOT/forja-pamac-pacman/src/forja-pacman-transaction"
+grep -q 'pamac' "$REPO_ROOT/forja-pamac-pacman/src/forja-pacman-transaction"
 
 echo "Forja XFCE: aparência, painel, Docklike, indicador e Forja Store validados."
