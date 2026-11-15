@@ -31,12 +31,15 @@ jobs:
           bash -n build-cloud.sh build-manjaro.sh
           bash -n desktops/xfce/apply-forja-layout.sh
           bash -n desktops/xfce/install-branding.sh
+          bash -n forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo
+          python3 -m py_compile forja-pamac-pacman/src/forja-store forja-pamac-pacman/src/forja-pacman-transaction forja-pamac-pacman/src/forja-update-indicator
 
       - name: Install ShellCheck and Docker
         run: |
           sudo apt-get update
           sudo apt-get install -y shellcheck
           shellcheck -S warning -e SC1091 desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh
+          shellcheck -S warning -e SC1091 forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo
           docker --version
           docker info
 
