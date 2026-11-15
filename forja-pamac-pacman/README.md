@@ -17,4 +17,4 @@ GTK interface inspired by the Pamac workflow, with a Pacman backend. This is a s
 Updates are checked with `checkupdates` from pacman-contrib. The application never runs `pacman -Sy` by itself. System upgrades always use `pacman -Syu` to avoid partial upgrades. Privileged operations are requested through PolicyKit.
 
 ## Status
-Initial source implementation. It has not yet been built or tested on live Arch or Manjaro installations. The current ISO builders and desktop manifests still need to be wired to install and enable these components.
+The installer is now staged into the Manjaro MATE ISO desktop overlay, with its runtime dependencies and panel autostart entry. CI checks Python syntax, transaction mapping, package-name validation, installer shell syntax, and the Manjaro builder preflight. The GTK interface and panel indicator still require a booted ISO test on a live Manjaro MATE session; they are not yet certified as runtime-tested. Arch integration remains separate.
