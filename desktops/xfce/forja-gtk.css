@@ -1,18 +1,45 @@
-/* Forja OS dark GTK3 styling. No blur or heavy animation. */
-#XfcePanelWindow { background-color: #111214; color: #eeeeee; }
+/* Forja OS XFCE: Adwaita-inspired dark surfaces and neutral contrast. */
+@define-color forja_bg #242424;
+@define-color forja_surface #2b2b2b;
+@define-color forja_surface_hover #383838;
+@define-color forja_border #454545;
+@define-color forja_text #f2f2f2;
+@define-color forja_muted #c4c4c4;
+
+#XfcePanelWindow {
+  background-color: #202020;
+  color: @forja_text;
+  border-top: 1px solid #3b3b3b;
+}
 #whiskermenu-window {
-  background-color: #17181b; color: #eeeeee;
-  border: 1px solid #34363a; border-radius: 10px;
+  background-color: @forja_bg;
+  color: @forja_text;
+  border: 1px solid @forja_border;
+  border-radius: 12px;
 }
 #whiskermenu-window entry {
-  background-color: #24262a; color: #f5f5f5;
-  border: 1px solid #3b3e43; border-radius: 7px;
-  padding: 7px 9px; caret-color: #f5f5f5;
+  background-color: @forja_surface;
+  color: @forja_text;
+  border: 1px solid @forja_border;
+  border-radius: 8px;
+  padding: 8px 10px;
+  caret-color: @forja_text;
 }
-#whiskermenu-window treeview { background-color: transparent; color: #e5e5e5; }
-#whiskermenu-window treeview:selected { background-color: #35383d; color: #ffffff; }
+#whiskermenu-window treeview {
+  background-color: transparent;
+  color: @forja_text;
+}
+#whiskermenu-window treeview:selected {
+  background-color: #454545;
+  color: #ffffff;
+}
 #whiskermenu-window button {
-  background-color: transparent; color: #e5e5e5;
-  border: 1px solid transparent; border-radius: 7px;
+  background-color: transparent;
+  color: @forja_text;
+  border: 1px solid transparent;
+  border-radius: 8px;
 }
-#whiskermenu-window button:hover { background-color: #2a2d31; color: #ffffff; }
+#whiskermenu-window button:hover {
+  background-color: @forja_surface_hover;
+  color: #ffffff;
+}
