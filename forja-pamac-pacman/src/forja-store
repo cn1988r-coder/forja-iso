@@ -11,15 +11,15 @@ from gi.repository import Gtk, Gdk, GLib, Gio
 
 HELPER = "/usr/lib/forja/forja-pacman-transaction"
 CSS = """
-window { background:#202124; color:#f2f2f2; }
-headerbar { background:#25272b; color:#f2f2f2; }
-.sidebar { background:#25272b; padding:12px 8px; }
-.sidebar row:selected { background:#303d50; }
+window { background:#202020; color:#f2f2f2; }
+headerbar { background:#252525; color:#f2f2f2; }
+.sidebar { background:#252525; padding:12px 8px; }
+.sidebar row:selected { background:#454545; }
 .section-title { font-size:19px; font-weight:bold; }
-.app-card { background:#292d34; border:1px solid #3a3f48; border-radius:9px; padding:12px; }
-.dim-label { color:#b8bdc7; }
-button.suggested-action { background:#3584e4; color:white; }
-.statusbar { background:#25272b; padding:7px 12px; }
+.app-card { background:#2d2d2d; border:1px solid #484848; border-radius:9px; padding:12px; }
+.dim-label { color:#bdbdbd; }
+button.suggested-action { background:#555555; color:white; }
+.statusbar { background:#252525; padding:7px 12px; }
 """
 CATEGORIES = [
  ("Início","go-home-symbolic","home"),("Atualizações","software-update-available-symbolic","updates"),
