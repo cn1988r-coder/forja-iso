@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160" viewBox="0 0 3840 2160">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="43%" r="78%">
+      <stop offset="0" stop-color="#101827"/>
+      <stop offset=".48" stop-color="#080d16"/>
+      <stop offset="1" stop-color="#030405"/>
+    </radialGradient>
+    <linearGradient id="outer" x1="0.15" y1="1" x2=".82" y2="0">
+      <stop offset="0" stop-color="#e64b16"/>
+      <stop offset=".34" stop-color="#ff7624"/>
+      <stop offset=".68" stop-color="#ffad36"/>
+      <stop offset="1" stop-color="#ffe18a"/>
+    </linearGradient>
+    <linearGradient id="blue" x1=".12" y1="1" x2=".82" y2="0">
+      <stop offset="0" stop-color="#0754bd"/>
+      <stop offset=".48" stop-color="#168cff"/>
+      <stop offset="1" stop-color="#80d6ff"/>
+    </linearGradient>
+    <linearGradient id="inner" x1=".2" y1="1" x2=".8" y2="0">
+      <stop offset="0" stop-color="#ff7b27"/>
+      <stop offset="1" stop-color="#fff0b2"/>
+    </linearGradient>
+    <linearGradient id="word" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5bbaff"/>
+      <stop offset=".5" stop-color="#168bff"/>
+      <stop offset="1" stop-color="#83d5ff"/>
+    </linearGradient>
+    <filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="70"/>
+    </filter>
+    <filter id="tightGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+  </defs>
+  <rect width="3840" height="2160" fill="url(#bg)"/>
+  <ellipse cx="1920" cy="870" rx="540" ry="560" fill="#087cff" opacity=".10" filter="url(#softGlow)"/>
+  <ellipse cx="1920" cy="865" rx="350" ry="430" fill="#ff6a1c" opacity=".13" filter="url(#softGlow)"/>
+  <path d="M1920 260 C1850 430 1680 540 1638 735 C1587 970 1710 1178 1920 1250 C2130 1178 2253 970 2202 735 C2160 540 1990 430 1920 260Z" fill="url(#outer)" opacity=".18" filter="url(#tightGlow)"/>
+  <path d="M1920 285 C1857 455 1718 555 1670 730 C1605 968 1737 1172 1920 1255 C2103 1172 2235 968 2170 730 C2122 555 1983 455 1920 285Z" fill="url(#outer)"/>
+  <path d="M1920 510 C1876 620 1784 700 1762 830 C1734 988 1814 1110 1920 1161 C2026 1110 2106 988 2078 830 C2056 700 1964 620 1920 510Z" fill="url(#blue)"/>
+  <path d="M1920 730 C1888 808 1840 870 1836 956 C1830 1050 1871 1111 1920 1141 C1969 1111 2010 1050 2004 956 C2000 870 1952 808 1920 730Z" fill="url(#inner)"/>
+  <path d="M1920 260 C1888 365 1842 438 1792 500" fill="none" stroke="#ffd28a" stroke-width="15" stroke-linecap="round" opacity=".5"/>
+  <text x="1920" y="1535" text-anchor="middle" fill="#07111e" opacity=".8" font-family="Inter,Montserrat,Arial,sans-serif" font-size="174" font-weight="800" letter-spacing="35">FORJA</text>
+  <text x="1920" y="1525" text-anchor="middle" fill="url(#word)" font-family="Inter,Montserrat,Arial,sans-serif" font-size="174" font-weight="800" letter-spacing="35">FORJA</text>
+  <path d="M1550 1640 H2290" stroke="#197fd8" stroke-width="4" opacity=".55"/>
+  <circle cx="1920" cy="1640" r="7" fill="#ff8a2a"/>
+</svg>
