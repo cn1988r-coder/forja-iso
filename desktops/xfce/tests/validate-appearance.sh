@@ -4,7 +4,9 @@ set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO_ROOT="$(cd -- "$ROOT/../.." && pwd)"
 
-bash -n "$ROOT/apply-forja-layout.sh" "$ROOT/install-branding.sh"
+for script in "$ROOT/apply-forja-layout.sh" "$ROOT/install-branding.sh" "$REPO_ROOT/build-manjaro.sh" "$REPO_ROOT/forja-pamac-pacman/install.sh"; do
+  bash -n "$script"
+done
 
 for package in \
   adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders \
