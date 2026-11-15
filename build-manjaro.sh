@@ -9,10 +9,7 @@ PROFILE_ROOT=/usr/share/manjaro-tools/iso-profiles
 CHROOTS="$WORK/chroots"
 
 mkdir -p "$WORK" "$OUT" "$CHROOTS"
-PACMAN_CONF=""
-pacman_info() {
-  if [[ -n "$PACMAN_CONF" ]]; then pacman --config "$PACMAN_CONF" -Si "$1"; else pacman -Si "$1"; fi
-}
+pacman_info() { pacman -Si "$1"; }
 case "$KERNEL" in latest|lts) ;; *) echo "Kernel invÃ¡lido: $KERNEL"; exit 2;; esac
 
 echo "== Forja Cloud Builder: Manjaro / $DESKTOP / $KERNEL =="
@@ -35,26 +32,6 @@ make -C "$WORK/manjaro-tools" SYSCONFDIR=/etc PREFIX=/usr
 make -C "$WORK/manjaro-tools" SYSCONFDIR=/etc PREFIX=/usr install_base
 make -C "$WORK/manjaro-tools" SYSCONFDIR=/etc PREFIX=/usr install_yaml
 make -C "$WORK/manjaro-tools" SYSCONFDIR=/etc PREFIX=/usr install_iso
-
-# Build Shelly from its pinned upstream PKGBUILD and expose it through a local
-# HTTP repository consumed by buildiso. The package is compiled on Manjaro so
-# its libalpm ABI matches the target system.
-rm -f "$WORK/shelly-http.pid"
-SHELLY_HTTP_PID=""
-cleanup_shelly_http() {
-  local pid="${SHELLY_HTTP_PID:-}"
-  if [[ -z "$pid" && -s "$WORK/shelly-http.pid" ]]; then
-    pid="$(cat "$WORK/shelly-http.pid")"
-  fi
-  if [[ "$pid" =~ ^[0-9]+$ ]]; then
-    kill "$pid" >/dev/null 2>&1 || true
-  fi
-}
-trap cleanup_shelly_http EXIT
-bash /forja-ci/build-shelly.sh "$WORK"
-PACMAN_CONF="$WORK/shelly-pacman.conf"
-SHELLY_HTTP_PID="$(cat "$WORK/shelly-http.pid")"
-kill -0 "$SHELLY_HTTP_PID"
 
 # Use the current official Forgejo endpoint directly. Older manjaro-tools
 # releases still point buildiso -i at the retired gitlab.manjaro.org hostname.
@@ -113,8 +90,6 @@ bluez
 bluez-utils
 blueman
 firefox
-shelly
-shelly-flatpak-backend
 gvfs
 gvfs-mtp
 xdg-user-dirs
@@ -136,14 +111,6 @@ if ! pacman_info materia-gtk-theme >/dev/null 2>&1; then
   exit 24
 fi
 
-# Shelly-ALPM is built locally and served over HTTP to buildiso.
-rm -f "$TARGET/user-repos.conf"
-cat > "$TARGET/user-repos.conf" <<'REPO'
-[forja-shelly]
-SigLevel = Optional TrustAll
-Server = http://127.0.0.1:8765/$repo/$arch
-REPO
-
 # Pacotes oficiais de wallpapers do Manjaro em todas as variantes Manjaro.
 for wallpaper_package in manjaro-wallpapers-18.0 wallpapers-2018 wallpapers-juhraya illyria-wallpaper; do
   if ! pacman_info "$wallpaper_package" >/dev/null 2>&1; then
@@ -152,13 +119,6 @@ for wallpaper_package in manjaro-wallpapers-18.0 wallpapers-2018 wallpapers-juhr
   fi
   grep -Fxq "$wallpaper_package" "$TARGET/Packages-Desktop" || printf '%s\n' "$wallpaper_package" >> "$TARGET/Packages-Desktop"
 done
-# Bibata é compilado no repositório local Forja e obrigatório em todas as variantes.
-grep -Fxq 'bibata-cursor-theme' "$TARGET/Packages-Desktop" || printf '%s\n' 'bibata-cursor-theme' >> "$TARGET/Packages-Desktop"
-if ! pacman --config "$PACMAN_CONF" -Si bibata-cursor-theme >/dev/null 2>&1; then
-  echo "ERRO: Bibata não está disponível no repositório local Forja." >&2
-  exit 27
-fi
-
 # Materialize overlay symlinks before editing so no shared profile outside this
 # custom profile is changed. Remove desktop-specific defaults for MATE and set
 # its LightDM session without inheriting another desktop profile.
@@ -362,9 +322,6 @@ if [[ "$DESKTOP" == mate ]]; then
       echo "Aviso: tema opcional indisponível, removido: $package" >&2
     fi
   done
-  if ! pacman --config "$PACMAN_CONF" -Si bibata-cursor-theme >/dev/null 2>&1; then
-    sed -i '/^bibata-cursor-theme$/d' "$TARGET/Packages-Desktop"
-  fi
   echo "Preflight do núcleo MATE, rede e Bluetooth aprovado."
 fi
 
