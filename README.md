@@ -11,25 +11,18 @@ Compilador de ISO x86_64 para **Manjaro MATE**, com preparação e compilação 
 
 ## Compilação Manjaro MATE
 
-O workflow **Build Manjaro MATE ISO** executa a compilação em nuvem, verifica o checksum SHA-256 e publica a ISO completa como artefato temporário do GitHub Actions.
+O workflow **Build Manjaro MATE ISO** executa a compilação em nuvem, verifica o checksum SHA-256 e publica a ISO completa como um arquivo de uma GitHub Release.
+
+A página da Forja consulta a fila automaticamente. Quando a ISO termina de compilar e passa na verificação, o workflow cria uma publicação permanente no repositório e grava no pedido o endereço direto do arquivo. O painel passa a exibir **BAIXAR ISO COMPLETA** e mantém o resultado após atualizar a página.
+
+Se a compilação, a validação ou a publicação falhar, o workflow marca a solicitação como **FALHOU**, envia uma mensagem ao painel e fornece um link para os logs da execução.
+
+A release é pública porque este repositório é público. O link de download não depende do prazo de retenção dos artefatos temporários do GitHub Actions.
 
 Há duas formas de iniciar a compilação:
 
 1. **Pela aba Actions:** execute manualmente o workflow e selecione o kernel LTS ou latest.
-2. **Por integração com a página da Forja:** envie um evento `repository_dispatch` do tipo `forja-build`, com `client_payload.kernel` definido como `lts` ou `latest`. Esse evento usa exatamente o mesmo workflow e os mesmos scripts da compilação manual.
-
-Exemplo do corpo do evento para a integração:
-
-```json
-{
-  "event_type": "forja-build",
-  "client_payload": {
-    "kernel": "lts"
-  }
-}
-```
-
-A ISO completa fica disponível no artefato da execução por **24 horas**. O resumo do workflow apresenta o link de download. O download do artefato exige acesso ao repositório no GitHub.
+2. **Pela página da Forja:** envie uma solicitação pelo painel; o worker consulta a fila automaticamente a cada cinco minutos.
 
 ## Estrutura
 
@@ -37,7 +30,7 @@ A ISO completa fica disponível no artefato da execução por **24 horas**. O re
 - `build-manjaro.sh`: perfil e compilação Manjaro MATE.
 - `build-shelly.sh`: compilação de Shelly e Bibata para o repositório local usado durante a geração da ISO.
 - `.github/workflows/validate.yml`: validação estática e pré-validação Manjaro MATE sem gerar ISO.
-- `.github/workflows/build-manjaro-mate.yml`: compilação em nuvem, acionável manualmente ou pela integração da página, com publicação temporária do artefato no GitHub Actions.
+- `.github/workflows/build-manjaro-mate.yml`: compilação em nuvem, verificação de integridade, publicação da release e atualização do painel da Forja.
 
 ## Verificação final
 
