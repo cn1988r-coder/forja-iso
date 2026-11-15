@@ -52,8 +52,9 @@ appstream
 archlinux-appstream-data
 polkit
 polkit-gnome
-# Forja Store: Pacman, AUR/yay e Flatpak
+# Forja Store: Pamac CLI (repositórios + AUR) e Flatpak
 flatpak
-yay
+pamac-cli
+libpamac
 base-devel
 git
