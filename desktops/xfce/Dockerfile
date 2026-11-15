@@ -25,6 +25,6 @@ RUN bash -n /src/apply-forja-layout.sh /src/install-branding.sh \
     && ! grep -q '^materia-gtk-theme$' /src/packages.manjaro \
     && grep -q 'GTK_THEME="adw-gtk3-dark"' /src/apply-forja-layout.sh \
     && grep -q 'ICON_THEME="Papirus-Dark"' /src/apply-forja-layout.sh \
-    && grep -q 'CURSOR_THEME="Bibata-Modern-Ice"' /src/apply-forja-layout.sh
+    && grep -q 'CURSOR_THEME="Bibata-Modern-Classic"' /src/apply-forja-layout.sh
 
 CMD ["bash", "-n", "/src/apply-forja-layout.sh"]
