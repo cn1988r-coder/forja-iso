@@ -61,7 +61,7 @@ def parse_search(output, source):
 
 def parse_appstream(output):
     found=[]
-    for block in re.split(r"(?m)^---\s*$",output):
+    for block in re.split(r"(?m)(?=^Identifier:\s)",output):
         fields={}
         for line in block.splitlines():
             if ": " in line:
@@ -77,7 +77,7 @@ def parse_appstream(output):
         elif bundle.startswith("flatpak:app/"):
             parts=bundle.split("/")
             if len(parts)>=2:
-                found.append((fields.get("Name",parts[1]),parts[1],fields.get("Summary","Aplicativo Flatpak"),"flatpak",fields.get("Icon","application-x-executable").removeprefix("stock:")) )
+                found.append((fields.get("Name",parts[1]),parts[1],fields.get("Summary","Aplicativo Flatpak"),"flatpak",fields.get("Icon","application-x-executable").split(":",1)[-1].removesuffix(".png").removesuffix(".svg")) )
     return found
 
 class Store(Gtk.Application):
