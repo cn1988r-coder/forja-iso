@@ -1,135 +1,359 @@
 #!/usr/bin/python3
-"""Forja Store: loja gráfica própria para Pacman e atualizações Flatpak."""
-import subprocess, threading, re, os, shutil
+"""Forja Store: central de aplicativos inspirada no Mint, com backend Pacman/Flatpak."""
+import os
+import re
+import subprocess
+import threading
+import shutil
 import gi
-gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk, GLib, Gdk
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, Gdk, GLib, Gio
 
 HELPER = "/usr/lib/forja/forja-pacman-transaction"
-ACCENT = os.environ.get("FORJA_ACCENT", "#3584e4")
-CSS = f"""
-window {{ background: #202124; color: #f2f2f2; }}
-.sidebar {{ background: #25272b; }}
-button.suggested-action {{ background: {ACCENT}; color: white; }}
-row {{ border-bottom: 1px solid #383a3f; }}
-.dim-label {{ color: #b8bdc7; }}
+ACCENT = "#3584e4"
+DARK = "#202124"
+SIDEBAR = "#25272b"
+
+CSS = """
+window { background: #202124; color: #f2f2f2; }
+headerbar { background: #25272b; color: #f2f2f2; border-bottom: 1px solid #3a3d43; }
+.sidebar { background: #25272b; padding: 12px 8px; }
+.sidebar row { border-radius: 7px; margin: 2px 0; }
+.sidebar row:selected { background: #303d50; color: #ffffff; }
+.sidebar label { padding: 9px 8px; }
+.content { background: #202124; }
+.section-title { font-size: 19px; font-weight: bold; }
+.featured { background: #292d34; border: 1px solid #3a3f48; border-radius: 10px; padding: 18px; }
+.app-card { background: #292d34; border: 1px solid #3a3f48; border-radius: 9px; padding: 12px; }
+.app-card:hover { border-color: #3584e4; }
+.dim-label { color: #b8bdc7; }
+button.suggested-action { background: #3584e4; color: white; }
+button.flat { border-radius: 7px; }
+.statusbar { background: #25272b; color: #c5cad2; padding: 7px 12px; border-top: 1px solid #3a3d43; }
 """
+
+CATEGORIES = [
+    ("Início", "go-home-symbolic", "home"),
+    ("Todas as aplicações", "view-grid-symbolic", "all"),
+    ("Internet", "web-browser-symbolic", "internet"),
+    ("Escritório", "x-office-document-symbolic", "office"),
+    ("Gráficos", "applications-graphics-symbolic", "graphics"),
+    ("Som e vídeo", "applications-multimedia-symbolic", "multimedia"),
+    ("Jogos", "applications-games-symbolic", "games"),
+    ("Sistema", "applications-system-symbolic", "system"),
+]
+FEATURED = [
+    ("firefox", "Navegue pela internet com privacidade."),
+    ("libreoffice-fresh", "Suíte completa de produtividade."),
+    ("vlc", "Reproduza vídeos e músicas."),
+    ("gimp", "Edição e manipulação de imagens."),
+    ("inkscape", "Criação de ilustrações vetoriais."),
+    ("audacity", "Gravação e edição de áudio."),
+    ("obs-studio", "Gravação de tela e transmissão."),
+    ("blender", "Criação 3D, animação e renderização."),
+    ("thunderbird", "E-mail, calendário e contatos."),
+    ("filezilla", "Transferência de arquivos por FTP."),
+    ("kdenlive", "Edição de vídeo multipista."),
+    ("steam", "Plataforma de jogos para Linux."),
+]
+CATEGORY_TERMS = {
+    "internet": ["firefox", "chromium", "thunderbird", "filezilla", "transmission-gtk"],
+    "office": ["libreoffice-fresh", "onlyoffice-bin", "hunspell-pt-br"],
+    "graphics": ["gimp", "inkscape", "krita", "blender", "darktable"],
+    "multimedia": ["vlc", "audacity", "obs-studio", "kdenlive", "handbrake"],
+    "games": ["steam", "lutris", "0ad", "supertuxkart", "minetest"],
+    "system": ["htop", "gparted", "timeshift", "baobab", "bleachbit"],
+}
+
+def run(args, timeout=25):
+    try:
+        return subprocess.run(args, text=True, stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT, timeout=timeout)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return subprocess.CompletedProcess(args, 1, str(exc))
+
 class Store(Gtk.Application):
     def __init__(self):
         super().__init__(application_id="br.forja.Store")
-        self.mode, self.rows, self.status, self.search = "updates", None, None, None
-        self.installed, self.updates, self.flatpak_updates = {}, {}, []
+        self.window = None
+        self.content = None
+        self.status = None
+        self.search = None
+        self.category = "home"
+        self.installed = set()
+        self.query_generation = 0
+        self.refreshing = False
+
     def do_activate(self):
-        w = Gtk.ApplicationWindow(application=self, title="Forja Store")
-        w.set_default_size(1000, 660)
+        if self.window:
+            self.window.present()
+            return
         provider = Gtk.CssProvider()
         provider.load_from_data(CSS.encode())
-        Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(), provider,
+                                                  Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        self.window = Gtk.ApplicationWindow(application=self, title="Forja Store")
+        self.window.set_default_size(1120, 720)
+        self.window.set_position(Gtk.WindowPosition.CENTER)
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         header = Gtk.HeaderBar()
+        header.set_show_close_button(True)
+        title = Gtk.Label(label="<b>Forja Store</b>")
+        title.set_use_markup(True)
+        header.pack_start(title)
         self.search = Gtk.SearchEntry()
-        self.search.set_placeholder_text("Pesquisar pacotes")
-        self.search.set_hexpand(True)
-        header.set_title_widget(self.search)
-        refresh = Gtk.Button(label="Atualizar sistema")
-        refresh.add_css_class("suggested-action")
-        refresh.connect("clicked", self.refresh)
+        self.search.set_placeholder_text("Pesquisar aplicativos")
+        self.search.set_size_request(360, -1)
+        header.set_custom_title(self.search)
+        refresh = Gtk.Button.new_with_label("Atualizar sistema")
+        refresh.get_style_context().add_class("suggested-action")
+        refresh.connect("clicked", self.update_system)
         header.pack_end(refresh)
-        w.set_titlebar(header)
+        self.window.set_titlebar(header)
+
         body = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         side = Gtk.ListBox()
         side.add_css_class("sidebar")
-        side.set_size_request(190, -1)
-        for title, mode in [("Visão geral","all"),("Atualizações","updates"),("Instalados","installed"),("Pesquisar","search")]:
-            row=Gtk.ListBoxRow(); row.set_child(Gtk.Label(label=title,xalign=0,margin_start=18,margin_top=14,margin_bottom=14)); row.mode=mode; side.append(row)
-        side.connect("row-selected", self.select_mode)
-        body.append(side)
-        sc=Gtk.ScrolledWindow(); sc.set_hexpand(True); sc.set_vexpand(True)
-        self.rows=Gtk.ListBox(); self.rows.set_selection_mode(Gtk.SelectionMode.NONE); sc.set_child(self.rows); body.append(sc)
-        root.append(body)
-        self.status=Gtk.Label(label="Consultando repositórios Manjaro e Flathub…",xalign=0,margin_start=16,margin_top=8,margin_bottom=8)
-        root.append(self.status); w.set_child(root)
-        self.search.connect("search-changed",lambda *_: self.populate())
-        w.present()
-        self.reload()
-    def select_mode(self, _list, row):
-        if row: self.mode=row.mode; self.reload()
-    def command(self,args):
-        return subprocess.run(args,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-    def reload(self):
+        side.set_selection_mode(Gtk.SelectionMode.SINGLE)
+        side.set_size_request(220, -1)
+        self.category_rows = {}
+        for label, icon, key in CATEGORIES:
+            row = Gtk.ListBoxRow()
+            line = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+            line.set_margin_start(10); line.set_margin_end(10)
+            image = Gtk.Image.new_from_icon_name(icon, Gtk.IconSize.LARGE_TOOLBAR)
+            text = Gtk.Label(label=label, xalign=0)
+            line.pack_start(image, False, False, 0)
+            line.pack_start(text, True, True, 0)
+            row.add(line)
+            row.key = key
+            side.add(row)
+            self.category_rows[key] = row
+        side.connect("row-selected", self.on_category)
+        body.pack_start(side, False, False, 0)
+
+        scroller = Gtk.ScrolledWindow()
+        scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroller.set_hexpand(True); scroller.set_vexpand(True)
+        self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
+        self.content.set_margin_start(26); self.content.set_margin_end(26)
+        self.content.set_margin_top(22); self.content.set_margin_bottom(22)
+        scroller.add(self.content)
+        body.pack_start(scroller, True, True, 0)
+        root.pack_start(body, True, True, 0)
+
+        self.status = Gtk.Label(label="Preparando catálogo de aplicativos…", xalign=0)
+        self.status.get_style_context().add_class("statusbar")
+        root.pack_start(self.status, False, False, 0)
+        self.window.add(root)
+        self.search.connect("search-changed", self.on_search)
+        self.category_rows["home"].activate()
+        self.window.show_all()
+        self.reload_installed()
+
+    def clear_content(self):
+        for child in self.content.get_children():
+            self.content.remove(child)
+
+    def heading(self, text):
+        label = Gtk.Label(label=text, xalign=0)
+        label.get_style_context().add_class("section-title")
+        self.content.pack_start(label, False, False, 0)
+
+    def on_category(self, _list, row):
+        if row:
+            self.category = row.key
+            self.search.set_text("")
+            self.show_category()
+
+    def on_search(self, *_):
+        query = self.search.get_text().strip()
+        if query:
+            self.category = "search"
+            self.search_packages(query)
+
+    def reload_installed(self):
         def worker():
-            installed=self.command(["pacman","-Q"])
-            updates=self.command(["checkupdates"])
-            flatpak=self.command(["flatpak","remote-ls","--system","--updates","--columns=application,name,branch"]) if shutil.which("flatpak") else None
-            GLib.idle_add(self.loaded,installed.stdout,updates.stdout,updates.returncode,
-                          flatpak.stdout if flatpak else "",flatpak.returncode if flatpak else 0)
-        threading.Thread(target=worker,daemon=True).start()
-    def loaded(self, installed, updates, code, flatpak, flatpak_code):
-        self.installed={line.split()[0]:line.split(maxsplit=1)[1] for line in installed.splitlines() if len(line.split())>1}
-        self.updates={}
-        for line in updates.splitlines():
-            p=line.split()
-            if len(p)>=4: self.updates[p[0]]=(p[1],p[3])
-        self.flatpak_updates=[]
-        if flatpak_code == 0:
-            for line in flatpak.splitlines():
-                p=line.split("\t") if "\t" in line else line.split()
-                if p and "." in p[0]:
-                    self.flatpak_updates.append((p[0], p[1] if len(p)>1 else "Atualização disponível",
-                                                 p[2] if len(p)>2 else "Flathub"))
-        if code not in (0,2):
-            self.status.set_text("Falha ao consultar os espelhos Manjaro. Verifique a conexão.")
-        elif flatpak_code != 0:
-            self.status.set_text(f"{len(self.updates)} atualizações Manjaro · Não foi possível consultar o Flathub.")
-        else:
-            self.status.set_text(f"{len(self.updates)} atualizações Manjaro · {len(self.flatpak_updates)} atualizações Flatpak (Flathub)")
-        self.populate()
+            result = run(["pacman", "-Q"], 60)
+            installed = {line.split()[0] for line in result.stdout.splitlines() if line.split()}
+            GLib.idle_add(self.set_installed, installed)
+        threading.Thread(target=worker, daemon=True).start()
+
+    def set_installed(self, installed):
+        self.installed = installed
+        if self.category not in ("search",):
+            self.show_category()
         return GLib.SOURCE_REMOVE
-    def populate(self):
-        while child:=self.rows.get_first_child(): self.rows.remove(child)
-        q=self.search.get_text().strip().lower()
-        items=[]
-        if self.mode=="updates":
-            items=[(n,v[0],f"Manjaro · {v[1]}","Atualizar") for n,v in self.updates.items()]
-            items += [(n,v,f"Flatpak · {origin}","Atualizar Flatpak") for n,v,origin in self.flatpak_updates]
-        elif self.mode=="installed":
-            items=[(n,v,"Instalado","Remover") for n,v in self.installed.items()]
+
+    def show_category(self):
+        self.clear_content()
+        if self.category == "home":
+            self.heading("Bem-vindo à Forja Store")
+            banner = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=18)
+            banner.get_style_context().add_class("featured")
+            banner_icon = Gtk.Image.new_from_icon_name("system-software-install", Gtk.IconSize.DIALOG)
+            banner.pack_start(banner_icon, False, False, 8)
+            banner_text = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+            name = Gtk.Label(label="<b>Descubra aplicativos para sua FORJA OS</b>", xalign=0)
+            name.set_use_markup(True)
+            subtitle = Gtk.Label(label="Explore programas, instale o que precisa e mantenha tudo atualizado.", xalign=0)
+            subtitle.get_style_context().add_class("dim-label")
+            banner_text.pack_start(name, False, False, 0)
+            banner_text.pack_start(subtitle, False, False, 0)
+            banner.pack_start(banner_text, True, True, 0)
+            self.content.pack_start(banner, False, False, 0)
+            self.heading("Aplicativos em destaque")
+            self.add_apps(FEATURED)
+        elif self.category == "all":
+            self.heading("Todas as aplicações")
+            self.add_apps(FEATURED)
         else:
-            items=[(n,v,"Instalado","Remover") for n,v in self.installed.items()]
-            if q:
-                result=self.command(["pacman","-Ss",q])
-                seen=set()
-                for line in result.stdout.splitlines():
-                    m=re.match(r"^([^/]+)/([^ ]+) ([^ ]+)",line)
-                    if m and m.group(2) not in seen:
-                        name=m.group(2); seen.add(name)
-                        if name not in self.installed: items.append((name,m.group(3),"Repositório Manjaro","Instalar"))
-        for name,version,desc,action in items:
-            if q and q not in name.lower() and q not in desc.lower(): continue
-            row=Gtk.ListBoxRow(); box=Gtk.Box(spacing=14); box.set_margin_start(16); box.set_margin_end(16); box.set_margin_top(12); box.set_margin_bottom(12)
-            info=Gtk.Box(orientation=Gtk.Orientation.VERTICAL,spacing=3); title=Gtk.Label(label=name,xalign=0); title.add_css_class("heading"); info.append(title)
-            sub=Gtk.Label(label=f"{version} · {desc}",xalign=0); sub.add_css_class("dim-label"); info.append(sub); info.set_hexpand(True); box.append(info)
-            b=Gtk.Button(label=action); b.connect("clicked",self.transact,action.lower(),name); box.append(b); row.set_child(box); self.rows.append(row)
-    def transact(self,_b,action,name):
-        act={"instalar":"install","atualizar":"upgrade","remover":"remove","atualizar flatpak":"flatpak-upgrade"}.get(action)
-        if act is None:
-            self.status.set_text("Ação não reconhecida.")
+            labels = dict((key, label) for label, _icon, key in CATEGORIES)
+            self.heading(labels.get(self.category, "Aplicativos"))
+            self.add_apps([(name, "Aplicativo disponível nos repositórios.") 
+                           for name in CATEGORY_TERMS.get(self.category, [])])
+        self.content.show_all()
+
+    def add_apps(self, apps):
+        grid = Gtk.FlowBox()
+        grid.set_selection_mode(Gtk.SelectionMode.NONE)
+        grid.set_homogeneous(True)
+        grid.set_min_children_per_line(2)
+        grid.set_max_children_per_line(3)
+        grid.set_column_spacing(14)
+        grid.set_row_spacing(14)
+        for name, summary in apps:
+            grid.add(self.app_tile(name, summary))
+        self.content.pack_start(grid, False, False, 0)
+
+    def app_tile(self, name, summary):
+        button = Gtk.Button()
+        button.set_relief(Gtk.ReliefStyle.NONE)
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        box.get_style_context().add_class("app-card")
+        icon = Gtk.Image.new_from_icon_name("application-x-executable", Gtk.IconSize.DIALOG)
+        icon.set_pixel_size(48)
+        box.pack_start(icon, False, False, 4)
+        details = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+        title = Gtk.Label(label="<b>%s</b>" % GLib.markup_escape_text(name), xalign=0)
+        title.set_use_markup(True)
+        desc = Gtk.Label(label=summary, xalign=0)
+        desc.set_line_wrap(True); desc.set_max_width_chars(35)
+        desc.get_style_context().add_class("dim-label")
+        state = "Instalado" if name in self.installed else "Disponível"
+        meta = Gtk.Label(label=state, xalign=0)
+        meta.get_style_context().add_class("dim-label")
+        details.pack_start(title, False, False, 0)
+        details.pack_start(desc, False, False, 0)
+        details.pack_start(meta, False, False, 0)
+        box.pack_start(details, True, True, 0)
+        button.add(box)
+        button.connect("clicked", self.show_details, name, summary)
+        return button
+
+    def search_packages(self, query):
+        self.query_generation += 1
+        generation = self.query_generation
+        self.clear_content()
+        self.heading("Resultados da pesquisa")
+        loading = Gtk.Label(label="Pesquisando nos repositórios…", xalign=0)
+        self.content.pack_start(loading, False, False, 0)
+        self.content.show_all()
+        def worker():
+            result = run(["pacman", "-Ss", query], 60)
+            matches = []
+            current = None
+            for line in result.stdout.splitlines():
+                if line and not line[0].isspace():
+                    match = re.match(r"^([^/]+)/([^ ]+) ([^ ]+)", line)
+                    if match:
+                        current = (match.group(2), match.group(3))
+                        matches.append(current)
+                elif current and line.strip():
+                    name, version = current
+                    desc = line.strip()
+                    matches[-1] = (name, version, desc)
+                    current = None
+            GLib.idle_add(self.show_search_results, generation, matches[:90], result.returncode)
+        threading.Thread(target=worker, daemon=True).start()
+
+    def show_search_results(self, generation, matches, code):
+        if generation != self.query_generation:
+            return GLib.SOURCE_REMOVE
+        self.clear_content()
+        self.heading("Resultados da pesquisa")
+        if not matches:
+            self.content.pack_start(Gtk.Label(label="Nenhum aplicativo encontrado.", xalign=0), False, False, 0)
+        else:
+            apps = [(name, item[2] if len(item) > 2 else "Pacote disponível")
+                    for item in matches for name in [item[0]]]
+            self.add_apps(apps)
+        self.content.show_all()
+        self.status.set_text(f"{len(matches)} resultado(s) nos repositórios.")
+        return GLib.SOURCE_REMOVE
+
+    def show_details(self, _button, name, summary):
+        info = run(["pacman", "-Si", name], 20)
+        installed = name in self.installed
+        dialog = Gtk.Dialog(title=name, transient_for=self.window, flags=Gtk.DialogFlags.MODAL)
+        dialog.add_button("Fechar", Gtk.ResponseType.CLOSE)
+        action = "Remover" if installed else "Instalar"
+        action_button = dialog.add_button(action, Gtk.ResponseType.ACCEPT)
+        action_button.get_style_context().add_class("suggested-action")
+        area = dialog.get_content_area()
+        area.set_spacing(10); area.set_margin_start(22); area.set_margin_end(22)
+        area.set_margin_top(18); area.set_margin_bottom(18)
+        title = Gtk.Label(label="<b>%s</b>" % GLib.markup_escape_text(name), xalign=0)
+        title.set_use_markup(True)
+        area.pack_start(title, False, False, 0)
+        area.pack_start(Gtk.Label(label=summary, xalign=0), False, False, 0)
+        desc = self.parse_info(info.stdout, "Description")
+        version = self.parse_info(info.stdout, "Version")
+        repo = self.parse_info(info.stdout, "Repository")
+        for label, value in (("Descrição", desc), ("Versão", version), ("Repositório", repo)):
+            row = Gtk.Label(label=f"{label}: {value or 'Não informado'}", xalign=0)
+            row.set_line_wrap(True)
+            area.pack_start(row, False, False, 0)
+        dialog.show_all()
+        response = dialog.run()
+        dialog.destroy()
+        if response == Gtk.ResponseType.ACCEPT:
+            self.transact("remove" if installed else "install", name)
+
+    @staticmethod
+    def parse_info(output, key):
+        match = re.search(r"^" + re.escape(key) + r"\s*:\s*(.+)$", output, re.M)
+        return match.group(1).strip() if match else ""
+
+    def transact(self, action, name):
+        self.status.set_text("Aguardando autorização para a operação…")
+        def worker():
+            result = run(["pkexec", HELPER, action, name], 3600)
+            GLib.idle_add(self.operation_done, result.returncode, name, action)
+        threading.Thread(target=worker, daemon=True).start()
+
+    def operation_done(self, code, name, action):
+        self.status.set_text(("Operação concluída: " if code == 0 else "Operação não concluída: ") + name)
+        if code == 0:
+            self.reload_installed()
+        return GLib.SOURCE_REMOVE
+
+    def update_system(self, *_):
+        if self.refreshing:
             return
-        self.status.set_text("Aguardando autorização do sistema…")
+        self.refreshing = True
+        self.status.set_text("Atualizando o sistema e os aplicativos…")
         def worker():
-            command=["pkexec",HELPER,act,name] if act in {"install","remove","upgrade"} else ["pkexec",HELPER,act]
-            p=subprocess.run(command,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-            GLib.idle_add(self.status.set_text,"Operação concluída." if p.returncode==0 else "Operação cancelada ou não concluída.")
-            if p.returncode==0: GLib.idle_add(self.reload)
-        threading.Thread(target=worker,daemon=True).start()
-    def refresh(self,*_):
-        self.status.set_text("Atualizando espelhos Manjaro e aplicativos Flatpak…")
-        def worker():
-            p=subprocess.run(["pkexec",HELPER,"upgrade"],text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-            user_result=subprocess.run(["flatpak","update","--user","--noninteractive","--assumeyes"],
-                                       text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT) if shutil.which("flatpak") else None
-            ok=p.returncode==0 and (user_result is None or user_result.returncode==0)
-            GLib.idle_add(self.status.set_text,"Sistema e Flatpak atualizados." if ok else "A atualização falhou ou foi cancelada.")
-            GLib.idle_add(self.reload)
-        threading.Thread(target=worker,daemon=True).start()
-if __name__=="__main__": raise SystemExit(Store().run(None))
+            result = run(["pkexec", HELPER, "upgrade"], 7200)
+            GLib.idle_add(self.update_done, result.returncode)
+        threading.Thread(target=worker, daemon=True).start()
+
+    def update_done(self, code):
+        self.refreshing = False
+        self.status.set_text("Sistema atualizado." if code == 0 else "Atualização cancelada ou com erro.")
+        self.reload_installed()
+        return GLib.SOURCE_REMOVE
+
+if __name__ == "__main__":
+    raise SystemExit(Store().run(None))
