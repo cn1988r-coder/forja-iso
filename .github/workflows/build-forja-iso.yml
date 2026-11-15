@@ -132,8 +132,8 @@ jobs:
         with:
           name: forja-os-xfce-iso-${{ inputs.kernel }}
           path: |
-            ${{ runner.temp }}/forja-iso-output/*.iso
-            ${{ runner.temp }}/forja-iso-output/*.iso.sha256
+            ${{ runner.temp }}/forja-iso-output/**/*.iso
+            ${{ runner.temp }}/forja-iso-output/**/*.iso.sha256
             ${{ runner.temp }}/forja-iso-output/build-info.txt
           if-no-files-found: error
           retention-days: 1
