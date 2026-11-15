@@ -1,4 +1,4 @@
-# Forja OS XFCE: conjunto enxuto, sem o grupo completo xfce4-goodies.
+# Forja OS XFCE: perfil próprio inspirado no BigLinux Community, sem xfce4-goodies.
 xfce4-session
 xfce4-panel
 xfce4-settings
