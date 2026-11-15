@@ -183,7 +183,7 @@ class Store(Gtk.Application):
             results=[]
             categories=ALL_APPSTREAM_CATEGORIES if category=="all" else APPSTREAM_CATEGORIES.get(category,[])
             for app_category in categories:
-                result=run(["appstreamcli","list-categories",app_category],90)
+                result=run(["appstreamcli","--details","list-categories",app_category],90)
                 if result.returncode==0:
                     results.extend(parse_appstream(result.stdout))
             unique=[]; seen=set()
@@ -278,7 +278,7 @@ class Store(Gtk.Application):
         self.content.pack_start(Gtk.Label(label="Pesquisando no catálogo, Pacman, AUR e Flatpak…",xalign=0),False,False,0); self.content.show_all()
         def worker():
             results=[]
-            catalog=run(["appstreamcli","search",query],90) if shutil.which("appstreamcli") else subprocess.CompletedProcess([],127,"")
+            catalog=run(["appstreamcli","--details","search",query],90) if shutil.which("appstreamcli") else subprocess.CompletedProcess([],127,"")
             if catalog.returncode==0: results.extend(parse_appstream(catalog.stdout))
             repo=run(["pacman","-Ss",query],90)
             if repo.returncode in (0,1): results.extend(parse_search(repo.stdout,"repo"))
