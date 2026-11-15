@@ -8,9 +8,10 @@ from gi.repository import Gtk, GLib, AyatanaAppIndicator3 as AppIndicator
 
 HELPER="/usr/lib/forja/forja-pacman-transaction"
 ICON="/usr/share/icons/hicolor/scalable/apps/forja-pamac-style.svg"
+ICON_NAME=os.environ.get("FORJA_ICON_NAME","forja-pamac-style")
 class Indicator:
     def __init__(self):
-        self.ind=AppIndicator.Indicator.new("forja-update","forja-pamac-style",AppIndicator.IndicatorCategory.SYSTEM_SERVICES)
+        self.ind=AppIndicator.Indicator.new("forja-update",ICON_NAME,AppIndicator.IndicatorCategory.SYSTEM_SERVICES)
         self.ind.set_icon_theme_path("/usr/share/icons/hicolor/scalable/apps")
         self.ind.set_status(AppIndicator.IndicatorStatus.ACTIVE)
         self.menu=Gtk.Menu()
@@ -21,7 +22,7 @@ class Indicator:
     def set_state(self,count,error=False):
         text="Falha ao verificar atualizações" if error else ("Sistema atualizado" if count==0 else f"{count} atualização(ões) disponíveis")
         self.state.set_label(text)
-        self.ind.set_icon_full("forja-pamac-style",text)
+        self.ind.set_icon_full(ICON_NAME,text)
         return GLib.SOURCE_REMOVE
     def check(self,*_):
         def worker():
