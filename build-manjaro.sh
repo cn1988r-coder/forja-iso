@@ -154,6 +154,9 @@ python-gobject
 pacman-contrib
 polkit
 flatpak
+yay
+base-devel
+git
 MATE_PACKAGES
 fi
 
@@ -352,7 +355,7 @@ if [[ "$DESKTOP" == mate ]]; then
     pipewire pipewire-alsa pipewire-pulse wireplumber
     mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media
     mate-system-monitor mate-terminal mate-calc mate-utils mozo pluma engrampa atril eom
-    gtk3 python python-gobject pacman-contrib polkit flatpak fastfetch bibata-cursor-theme papirus-icon-theme dconf vlc htop gparted noto-fonts ttf-jetbrains-mono
+    gtk3 python python-gobject pacman-contrib polkit flatpak yay fastfetch bibata-cursor-theme papirus-icon-theme dconf vlc htop gparted noto-fonts ttf-jetbrains-mono
     systemd grub efibootmgr mkinitcpio calamares linux-firmware
     manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db
   )
@@ -436,7 +439,7 @@ done < <(find -L "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
 BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
-DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media mate-system-monitor mate-terminal mate-calc mate-utils marco caja mozo pluma engrampa atril eom lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme gtk3 python python-gobject pacman-contrib flatpak fastfetch bibata-cursor-theme dconf vlc htop gparted noto-fonts ttf-jetbrains-mono)
+DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media mate-system-monitor mate-terminal mate-calc mate-utils marco caja mozo pluma engrampa atril eom lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme gtk3 python python-gobject pacman-contrib flatpak yay base-devel git fastfetch bibata-cursor-theme dconf vlc htop gparted noto-fonts ttf-jetbrains-mono)
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
   if ! pacman_info "$package" >/dev/null 2>&1; then
