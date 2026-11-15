@@ -1,41 +1,40 @@
-# Forja Software for Ubuntu LTS
+# Forja Software for Ubuntu MATE
 
-Gerenciador de programas inspirado no Pamac, com interface própria e backend nativo do Ubuntu (APT/DPKG).
+Forja Software is an independent Pamac-inspired software center for Ubuntu. It uses the Ubuntu package system (APT/DPKG) and the Flatpak client. It is not Pamac and does not use pacman.
 
-## Política de atualização contínua
+## Features implemented in this Ubuntu-only component
 
-A Forja mantém a instalação na mesma série Ubuntu LTS. O gerenciador atualiza pacotes, bibliotecas, aplicações, correções de segurança e pacotes de kernel disponíveis nos repositórios configurados para a versão instalada.
+- One GTK4 application with a combined catalogue and source filter for Ubuntu APT and system Flatpak.
+- Search by package/application name, ID and short description.
+- Views for all available items, installed items and available updates.
+- Install, remove and update individual APT packages.
+- Install and remove system Flatpak applications from remotes already configured on the machine.
+- Separate APT and Flatpak update actions in the MATE panel indicator.
+- Privileged operations use pkexec and a restricted helper.
 
-- Atualização normal: `apt-get update` e `apt-get --with-new-pkgs upgrade`.
-- O modo de atualização pode instalar dependências novas necessárias para atualizar pacotes, mas não remove pacotes existentes.
-- Não executa `do-release-upgrade`, `full-upgrade` ou `dist-upgrade`.
-- Não troca automaticamente de Ubuntu 26.04 para uma futura versão LTS.
-- Os repositórios APT configurados para a série instalada são a fonte dos pacotes.
-- Flatpak é opcional e usa somente os remotes já configurados pelo usuário ou pela distribuição.
-- Snap não é suportado: não instalar snapd, não exibir pacotes Snap e não adicionar serviços Snap.
+The catalogue is sourced from the machine's configured APT repositories and configured system Flatpak remotes. Forja does not host packages, add third-party repositories, add Flathub automatically, or install Snap.
 
-Isso oferece atualizações contínuas dentro da versão LTS instalada, mas não transforma o Ubuntu em uma distribuição rolling release. Cada versão LTS tem um período oficial de suporte. Ao fim desse período, continuar recebendo correções de segurança exige uma decisão explícita sobre suporte estendido ou migração in-place para outra LTS. A Forja não deve formatar o computador nem iniciar essa migração por conta própria.
+## Continuous updates without changing Ubuntu release
 
-## Fontes de software
+APT updates use `apt-get update` and `apt-get --with-new-pkgs upgrade`. This updates packages and allows newly required dependencies without automatically removing installed packages. It does not run `full-upgrade`, `dist-upgrade` or `do-release-upgrade`.
 
-- **APT:** pesquisa, instalação, remoção e atualização dos pacotes dos repositórios configurados no próprio Ubuntu.
-- **Flatpak:** fonte opcional, sem adicionar Flathub ou qualquer remote automaticamente.
-- **Snap:** deliberadamente fora do escopo.
+Flatpak applications update through the system Flatpak installation. The installed Ubuntu LTS release series remains unchanged. This is continuous package maintenance within a fixed LTS release, not a rolling-release distribution. Ubuntu LTS releases have a finite support lifetime; the manager never silently changes the system to a newer release.
 
-O repositório Forja guarda código-fonte e artefatos de lançamento. Não é um repositório APT, espelho de pacotes ou servidor de atualizações.
+## Runtime dependencies
 
-## Segurança das transações
+See `packages.ubuntu`. Flatpak is optional at runtime, but required for Flatpak catalogue and transactions. If Flatpak or configured system remotes are absent, APT remains usable.
 
-As operações privilegiadas passam por `pkexec` e pelo helper `forja-apt-transaction`. Os nomes de pacotes são validados antes de executar operações. A atualização comum usa `--with-new-pkgs`, evitando remoções automáticas durante a atualização.
+## Installation files
 
-## Estado de implementação
+- `src/forja-store`: GTK4 software center.
+- `src/forja-apt-transaction`: restricted privileged APT and system Flatpak transaction helper.
+- `src/forja-update-indicator`: Ayatana indicator for MATE panel.
+- `install.sh`: installs the applications, helper, launchers and MATE autostart entry.
 
-O frontend GTK4 e o indicador Ayatana ainda são protótipos. A política de transação APT foi preparada para atualizações dentro da mesma série, mas a integração com a sessão MATE, instalação no sistema, suporte completo a Flatpak, testes em Ubuntu real e validação ponta a ponta ainda precisam ser concluídos. Não considerar pronto para uma ISO de produção antes desses testes.
+## Validation status
 
-## Dependências
+Source-level checks do not prove operation on a real Ubuntu installation. Before shipping in an ISO, run the installer in a clean Ubuntu MATE VM, then test APT search/install/remove/update, Flatpak search/install/remove/update, pkexec cancellation, panel autostart and reboot persistence. Do not label it production-ready until these tests pass.
 
-Consulte `packages.ubuntu`. Dependências relacionadas a Snap são intencionalmente excluídas.
+## License
 
-## Licença
-
-Este projeto é uma implementação independente inspirada no fluxo de uso do Pamac. Não incorpora código-fonte do Pamac.
+Independent implementation inspired by Pamac's user experience. No Pamac source code is copied or redistributed.
