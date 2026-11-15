@@ -21,7 +21,6 @@ def run(args, timeout=90):
 class UpdateIndicator:
     def __init__(self):
         self.icon = Gtk.StatusIcon.new_from_icon_name(ICON)
-        self.icon.set_name("forja-update-indicator")
         self.icon.set_title("Atualizações da FORJA OS")
         self.icon.set_tooltip_text("Verificando atualizações…")
         self.icon.set_visible(True)
@@ -36,8 +35,8 @@ class UpdateIndicator:
         self.menu.show_all()
         self.icon.connect("activate", self.open_store)
         self.icon.connect("popup-menu", self.popup)
-        self.check()
-        # Verifica novamente a cada 30 minutos enquanto a sessão MATE estiver aberta.
+        # Aguarda a rede subir após o login; depois verifica periodicamente.
+        GLib.timeout_add_seconds(60, self.check)
         GLib.timeout_add_seconds(1800, self.check)
 
     def add_item(self, label, callback):
@@ -61,7 +60,9 @@ class UpdateIndicator:
             tooltip = "FORJA OS está atualizada."
         self.state.set_label(label)
         self.icon.set_tooltip_text(tooltip)
-        self.icon.set_from_icon_name("software-update-available" if total or error else "emblem-default")
+        self.icon.set_from_icon_name("forja-update-available" if total or error else "forja-update-current")
+        if error:
+            GLib.timeout_add_seconds(300, self.check)
         return GLib.SOURCE_REMOVE
 
     def check(self, *_):
