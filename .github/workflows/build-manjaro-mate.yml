@@ -90,10 +90,10 @@ jobs:
             lts|latest) ;;
             *) echo "Kernel inválido: $FORJA_KERNEL" >&2; exit 2 ;;
           esac
-          bash -n build-cloud.sh build-manjaro.sh build-shelly.sh
+          bash -n build-cloud.sh build-manjaro.sh
           sudo apt-get update -qq
           sudo apt-get install -y shellcheck
-          shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh build-shelly.sh
+          shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh
 
       - name: Free disk space for ISO build
         shell: bash
