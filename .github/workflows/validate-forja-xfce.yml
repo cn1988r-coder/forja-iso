@@ -56,8 +56,8 @@ jobs:
           desktop-file-validate \
             desktops/xfce/forja-xfce-appearance.desktop \
             forja-pamac-pacman/forja-software.desktop \
-            forja-pamac-pacman/forja-update-indicator.desktop
-          python3 -c 'import sys, xml.etree.ElementTree as ET; [ET.parse(p) for p in sys.argv[1:]]' \
+            forja-pamac-pacman/forja-update-indicator.desktop \
+            && python3 -c 'import sys, xml.etree.ElementTree as ET; [ET.parse(p) for p in sys.argv[1:]]' \
             desktops/xfce/forja-flame.svg \
             desktops/xfce/forja-black-wallpaper.svg \
             desktops/xfce/forja-xfce-desktop.xml \
