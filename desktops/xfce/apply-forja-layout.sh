@@ -2,15 +2,12 @@
 set -Eeuo pipefail
 
 command -v xfconf-query >/dev/null 2>&1 || exit 0
-command -v xfce4-panel >/dev/null 2>&1 || exit 0
 
-# Forja OS XFCE: dark GTK, neutral Papirus, dark Bibata and Materia decorations.
+# Appearance only. The panel layout is provisioned system-wide by
+# /etc/xdg/xfce4/panel/default.xml and copied into /etc/skel at image build.
 GTK_THEME="adw-gtk3-dark"
 ICON_THEME="Papirus-Dark"
 CURSOR_THEME="Bibata-Modern-Classic"
-PANEL_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/xfce4/panel"
-DOCKLIKE_CONFIG="$PANEL_CONFIG_DIR/docklike-2.rc"
-DOCKLIKE_CSS_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/xfce4-docklike-plugin"
 
 set_prop() {
   local channel="$1" property="$2" type="$3" value="$4"
@@ -22,7 +19,7 @@ set_prop() {
   }
 }
 
-# GTK 3, GTK 4/libadwaita, cursor and window decorations.
+# GTK 3/4, cursor and window decorations.
 set_prop xsettings /Net/ThemeName string "$GTK_THEME"
 set_prop xsettings /Net/IconThemeName string "$ICON_THEME"
 set_prop xsettings /Gtk/CursorThemeName string "$CURSOR_THEME"
@@ -53,70 +50,3 @@ if [[ -f "$WALLPAPER" ]]; then
       --create -t string -s "$WALLPAPER" >/dev/null 2>&1 || true
   fi
 fi
-
-# Docklike configuration is written BEFORE restarting the panel so it is
-# loaded on the first login. Values are desktop-file IDs, not executable names.
-mkdir -p "$PANEL_CONFIG_DIR" "$DOCKLIKE_CSS_DIR"
-cat > "$DOCKLIKE_CONFIG" <<'DOCKLIKE'
-[user]
-showPreviews=false
-pinned=thunar.desktop;firefox.desktop;
-indicatorStyle=1
-inactiveIndicatorStyle=1
-indicatorOrientation=1
-indicatorColorFromTheme=false
-indicatorColor=rgb(232,232,232)
-forceIconSize=false
-keyComboActive=false
-keyAloneActive=false
-inactiveColor=rgb(145,145,145)
-showWindowCount=false
-DOCKLIKE
-
-cat > "$DOCKLIKE_CSS_DIR/gtk.css" <<'DOCKLIKE_CSS'
-/* Forja Docklike: compact neutral indicators and restrained hover states. */
-#docklike-plugin { background-color: transparent; }
-.group { border-radius: 9px; padding: 3px; }
-.hover_group { background-color: rgba(255,255,255,0.08); }
-.menu {
-  background-color: #242424;
-  color: #f2f2f2;
-  border: 1px solid #454545;
-  border-radius: 10px;
-}
-.menu_item { color: #e8e8e8; }
-.hover_menu_item { background-color: rgba(255,255,255,0.09); }
-DOCKLIKE_CSS
-
-# Bottom panel: Whisker, Docklike, separator, notification area and controls.
-xfconf-query -c xfce4-panel -p /panels -n -t int -s 1 >/dev/null 2>&1 || true
-set_prop xfce4-panel /panels/panel-1/position string 'p=8;x=0;y=0'
-set_prop xfce4-panel /panels/panel-1/length uint 100
-set_prop xfce4-panel /panels/panel-1/length-adjust bool true
-set_prop xfce4-panel /panels/panel-1/size uint 42
-set_prop xfce4-panel /panels/panel-1/nrows uint 1
-set_prop xfce4-panel /panels/panel-1/autohide-behavior uint 0
-set_prop xfce4-panel /panels/panel-1/position-locked bool true
-
-xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids -a \
-  -t int -s 1 -t int -s 2 -t int -s 7 -t int -s 9 -t int -s 4 \
-  -t int -s 3 -t int -s 6 -t int -s 10 -t int -s 5 -t int -s 8 >/dev/null 2>&1 || true
-
-set_prop xfce4-panel /plugins/plugin-1 string whiskermenu
-set_prop xfce4-panel /plugins/plugin-2 string docklike
-set_prop xfce4-panel /plugins/plugin-3 string pulseaudio
-set_prop xfce4-panel /plugins/plugin-4 string systray
-set_prop xfce4-panel /plugins/plugin-5 string clock
-set_prop xfce4-panel /plugins/plugin-6 string power-manager-plugin
-set_prop xfce4-panel /plugins/plugin-7 string separator
-set_prop xfce4-panel /plugins/plugin-7/expand bool true
-set_prop xfce4-panel /plugins/plugin-7/style uint 0
-set_prop xfce4-panel /plugins/plugin-8 string showdesktop
-set_prop xfce4-panel /plugins/plugin-9 string notification-plugin
-set_prop xfce4-panel /plugins/plugin-10 string xfce4-clipman-plugin
-set_prop xfce4-panel /plugins/plugin-1/button-icon string forja
-set_prop xfce4-panel /plugins/plugin-1/button-title string "Forja OS"
-set_prop xfce4-keyboard-shortcuts /commands/custom/Super_L string xfce4-popup-whiskermenu
-
-# Restart only after every panel and Docklike setting has been written.
-xfce4-panel --restart >/dev/null 2>&1 || true
