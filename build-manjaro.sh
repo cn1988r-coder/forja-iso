@@ -108,6 +108,7 @@ python-gobject
 libayatana-appindicator
 pacman-contrib
 polkit
+flatpak
 MATE_PACKAGES
 fi
 
@@ -270,8 +271,28 @@ LIGHTDM
   fi
 done
 
-# Instala o gerenciador gráfico Forja no sistema live e instalado.
+# Configura o Flathub oficial no primeiro boot. Os pacotes do sistema continuam
+# vindo exclusivamente dos espelhos configurados pelo Manjaro/pacman-mirrors.
 if [[ "$DESKTOP" == mate ]]; then
+  mkdir -p "$TARGET/desktop-overlay/etc/systemd/system/multi-user.target.wants"
+  cat > "$TARGET/desktop-overlay/etc/systemd/system/forja-flathub.service" <<'FLATHUB_UNIT'
+[Unit]
+Description=Register the official Flathub Flatpak remote
+Wants=network-online.target
+After=NetworkManager.service network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/flatpak remote-add --if-not-exists --system flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+RemainAfterExit=yes
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
+FLATHUB_UNIT
+  ln -sfn ../forja-flathub.service "$TARGET/desktop-overlay/etc/systemd/system/multi-user.target.wants/forja-flathub.service"
   DESTDIR="$TARGET/desktop-overlay" bash /forja-ci/forja-pamac-pacman/install.sh
 fi
 
@@ -293,7 +314,7 @@ if [[ "$DESKTOP" == mate ]]; then
     mate-session-manager mate-panel mate-control-center mate-settings-daemon
     mate-desktop mate-menus mate-polkit mate-media marco lightdm lightdm-slick-greeter firefox networkmanager
     network-manager-applet bluez bluez-utils blueman
-    gtk4 gtk3 python python-gobject libayatana-appindicator pacman-contrib polkit
+    gtk4 gtk3 python python-gobject libayatana-appindicator pacman-contrib polkit flatpak
     systemd grub efibootmgr mkinitcpio calamares linux-firmware
     manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db
   )
