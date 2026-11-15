@@ -32,12 +32,16 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          bash -n build-cloud.sh build-manjaro.sh
-          bash -n desktops/xfce/apply-forja-layout.sh
-          bash -n desktops/xfce/install-branding.sh
-          bash -n desktops/xfce/tests/validate-appearance.sh
-          bash -n forja-pamac-pacman/build-pamac.sh
-          bash -n forja-pamac-pacman/install.sh
+          for script in \
+            build-cloud.sh build-manjaro.sh \
+            desktops/xfce/apply-forja-layout.sh \
+            desktops/xfce/install-branding.sh \
+            desktops/xfce/tests/validate-appearance.sh \
+            forja-pamac-pacman/build-pamac.sh \
+            forja-pamac-pacman/install.sh; do
+            bash -n "$script"
+          done
+          python3 -m compileall -q forja-pamac-pacman/src forja-pamac-pacman/tests
           python3 -m unittest discover -s forja-pamac-pacman/tests -v
           bash desktops/xfce/tests/validate-appearance.sh
 
