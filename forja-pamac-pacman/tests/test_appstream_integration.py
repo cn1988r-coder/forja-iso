@@ -12,7 +12,7 @@ from forja_store_core import parse_appstream
 class AppStreamCliIntegrationTests(unittest.TestCase):
     def test_network_category_returns_installable_apps(self):
         catalog = subprocess.run(
-            ["appstreamcli", "--no-color", "--details", "list-categories", "Network"],
+            ["appstreamcli", "--no-color", "list-categories", "Network"],
             text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120,
         )
         self.assertEqual(catalog.returncode, 0, catalog.stderr or catalog.stdout)
