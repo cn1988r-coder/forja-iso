@@ -10,7 +10,7 @@ done
 
 for package in \
   adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders \
-  bibata-cursor-theme noto-fonts ttf-jetbrains-mono gtk3 gtk4 \
+  bibata-cursor-theme noto-fonts ttf-jetbrains-mono gtk3 \
   gsettings-desktop-schemas appstream archlinux-appstream-data flatpak yay base-devel git \
   xfce4-panel xfce4-docklike-plugin xfce4-whiskermenu-plugin \
   xfce4-pulseaudio-plugin xfce4-power-manager xfce4-notifyd \
