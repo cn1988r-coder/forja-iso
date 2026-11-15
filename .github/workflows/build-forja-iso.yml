@@ -131,12 +131,30 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: forja-os-xfce-iso-${{ inputs.kernel }}
-          path: |
-            ${{ runner.temp }}/forja-iso-output/**/*.iso
-            ${{ runner.temp }}/forja-iso-output/**/*.iso.sha256
-            ${{ runner.temp }}/forja-iso-output/build-info.txt
+          path: ${{ runner.temp }}/forja-iso-output/
           if-no-files-found: error
+          compression-level: 0
           retention-days: 1
+
+      - name: Verify the published artifact contains the complete ISO
+        uses: actions/download-artifact@v4
+        with:
+          name: forja-os-xfce-iso-${{ inputs.kernel }}
+          path: ${{ runner.temp }}/forja-artifact-check
+      - name: Check downloaded ISO and checksum
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mapfile -t isos < <(find "$RUNNER_TEMP/forja-artifact-check" -type f -name '*.iso' -print)
+          test "${#isos[@]}" -eq 1
+          iso="${isos[0]}"
+          test -s "$iso"
+          size="$(stat -c %s "$iso")"
+          test "$size" -gt 1000000000
+          checksum="$iso.sha256"
+          test -s "$checksum"
+          (cd "$(dirname "$iso")" && sha256sum -c "$(basename "$checksum")")
+          echo "DOWNLOADABLE_ISO_OK: $iso ($size bytes)"
 
       - name: Clean dedicated ext4 build filesystem
         if: always()
