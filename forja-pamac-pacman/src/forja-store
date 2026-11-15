@@ -1,0 +1,108 @@
+#!/usr/bin/python3
+"""Pamac-inspired GTK4 frontend for native pacman repositories."""
+import subprocess, threading, re, os
+import gi
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gtk, GLib, Gdk
+
+HELPER = "/usr/lib/forja/forja-pacman-transaction"
+ACCENT = os.environ.get("FORJA_ACCENT", "#3584e4")
+CSS = f"""
+window {{ background: #202124; color: #f2f2f2; }}
+.sidebar {{ background: #25272b; }}
+button.suggested-action {{ background: {ACCENT}; color: white; }}
+row {{ border-bottom: 1px solid #383a3f; }}
+.dim-label {{ color: #b8bdc7; }}
+"""
+class Store(Gtk.Application):
+    def __init__(self):
+        super().__init__(application_id="br.forja.Software.Pacman")
+        self.mode, self.rows, self.status, self.search = "updates", None, None, None
+    def do_activate(self):
+        w = Gtk.ApplicationWindow(application=self, title="Forja Software")
+        w.set_default_size(1000, 660)
+        provider = Gtk.CssProvider()
+        provider.load_from_data(CSS.encode())
+        Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        header = Gtk.HeaderBar()
+        self.search = Gtk.SearchEntry()
+        self.search.set_placeholder_text("Pesquisar pacotes")
+        self.search.set_hexpand(True)
+        header.set_title_widget(self.search)
+        refresh = Gtk.Button(label="Verificar atualizações")
+        refresh.connect("clicked", self.refresh)
+        header.pack_end(refresh)
+        w.set_titlebar(header)
+        body = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
+        side = Gtk.ListBox()
+        side.add_css_class("sidebar")
+        side.set_size_request(190, -1)
+        for title, mode in [("Visão geral","all"),("Atualizações","updates"),("Instalados","installed"),("Pesquisar","search")]:
+            row=Gtk.ListBoxRow(); row.set_child(Gtk.Label(label=title,xalign=0,margin_start=18,margin_top=14,margin_bottom=14)); row.mode=mode; side.append(row)
+        side.connect("row-selected", self.select_mode)
+        body.append(side)
+        sc=Gtk.ScrolledWindow(); sc.set_hexpand(True); sc.set_vexpand(True)
+        self.rows=Gtk.ListBox(); self.rows.set_selection_mode(Gtk.SelectionMode.NONE); sc.set_child(self.rows); body.append(sc)
+        root.append(body)
+        self.status=Gtk.Label(label="Carregando informações do Pacman…",xalign=0,margin_start=16,margin_top=8,margin_bottom=8)
+        root.append(self.status); w.set_child(root)
+        self.search.connect("search-changed",lambda *_: self.populate())
+        w.present()
+        self.reload()
+    def select_mode(self, _list, row):
+        if row: self.mode=row.mode; self.reload()
+    def command(self,args):
+        return subprocess.run(args,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    def reload(self):
+        def worker():
+            installed=self.command(["pacman","-Q"])
+            updates=self.command(["checkupdates"])
+            GLib.idle_add(self.loaded,installed.stdout,updates.stdout,updates.returncode)
+        threading.Thread(target=worker,daemon=True).start()
+    def loaded(self, installed, updates, code):
+        self.installed={line.split()[0]:line.split(maxsplit=1)[1] for line in installed.splitlines() if len(line.split())>1}
+        self.updates={}
+        for line in updates.splitlines():
+            p=line.split()
+            if len(p)>=4: self.updates[p[0]]=(p[1],p[3])
+        self.status.set_text(f"{len(self.installed)} pacotes instalados · {len(self.updates)} atualizações disponíveis" if code in (0,2) else "Não foi possível consultar atualizações. Verifique a conexão.")
+        self.populate()
+        return GLib.SOURCE_REMOVE
+    def populate(self):
+        while child:=self.rows.get_first_child(): self.rows.remove(child)
+        q=self.search.get_text().strip().lower()
+        if self.mode=="updates": items=[(n,v[0],v[1],"Atualizar") for n,v in self.updates.items()]
+        elif self.mode=="installed": items=[(n,v,"Instalado","Remover") for n,v in self.installed.items()]
+        else:
+            items=[(n,v,"Instalado","Remover") for n,v in self.installed.items()]
+            if q:
+                result=self.command(["pacman","-Ss",q])
+                seen=set()
+                for line in result.stdout.splitlines():
+                    m=re.match(r"^([^/]+)/([^ ]+) ([^ ]+)",line)
+                    if m and m.group(2) not in seen:
+                        name=m.group(2); seen.add(name)
+                        if name not in self.installed: items.append((name,m.group(3),"Repositório oficial","Instalar"))
+        for name,version,desc,action in items:
+            if q and q not in name.lower() and q not in desc.lower(): continue
+            row=Gtk.ListBoxRow(); box=Gtk.Box(spacing=14); box.set_margin_start(16); box.set_margin_end(16); box.set_margin_top(12); box.set_margin_bottom(12)
+            info=Gtk.Box(orientation=Gtk.Orientation.VERTICAL,spacing=3); title=Gtk.Label(label=name,xalign=0); title.add_css_class("heading"); info.append(title)
+            sub=Gtk.Label(label=f"{version} · {desc}",xalign=0); sub.add_css_class("dim-label"); info.append(sub); info.set_hexpand(True); box.append(info)
+            b=Gtk.Button(label=action); b.connect("clicked",self.transact,action.lower(),name); box.append(b); row.set_child(box); self.rows.append(row)
+    def transact(self,_b,action,name):
+        act="install" if action=="instalar" else "remove"
+        self.status.set_text("Aguardando autorização do sistema…")
+        def worker():
+            p=subprocess.run(["pkexec",HELPER,act,name],text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+            GLib.idle_add(self.status.set_text,"Operação concluída." if p.returncode==0 else "Operação cancelada ou não concluída.")
+            if p.returncode==0: GLib.idle_add(self.reload)
+        threading.Thread(target=worker,daemon=True).start()
+    def refresh(self,*_):
+        self.status.set_text("Atualizando o sistema…")
+        def worker():
+            p=subprocess.run(["pkexec",HELPER,"upgrade"])
+            GLib.idle_add(self.status.set_text,"Atualização concluída." if p.returncode==0 else "Atualização cancelada ou falhou.")
+            GLib.idle_add(self.reload)
+        threading.Thread(target=worker,daemon=True).start()
+if __name__=="__main__": raise SystemExit(Store().run(None))
