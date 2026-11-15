@@ -1,0 +1,53 @@
+name: Validate Ubuntu MATE and Forja Software
+
+on:
+  push:
+    paths:
+      - 'forja-pamac-ubuntu/**'
+      - 'desktops/mate/**'
+      - '.github/workflows/validate-ubuntu-mate.yml'
+  pull_request:
+    paths:
+      - 'forja-pamac-ubuntu/**'
+      - 'desktops/mate/**'
+      - '.github/workflows/validate-ubuntu-mate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-ubuntu:
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Checkout Ubuntu-only changes
+        uses: actions/checkout@v4
+
+      - name: Install Ubuntu runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-apt python3-gi gir1.2-gtk-4.0 gir1.2-gtk-3.0 gir1.2-ayatanaappindicator3-0.1 policykit-1 flatpak
+
+      - name: Validate Python syntax
+        env:
+          PYTHONPYCACHEPREFIX: /tmp/forja-pycache
+        run: |
+          python3 -m py_compile forja-pamac-ubuntu/src/forja-store
+          python3 -m py_compile forja-pamac-ubuntu/src/forja-apt-transaction
+          python3 -m py_compile forja-pamac-ubuntu/src/forja-update-indicator
+
+      - name: Validate shell syntax
+        run: |
+          bash -n forja-pamac-ubuntu/install.sh
+          bash -n desktops/mate/install-ubuntu-mate.sh
+          bash -n desktops/mate/apply-ubuntu-mate.sh
+
+      - name: Validate GTK and Python APT bindings
+        run: |
+          python3 -c "import apt, gi; gi.require_version('Gtk', '4.0'); from gi.repository import Gtk"
+          python3 -c "import gi; gi.require_version('Gtk', '3.0'); gi.require_version('AyatanaAppIndicator3', '0.1'); from gi.repository import Gtk, AyatanaAppIndicator3"
+
+      - name: Verify release-upgrade protection
+        run: |
+          grep -q '^Prompt=never$' forja-pamac-ubuntu/install.sh
+          ! grep -Eq 'do-release-upgrade|full-upgrade|dist-upgrade' forja-pamac-ubuntu/src/forja-apt-transaction
