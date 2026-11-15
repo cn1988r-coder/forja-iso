@@ -1,4 +1,2 @@
 #!/bin/sh
-. /etc/os-release
-case "${ID:-arch}" in manjaro) export FORJA_ACCENT="#55b86a" ;; *) export FORJA_ACCENT="#2389e8" ;; esac
 exec /usr/bin/python3 /usr/lib/forja/forja-store "$@"
