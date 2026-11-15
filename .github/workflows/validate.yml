@@ -110,6 +110,7 @@ jobs:
           import types
           gi = types.ModuleType("gi")
           gi.require_version = lambda *_args: None
+          gi.__path__ = []
           gi_repo = types.ModuleType("gi.repository")
           class FakeGtk:
               Application = object
@@ -117,6 +118,7 @@ jobs:
           gi_repo.Gdk = object()
           gi_repo.GLib = object()
           gi_repo.Gio = object()
+          gi.repository = gi_repo
           sys.modules["gi"] = gi
           sys.modules["gi.repository"] = gi_repo
           store_module = runpy.run_path(str(src / "forja-store"))
