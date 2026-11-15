@@ -1,0 +1,11 @@
+# XFCE desktop module for Arch Linux only.
+xfce4
+xfce4-goodies
+xfce4-whiskermenu-plugin
+lightdm
+lightdm-gtk-greeter
+network-manager-applet
+firefox
+papirus-icon-theme
+bibata-cursor-theme
+materia-gtk-theme
