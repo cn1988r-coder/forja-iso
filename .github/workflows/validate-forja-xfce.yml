@@ -78,7 +78,7 @@ jobs:
 
           indicator = configparser.ConfigParser(interpolation=None)
           indicator.read("forja-pamac-pacman/forja-update-indicator.desktop")
-          assert indicator["Desktop Entry"]["OnlyShowIn"] == "MATE;XFCE;"
+          assert indicator["Desktop Entry"]["OnlyShowIn"] == "XFCE;"
           print("SVG, branding and desktop entries validated.")
           PY
 
@@ -95,7 +95,7 @@ jobs:
           grep -q 'for overlay_name in desktop-overlay live-overlay' build-manjaro.sh
           grep -q 'forja-icon-cache.service' forja-pamac-pacman/install.sh
           grep -q 'FORJA_SKIP_STORE_INSTALL:-0' build-manjaro.sh
-          grep -q 'OnlyShowIn=MATE;XFCE;' forja-pamac-pacman/forja-update-indicator.desktop
+          grep -q 'OnlyShowIn=XFCE;' forja-pamac-pacman/forja-update-indicator.desktop
           grep -q 'self.busy=True' forja-pamac-pacman/src/forja-store
           grep -q 'self.busy=False' forja-pamac-pacman/src/forja-store
           grep -q 'pinned=thunar.desktop;firefox.desktop;' desktops/xfce/docklike.rc
