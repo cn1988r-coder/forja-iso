@@ -101,6 +101,13 @@ pipewire-pulse
 wireplumber
 papirus-icon-theme
 bibata-cursor-theme
+gtk4
+gtk3
+python
+python-gobject
+libayatana-appindicator
+pacman-contrib
+polkit
 MATE_PACKAGES
 fi
 
@@ -263,6 +270,11 @@ LIGHTDM
   fi
 done
 
+# Instala o gerenciador gráfico Forja no sistema live e instalado.
+if [[ "$DESKTOP" == mate ]]; then
+  DESTDIR="$TARGET/desktop-overlay" bash /forja-ci/forja-pamac-pacman/install.sh
+fi
+
 # Materialize every package list in the selected profile. The MATE profile
 # owns copies of the shared lists so filtering cannot modify upstream files.
 for package_list in "$TARGET"/Packages-*; do
@@ -281,6 +293,7 @@ if [[ "$DESKTOP" == mate ]]; then
     mate-session-manager mate-panel mate-control-center mate-settings-daemon
     mate-desktop mate-menus mate-polkit mate-media marco lightdm lightdm-slick-greeter firefox networkmanager
     network-manager-applet bluez bluez-utils blueman
+    gtk4 gtk3 python python-gobject libayatana-appindicator pacman-contrib polkit
     systemd grub efibootmgr mkinitcpio calamares linux-firmware
     manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db
   )
