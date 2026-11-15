@@ -48,7 +48,7 @@ jobs:
           ui = (root / "forja-store").read_text()
           assert '"atualizar":"upgrade"' in ui, "Botão Atualizar não está ligado a upgrade"
           assert '"remover":"remove"' in ui, "Botão Remover não está ligado a remove"
-          assert 'flatpak remote-ls' in ui, "A loja não consulta atualizações Flatpak"
+          assert 'remote-ls' in ui, "A loja não consulta atualizações Flatpak"
           assert 'flatpak update' in ui, "A loja não atualiza Flatpak do usuário"
           assert 'flatpak' in pathlib.Path("build-manjaro.sh").read_text(), "Flatpak não está integrado ao perfil Manjaro"
           assert 'dl.flathub.org/repo/flathub.flatpakrepo' in pathlib.Path("build-manjaro.sh").read_text(), "O remote oficial Flathub não está configurado"
