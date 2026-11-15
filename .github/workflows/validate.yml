@@ -111,6 +111,39 @@ jobs:
           grep -Fq 'user-session=mate' build-manjaro.sh
           ! grep -Eiq 'xfce|gnome|plasma|kde' build-manjaro.sh
           grep -Fq 'gh release create' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'workflow_dispatch:' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'repository_dispatch:' .github/workflows/build-manjaro-mate.yml
+          if grep -Eq '^  push:' .github/workflows/build-manjaro-mate.yml; then
+            echo "ERRO: a compilação da ISO não deve iniciar automaticamente a cada push." >&2
+            exit 1
+          fi
+          grep -Fq '          - lts' .github/workflows/build-manjaro-mate.yml
+          grep -Fq '          - latest' .github/workflows/build-manjaro-mate.yml
+          kernel_options="$(sed -n '/^[[:space:]]*options:/,/^[[:space:]]*default:/p' .github/workflows/build-manjaro-mate.yml | grep -c '^[[:space:]]*-[[:space:]]')"
+          test "$kernel_options" -eq 2
+          grep -Fq 'secrets.MEGA_EMAIL' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'secrets.MEGA_PASSWORD' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'Authenticate MEGA and prepare destination before build' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'rclone config create mega mega' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'rclone lsd mega:' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'rclone copyto' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'rclone lsjson' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'rclone link' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'Forja-ISO/Manjaro-MATE' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'steps.mega_upload.outputs.download_url' .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'Remove temporary MEGA configuration' .github/workflows/build-manjaro-mate.yml
+          if grep -Fq -- '--checksum' .github/workflows/build-manjaro-mate.yml; then
+            echo "ERRO: o backend MEGA não fornece hashes ao rclone; a cópia remota deve ser verificada por tamanho." >&2
+            exit 1
+          fi
+          auth_line="$(grep -nF '      - name: Authenticate MEGA and prepare destination before build' .github/workflows/build-manjaro-mate.yml | cut -d: -f1)"
+          build_line="$(grep -nF '      - name: Build Manjaro MATE ISO' .github/workflows/build-manjaro-mate.yml | cut -d: -f1)"
+          verify_line="$(grep -nF '      - name: Verify ISO and checksum' .github/workflows/build-manjaro-mate.yml | cut -d: -f1)"
+          upload_line="$(grep -nF '      - name: Upload verified ISO to MEGA' .github/workflows/build-manjaro-mate.yml | cut -d: -f1)"
+          if (( auth_line >= build_line || verify_line >= upload_line )); then
+            echo "ERRO: autenticação MEGA deve preceder a compilação e o upload deve ocorrer após validar a ISO." >&2
+            exit 1
+          fi
           grep -Fq 'COMPRESSION=xz' build-manjaro.sh
           grep -Fq 'SQFS_WRAPPER_DIR=' build-manjaro.sh
           grep -Fq -- '-b 1M -Xdict-size 1M' build-manjaro.sh
