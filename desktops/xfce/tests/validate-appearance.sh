@@ -85,4 +85,14 @@ grep -q 'box-shadow:inset 0 -2px 0' "$ROOT/forja-gtk.css"
 grep -q '#whiskermenu-window .category-button:checked' "$ROOT/forja-gtk.css"
 grep -q '#whiskermenu-window .search-area' "$ROOT/forja-gtk.css"
 
-echo "Forja XFCE: Docklike, system tray, clock, black background and Store checks passed."
+
+# Whisker identity must stay monochrome and visually aligned with Adwaita Dark.
+grep -q 'fill="#171717"' "$ROOT/forja-flame.svg"
+grep -q 'fill="#dededb"' "$ROOT/forja-flame.svg"
+! grep -q 'linearGradient\|stop-color=' "$ROOT/forja-flame.svg"
+grep -q '@define-color forja_bg #242424' "$ROOT/forja-gtk.css"
+grep -q '@define-color forja_surface #303030' "$ROOT/forja-gtk.css"
+grep -q '@define-color forja_text #eeeeec' "$ROOT/forja-gtk.css"
+! grep -qiE '#[0-9a-f]*(00a|08f|f80|f00)' "$ROOT/forja-gtk.css"
+
+echo "Forja XFCE: Adwaita Dark menu palette, black flame icon, Docklike, tray, clock, wallpaper and Store checks passed."
