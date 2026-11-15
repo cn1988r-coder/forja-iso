@@ -116,6 +116,9 @@ jobs:
             grep -Fq "$package" build-manjaro.sh
           done
           grep -Fq 'forja-pamac-pacman/install.sh' build-manjaro.sh
+          grep -Fq 'Forja Store' forja-pamac-pacman/src/forja-store
+          grep -Fq 'Name=Forja Store' forja-pamac-pacman/forja-software.desktop
+          ! grep -Eiq 'pamac' forja-pamac-pacman/src/forja-store forja-pamac-pacman/install.sh
           for package in networkmanager network-manager-applet bluez bluez-utils blueman firefox calamares; do
             grep -Fq "$package" build-manjaro.sh
           done

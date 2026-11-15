@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Pamac-inspired GTK4 frontend for native Pacman and Flatpak updates."""
+"""Forja Store: loja gráfica própria para Pacman e atualizações Flatpak."""
 import subprocess, threading, re, os, shutil
 import gi
 gi.require_version("Gtk", "4.0")
@@ -16,11 +16,11 @@ row {{ border-bottom: 1px solid #383a3f; }}
 """
 class Store(Gtk.Application):
     def __init__(self):
-        super().__init__(application_id="br.forja.Software.Pacman")
+        super().__init__(application_id="br.forja.Store")
         self.mode, self.rows, self.status, self.search = "updates", None, None, None
         self.installed, self.updates, self.flatpak_updates = {}, {}, []
     def do_activate(self):
-        w = Gtk.ApplicationWindow(application=self, title="Forja Software")
+        w = Gtk.ApplicationWindow(application=self, title="Forja Store")
         w.set_default_size(1000, 660)
         provider = Gtk.CssProvider()
         provider.load_from_data(CSS.encode())

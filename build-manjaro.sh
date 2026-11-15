@@ -333,7 +333,7 @@ GREETER
 done
 
 # Papirus é fornecido pelo pacote oficial papirus-icon-theme.
-# Instala o Pamac/Forja Software na imagem, sem incluir Flatpak.
+# Instala a Forja Store independente, integrada diretamente ao Pacman.
 if [[ "$DESKTOP" == mate ]]; then
   DESTDIR="$TARGET/desktop-overlay" bash /forja-ci/forja-pamac-pacman/install.sh
 fi

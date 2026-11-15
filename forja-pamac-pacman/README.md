@@ -1,6 +1,6 @@
-# Forja Software para Manjaro
+# Forja Store para Manjaro
 
-Interface GTK inspirada no fluxo do Pamac, usando o gerenciador nativo de pacotes do Manjaro.
+Loja gráfica própria da Forja OS. É independente do Pamac e utiliza o Pacman nativo do Manjaro para instalar, remover e atualizar programas.
 
 ## Repositórios e atualizações
 
@@ -11,9 +11,9 @@ Interface GTK inspirada no fluxo do Pamac, usando o gerenciador nativo de pacote
 
 ## Componentes
 
-- `forja-store`: catálogo GTK4 com telas Instalados, Pesquisa e Atualizações.
+- `forja-store`: aplicativo próprio GTK4 com telas Visão geral, Instalados, Pesquisa e Atualizações.
 - `forja-update-indicator`: indicador Ayatana para painéis XFCE e MATE.
 - `forja-pacman-transaction`: auxiliar privilegiado restrito para transações Pacman e Flatpak.
-- `pamac-inspired.svg`: ícone próprio da Forja.
+- Ícone e identidade visual próprios da Forja Store.
 
 Este módulo é exclusivo da base Manjaro. A base Ubuntu utiliza o módulo separado `forja-pamac-ubuntu/`.
