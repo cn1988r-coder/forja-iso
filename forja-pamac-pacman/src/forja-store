@@ -259,6 +259,10 @@ class Store(Gtk.Application):
         if response==Gtk.ResponseType.ACCEPT: self.transact("remove" if installed else "install",source,name)
 
     def transact(self,action,source,name):
+        if self.busy:
+            self.status.set_text("Aguarde a operação atual terminar antes de iniciar outra.")
+            return
+        self.busy=True
         self.status.set_text(f"Executando {action} · {source} · {name}…")
         def worker():
             result=run(["pkexec",HELPER,action,source,name],7200)
@@ -266,6 +270,7 @@ class Store(Gtk.Application):
         threading.Thread(target=worker,daemon=True).start()
 
     def operation_done(self,code,name,action,source):
+        self.busy=False
         self.status.set_text(("Concluído: " if code==0 else "Falhou ou foi cancelado: ")+name)
         if code==0: self.reload_installed()
         return GLib.SOURCE_REMOVE
