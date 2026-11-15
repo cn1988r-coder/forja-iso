@@ -60,7 +60,7 @@ jobs:
 
           for token in ('["pacman","-Ss",query]', '["yay","-Ssa",query]',
                         '["flatpak","search","--columns=application,name,description,remotes",query]',
-                        '"repo":"Repositório oficial"', '"aur":"AUR"', '"flatpak":"Flatpak"'):
+                        '"repo":"Repositório oficial"', '"aur":"AUR / pacote externo"', '"flatpak":"Flatpak"'):
               assert token in ui, f"Pesquisa/origem ausente na loja: {token}"
           assert '["pacman","-Qnq"]' in ui and '["pacman","-Qmq"]' in ui
           assert "AUR / pacote externo" in ui, "Pacotes estrangeiros não podem ser identificados como AUR com certeza"
