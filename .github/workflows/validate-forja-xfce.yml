@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - forja-xfce-interface
+      - feature/forja-xfce-store-integration
   workflow_dispatch:
 
 permissions:
@@ -31,6 +32,10 @@ jobs:
           import configparser
           import xml.etree.ElementTree as ET
           ET.parse("desktops/xfce/forja-flame.svg")
+          wallpaper = ET.parse("desktops/xfce/forja-xfce-wallpaper.svg").getroot()
+          wallpaper_text = "".join(wallpaper.itertext())
+          assert "FORJA OS" in wallpaper_text
+          assert "FORGE" not in wallpaper_text and "ARCH LINUX" not in wallpaper_text
           config = configparser.ConfigParser(interpolation=None)
           config.read("desktops/xfce/forja-xfce-appearance.desktop")
           entry = config["Desktop Entry"]
