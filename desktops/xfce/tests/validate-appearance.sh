@@ -66,8 +66,11 @@ grep -q 'for overlay_name in desktop-overlay live-overlay' "$REPO_ROOT/build-man
 grep -q 'FORJA_SKIP_STORE_INSTALL:-0' "$REPO_ROOT/build-manjaro.sh"
 
 grep -q 'OnlyShowIn=XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-update-indicator.desktop"
+grep -q 'OnlyShowIn=XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-polkit-agent.desktop"
+grep -q 'polkit-gnome' "$ROOT/packages.manjaro"
+grep -q 'forja-polkit-agent.desktop' "$REPO_ROOT/forja-pamac-pacman/install.sh"
 grep -q 'forja-update-error.svg' "$REPO_ROOT/forja-pamac-pacman/install.sh"
-grep -q 'icon="forja-update-error"' "$REPO_ROOT/forja-pamac-pacman/src/forja-update-indicator"
+grep -q '"forja-update-error"' "$REPO_ROOT/forja-pamac-pacman/src/forja-update-indicator"
 
 grep -q '#000000' "$ROOT/forja-black-wallpaper.svg"
 grep -q '/usr/share/backgrounds/forja-black.svg' "$ROOT/forja-xfce-desktop.xml"
@@ -104,4 +107,16 @@ grep -q 'stroke="#ffffff"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-ava
 grep -q 'stroke="#e53935"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-available.svg"
 grep -q 'OnlyShowIn=XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-update-indicator.desktop"
 
-echo "Forja XFCE: aparência, painel, Docklike, indicador e integração Store validados."
+# Store must ship its independent parser and test the real AppStream/Pacman/AUR/Flatpak paths.
+test -f "$REPO_ROOT/forja-pamac-pacman/src/forja_store_core.py"
+test -f "$REPO_ROOT/forja-pamac-pacman/tests/test_store_core.py"
+test -f "$REPO_ROOT/forja-pamac-pacman/tests/test_transactions.py"
+grep -q 'forja_store_core.py' "$REPO_ROOT/forja-pamac-pacman/install.sh"
+grep -q 'from forja_store_core import' "$REPO_ROOT/forja-pamac-pacman/src/forja-store"
+grep -q 'parse_flatpak_updates' "$REPO_ROOT/forja-pamac-pacman/src/forja-update-indicator"
+grep -q 'flatpak remote-ls' "$REPO_ROOT/forja-pamac-pacman/src/forja-store"
+grep -q 'archlinux-appstream-data' "$REPO_ROOT/forja-pamac-pacman/packages.manjaro"
+grep -q 'flatpak install' "$REPO_ROOT/forja-pamac-pacman/src/forja-pacman-transaction"
+grep -q 'yay' "$REPO_ROOT/forja-pamac-pacman/src/forja-pacman-transaction"
+
+echo "Forja XFCE: aparência, painel, Docklike, indicador e Forja Store validados."

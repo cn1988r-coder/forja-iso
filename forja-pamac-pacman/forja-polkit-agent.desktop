@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Forja Polkit Authentication Agent
+Comment=Autenticação gráfica para operações administrativas no XFCE
+Exec=/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
+Terminal=false
+NoDisplay=true
+OnlyShowIn=XFCE;
+X-GNOME-Autostart-enabled=true

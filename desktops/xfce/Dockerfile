@@ -5,8 +5,9 @@
 FROM archlinux:latest
 
 RUN pacman -Syu --noconfirm --needed \
-      bash shellcheck grep coreutils python desktop-file-utils libxml2 \
-    && pacman -Scc --noconfirm
+      bash shellcheck grep coreutils python desktop-file-utils libxml2 appstream archlinux-appstream-data flatpak \
+    && pacman -Scc --noconfirm \
+    && appstreamcli refresh-cache
 
 WORKDIR /src
 COPY build-cloud.sh /src/build-cloud.sh
@@ -30,12 +31,15 @@ RUN for script in \
       /src/forja-pamac-pacman/src/forja-pkexec-sudo \
     && python -m py_compile \
       /src/forja-pamac-pacman/src/forja-store \
+      /src/forja-pamac-pacman/src/forja_store_core.py \
       /src/forja-pamac-pacman/src/forja-pacman-transaction \
       /src/forja-pamac-pacman/src/forja-update-indicator \
+    && python -m unittest discover -s /src/forja-pamac-pacman/tests -v \
     && desktop-file-validate \
       /src/desktops/xfce/forja-xfce-appearance.desktop \
       /src/forja-pamac-pacman/forja-software.desktop \
       /src/forja-pamac-pacman/forja-update-indicator.desktop \
+      /src/forja-pamac-pacman/forja-polkit-agent.desktop \
     && xmllint --noout \
       /src/desktops/xfce/forja-flame.svg \
       /src/desktops/xfce/forja-black-wallpaper.svg \

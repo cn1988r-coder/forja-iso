@@ -51,6 +51,7 @@ pacman-contrib
 appstream
 archlinux-appstream-data
 polkit
+polkit-gnome
 # Forja Store: Pacman, AUR/yay e Flatpak
 flatpak
 yay

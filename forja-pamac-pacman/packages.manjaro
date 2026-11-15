@@ -1,9 +1,12 @@
-# Dependências da Forja Store: GTK3, Pacman, yay/AUR e Flatpak
+# Dependências completas da Forja Store no Manjaro XFCE
 gtk3
 python
 python-gobject
 pacman-contrib
 polkit
+polkit-gnome
+appstream
+archlinux-appstream-data
 flatpak
 yay
 base-devel
