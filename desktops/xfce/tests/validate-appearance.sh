@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+bash -n "$ROOT/apply-forja-layout.sh" "$ROOT/install-branding.sh"
+grep -q '^adw-gtk-theme$' "$ROOT/packages.arch"
+grep -q '^adw-gtk-theme$' "$ROOT/packages.manjaro"
+grep -q '^papirus-icon-theme$' "$ROOT/packages.arch"
+grep -q '^papirus-icon-theme$' "$ROOT/packages.manjaro"
+grep -q '^bibata-cursor-theme$' "$ROOT/packages.arch"
+grep -q '^bibata-cursor-theme$' "$ROOT/packages.manjaro"
+! grep -q '^materia-gtk-theme$' "$ROOT/packages.arch"
+! grep -q '^materia-gtk-theme$' "$ROOT/packages.manjaro"
+grep -q 'GTK_THEME="adw-gtk3-dark"' "$ROOT/apply-forja-layout.sh"
+grep -q 'ICON_THEME="Papirus-Dark"' "$ROOT/apply-forja-layout.sh"
+grep -q 'CURSOR_THEME="Bibata-Modern-Ice"' "$ROOT/apply-forja-layout.sh"
+echo "Forja XFCE appearance configuration: static checks passed."
