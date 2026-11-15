@@ -6,3 +6,4 @@ python-gobject
 libayatana-appindicator
 pacman-contrib
 polkit
+flatpak
