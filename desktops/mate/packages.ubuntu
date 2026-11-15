@@ -20,4 +20,9 @@ update-notifier
 firefox
 papirus-icon-theme
 bibata-cursor-theme
-materia-gtk-theme
+git
+meson
+npm
+ninja-build
+gnome-themes-extra
+gtk2-engines-murrine
