@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 export LANG=C
-DESKTOP="${FORJA_DESKTOP:-mate}"
-case "$DESKTOP" in mate|xfce) ;; *) echo "Desktop inválido: $DESKTOP (use mate ou xfce)." >&2; exit 2;; esac
+DESKTOP="${FORJA_DESKTOP:-xfce}"
+case "$DESKTOP" in xfce) ;; *) echo "Esta edição da Forja OS oferece somente XFCE; valor recebido: $DESKTOP." >&2; exit 2;; esac
 KERNEL="${FORJA_KERNEL:-lts}"
 WORK=/tmp/forja-manjaro
 OUT="${FORJA_OUTPUT:-/forja-output}"
@@ -61,29 +61,29 @@ TARGET="$PROFILE_ROOT/manjaro/forja-$DESKTOP"
 BASE_PROFILE="$PROFILE_ROOT/manjaro/$DESKTOP"
 rm -rf "$TARGET"
 
-if [[ "$DESKTOP" == mate || "$DESKTOP" == xfce ]]; then
+if [[ "$DESKTOP" == xfce ]]; then
   mkdir -p "$TARGET"
 
-  # Primeiro tenta usar o perfil MATE oficial, como no método da Cloud.
-  # Algumas versões do iso-profiles podem não publicar mais esse perfil;
-  # nesse caso, usa os componentes compartilhados oficiais do Manjaro.
+  # A edição única usa o perfil oficial XFCE do Manjaro.
+  # Se o perfil não existir na revisão obtida, monta a estrutura a partir dos
+  # componentes compartilhados, sem importar arquivos de outro ambiente.
   if [[ -d "$BASE_PROFILE" ]]; then
-    echo "Usando perfil oficial como base: manjaro/mate"
+    echo "Usando perfil oficial como base: manjaro/xfce"
     cp -a "$BASE_PROFILE/." "$TARGET/"
   else
-    echo "Perfil manjaro/mate não existe nesta revisão; montando perfil MATE a partir de shared."
+    echo "Perfil manjaro/xfce ausente; montando perfil XFCE a partir dos componentes compartilhados."
     mkdir -p "$TARGET/desktop-overlay" "$TARGET/live-overlay"
     cp "$PROFILE_ROOT/shared/Packages-Root" "$TARGET/Packages-Root"
     cp "$PROFILE_ROOT/shared/Packages-Mhwd" "$TARGET/Packages-Mhwd"
     cp "$PROFILE_ROOT/shared/Packages-Live" "$TARGET/Packages-Live"
     cp -a "$PROFILE_ROOT/shared/manjaro/live-overlay/." "$TARGET/live-overlay/"
-    cat > "$TARGET/profile.conf" <<'MATE_PROFILE'
+    cat > "$TARGET/profile.conf" <<'XFCE_PROFILE'
 displaymanager="lightdm"
 autologin="true"
 nonfree_mhwd="false"
 enable_systemd=('NetworkManager' 'bluetooth')
 enable_systemd_live=('NetworkManager' 'bluetooth' 'manjaro-live' 'mhwd-live' 'pacman-init' 'mirrors-live')
-MATE_PROFILE
+XFCE_PROFILE
   fi
 
   mkdir -p "$TARGET/desktop-overlay" "$TARGET/live-overlay"
