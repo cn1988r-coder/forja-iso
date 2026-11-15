@@ -40,9 +40,25 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 UNIT
 ln -sfn ../forja-flatpak-setup.service "$(target /etc/systemd/system/multi-user.target.wants/forja-flatpak-setup.service)"
+cat > "$(target /etc/systemd/system/forja-icon-cache.service)" <<'UNIT'
+[Unit]
+Description=Refresh Forja OS application and status icons
+Before=display-manager.service
+ConditionPathExists=/usr/share/icons/hicolor/index.theme
+ConditionPathExists=/usr/bin/gtk-update-icon-cache
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/gtk-update-icon-cache -f /usr/share/icons/hicolor
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+ln -sfn ../forja-icon-cache.service "$(target /etc/systemd/system/multi-user.target.wants/forja-icon-cache.service)"
 if [[ -z "$DESTDIR" ]]; then
   systemctl daemon-reload
   systemctl enable --now forja-flatpak-setup.service
-  gtk-update-icon-cache -f /usr/share/icons/hicolor 2>/dev/null || true
+  systemctl enable --now forja-icon-cache.service
 fi
 echo "Forja Store, indicador, yay/AUR e configuração inicial do Flathub instalados."
