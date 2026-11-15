@@ -51,6 +51,7 @@ grep -q "'bluetooth'" "$REPO_ROOT/build-manjaro.sh"
 grep -q 'etc/xdg/xfce4/panel/default.xml' "$ROOT/install-branding.sh"
 grep -q 'etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml' "$ROOT/install-branding.sh"
 grep -q 'etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml' "$ROOT/install-branding.sh"
+grep -q 'etc/skel/.config/xfce4/panel/docklike.rc' "$ROOT/install-branding.sh"
 grep -q 'etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml' "$ROOT/install-branding.sh"
 grep -q 'forja-black-wallpaper.svg' "$ROOT/install-branding.sh"
 for stock_wallpaper in manjaro-wallpapers-18.0 wallpapers-2018 wallpapers-juhraya illyria-wallpaper manjaro-xfce-settings manjaro-xfce-minimal-settings; do
