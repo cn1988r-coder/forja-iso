@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="flame" x1="0" y1="1" x2="0.8" y2="0">
+      <stop offset="0" stop-color="#f05a18"/>
+      <stop offset="0.52" stop-color="#ff8a24"/>
+      <stop offset="1" stop-color="#ffd166"/>
+    </linearGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="24"/>
+    </filter>
+  </defs>
+  <rect width="1920" height="1080" fill="#050608"/>
+  <ellipse cx="960" cy="455" rx="145" ry="175" fill="#f47721" opacity=".12" filter="url(#glow)"/>
+  <path d="M960 205 C1005 285 1084 339 1074 438 C1066 523 1012 583 960 603 C908 583 854 523 846 438 C836 339 915 285 960 205 Z" fill="url(#flame)"/>
+  <path d="M960 342 C987 393 1021 424 1014 475 C1008 521 982 551 960 561 C938 551 912 521 906 475 C899 424 933 393 960 342 Z" fill="#ffd166" opacity=".88"/>
+  <text x="960" y="716" text-anchor="middle" fill="#238bff" font-family="Inter,Montserrat,Arial,sans-serif" font-size="92" font-weight="650" letter-spacing="19">FORGE</text>
+  <text x="960" y="782" text-anchor="middle" fill="#65758a" font-family="Inter,Arial,sans-serif" font-size="25" font-weight="500" letter-spacing="8">XFCE  •  ARCH LINUX</text>
+</svg>
