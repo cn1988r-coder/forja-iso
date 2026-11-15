@@ -60,7 +60,7 @@ jobs:
           assert '["yay","-Qua"]' in ui and '["flatpak","remote-ls","--system","--updates"' in ui
           assert '["flatpak","remote-ls","--user","--updates"' in ui
           assert '["flatpak","update","--user","--noninteractive","--assumeyes"]' in ui
-          assert 'GLib.SOURCE_CONTINUE' not in ui or 'GLib.SOURCE_CONTINUE' in ui
+          assert 'self.load_updates()' in ui and 'self.reload_installed()' in ui
           for token in ('["checkupdates"]', '["yay","-Qua"]',
                         '["flatpak","remote-ls","--system","--updates"',
                         '["flatpak","remote-ls","--user","--updates"',
@@ -73,6 +73,7 @@ jobs:
           assert 'flatpak remote-add --if-not-exists --system flathub' in installer
           assert 'yay' in packages and 'base-devel' in packages and 'git' in packages
           assert 'yay' in build and 'base-devel' in build and 'forja-pamac-pacman/install.sh' in build
+          assert 'pacman -Sgq "$package"' in build, "O filtro do perfil precisa preservar grupos como base-devel"
           assert pathlib.Path(root / "src/forja-pkexec-sudo").is_file()
           assert 'OnlyShowIn=MATE;' in (root / "forja-update-indicator.desktop").read_text()
 
@@ -104,6 +105,18 @@ jobs:
           with patch.object(shutil,"which",return_value="/usr/bin/flatpak"), patch.object(module["subprocess"],"call",return_value=1) as proc:
               assert main(["install","flatpak","org.mozilla.firefox"]) == 1
               proc.assert_called_once()
+          with patch.object(shutil,"which",return_value=None):
+              assert main(["flatpak-upgrade"]) == 127, "Flatpak ausente deve ser reportado"
+
+          # User-scope Flatpak is queried and removed as the desktop user, not root.
+          with patch.object(shutil,"which",return_value="/usr/bin/flatpak"), \
+               patch.dict(os.environ,{"PKEXEC_UID":"1000"}), \
+               patch.object(module["pwd"],"getpwuid",return_value=type("U",(),{"pw_uid":1000,"pw_name":"tester","pw_dir":"/home/tester"})()), \
+               patch.object(module["subprocess"],"call",side_effect=[1,0,0]) as proc:
+              assert main(["remove","flatpak","org.mozilla.firefox"]) == 0
+              assert proc.call_args_list[0].args[0] == ["flatpak","info","--system","org.mozilla.firefox"]
+              assert "flatpak" in proc.call_args_list[1].args[0] and "--user" in proc.call_args_list[1].args[0]
+              assert "uninstall" in proc.call_args_list[2].args[0] and "--user" in proc.call_args_list[2].args[0]
 
           # AUR helper runs as the invoking desktop user, never as root.
           with patch.object(shutil,"which",return_value="/usr/bin/yay"), \
