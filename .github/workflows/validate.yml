@@ -1,10 +1,6 @@
 name: Validate Forja Store and desktop integration
 
 on:
-  push:
-    branches: [main, feature/forja-xfce-store-integration]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -95,5 +91,3 @@ jobs:
           print("Forja Store: Pamac GTK4/libadwaita, libpamac, AUR, Flatpak, visual Forja e XFCE verificados.")
           PY
 
-      - name: Build AppStream integration validation container
-        run: docker build -f desktops/xfce/Dockerfile .
