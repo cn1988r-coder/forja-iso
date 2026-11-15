@@ -67,6 +67,10 @@ def parse_pacman_search(output, source="repo"):
     current = None
     for line in output.splitlines():
         if line and not line[0].isspace():
+            first = line.split(None, 1)[0]
+            if source == "aur" and not first.lower().startswith("aur/"):
+                current = None
+                continue
             match = re.match(r"^(?:[^/\s]+/)?([^\s]+)\s+([^\s]+)", line)
             if match:
                 current = {
