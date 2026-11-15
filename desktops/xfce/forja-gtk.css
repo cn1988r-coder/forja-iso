@@ -144,3 +144,24 @@
 #whiskermenu-button image {
   -gtk-icon-style: symbolic;
 }
+
+/* Consistent spacing for native XFCE panel items and status indicators. */
+#XfcePanelWindow button {
+  min-height: 30px;
+  padding: 0 6px;
+  margin: 3px 3px;
+  border-radius: 7px;
+  background-color: transparent;
+  border: 1px solid transparent;
+}
+
+#XfcePanelWindow button:hover {
+  background-color: @forja_hover;
+  border-color: @forja_border;
+}
+
+#XfcePanelWindow button:active,
+#XfcePanelWindow button:checked {
+  background-color: @forja_selected;
+  border-color: #555555;
+}
