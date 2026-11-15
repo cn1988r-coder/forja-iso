@@ -48,6 +48,10 @@ jobs:
           ui = (root / "forja-store").read_text()
           assert '"atualizar":"upgrade"' in ui, "Botão Atualizar não está ligado a upgrade"
           assert '"remover":"remove"' in ui, "Botão Remover não está ligado a remove"
+          assert 'flatpak remote-ls' in ui, "A loja não consulta atualizações Flatpak"
+          assert 'flatpak update' in ui, "A loja não atualiza Flatpak do usuário"
+          assert 'flatpak' in pathlib.Path("build-manjaro.sh").read_text(), "Flatpak não está integrado ao perfil Manjaro"
+          assert 'dl.flathub.org/repo/flathub.flatpakrepo' in pathlib.Path("build-manjaro.sh").read_text(), "O remote oficial Flathub não está configurado"
 
           module = runpy.run_path(str(root / "forja-pacman-transaction"))
           main = module["main"]
@@ -57,9 +61,19 @@ jobs:
               assert main() == 0
               call.assert_called_once_with(["pacman", "-S", "--needed", "firefox"])
 
-          with patch.object(sys, "argv", ["helper", "upgrade"]), patch.object(subprocess, "call", return_value=0) as call:
+          shutil = module["shutil"]
+          with patch.object(sys, "argv", ["helper", "upgrade"]), patch.object(shutil, "which", return_value=None), patch.object(subprocess, "call", return_value=0) as call:
               assert main() == 0
               call.assert_called_once_with(["pacman", "-Syu"])
+
+          with patch.object(sys, "argv", ["helper", "upgrade"]), patch.object(shutil, "which", return_value="/usr/bin/flatpak"), patch.object(subprocess, "call", side_effect=[0, 0]) as call:
+              assert main() == 0
+              assert call.call_args_list[0].args[0] == ["pacman", "-Syu"]
+              assert call.call_args_list[1].args[0] == ["flatpak", "update", "--system", "--noninteractive", "--assumeyes"]
+
+          with patch.object(sys, "argv", ["helper", "flatpak-upgrade"]), patch.object(shutil, "which", return_value="/usr/bin/flatpak"), patch.object(subprocess, "call", return_value=0) as call:
+              assert main() == 0
+              call.assert_called_once_with(["flatpak", "update", "--system", "--noninteractive", "--assumeyes"])
 
           with patch.object(sys, "argv", ["helper", "install", "-R"]), patch.object(subprocess, "call") as call:
               assert main() == 2, "Nome iniciado por hífen deveria ser rejeitado"
