@@ -82,9 +82,7 @@ class UpdateIndicator:
         return GLib.SOURCE_REMOVE
 
     def open_store(self, *_):
-        env = __import__("os").environ.copy()
-        env["FORJA_OPEN_UPDATES"] = "1"
-        subprocess.Popen(["forja-store"], env=env)
+        subprocess.Popen(["forja-store", "--updates"])
 
     def upgrade(self, *_):
         self.state.set_label("Instalando atualizações…")
