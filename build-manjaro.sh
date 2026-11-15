@@ -71,6 +71,9 @@ for shared_list in Packages-Root Packages-Mhwd Packages-Live; do
   install -m 0644 "$PROFILE_ROOT/shared/$shared_list" "$TARGET/$shared_list"
 done
 
+# O sistema instalado precisa do gerador oficial de mirrorlist no primeiro boot.
+grep -Fxq pacman-mirrors "$TARGET/Packages-Root" || printf '%s\n' pacman-mirrors >> "$TARGET/Packages-Root"
+
 # A sessão Live usa apenas os mecanismos de inicialização da base.
 # Todas as configurações XFCE do overlay genérico são descartadas e recriadas
 # pela Forja antes da criação da imagem.
@@ -484,6 +487,8 @@ command -v pacman-mirrors >/dev/null 2>&1 || {
   echo "ERRO: pacman-mirrors não está disponível no ambiente de compilação." >&2
   exit 42
 }
+echo "Definindo branch Manjaro Stable e priorizando HTTPS..."
+pacman-mirrors --api --set-branch stable --protocol https,http
 echo "Atualizando espelhos Manjaro (10 mais rápidos)..."
 pacman-mirrors --fasttrack 10
 MIRRORLIST=/etc/pacman.d/mirrorlist
