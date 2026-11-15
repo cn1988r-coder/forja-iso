@@ -86,6 +86,7 @@ jobs:
           assert 'def initial_check(self)' in indicator and 'return GLib.SOURCE_REMOVE' in indicator
           assert '["pkexec",HELPER,"upgrade"]' in indicator
           assert 'forja-pkexec-sudo' in installer and 'forja-flatpak-setup.service' in installer
+          assert 'forja-icon-cache.service' in installer and 'gtk-update-icon-cache' in installer
           assert 'flatpak remote-add --if-not-exists --system flathub' in installer
           assert 'yay' in packages and 'base-devel' in packages and 'git' in packages
           assert pathlib.Path(root / "src/forja-pkexec-sudo").is_file()
