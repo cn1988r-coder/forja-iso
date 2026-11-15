@@ -487,11 +487,19 @@ command -v pacman-mirrors >/dev/null 2>&1 || {
 echo "Atualizando espelhos Manjaro (10 mais rápidos)..."
 pacman-mirrors --fasttrack 10
 MIRRORLIST=/etc/pacman.d/mirrorlist
-if ! grep -Eq '^[[:space:]]*Include[[:space:]]*=[[:space:]]*/etc/pacman.d/mirrorlist([[:space:]]|$)' "$PACMAN_CONF"; then
-  echo "ERRO: pacman.conf não está direcionando os repositórios para a mirrorlist Manjaro." >&2
+if ! grep -Fqx '[core]' "$PACMAN_CONF" || ! grep -Fqx '[extra]' "$PACMAN_CONF"; then
+  echo "ERRO: repositórios core/extra do Manjaro não estão habilitados no pacman.conf." >&2
   exit 42
 fi
-if ! grep -Eq '^[[:space:]]*\\[core\\][[:space:]]*
+if [[ "$(grep -Fc 'Include = /etc/pacman.d/mirrorlist' "$PACMAN_CONF")" -lt 2 ]]; then
+  echo "ERRO: pacman.conf não está direcionando core/extra para a mirrorlist Manjaro." >&2
+  exit 42
+fi
+if ! grep -Eq '^[[:space:]]*Server[[:space:]]*=[[:space:]]*https?://' "$MIRRORLIST"; then
+  echo "ERRO: pacman-mirrors não gerou servidores válidos em $MIRRORLIST." >&2
+  exit 42
+fi
+if ! grep -Eq '^[[:space:]]*XferCommand[[:space:]]*=' "$PACMAN_CONF"; then
   sed -i '/^\[options\]/a XferCommand = /usr/bin/curl --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 600 -L -C - -f -o %o %u' "$PACMAN_CONF"
 fi
 if ! grep -Eq '^[[:space:]]*DisableDownloadTimeout([[:space:]]|$)' "$PACMAN_CONF"; then
