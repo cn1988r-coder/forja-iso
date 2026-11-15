@@ -46,8 +46,7 @@ if [[ -f "$WALLPAPER" ]]; then
   )
   if (("${#wallpaper_properties[@]}")); then
     for property in "${wallpaper_properties[@]}"; do
-      xfconf-query -c xfce4-desktop -p "$property" -s "$WALLPAPER" >/dev/null 2>&1 || \
-        xfconf-query -c xfce4-desktop -p "$property" --create -t string -s "$WALLPAPER" >/dev/null 2>&1 || true
+      xfconf-query -c xfce4-desktop -p "$property" -s "$WALLPAPER" >/dev/null 2>&1 || true
     done
   else
     xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/last-image \
