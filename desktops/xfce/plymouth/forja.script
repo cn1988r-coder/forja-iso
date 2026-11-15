@@ -16,7 +16,7 @@ track_sprite.SetX(screen_width / 2 - track_image.GetWidth() / 2);
 track_sprite.SetY(screen_height * 0.55);
 track_sprite.SetZ(100);
 
-light_image = Image.Text("●", 0.95, 0.95, 0.95);
+light_image = Image.Text("o", 0.95, 0.95, 0.95);
 light_sprite = Sprite(light_image);
 light_sprite.SetY(screen_height * 0.55);
 light_sprite.SetZ(101);
@@ -32,10 +32,3 @@ fun refresh_callback()
 }
 Plymouth.SetRefreshFunction(refresh_callback);
 
-fun progress_callback(duration, progress)
-{
-    if (progress < 0) progress = 0;
-    if (progress > 1) progress = 1;
-    light_sprite.SetOpacity(0.55 + (progress * 0.45));
-}
-Plymouth.SetBootProgressFunction(progress_callback);
