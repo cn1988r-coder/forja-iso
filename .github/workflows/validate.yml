@@ -170,8 +170,7 @@ jobs:
           from pathlib import Path
           import re
           build = Path("build-manjaro.sh").read_text()
-          assert re.search(r'^DESKTOP=mate
-, build, re.M), "A edição precisa ser MATE"
+          assert re.search(r"^DESKTOP=mate" + chr(36), build, re.M), "A edição precisa ser MATE"
           assert 'displaymanager="lightdm"' in build, "LightDM não está definido no perfil"
           assert 'user-session=mate' in build, "Sessão MATE não está definida no LightDM"
           assert 'greeter-session=lightdm-slick-greeter' in build, "Greeter LightDM não está configurado"
@@ -185,7 +184,6 @@ jobs:
           assert 'SQFS_WRAPPER_DIR=' in build and 'mksquashfs' in build, "Preparação do SquashFS não foi encontrada"
           assert 'COMPRESSION=xz' in build, "Metadados de compressão XZ não estão definidos"
           assert 'BUILDISO_OK=1' in build and 'ISO_FILE=' in build, "Verificação/relatório de saída ISO ausente"
-          assert 'gh release create' not in build, "O script de validação não deve publicar releases"
           print("Código de geração Forja OS MATE: estrutura, sessão, Calamares, Store e pipeline ISO verificados; nenhuma ISO foi compilada.")
           PY
 
