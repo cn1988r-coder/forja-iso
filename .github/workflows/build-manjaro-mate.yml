@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     permissions:
-      contents: write
+      contents: read
       id-token: write
     env:
       FORJA_KERNEL: ${{ inputs.kernel || github.event.client_payload.kernel || needs.check-queue.outputs.kernel || 'lts' }}
@@ -184,10 +184,6 @@ jobs:
           test -s "$checksum_file"
           (cd "$(dirname "$iso")" && sha256sum --check "$(basename "$checksum_file")")
           size_bytes="$(stat -c '%s' "$iso")"
-          if (( size_bytes >= 2147483648 )); then
-            echo "ERRO: ISO com $size_bytes bytes excede o limite de 2 GiB por arquivo da GitHub Release." >&2
-            exit 32
-          fi
           test -s forja-output/build-info.txt
           grep -Fxq 'DESKTOP=mate' forja-output/build-info.txt
           grep -Fxq 'BASE=Manjaro' forja-output/build-info.txt
@@ -207,35 +203,23 @@ jobs:
             });
             if (!response.ok) throw new Error(`Forja status update failed: ${await response.text()}`);
 
-      - name: Publish ISO as a permanent GitHub Release
-        id: publish_release
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ISO_PATH: ${{ steps.verify.outputs.iso }}
-          KERNEL: ${{ env.FORJA_KERNEL }}
-          REQUEST_ID: ${{ env.FORJA_REQUEST_ID }}
-        run: |
-          set -Eeuo pipefail
-          tag="forja-${REQUEST_ID:-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}}"
-          title="Forja Manjaro MATE - Kernel ${KERNEL}"
-          notes="ISO Manjaro MATE gerada pela Forja.\n\nChecksum SHA-256 e informações da compilação incluídos nos arquivos desta publicação."
-          gh release create "$tag" \
-            "$ISO_PATH" \
-            "${ISO_PATH}.sha256" \
-            "forja-output/build-info.txt" \
-            --title "$title" \
-            --notes "$notes"
-          download_url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${tag}/$(basename "$ISO_PATH")"
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          echo "download_url=$download_url" >> "$GITHUB_OUTPUT"
-          echo "Release criada: $download_url"
+      - name: Upload ISO temporária (24 horas)
+        id: upload_iso
+        uses: actions/upload-artifact@v4
+        with:
+          name: forja-os-mate-${{ env.FORJA_KERNEL }}-${{ github.run_id }}
+          path: |
+            ${{ steps.verify.outputs.iso }}
+            ${{ steps.verify.outputs.iso }}.sha256
+            forja-output/build-info.txt
+          if-no-files-found: error
+          retention-days: 1
 
-      - name: Publish completed build to Forja panel
+      - name: Publish temporary download link to Forja panel
         if: ${{ success() && env.FORJA_REQUEST_ID != '' }}
         uses: actions/github-script@v7
         env:
-          DOWNLOAD_URL: ${{ steps.publish_release.outputs.download_url }}
+          DOWNLOAD_URL: ${{ steps.upload_iso.outputs.artifact-url }}
         with:
           script: |
             const token = await core.getIDToken('forja-iso-worker');
@@ -246,11 +230,30 @@ jobs:
                 id: process.env.FORJA_REQUEST_ID,
                 status: 'complete',
                 progress: 100,
-                stage: 'ISO publicada; download disponível',
+                stage: 'ISO compilada; link temporário válido por 24 horas',
                 downloadUrl: process.env.DOWNLOAD_URL
               })
             });
             if (!response.ok) throw new Error(`Forja completion update failed: ${await response.text()}`);
+
+      - name: Add temporary download link to workflow summary
+        if: ${{ success() }}
+        shell: bash
+        env:
+          DOWNLOAD_URL: ${{ steps.upload_iso.outputs.artifact-url }}
+          KERNEL: ${{ env.FORJA_KERNEL }}
+        run: |
+          set -Eeuo pipefail
+          test -n "$DOWNLOAD_URL"
+          {
+            echo "## ISO FORJA OS MATE pronta"
+            echo
+            echo "- **Kernel:** $KERNEL"
+            echo "- **Arquivo:** ISO completa, sem divisão em partes"
+            echo "- **Disponibilidade:** link temporário por 24 horas"
+            echo
+            echo "[**BAIXAR A ISO COMPLETA**]($DOWNLOAD_URL)"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Mark Forja request as failed
         if: ${{ failure() && env.FORJA_REQUEST_ID != '' }}
