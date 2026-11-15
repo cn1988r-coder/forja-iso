@@ -329,7 +329,7 @@ done
 
 # Papirus é fornecido pelo pacote oficial papirus-icon-theme.
 # Instala a Forja Store independente, integrada diretamente ao Pacman.
-if [[ "$DESKTOP" == mate ]]; then
+if [[ "$DESKTOP" == mate && "${FORJA_SKIP_STORE_INSTALL:-0}" != "1" ]]; then
   DESTDIR="$TARGET/desktop-overlay" bash /forja-ci/forja-pamac-pacman/install.sh
 fi
 
