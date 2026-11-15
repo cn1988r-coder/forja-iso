@@ -343,8 +343,8 @@ GREETER
         "$overlay/etc/gtk-3.0" "$overlay/etc/gtk-4.0" \
         "$overlay/etc/skel/.config/gtk-3.0" "$overlay/etc/skel/.config/gtk-4.0" \
         "$overlay/etc/lightdm/lightdm.conf.d"
-      install -Dm644 /forja-ci/desktops/xfce/forja-xfce-wallpaper.svg \
-        "$overlay/usr/share/backgrounds/forja-os-xfce.svg"
+      # Keep the desktop intentionally plain: remove upstream XFCE/Manjaro artwork.
+      rm -rf "$overlay/usr/share/backgrounds/xfce" "$overlay/usr/share/xfce4/backdrops"
       # Recolor Papirus-Dark folders as root before the graphical session starts.
       # Running papirus-folders from a user autostart would require sudo and fail without a terminal.
       mkdir -p "$overlay/etc/systemd/system/multi-user.target.wants"
@@ -389,7 +389,7 @@ greeter-session=lightdm-gtk-greeter
 LIGHTDM
       cat > "$overlay/etc/lightdm/lightdm-gtk-greeter.conf" <<'GREETER'
 [greeter]
-background=/usr/share/backgrounds/forja-os-xfce.svg
+background=/usr/share/backgrounds/forja-black.svg
 user-background=false
 theme-name=adw-gtk3-dark
 icon-theme-name=Papirus-Dark
@@ -517,7 +517,7 @@ while IFS= read -r -d '' package_list; do
     fi
     case "$package" in
       # Drivers opcionais incompatíveis/dispensáveis na ISO desktop: módulo RT3562STA legado e módulos de convidado VirtualBox.
-      linux[0-9]*-rt3562sta|linux[0-9]*-virtualbox-guest-modules|xfce4-goodies|gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|xdg-su|manjaro-documentation-en|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*)
+      linux[0-9]*-rt3562sta|linux[0-9]*-virtualbox-guest-modules|xfce4-goodies|xfce4-artwork|xfce4-wallpapers|manjaro-wallpapers|manjaro-wallpapers-18.0|gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|xdg-su|manjaro-documentation-en|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*)
         echo "Forja: pacote legado/NVIDIA removido: $package" >&2
         printf '# Forja: pacote legado removido: %s\n' "$package" >> "$filtered_list"
         continue
