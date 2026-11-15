@@ -293,6 +293,60 @@ install -Dm644 /forja-ci/desktops/xfce/plymouth/plymouthd.conf "$TARGET/rootfs/e
 install -Dm644 /forja-ci/desktops/xfce/plymouth/forja.plymouth "$TARGET/rootfs/usr/share/plymouth/themes/forja/forja.plymouth"
 install -Dm644 /forja-ci/desktops/xfce/plymouth/forja.script "$TARGET/rootfs/usr/share/plymouth/themes/forja/forja.script"
 
+
+# Repositórios do sistema instalado: somente os mirrors oficiais do Manjaro.
+install -Dm644 /dev/stdin "$TARGET/rootfs/etc/pacman.conf" <<'PACMANCONF'
+[options]
+HoldPkg = pacman glibc manjaro-system
+Architecture = auto
+Color
+CheckSpace
+ParallelDownloads = 5
+SigLevel = Required DatabaseOptional
+LocalFileSigLevel = Optional
+
+[core]
+SigLevel = PackageRequired
+Include = /etc/pacman.d/mirrorlist
+
+[extra]
+SigLevel = PackageRequired
+Include = /etc/pacman.d/mirrorlist
+PACMANCONF
+
+install -Dm644 /dev/stdin "$TARGET/rootfs/etc/pacman-mirrors.conf" <<'MIRRORSCONF'
+Branch = stable
+Method = rank
+Protocols = https,http
+MIRRORSCONF
+
+install -Dm644 /dev/stdin "$TARGET/rootfs/etc/pacman.d/mirrorlist" <<'MIRRORLIST'
+## Mirrorlist gerada no primeiro boot pelo forja-manjaro-mirrors.service.
+## Somente servidores oficiais do Manjaro.
+MIRRORLIST
+
+install -Dm644 /dev/stdin "$TARGET/rootfs/etc/systemd/system/forja-manjaro-mirrors.service" <<'MIRRORSERVICE'
+[Unit]
+Description=Generate current official Manjaro mirror list for Forja OS
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=0
+ConditionPathExists=/usr/bin/pacman-mirrors
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/pacman-mirrors --fasttrack 10
+TimeoutStartSec=10min
+Restart=on-failure
+RestartSec=30
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+MIRRORSERVICE
+mkdir -p "$TARGET/rootfs/etc/systemd/system/multi-user.target.wants"
+ln -sfn ../forja-manjaro-mirrors.service "$TARGET/rootfs/etc/systemd/system/multi-user.target.wants/forja-manjaro-mirrors.service"
+
 DM=lightdm
 if grep -q '^#\?displaymanager=' "$TARGET/profile.conf"; then
   sed -i "s/^#\?displaymanager=.*/displaymanager=\"$DM\"/" "$TARGET/profile.conf"
@@ -428,8 +482,23 @@ command -v pacman-mirrors >/dev/null 2>&1 || {
   echo "ERRO: pacman-mirrors não está disponível no ambiente de compilação." >&2
   exit 42
 }
+echo "Definindo branch Manjaro Stable e protocolos HTTPS/HTTP..."
+pacman-mirrors --api --set-branch stable --protocol https,http
 echo "Atualizando espelhos Manjaro (10 mais rápidos)..."
 pacman-mirrors --fasttrack 10
+MIRRORLIST=/etc/pacman.d/mirrorlist
+if ! grep -Fqx '[core]' "$PACMAN_CONF" || ! grep -Fqx '[extra]' "$PACMAN_CONF"; then
+  echo "ERRO: repositórios core/extra do Manjaro não estão habilitados no pacman.conf." >&2
+  exit 42
+fi
+if [[ "$(grep -Fc 'Include = /etc/pacman.d/mirrorlist' "$PACMAN_CONF")" -lt 2 ]]; then
+  echo "ERRO: pacman.conf não está direcionando core/extra para a mirrorlist Manjaro." >&2
+  exit 42
+fi
+if ! grep -Eq '^[[:space:]]*Server[[:space:]]*=[[:space:]]*https?://' "$MIRRORLIST"; then
+  echo "ERRO: pacman-mirrors não gerou servidores válidos em $MIRRORLIST." >&2
+  exit 42
+fi
 if ! grep -Eq '^[[:space:]]*XferCommand[[:space:]]*=' "$PACMAN_CONF"; then
   sed -i '/^\[options\]/a XferCommand = /usr/bin/curl --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 600 -L -C - -f -o %o %u' "$PACMAN_CONF"
 fi
