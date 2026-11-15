@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 : "${FORJA_KERNEL:?Defina FORJA_KERNEL}"
-if [[ "${FORJA_DISTRIBUTION:-manjaro}" != manjaro || "${FORJA_DESKTOP:-mate}" != mate ]]; then
-  echo "Esta Forja gera exclusivamente Manjaro MATE." >&2
+if [[ "${FORJA_DISTRIBUTION:-manjaro}" != manjaro ]]; then
+  echo "Esta rotina de nuvem aceita somente a base Manjaro." >&2
   exit 2
 fi
+case "${FORJA_DESKTOP:-xfce}" in
+  xfce) ;;
+  *) echo "Forja OS possui somente a edição XFCE." >&2; exit 2 ;;
+esac
 exec bash /forja-ci/build-manjaro.sh
