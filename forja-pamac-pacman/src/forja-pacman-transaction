@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 PACKAGE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9@._+:-]*$")
-APP_ID = re.compile(r"^[A-Za-z0-9_-]+(?:\\.[A-Za-z0-9_-]+)+$")
+APP_ID = re.compile(r"^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)+$")
 ACTIONS = {"check", "install", "remove", "upgrade", "flatpak-upgrade"}
 
 def call(args, timeout=None):
