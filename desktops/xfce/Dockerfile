@@ -35,6 +35,7 @@ RUN for script in \
     && xmllint --noout \
       /src/desktops/xfce/forja-flame.svg \
       /src/desktops/xfce/forja-xfce-wallpaper.svg \
+      /src/desktops/xfce/panel-default.xml \
       /src/forja-pamac-pacman/icons/forja-update-current.svg \
       /src/forja-pamac-pacman/icons/forja-update-available.svg \
       /src/forja-pamac-pacman/icons/forja-update-error.svg \
