@@ -1,4 +1,4 @@
-name: Validate Forja OS XFCE generator (Manjaro preflight)
+name: Validate Forja OS independent XFCE profile
 
 on:
   push:
@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   xfce-manjaro-preflight:
-    name: Real Manjaro XFCE package/profile preflight (no ISO build)
+    name: Forja XFCE package/profile preflight (no ISO build)
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
@@ -52,7 +52,7 @@ jobs:
       - name: Pull Manjaro build environment
         run: docker pull manjarolinux/base:latest
 
-      - name: Execute actual Manjaro XFCE generator preflight
+      - name: Execute Forja XFCE generator preflight
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -73,6 +73,6 @@ jobs:
       - name: Confirm ISO build was not started
         if: always()
         run: |
-          echo "Este workflow valida pacotes e perfil Manjaro XFCE."
+          echo "Este workflow valida pacotes e o perfil XFCE próprio da Forja OS."
           echo "FORJA_PREFLIGHT_ONLY=1 impede a chamada ao buildiso."
           echo "Nenhuma ISO é criada ou publicada por este workflow."
