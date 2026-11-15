@@ -33,4 +33,4 @@ install -Dm644 "$ROOT/forja-xfce-desktop.xml" \
 if [[ -z "$DEST" ]] && command -v gtk-update-icon-cache >/dev/null 2>&1; then
   gtk-update-icon-cache -q -f /usr/share/icons/hicolor || true
 fi
-echo "Forja OS XFCE: Whisker Menu escuro e identificado, Docklike, bandeja, relógio e fundo preto configurados."
+echo "Forja OS XFCE: painel, Docklike, tema visual e Plymouth Forja instalados nos overlays."
