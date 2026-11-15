@@ -84,7 +84,7 @@ Bundle: flatpak:app/org.example.App/x86_64/stable
 
     def test_pamac_checkupdates_exit_100_means_updates_available(self):
         lines, error = parse_checkupdates(
-            subprocess.CompletedProcess([], 100, "firefox 1.0 -> 1.1\\n", "")
+            subprocess.CompletedProcess([], 100, "firefox 1.0 -> 1.1\n", "")
         )
         self.assertEqual(lines, ["firefox 1.0 -> 1.1"])
         self.assertFalse(error)
