@@ -151,6 +151,7 @@ icon-theme='Papirus-Dark'
 gtk-theme='Materia-dark'
 
 [org/mate/peripherals-mouse]
+left-handed=true
 cursor-theme='Bibata-Modern-Ice'
 
 [org/mate/marco/general]
