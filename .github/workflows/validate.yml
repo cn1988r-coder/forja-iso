@@ -106,8 +106,11 @@ jobs:
           grep -Fq "gtk-theme='Materia-dark'" build-manjaro.sh
           grep -Fq "cursor-theme='Bibata-Modern-Ice'" build-manjaro.sh
           grep -Fq 'Inherits=Bibata-Modern-Ice' build-manjaro.sh
-          test "$(grep -c '^papirus-icon-theme          echo "Configuração Manjaro MATE + Forja Software validada."
-
+          grep -Fq 'forja-pamac-pacman/install.sh' build-manjaro.sh
+          for package in networkmanager network-manager-applet bluez bluez-utils blueman firefox calamares; do
+            grep -Fq "$package" build-manjaro.sh
+          done
+          echo "Configuração Manjaro MATE + Materia Dark + Papirus + Bibata validada."
       - name: Preflight Manjaro MATE without creating ISO
         shell: bash
         run: |
