@@ -178,8 +178,8 @@ if ! pacman_info "$REQUIRED_GTK_THEME" >/dev/null 2>&1; then
   exit 24
 fi
 
-# Personalização visual Forja OS: wallpaper próprio, Materia Dark, Papirus-Dark,
-# Bibata, fontes Noto Sans/JetBrains Mono e LightDM estilizado.
+# Visual XFCE Forja OS: Adw GTK escuro, decoração Materia Dark, Papirus cinza,
+# Bibata escuro, fontes Noto Sans/JetBrains Mono e LightDM estilizado.
 # Materialize overlay symlinks before editing para não alterar arquivos compartilhados.
 for overlay_name in desktop-overlay live-overlay; do
   overlay="$TARGET/$overlay_name"
@@ -536,7 +536,7 @@ BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware 
 if [[ "$DESKTOP" == mate ]]; then
   DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media mate-system-monitor mate-terminal mate-calc mate-utils marco caja mozo pluma engrampa atril eom lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme gtk3 python python-gobject pacman-contrib flatpak yay git fastfetch bibata-cursor-theme dconf vlc htop gparted noto-fonts ttf-jetbrains-mono)
 else
-  DESKTOP_CORE_PACKAGES=(xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin xfce4-docklike-plugin xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders bibata-cursor-theme gtk3 gtk4 python python-gobject pacman-contrib polkit flatpak yay git base-devel)
+  DESKTOP_CORE_PACKAGES=(xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin xfce4-docklike-plugin xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders bibata-cursor-theme gtk3 gtk4 gsettings-desktop-schemas python python-gobject pacman-contrib polkit flatpak yay git base-devel)
 fi
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
