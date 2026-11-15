@@ -128,7 +128,8 @@ def parse_yay_updates(result):
 def parse_checkupdates(result):
     output = (result.stdout or "").strip()
     error = (result.stderr or "").strip()
-    if result.returncode in (0, 2) and not error:
+    # Pamac checkupdates returns 100 when updates are available.
+    if result.returncode in (0, 2, 100) and not error:
         return [line for line in output.splitlines() if line.strip()], False
     return [line for line in output.splitlines() if line.strip()], True
 
