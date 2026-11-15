@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=Forja XFCE Mint Layout
-Comment=Configure the Forja bottom panel and Whisker menu
-Exec=/usr/lib/forja/apply-xfce-mint-layout.sh
+Name=Forja XFCE Appearance
+Comment=Apply Forja wallpaper, theme and Whisker Menu icon
+Exec=/usr/lib/forja/apply-xfce-layout.sh
 OnlyShowIn=XFCE;
 X-GNOME-Autostart-enabled=true
 NoDisplay=true
