@@ -11,7 +11,6 @@ MIRROR="${FORJA_UBUNTU_MIRROR:-http://archive.ubuntu.com/ubuntu}"
 WORK="${FORJA_UBUNTU_WORK:-/tmp/forja-ubuntu}"
 ROOTFS="${FORJA_UBUNTU_ROOTFS:-$WORK/rootfs}"
 OUTPUT="${FORJA_OUTPUT:-/forja-output}"
-HOST_PACKAGES=(debootstrap ca-certificates)
 BASE_PACKAGES=(
   ubuntu-minimal
   systemd systemd-sysv
@@ -35,8 +34,13 @@ log() { printf '\n[Forja Ubuntu] %s\n' "$*"; }
 [[ "$EUID" -eq 0 ]] || die "Execute como root dentro do contêiner de compilação."
 [[ "$UBUNTU_SUITE" == resolute ]] || die "A base está fixada no Ubuntu 26.04 LTS (resolute). Não use versões intermediárias."
 [[ "$UBUNTU_ARCH" == amd64 || "$UBUNTU_ARCH" == arm64 ]] || die "Arquitetura não suportada: $UBUNTU_ARCH"
-command -v debootstrap >/dev/null 2>&1 || die "debootstrap não está instalado no ambiente construtor."
 command -v chroot >/dev/null 2>&1 || die "chroot não está disponível."
+if ! command -v debootstrap >/dev/null 2>&1 || ! command -v zstd >/dev/null 2>&1; then
+  command -v apt-get >/dev/null 2>&1 || die "Instale debootstrap e zstd no ambiente construtor."
+  log "Instalando ferramentas necessárias no contêiner construtor."
+  apt-get update
+  apt-get install -y debootstrap zstd ca-certificates
+fi
 mkdir -p "$WORK" "$OUTPUT"
 [[ ! -e "$ROOTFS" ]] || rm -rf "$ROOTFS"
 
