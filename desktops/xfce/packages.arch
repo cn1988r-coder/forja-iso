@@ -16,6 +16,7 @@ network-manager-applet
 firefox
 adw-gtk-theme
 papirus-icon-theme
+papirus-folders
 bibata-cursor-theme
 
 # Forja indicator and package/update integration.
