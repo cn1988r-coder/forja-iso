@@ -9,6 +9,7 @@ install -Dm644 "$ROOT/forja-black-wallpaper.svg" "$DEST/usr/share/backgrounds/fo
 install -Dm755 "$ROOT/apply-forja-layout.sh" "$DEST/usr/lib/forja/apply-xfce-layout.sh"
 install -Dm644 "$ROOT/forja-xfce-appearance.desktop" "$DEST/etc/xdg/autostart/forja-xfce-appearance.desktop"
 install -Dm644 "$ROOT/forja-gtk.css" "$DEST/etc/xdg/gtk-3.0/gtk.css"
+install -Dm644 "$ROOT/forja-whiskermenu.rc" "$DEST/etc/skel/.config/xfce4/panel/whiskermenu-1.rc"
 
 # A single system-wide panel: Whisker + Docklike + system tray + clock.
 install -Dm644 "$ROOT/panel-default.xml" "$DEST/etc/xdg/xfce4/panel/default.xml"
@@ -24,4 +25,4 @@ install -Dm644 "$ROOT/forja-xfce-desktop.xml" \
 if [[ -z "$DEST" ]] && command -v gtk-update-icon-cache >/dev/null 2>&1; then
   gtk-update-icon-cache -q -f /usr/share/icons/hicolor || true
 fi
-echo "Forja OS XFCE: Docklike, relógio, bandeja de rede/Bluetooth e fundo preto configurados."
+echo "Forja OS XFCE: Whisker Menu escuro e identificado, Docklike, bandeja, relógio e fundo preto configurados."
