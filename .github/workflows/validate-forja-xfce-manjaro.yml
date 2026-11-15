@@ -16,6 +16,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: forja-xfce-manjaro-preflight-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   xfce-manjaro-preflight:
     name: Real Manjaro XFCE package/profile preflight (no ISO build)
