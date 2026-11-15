@@ -118,46 +118,58 @@ jobs:
             '
 
       - name: Verify ISO and checksum exist
+        id: iso
         shell: bash
         run: |
           set -Eeuo pipefail
-          find "$RUNNER_TEMP/forja-iso-output" -maxdepth 2 -type f -printf '%p %s bytes\n'
-          iso="$(find "$RUNNER_TEMP/forja-iso-output" -type f -name '*.iso' -print -quit)"
-          test -n "$iso"
+          mapfile -t isos < <(find "$RUNNER_TEMP/forja-iso-output" -type f -name '*.iso' -print)
+          test "${#isos[@]}" -eq 1
+          iso="${isos[0]}"
           test -s "$iso"
           checksum="$iso.sha256"
           test -s "$checksum"
           (cd "$(dirname "$iso")" && sha256sum -c "$(basename "$checksum")")
-          test -s "$RUNNER_TEMP/forja-iso-output/build-info.txt"
+          size="$(stat -c %s "$iso")"
+          test "$size" -gt 1000000000
+          mkdir -p "$RUNNER_TEMP/forja-iso-publish"
+          cp -- "$iso" "$RUNNER_TEMP/forja-iso-publish/"
+          expected_sha="$(awk '{print $1}' "$checksum")"
+          echo "iso_name=$(basename "$iso")" >> "$GITHUB_OUTPUT"
+          echo "sha256=$expected_sha" >> "$GITHUB_OUTPUT"
+          echo "size=$size" >> "$GITHUB_OUTPUT"
 
-      - name: Publish temporary ISO download (24 hours)
+      - name: Publish only the complete ISO (24 hours)
         uses: actions/upload-artifact@v4
         with:
-          name: forja-os-xfce-iso-${{ inputs.kernel || 'lts' }}
-          path: ${{ runner.temp }}/forja-iso-output/
+          name: forja-os-xfce-iso
+          path: ${{ runner.temp }}/forja-iso-publish/*.iso
           if-no-files-found: error
           compression-level: 0
           retention-days: 1
 
-      - name: Verify the published artifact contains the complete ISO
+      - name: Verify the published artifact contains only the ISO
         uses: actions/download-artifact@v4
         with:
-          name: forja-os-xfce-iso-${{ inputs.kernel }}
+          name: forja-os-xfce-iso
           path: ${{ runner.temp }}/forja-artifact-check
       - name: Check downloaded ISO and checksum
         shell: bash
+        env:
+          EXPECTED_SHA256: ${{ steps.iso.outputs.sha256 }}
+          EXPECTED_SIZE: ${{ steps.iso.outputs.size }}
+          EXPECTED_NAME: ${{ steps.iso.outputs.iso_name }}
         run: |
           set -Eeuo pipefail
-          mapfile -t isos < <(find "$RUNNER_TEMP/forja-artifact-check" -type f -name '*.iso' -print)
-          test "${#isos[@]}" -eq 1
-          iso="${isos[0]}"
+          mapfile -t files < <(find "$RUNNER_TEMP/forja-artifact-check" -type f -printf '%p\\n')
+          test "${#files[@]}" -eq 1
+          iso="${files[0]}"
+          test "$(basename "$iso")" = "$EXPECTED_NAME"
           test -s "$iso"
           size="$(stat -c %s "$iso")"
-          test "$size" -gt 1000000000
-          checksum="$iso.sha256"
-          test -s "$checksum"
-          (cd "$(dirname "$iso")" && sha256sum -c "$(basename "$checksum")")
-          echo "DOWNLOADABLE_ISO_OK: $iso ($size bytes)"
+          test "$size" = "$EXPECTED_SIZE"
+          actual_sha="$(sha256sum "$iso" | awk '{print $1}')"
+          test "$actual_sha" = "$EXPECTED_SHA256"
+          echo "DOWNLOADABLE_ISO_OK: $iso ($size bytes, SHA256 verified)"
 
       - name: Clean dedicated ext4 build filesystem
         if: always()
