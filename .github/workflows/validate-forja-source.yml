@@ -71,12 +71,12 @@ jobs:
           source = Path("build-manjaro.sh").read_text()
           def heredoc(tag, destination):
               prefix = f"""install -Dm644 /dev/stdin "$TARGET/rootfs/{destination}" <<'{tag}'"""
-              pattern = re.escape(prefix) + r"\\n(.*?)\\n" + re.escape(tag)
+              pattern = re.escape(prefix) + r"\n(.*?)\n" + re.escape(tag)
               match = re.search(pattern, source, re.S)
               if not match:
                   raise SystemExit(f"Configuração não encontrada no gerador: {destination}")
               path = Path("/tmp") / Path(destination).name
-              path.write_text(match.group(1) + "\\n")
+              path.write_text(match.group(1) + "\n")
               return path
 
           pacman = heredoc("PACMANCONF", "etc/pacman.conf")
