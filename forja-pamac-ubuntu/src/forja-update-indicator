@@ -1,0 +1,72 @@
+#!/usr/bin/python3
+"""Ayatana AppIndicator prototype for Forja Software updates."""
+import subprocess
+import threading
+
+import apt
+import gi
+gi.require_version("Gtk", "3.0")
+gi.require_version("AyatanaAppIndicator3", "0.1")
+from gi.repository import Gtk, GLib, AyatanaAppIndicator3 as AppIndicator
+
+HELPER = "/usr/lib/forja/forja-apt-transaction"
+
+
+class UpdateIndicator:
+    def __init__(self):
+        self.indicator = AppIndicator.Indicator.new(
+            "forja-update-indicator", "software-update-available",
+            AppIndicator.IndicatorCategory.SYSTEM_SERVICES)
+        self.indicator.set_status(AppIndicator.IndicatorStatus.ACTIVE)
+        self.menu = Gtk.Menu()
+        self.state = Gtk.MenuItem(label="Verificando atualizações…")
+        self.state.set_sensitive(False)
+        self.menu.append(self.state)
+        open_item = Gtk.MenuItem(label="Abrir Forja Software")
+        open_item.connect("activate", lambda *_: subprocess.Popen(["forja-store"]))
+        self.menu.append(open_item)
+        refresh_item = Gtk.MenuItem(label="Procurar atualizações")
+        refresh_item.connect("activate", self.refresh)
+        self.menu.append(refresh_item)
+        install_item = Gtk.MenuItem(label="Instalar atualizações")
+        install_item.connect("activate", self.upgrade)
+        self.menu.append(install_item)
+        self.menu.show_all()
+        self.indicator.set_menu(self.menu)
+        self.check()
+        GLib.timeout_add_seconds(900, self.check)
+
+    def set_state(self, count, error=None):
+        if error:
+            label, icon = "Falha ao consultar atualizações", "dialog-error"
+        elif count:
+            label, icon = f"{count} atualização(ões) disponível(is)", "software-update-available"
+        else:
+            label, icon = "Sistema atualizado", "software-update-available"
+        self.state.set_label(label)
+        self.indicator.set_icon_full(icon, label)
+        return GLib.SOURCE_REMOVE
+
+    def check(self):
+        def worker():
+            try:
+                cache = apt.Cache()
+                count = sum(1 for p in cache if p.is_installed and p.is_upgradable)
+                GLib.idle_add(self.set_state, count, None)
+            except Exception as exc:
+                GLib.idle_add(self.set_state, 0, str(exc))
+        threading.Thread(target=worker, daemon=True).start()
+        return GLib.SOURCE_CONTINUE
+
+    def refresh(self, *_):
+        subprocess.Popen(["pkexec", HELPER, "refresh"])
+        GLib.timeout_add_seconds(20, self.check)
+
+    def upgrade(self, *_):
+        subprocess.Popen(["pkexec", HELPER, "upgrade"])
+        GLib.timeout_add_seconds(20, self.check)
+
+
+if __name__ == "__main__":
+    UpdateIndicator()
+    Gtk.main()
