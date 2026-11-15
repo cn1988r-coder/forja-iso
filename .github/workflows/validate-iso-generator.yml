@@ -41,9 +41,10 @@ jobs:
       - name: Install ShellCheck and Docker
         run: |
           sudo apt-get update
-          sudo apt-get install -y shellcheck docker.io
+          sudo apt-get install -y shellcheck
           shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh
           docker --version
+          docker info
 
       - name: Pull Manjaro build environment
         run: docker pull manjarolinux/base:latest
