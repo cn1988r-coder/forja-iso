@@ -85,7 +85,7 @@ class UpdateIndicator:
             tooltip = "Falha em uma ou mais fontes. Abra a Forja Store para ver detalhes."
             icon = "forja-update-error"
         elif total:
-            label = f"{total} atualização(ões) disponíveis (Pacman {pac} · AUR {aur} · Flatpak {flat})"
+            label = f"{total} atualização(ões) disponíveis (Pamac {pac} · Flatpak {flat})"
             tooltip = label
             icon = "forja-update-available"
         else:
