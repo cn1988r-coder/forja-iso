@@ -166,10 +166,15 @@ if [[ "$DESKTOP" == xfce ]]; then
   cat /forja-ci/desktops/xfce/packages.manjaro >> "$TARGET/Packages-Desktop"
 fi
 
-# Materia Dark é obrigatório em todas as ISOs e ambientes gráficos.
-grep -Fxq 'materia-gtk-theme' "$TARGET/Packages-Desktop" || printf '%s\n' 'materia-gtk-theme' >> "$TARGET/Packages-Desktop"
-if ! pacman_info materia-gtk-theme >/dev/null 2>&1; then
-  echo "ERRO: materia-gtk-theme não está disponível nos repositórios Manjaro Stable." >&2
+# Cada edição recebe o tema GTK escuro que realmente configura.
+if [[ "$DESKTOP" == mate ]]; then
+  REQUIRED_GTK_THEME="materia-gtk-theme"
+else
+  REQUIRED_GTK_THEME="adw-gtk-theme"
+fi
+grep -Fxq "$REQUIRED_GTK_THEME" "$TARGET/Packages-Desktop" || printf '%s\n' "$REQUIRED_GTK_THEME" >> "$TARGET/Packages-Desktop"
+if ! pacman_info "$REQUIRED_GTK_THEME" >/dev/null 2>&1; then
+  echo "ERRO: $REQUIRED_GTK_THEME não está disponível nos repositórios Manjaro Stable." >&2
   exit 24
 fi
 
@@ -344,7 +349,7 @@ GREETER
 [Icon Theme]
 Name=Default
 Comment=Forja OS default cursor
-Inherits=Bibata-Modern-Ice
+Inherits=Bibata-Modern-Classic
 CURSOR
       for settings in \
         "$overlay/etc/gtk-3.0/settings.ini" \
@@ -353,9 +358,9 @@ CURSOR
         "$overlay/etc/skel/.config/gtk-4.0/settings.ini"; do
         cat > "$settings" <<'GTK'
 [Settings]
-gtk-theme-name=Materia-dark
+gtk-theme-name=adw-gtk3-dark
 gtk-icon-theme-name=Papirus-Dark
-gtk-cursor-theme-name=Bibata-Modern-Ice
+gtk-cursor-theme-name=Bibata-Modern-Classic
 gtk-font-name=Noto Sans 10
 GTK
       done
@@ -366,9 +371,9 @@ greeter-session=lightdm-gtk-greeter
 LIGHTDM
       cat > "$overlay/etc/lightdm/lightdm-gtk-greeter.conf" <<'GREETER'
 [greeter]
-theme-name=Materia-dark
+theme-name=adw-gtk3-dark
 icon-theme-name=Papirus-Dark
-cursor-theme-name=Bibata-Modern-Ice
+cursor-theme-name=Bibata-Modern-Classic
 font-name=Noto Sans 10
 GREETER
       # Mantém o navegador como padrão também na sessão Live e nos novos usuários.
@@ -511,11 +516,11 @@ BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware 
 if [[ "$DESKTOP" == mate ]]; then
   DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media mate-system-monitor mate-terminal mate-calc mate-utils marco caja mozo pluma engrampa atril eom lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme gtk3 python python-gobject pacman-contrib flatpak yay git fastfetch bibata-cursor-theme dconf vlc htop gparted noto-fonts ttf-jetbrains-mono)
 else
-  DESKTOP_CORE_PACKAGES=(xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin xfce4-docklike-plugin xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme bibata-cursor-theme gtk3 gtk4 python python-gobject pacman-contrib polkit)
+  DESKTOP_CORE_PACKAGES=(xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin xfce4-docklike-plugin xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme papirus-icon-theme bibata-cursor-theme gtk3 gtk4 python python-gobject pacman-contrib polkit flatpak yay git)
 fi
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
-  if ! pacman_info "$package" >/dev/null 2>&1; then
+  if ! pacman_info "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" >/dev/null 2>&1; then
     MISSING_CORE_PACKAGES+=("$package")
   fi
 done
