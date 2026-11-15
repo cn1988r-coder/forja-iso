@@ -1,0 +1,18 @@
+/* Forja OS dark GTK3 styling. No blur or heavy animation. */
+#XfcePanelWindow { background-color: #111214; color: #eeeeee; }
+#whiskermenu-window {
+  background-color: #17181b; color: #eeeeee;
+  border: 1px solid #34363a; border-radius: 10px;
+}
+#whiskermenu-window entry {
+  background-color: #24262a; color: #f5f5f5;
+  border: 1px solid #3b3e43; border-radius: 7px;
+  padding: 7px 9px; caret-color: #f5f5f5;
+}
+#whiskermenu-window treeview { background-color: transparent; color: #e5e5e5; }
+#whiskermenu-window treeview:selected { background-color: #35383d; color: #ffffff; }
+#whiskermenu-window button {
+  background-color: transparent; color: #e5e5e5;
+  border: 1px solid transparent; border-radius: 7px;
+}
+#whiskermenu-window button:hover { background-color: #2a2d31; color: #ffffff; }
