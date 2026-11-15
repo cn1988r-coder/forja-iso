@@ -555,7 +555,7 @@ if [[ "${FORJA_PREFLIGHT_ONLY:-0}" == "1" ]]; then
 fi
 
 cd "$PROFILE_ROOT"
-buildiso -f -p "forja-$DESKTOP" -b stable -k "$KERNEL_PKG" -r "$CHROOTS" -t "$OUT" -v
+buildiso -f -d xz -p "forja-$DESKTOP" -b stable -k "$KERNEL_PKG" -r "$CHROOTS" -t "$OUT" -v
 
 ISO="$(find "$OUT" -type f -name '*.iso' -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)"
 test -n "$ISO" && test -s "$ISO" || {
@@ -565,5 +565,5 @@ test -n "$ISO" && test -s "$ISO" || {
 SIZE="$(stat -c '%s' "$ISO")"
 (( SIZE >= 100000000 )) || { echo "ISO pequena/incompleta: $SIZE bytes"; exit 31; }
 (cd "$(dirname "$ISO")" && sha256sum "$(basename "$ISO")" | tee "$(basename "$ISO").sha256")
-printf 'ISO_FILE=%s\nISO_SIZE=%s\nDESKTOP=%s\nKERNEL=%s\nKERNEL_PACKAGE=%s\nBASE=Manjaro\n' "$(basename "$ISO")" "$SIZE" "$DESKTOP" "$KERNEL" "$KERNEL_PKG" > "$OUT/build-info.txt"
+printf 'ISO_FILE=%s\nISO_SIZE=%s\nDESKTOP=%s\nKERNEL=%s\nKERNEL_PACKAGE=%s\nBASE=Manjaro\nCOMPRESSION=xz\n' "$(basename "$ISO")" "$SIZE" "$DESKTOP" "$KERNEL" "$KERNEL_PKG" > "$OUT/build-info.txt"
 echo "BUILD_OK: $ISO"
