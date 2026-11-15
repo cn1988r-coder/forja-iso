@@ -311,7 +311,6 @@ fi
   else
     printf "\nenable_systemd_live=('NetworkManager' 'bluetooth' 'manjaro-live' 'mhwd-live' 'pacman-init' 'mirrors-live')\n" >> "$TARGET/profile.conf"
   fi
-fi
 # Resolve a kernel package present in Manjaro stable. Pick the newest long-term
 # release for LTS and the newest stable release for latest, then map to linuxXY.
 KERNEL_PKG="$(python - "$KERNEL" <<'PY'
