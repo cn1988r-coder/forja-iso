@@ -46,6 +46,11 @@ def main():
         return run(["/usr/bin/flatpak", "update", "--system", "--appstream"])
     if action == "flatpak-upgrade" and not args:
         return run(["/usr/bin/flatpak", "update", "--system", "--noninteractive", "--assumeyes"])
+    if action == "flatpak-update-app" and len(args) == 1:
+        if not APP_RE.fullmatch(args[0]):
+            print("ID Flatpak inválido.", file=sys.stderr)
+            return 2
+        return run(["/usr/bin/flatpak", "update", "--system", "--noninteractive", "--assumeyes", args[0]])
     if action == "flatpak-install" and len(args) == 2:
         remote, app_id = args
         if not REMOTE_RE.fullmatch(remote) or not APP_RE.fullmatch(app_id):
