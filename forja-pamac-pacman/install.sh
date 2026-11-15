@@ -71,4 +71,4 @@ if [[ -z "$DESTDIR" ]]; then
   systemctl enable --now forja-flatpak-setup.service
   systemctl enable --now forja-icon-cache.service
 fi
-echo "Forja Store, catálogo AppStream, indicador XFCE, AUR/yay e Flathub instalados."
+echo "Forja Store com backend Pamac, catálogo AppStream, indicador XFCE e Flathub instalados."
