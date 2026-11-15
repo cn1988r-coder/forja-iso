@@ -101,6 +101,10 @@ jobs:
           assert 'manjaro/xfce' in build, "O perfil oficial XFCE deve ser a base"
           assert 'forja-pamac-pacman/install.sh' in build, "A Forja Store não está integrada ao perfil XFCE"
           assert 'desktops/xfce/packages.manjaro' in build, "A lista de pacotes XFCE não está integrada"
+          assert 'appstreamcli' in ui and 'def load_catalog(self,title,category)' in ui, "Catálogo AppStream dinâmico ausente"
+          assert 'fields.get("Name",package)' in ui and 'fields.get("Icon","application-x-executable")' in ui, "Nomes e ícones AppStream não são usados nos cartões"
+          assert 'CATEGORY_TERMS' not in ui, "Categorias não podem depender de listas estáticas de pacotes"
+          assert 'appstream' in packages and 'archlinux-appstream-data' in packages, "Metadados AppStream ausentes do perfil XFCE"
 
           module = runpy.run_path(str(src / "forja-pacman-transaction"))
           main, call, shutil = module["main"], module["call"], module["shutil"]
