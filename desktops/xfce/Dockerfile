@@ -1,5 +1,5 @@
-# Static validation container for the Forja OS XFCE + Store integration.
-# Build from the repository root:
+# Validação estática e sintática da única edição Forja OS: XFCE + Forja Store.
+# Executar na raiz do repositório:
 #   docker build -f desktops/xfce/Dockerfile .
 
 FROM archlinux:latest
@@ -9,17 +9,21 @@ RUN pacman -Syu --noconfirm --needed \
     && pacman -Scc --noconfirm
 
 WORKDIR /src
+COPY build-cloud.sh /src/build-cloud.sh
 COPY build-manjaro.sh /src/build-manjaro.sh
 COPY desktops/xfce /src/desktops/xfce
 COPY forja-pamac-pacman /src/forja-pamac-pacman
 
 RUN for script in \
+      /src/build-cloud.sh \
       /src/build-manjaro.sh \
       /src/desktops/xfce/apply-forja-layout.sh \
       /src/desktops/xfce/install-branding.sh \
       /src/forja-pamac-pacman/install.sh \
       /src/forja-pamac-pacman/src/forja-pkexec-sudo; do bash -n "$script"; done \
     && shellcheck -S warning -e SC1091 \
+      /src/build-cloud.sh \
+      /src/build-manjaro.sh \
       /src/desktops/xfce/apply-forja-layout.sh \
       /src/desktops/xfce/install-branding.sh \
       /src/forja-pamac-pacman/install.sh \
@@ -42,4 +46,4 @@ RUN for script in \
       /src/forja-pamac-pacman/icons/forja-update-error.svg \
     && bash /src/desktops/xfce/tests/validate-appearance.sh
 
-CMD ["bash", "-n", "/src/desktops/xfce/apply-forja-layout.sh"]
+CMD ["bash", "-n", "/src/build-cloud.sh"]
