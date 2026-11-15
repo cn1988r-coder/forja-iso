@@ -60,7 +60,7 @@ def parse_search(output, source):
 
 def parse_appstream(output):
     found=[]
-    for block in re.split(r"(?m)^---\\s*$",output):
+    for block in re.split(r"(?m)^---\s*$",output):
         fields={}
         for line in block.splitlines():
             if ": " in line:
