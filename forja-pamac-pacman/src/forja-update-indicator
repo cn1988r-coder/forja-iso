@@ -19,7 +19,7 @@ def run(args,timeout=180):
 class UpdateIndicator:
     def __init__(self):
         self.checking=False; self.upgrading=False
-        self.icon=Gtk.StatusIcon.new_from_icon_name("software-update-available")
+        self.icon=Gtk.StatusIcon.new_from_icon_name("forja-update-current")
         self.icon.set_title("Atualizações da FORJA OS"); self.icon.set_tooltip_text("Aguardando verificação…")
         self.icon.set_visible(True)
         self.menu=Gtk.Menu(); self.state=Gtk.MenuItem(label="Aguardando verificação…"); self.state.set_sensitive(False)
