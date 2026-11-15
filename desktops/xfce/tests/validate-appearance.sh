@@ -69,7 +69,7 @@ grep -q 'OnlyShowIn=XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-update-indicator
 grep -q 'OnlyShowIn=XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-polkit-agent.desktop"
 grep -q 'polkit-gnome' "$ROOT/packages.manjaro"
 grep -q 'forja-polkit-agent.desktop' "$REPO_ROOT/forja-pamac-pacman/install.sh"
-grep -q 'forja-update-error.svg' "$REPO_ROOT/forja-pamac-pacman/install.sh"
+grep -q 'for state in available current error' "$REPO_ROOT/forja-pamac-pacman/install.sh"
 grep -q '"forja-update-error"' "$REPO_ROOT/forja-pamac-pacman/src/forja-update-indicator"
 
 grep -q '#000000' "$ROOT/forja-black-wallpaper.svg"
