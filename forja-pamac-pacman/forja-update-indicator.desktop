@@ -6,4 +6,4 @@ Exec=/usr/bin/forja-update-indicator
 Icon=system-software-update
 Terminal=false
 X-GNOME-Autostart-enabled=true
-OnlyShowIn=MATE;
+OnlyShowIn=MATE;XFCE;
