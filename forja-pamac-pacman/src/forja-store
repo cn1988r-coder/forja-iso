@@ -280,7 +280,7 @@ class Store(Gtk.Application):
 
     def update_done(self,code):
         self.busy=False; self.status.set_text("Atualização concluída." if code==0 else "Atualização falhou ou foi cancelada.")
-        self.reload_installed(); self.check_updates(); return GLib.SOURCE_REMOVE
+        self.reload_installed(); self.load_updates(); return GLib.SOURCE_REMOVE
 
 if __name__=="__main__":
     raise SystemExit(Store().run(None))
