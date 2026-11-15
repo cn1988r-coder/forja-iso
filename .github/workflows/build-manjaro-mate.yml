@@ -1,8 +1,6 @@
 name: Build Manjaro MATE ISO
 
 on:
-  push:
-    branches: [main, forja-store-full-support]
   # A fila é consultada automaticamente. Nenhuma ação manual no GitHub é necessária.
   schedule:
     - cron: "*/5 * * * *"
@@ -16,6 +14,10 @@ on:
           - lts
           - latest
         default: lts
+      request_id:
+        description: "ID da solicitação criada no painel Forja"
+        required: false
+        type: string
   repository_dispatch:
     types: [forja-build]
 
@@ -68,7 +70,7 @@ jobs:
 
   build:
     needs: check-queue
-    if: ${{ always() && (github.event_name != 'schedule' || needs.check-queue.outputs.request_id != '') }}
+    if: ${{ always() && ((github.event_name == 'schedule' && needs.check-queue.outputs.request_id != '') || (github.event_name == 'workflow_dispatch' && inputs.request_id != '') || (github.event_name == 'repository_dispatch' && github.event.client_payload.request_id != '')) }}
     name: Build Manjaro MATE
     runs-on: ubuntu-24.04
     timeout-minutes: 360
@@ -77,7 +79,7 @@ jobs:
       id-token: write
     env:
       FORJA_KERNEL: ${{ inputs.kernel || github.event.client_payload.kernel || needs.check-queue.outputs.kernel || 'lts' }}
-      FORJA_REQUEST_ID: ${{ needs.check-queue.outputs.request_id }}
+      FORJA_REQUEST_ID: ${{ inputs.request_id || github.event.client_payload.request_id || needs.check-queue.outputs.request_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -122,7 +124,8 @@ jobs:
               headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
               body: JSON.stringify({ id: process.env.FORJA_REQUEST_ID, status: 'running', progress: 15, stage: 'Ambiente de compilação preparado' })
             });
-            if (!response.ok) throw new Error(`Forja status update failed: ${await response.text()}`);
+            if (!response.ok) throw new Error(`Forja status update failed (HTTP ${response.status}): ${await response.text()}`);
+            core.info('Painel Forja confirmado: preparação registrada em 15%.');
 
       - name: Prepare output directory
         run: mkdir -p "$GITHUB_WORKSPACE/forja-output"
