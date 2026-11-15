@@ -1,0 +1,53 @@
+name: Validate Forja OS XFCE interface
+
+on:
+  push:
+    branches:
+      - forja-xfce-interface
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-xfce:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate shell syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n build-cloud.sh
+          bash -n build-manjaro.sh
+          bash -n desktops/xfce/apply-forja-layout.sh
+          bash -n desktops/xfce/install-branding.sh
+
+      - name: Validate SVG and desktop entry
+        run: |
+          python - <<'PY'
+          import configparser
+          import xml.etree.ElementTree as ET
+          ET.parse("desktops/xfce/forja-flame.svg")
+          config = configparser.ConfigParser(interpolation=None)
+          config.read("desktops/xfce/forja-xfce-appearance.desktop")
+          entry = config["Desktop Entry"]
+          assert entry["Exec"] == "/usr/lib/forja/apply-xfce-layout.sh"
+          assert entry["OnlyShowIn"] == "XFCE;"
+          PY
+
+      - name: Validate XFCE module wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'FORJA_DESKTOP:-mate' build-cloud.sh
+          grep -q 'mate|xfce' build-cloud.sh
+          grep -q 'DESKTOP="\${FORJA_DESKTOP:-mate}"' build-manjaro.sh
+          grep -q 'desktops/xfce/packages.manjaro' build-manjaro.sh
+          grep -q 'desktops/xfce/install-branding.sh' build-manjaro.sh
+          grep -q 'xfce4-docklike-plugin' desktops/xfce/packages.manjaro
+          grep -q 'xfce4-whiskermenu-plugin' desktops/xfce/packages.manjaro
+          grep -q 'Papirus-Dark' desktops/xfce/apply-forja-layout.sh
+          grep -q 'papirus-folders -C grey' desktops/xfce/apply-forja-layout.sh
