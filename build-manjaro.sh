@@ -619,7 +619,7 @@ test -n "$ISO" && test -s "$ISO" || {
   exit 30
 }
 SIZE="$(stat -c '%s' "$ISO")"
-(( SIZE >= 100000000 )) || { echo "ISO pequena/incompleta: $SIZE bytes"; exit 31; }
+(( SIZE >= 1000000000 )) || { echo "ISO pequena/incompleta: $SIZE bytes"; exit 31; }
 (cd "$(dirname "$ISO")" && sha256sum "$(basename "$ISO")" | tee "$(basename "$ISO").sha256")
 printf 'ISO_FILE=%s\nISO_SIZE=%s\nDESKTOP=%s\nKERNEL=%s\nKERNEL_PACKAGE=%s\nBASE=Manjaro\nCOMPRESSION=xz\n' "$(basename "$ISO")" "$SIZE" "$DESKTOP" "$KERNEL" "$KERNEL_PKG" > "$OUT/build-info.txt"
 echo "BUILD_OK: $ISO"
