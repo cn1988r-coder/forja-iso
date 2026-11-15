@@ -98,8 +98,8 @@ jobs:
           from pathlib import Path
           import re
           source = Path("build-manjaro.sh").read_text()
-          config = re.search(r"cat > \"\$overlay/etc/fastfetch/config.jsonc\" <<'FASTFETCH'\\n(.*?)\\nFASTFETCH", source, re.S)
-          logo = re.search(r"cat > \"\$overlay/usr/share/fastfetch/forja-logo.txt\" <<'LOGO'\\n(.*?)\\nLOGO", source, re.S)
+          config = re.search(r"cat > \"\$overlay/etc/fastfetch/config.jsonc\" <<'FASTFETCH'\n(.*?)\nFASTFETCH", source, re.S)
+          logo = re.search(r"cat > \"\$overlay/usr/share/fastfetch/forja-logo.txt\" <<'LOGO'\n(.*?)\nLOGO", source, re.S)
           assert config and logo, "Configuração ou texto do Fastfetch não foi encontrado"
           assert '"source": "/usr/share/fastfetch/forja-logo.txt"' in config.group(1)
           assert '"os"' not in config.group(1), "Fastfetch não deve exibir o nome da base técnica"
