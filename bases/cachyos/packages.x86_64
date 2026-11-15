@@ -1,55 +1,39 @@
-# Forja OS CachyOS base: XFCE + MATE
-# Manifesto inicial. Validar nomes/disponibilidade no repositório CachyOS
-# durante a etapa de preflight antes de iniciar a compilação.
+# Forja OS - base técnica CachyOS x86_64
+# Somente componentes comuns do sistema. Nenhum ambiente gráfico.
 
-# Sessões XFCE
-xfce4-session
-xfce4-panel
-xfce4-settings
-xfce4-terminal
-thunar
-thunar-volman
-tumbler
-xfdesktop
-xfwm4
-xfce4-appfinder
-xfce4-power-manager
-xfce4-notifyd
-xfconf
-xfce4-taskmanager
-ristretto
-mousepad
+# Sistema-base CachyOS/Arch
+base
+arch-install-scripts
+cachyos-keyring
+cachyos-mirrorlist
+cachyos-hooks
+cachyos-settings
 
-# Sessões MATE
-mate-panel
-caja
-marco
-mate-session-manager
-mate-settings-daemon
-mate-control-center
-mate-terminal
-mate-utils
-mate-screensaver
-mate-notification-daemon
-mate-polkit
-mate-themes
-engrampa
-atril
-eom
-pluma
+# Kernel, firmware e microcódigos
+linux-cachyos
+linux-firmware
+amd-ucode
+intel-ucode
 
-# Login gráfico e serviços
-lightdm
-lightdm-gtk-greeter
+# Inicialização e geração do initramfs
+grub
+efibootmgr
+mkinitcpio
+mkinitcpio-archiso
+
+# Rede e detecção de hardware
 networkmanager
-network-manager-applet
-bluez
-bluez-utils
-blueman
+chwd
 
-# Aparência e aplicativos
-materia-gtk-theme
-papirus-icon-theme
-bibata-cursor-theme
-firefox
-fastfetch
+# Armazenamento e sistemas de arquivos
+btrfs-progs
+cryptsetup
+dosfstools
+e2fsprogs
+f2fs-tools
+lvm2
+ntfs-3g
+xfsprogs
+
+# Ferramentas essenciais
+sudo

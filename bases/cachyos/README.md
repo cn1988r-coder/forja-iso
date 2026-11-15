@@ -1,27 +1,40 @@
 # Base CachyOS do Forja OS
 
-Esta pasta marca a base oficial escolhida para a próxima geração do Forja OS.
+Esta pasta define somente a **base técnica CachyOS** do Forja OS. Ela não importa nem instala um ambiente gráfico do CachyOS.
 
-## Origem e ferramentas
+## O que entra nesta base
 
-- Repositório de construção: https://github.com/CachyOS/CachyOS-Live-ISO
-- Construtor: `buildiso.sh`, que prepara o perfil e executa `mkarchiso`.
-- Distribuição/repositórios: CachyOS sobre Arch Linux.
-- Instalador a adaptar: https://github.com/CachyOS/cachyos-calamares
+- Infraestrutura CachyOS sobre Arch Linux: repositório, chaveiro, espelhos, hooks e configurações essenciais.
+- Sistema-base, kernel, firmware e microcódigos de CPU.
+- Inicialização UEFI/BIOS, initramfs e ferramentas de instalação/particionamento.
+- Rede por NetworkManager.
+- Ferramentas comuns de sistema e armazenamento.
 
-O construtor oficial atualmente prepara o perfil `desktop` com Plasma Login. O Forja não deve usar esse perfil sem adaptação. A migração precisa substituir a lista de pacotes Plasma, remover o serviço de login Plasma e configurar LightDM para as sessões XFCE e MATE.
+O manifesto `packages.x86_64` contém apenas componentes compartilhados da base. Não contém XFCE, MATE, KDE Plasma, GNOME, gerenciador de janelas, painel, greeter ou aplicativos específicos de desktop.
 
-## Ambientes que entram na ISO
+## O que não deve ser herdado do ISO CachyOS
 
-O manifesto `packages.x86_64` reúne os componentes básicos dos dois desktops e ferramentas de hardware/rede. A personalização visual existente permanece nos módulos `desktops/xfce` e `desktops/mate`, mas os scripts atuais ainda contêm etapas específicas de Ubuntu/Manjaro e precisam ser portados para Arch/CachyOS antes de serem chamados pelo construtor.
+O perfil oficial `desktop` do CachyOS Live ISO inclui uma seleção própria de desktop e ferramentas de usuário. O Forja OS não deve copiar esse manifesto completo nem usar o perfil `desktop` sem uma adaptação que substitua sua seleção de pacotes e configurações.
 
-Requisitos de integração:
-1. Construir a sessão XFCE Forja e a sessão MATE Forja na imagem Live.
-2. Configurar LightDM com ambas as sessões disponíveis.
-3. Fazer o Calamares instalar o sistema completo e preservar as duas sessões e as personalizações no disco.
-4. Remover a inicialização e os pacotes exclusivos do Plasma do perfil Forja.
-5. Validar dependências, construção da ISO, boot Live e instalação em máquina virtual.
+Em particular, não importar:
+- XFCE ou qualquer outro desktop do CachyOS;
+- Plasma Login ou configurações de sessão do Plasma;
+- temas, painéis, docks, papéis de parede ou personalizações visuais do CachyOS;
+- aplicativos de usuário escolhidos pelo perfil desktop original.
 
-## Situação
+## Integração planejada
 
-Esta é a definição inicial da base e dos pacotes. Ainda não é um perfil CachyOS completo e executável, nem uma ISO compilada. Não usar o perfil oficial Plasma como substituto do Forja.
+1. Usar o construtor oficial CachyOS Live ISO/Archiso como referência para gerar a mídia Live.
+2. Criar um perfil próprio do Forja OS, baseado neste manifesto e na infraestrutura necessária do Archiso.
+3. Adicionar os desktops Forja em perfis separados, com pacotes, configurações e identidade visual próprios.
+4. Configurar o instalador Calamares separadamente, para instalar o sistema completo no disco.
+5. Validar dependências, geração da ISO, boot Live e instalação em máquina virtual antes de declarar a base funcional.
+
+## Estado
+
+Esta é uma definição de pacotes da base CachyOS, não um perfil Archiso completo e não uma ISO compilada. O pipeline ativo Manjaro MATE não é alterado por estes arquivos.
+
+## Referências oficiais
+
+- CachyOS Live ISO: https://github.com/CachyOS/CachyOS-Live-ISO
+- CachyOS Calamares: https://github.com/CachyOS/cachyos-calamares
