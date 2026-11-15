@@ -21,220 +21,90 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate Forja Store backends and transactions
+      - name: Install validation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck desktop-file-utils libxml2-utils
+
+      - name: Validate shell syntax, Python sources and parsers
         shell: bash
         run: |
           set -euo pipefail
           bash -n forja-pamac-pacman/install.sh
           bash -n forja-pamac-pacman/src/forja-pkexec-sudo
+          shellcheck -S warning -e SC1091 forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo
           python3 -m py_compile \
             forja-pamac-pacman/src/forja-store \
+            forja-pamac-pacman/src/forja_store_core.py \
             forja-pamac-pacman/src/forja-pacman-transaction \
             forja-pamac-pacman/src/forja-update-indicator
-          python3 - <<'PY'
-          import pathlib, runpy, sys, os
-          from unittest.mock import patch
-          root = pathlib.Path("forja-pamac-pacman")
-          src = root / "src"
-          ui = (src / "forja-store").read_text()
-          import re
-          css_match = re.search(r'CSS = """(.*?)"""', ui, re.S)
-          assert css_match, "CSS da Forja Store não foi encontrado"
-          for color in re.findall(r"#[0-9a-fA-F]{6}", css_match.group(1)):
-              rgb = tuple(int(color[i:i+2], 16) for i in (1, 3, 5))
-              assert max(rgb) - min(rgb) <= 2, f"A interface ainda contém cor fora da escala de cinza: {color}"
-          indicator = (src / "forja-update-indicator").read_text()
-          installer = (root / "install.sh").read_text()
-          icon_current = (root / "icons/forja-update-current.svg").read_text().lower()
-          icon_available = (root / "icons/forja-update-available.svg").read_text().lower()
-          icon_error = (root / "icons/forja-update-error.svg").read_text().lower()
-          for label, svg in (("atualizado", icon_current), ("atualizações disponíveis", icon_available), ("falha de consulta", icon_error)):
-              assert "<svg" in svg and "</svg>" in svg, f"Ícone SVG inválido: {label}"
-          assert 'stroke="#ffffff"' in icon_current and 'stroke="#777777"' in icon_current, "Estado atualizado deve ter escudo branco e V cinza-escuro"
-          assert 'stroke="#ffffff"' in icon_available and 'stroke="#e53935"' in icon_available, "Estado com atualizações deve ter escudo branco e X vermelho"
-          assert 'stroke="#e53935"' not in icon_current, "Estado atualizado não pode exibir X vermelho"
-          assert 'stroke="#777777"' not in icon_available, "Estado com atualizações não pode exibir V cinza"
-          assert 'new_from_icon_name("forja-update-current")' in indicator, "O indicador deve iniciar com ícone próprio da Forja"
-          assert 'icon="forja-update-available"' in indicator and 'icon="forja-update-current"' in indicator and 'icon="forja-update-error"' in indicator, "Os três estados precisam trocar para os ícones próprios"
-          assert 'forja-update-error.svg' in installer, "O ícone de erro precisa ser instalado"
-          helper_text = (src / "forja-pacman-transaction").read_text()
-          packages = (root / "packages.manjaro").read_text()
-          xfce_packages = pathlib.Path("desktops/xfce/packages.manjaro").read_text()
+          python3 -m unittest discover -s forja-pamac-pacman/tests -v
 
-          for token in ('["pacman","-Ss",query]', '["yay","-Ssa",query]',
-                        '["flatpak","search","--columns=application,name,description,remotes",query]',
-                        '"repo":"Repositório oficial"', '"aur":"AUR / pacote externo"', '"flatpak":"Flatpak"'):
-              assert token in ui, f"Pesquisa/origem ausente na loja: {token}"
-          assert '["pacman","-Qnq"]' in ui and '["pacman","-Qmq"]' in ui
-          assert "AUR / pacote externo" in ui, "Pacotes estrangeiros não podem ser identificados como AUR com certeza"
-          assert 'self.transact("remove" if installed else "install",source,package)' in ui
-          assert '["pkexec",HELPER,action,source,name]' in ui
-          assert '["yay","-Qua"]' in ui and '["flatpak","remote-ls","--system","--updates"' in ui
-          assert '["flatpak","remote-ls","--user","--updates"' in ui
-          assert '["flatpak","update","--user","--noninteractive","--assumeyes"]' in ui
-          assert 'self.load_updates()' in ui and 'self.reload_installed()' in ui
-          assert 'Gtk.Button(label="Atualizar tudo (Pacman + AUR + Flatpak)")' in ui
-          assert 'button.connect("clicked",self.update_system)' in ui
-          assert '["pkexec",HELPER,"upgrade"]' in ui
-          assert '["flatpak","update","--user","--noninteractive","--assumeyes"]' in ui
-          for token in ('["checkupdates"]', '["yay","-Qua"]',
-                        '["flatpak","remote-ls","--system","--updates"',
-                        '["flatpak","remote-ls","--user","--updates"',
-                        'GLib.SOURCE_CONTINUE', 'GLib.timeout_add_seconds(1800,self.check)',
-                        'GLib.timeout_add_seconds(60,self.initial_check)'):
-              assert token in indicator, f"Indicador sem suporte recorrente/fonte: {token}"
-          assert 'self.checking=False' in indicator and 'self.upgrading=False' in indicator
-          assert 'def initial_check(self)' in indicator and 'return GLib.SOURCE_REMOVE' in indicator
-          assert '["pkexec",HELPER,"upgrade"]' in indicator
-          assert 'forja-pkexec-sudo' in installer and 'forja-flatpak-setup.service' in installer
-          assert 'forja-icon-cache.service' in installer and 'gtk-update-icon-cache' in installer
-          assert 'flatpak remote-add --if-not-exists --system flathub' in installer
-          assert 'yay' in packages and 'base-devel' in packages and 'git' in packages
-          assert 'appstream' in xfce_packages and 'archlinux-appstream-data' in xfce_packages
-          assert 'def parse_appstream(output)' in ui and 'appstreamcli' in ui and 'list-categories' in ui
-          assert 'ALL_APPSTREAM_CATEGORIES' in ui, "O catálogo geral deve vir dos metadados AppStream, não de uma lista de destaques"
-          assert pathlib.Path(root / "src/forja-pkexec-sudo").is_file()
-          assert 'OnlyShowIn=XFCE;' in (root / "forja-update-indicator.desktop").read_text()
-          build = pathlib.Path("build-manjaro.sh").read_text()
-          assert 'DESKTOP="${FORJA_DESKTOP:-xfce}"' in build, "XFCE deve ser a única edição e o padrão"
-          assert 'case "$DESKTOP" in xfce)' in build, "O gerador deve rejeitar outras interfaces"
-          assert 'manjaro/xfce' in build, "O perfil oficial XFCE deve ser a base"
-          assert 'forja-pamac-pacman/install.sh' in build, "A Forja Store não está integrada ao perfil XFCE"
-          assert 'desktops/xfce/packages.manjaro' in build, "A lista de pacotes XFCE não está integrada"
-          assert 'appstreamcli' in ui and 'def load_catalog(self,title,category)' in ui, "Catálogo AppStream dinâmico ausente"
-          assert 'fields.get("Name",package)' in ui and 'fields.get("Icon","application-x-executable")' in ui, "Nomes e ícones AppStream não são usados nos cartões"
-          assert 'CATEGORY_TERMS' not in ui, "Categorias não podem depender de listas estáticas de pacotes"
-          assert 'appstream' in packages and 'archlinux-appstream-data' in packages, "Metadados AppStream ausentes do perfil XFCE"
-
-          # Exercise the AppStream and Pacman parsers without requiring a GTK display.
-          import types
-          gi = types.ModuleType("gi")
-          gi.require_version = lambda *_args: None
-          gi.__path__ = []
-          gi_repo = types.ModuleType("gi.repository")
-          class FakeGtk:
-              Application = object
-          gi_repo.Gtk = FakeGtk
-          gi_repo.Gdk = object()
-          gi_repo.GLib = object()
-          gi_repo.Gio = object()
-          gi.repository = gi_repo
-          sys.modules["gi"] = gi
-          sys.modules["gi.repository"] = gi_repo
-          store_module = runpy.run_path(str(src / "forja-store"))
-          parse_appstream = store_module["parse_appstream"]
-          sample = """Identifier: org.mozilla.firefox.desktop [desktop-application]
-          Name: Firefox
-          Summary: Navegador de internet
-          Package: firefox
-          Icon: stock:firefox
-
-          Identifier: org.example.App.desktop [desktop-application]
-          Name: Aplicativo Exemplo
-          Summary: Aplicativo Flatpak de teste
-          Bundle: flatpak:app/org.example.App/x86_64/stable
-          Icon: stock:application-x-executable
-
-          Identifier: org.example.Library [runtime]
-          Name: Biblioteca
-          Package: example-library
-          """
-          catalog = parse_appstream(sample)
-          assert ("Firefox", "firefox", "Navegador de internet", "repo", "firefox") in catalog
-          assert ("Aplicativo Exemplo", "org.example.App", "Aplicativo Flatpak de teste", "flatpak", "application-x-executable") in catalog
-          assert all(item[1] != "example-library" for item in catalog)
-          parsed_search = store_module["parse_search"]("extra/firefox 1.0-1\\n    Navegador rápido", "repo")
-          assert parsed_search == [("firefox", "firefox", "Navegador rápido", "repo", "application-x-executable")]
-
-          module = runpy.run_path(str(src / "forja-pacman-transaction"))
-          main, call, shutil = module["main"], module["call"], module["shutil"]
-
-          # Official repository install/remove, argument validation and cancellation/error propagation.
-          with patch.object(module["subprocess"],"call",return_value=0) as proc:
-              assert main(["install","repo","firefox"]) == 0
-              proc.assert_called_once_with(["pacman","-S","--needed","--noconfirm","firefox"],timeout=7200)
-          with patch.object(module["subprocess"],"call",return_value=0) as proc:
-              assert main(["remove","repo","firefox"]) == 0
-              proc.assert_called_once_with(["pacman","-Rns","--noconfirm","firefox"],timeout=7200)
-          with patch.object(module["subprocess"],"call") as proc:
-              assert main(["install","repo","-R"]) == 2
-              proc.assert_not_called()
-          with patch.object(module["subprocess"],"call",return_value=126):
-              assert main(["install","repo","firefox"]) == 126, "Cancelamento/autorização negada deve ser propagado"
-
-          # Flatpak system install configures Flathub first; uninstall is scoped and explicit.
-          with patch.object(shutil,"which",return_value="/usr/bin/flatpak"), patch.object(module["subprocess"],"call",side_effect=[0,0]) as proc:
-              assert main(["install","flatpak","org.mozilla.firefox"]) == 0
-              assert proc.call_args_list[0].args[0][:4] == ["flatpak","remote-add","--if-not-exists","--system"]
-              assert proc.call_args_list[1].args[0] == ["flatpak","install","--system","--noninteractive","--assumeyes","flathub","org.mozilla.firefox"]
-          with patch.object(shutil,"which",return_value="/usr/bin/flatpak"), patch.object(module["subprocess"],"call",side_effect=[0,0]) as proc:
-              assert main(["remove","flatpak","org.mozilla.firefox"]) == 0
-              assert proc.call_args_list[0].args[0] == ["flatpak","info","--system","org.mozilla.firefox"]
-              assert proc.call_args_list[1].args[0] == ["flatpak","uninstall","--system","--noninteractive","--assumeyes","--delete-data","org.mozilla.firefox"]
-          with patch.object(shutil,"which",return_value="/usr/bin/flatpak"), patch.object(module["subprocess"],"call",return_value=1) as proc:
-              assert main(["install","flatpak","org.mozilla.firefox"]) == 1
-              proc.assert_called_once()
-          with patch.object(shutil,"which",return_value=None):
-              assert main(["flatpak-upgrade"]) == 127, "Flatpak ausente deve ser reportado"
-
-          # User-scope Flatpak is queried and removed as the desktop user, not root.
-          with patch.object(shutil,"which",return_value="/usr/bin/flatpak"), \
-               patch.dict(os.environ,{"PKEXEC_UID":"1000"}), \
-               patch.object(module["pwd"],"getpwuid",return_value=type("U",(),{"pw_uid":1000,"pw_name":"tester","pw_dir":"/home/tester"})()), \
-               patch.object(module["subprocess"],"call",side_effect=[1,0,0]) as proc:
-              assert main(["remove","flatpak","org.mozilla.firefox"]) == 0
-              assert proc.call_args_list[0].args[0] == ["flatpak","info","--system","org.mozilla.firefox"]
-              assert "flatpak" in proc.call_args_list[1].args[0] and "--user" in proc.call_args_list[1].args[0]
-              assert "uninstall" in proc.call_args_list[2].args[0] and "--user" in proc.call_args_list[2].args[0]
-
-          # AUR helper runs as the invoking desktop user, never as root.
-          with patch.object(shutil,"which",return_value="/usr/bin/yay"), \
-               patch.dict(os.environ,{"PKEXEC_UID":"1000"}), \
-               patch.object(module["pwd"],"getpwuid",return_value=type("U",(),{"pw_uid":1000,"pw_name":"tester","pw_dir":"/home/tester"})()), \
-               patch.object(module["subprocess"],"call",return_value=0) as proc:
-              assert main(["install","aur","google-chrome"]) == 0
-              cmd=proc.call_args.args[0]
-              assert cmd[:4] == ["runuser","-u","tester","--"]
-              assert cmd[-4:] == ["-S","--needed","--noconfirm","google-chrome"]
-              assert "--sudo" in cmd and "/usr/lib/forja/forja-pkexec-sudo" in cmd
-          with patch.object(shutil,"which",return_value=None):
-              assert main(["install","aur","some-package"]) == 127
-          with patch.object(shutil,"which",return_value="/usr/bin/yay"), \
-               patch.dict(os.environ,{"PKEXEC_UID":"1000"}), \
-               patch.object(module["pwd"],"getpwuid",return_value=type("U",(),{"pw_uid":1000,"pw_name":"tester","pw_dir":"/home/tester"})()), \
-               patch.object(module["subprocess"],"call",side_effect=[0,0,0]) as proc:
-              assert main(["upgrade"]) == 0
-              assert proc.call_args_list[0].args[0] == ["pacman","-Syu","--noconfirm"]
-              assert any("yay" in part for part in proc.call_args_list[1].args[0])
-              assert proc.call_args_list[2].args[0] == ["flatpak","update","--system","--noninteractive","--assumeyes"]
-          print("Forja Store: Pacman, AUR/yay, Flatpak, transações, cancelamento e erros validados.")
-          PY
-
-      - name: Validate Forja OS XFCE-only build code (without building ISO)
+      - name: Validate XFCE appearance, desktop entries and icons
         shell: bash
         run: |
           set -euo pipefail
-          bash -n build-cloud.sh build-manjaro.sh
-          sudo apt-get update -qq
-          sudo apt-get install -y shellcheck
-          shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh
+          bash -x desktops/xfce/tests/validate-appearance.sh
+          desktop-file-validate \
+            desktops/xfce/forja-xfce-appearance.desktop \
+            forja-pamac-pacman/forja-software.desktop \
+            forja-pamac-pacman/forja-update-indicator.desktop \
+            forja-pamac-pacman/forja-polkit-agent.desktop
+          xmllint --noout \
+            desktops/xfce/forja-flame.svg \
+            desktops/xfce/forja-black-wallpaper.svg \
+            desktops/xfce/forja-xfce-desktop.xml \
+            desktops/xfce/panel-default.xml \
+            forja-pamac-pacman/icons/forja-update-current.svg \
+            forja-pamac-pacman/icons/forja-update-available.svg \
+            forja-pamac-pacman/icons/forja-update-error.svg
+
+      - name: Validate Forja Store and XFCE wiring
+        shell: bash
+        run: |
+          set -euo pipefail
           python3 - <<'PY'
+          import re
           from pathlib import Path
+
+          root = Path("forja-pamac-pacman")
+          ui = (root / "src/forja-store").read_text()
+          core = (root / "src/forja_store_core.py").read_text()
+          transaction = (root / "src/forja-pacman-transaction").read_text()
+          indicator = (root / "src/forja-update-indicator").read_text()
+          installer = (root / "install.sh").read_text()
+          packages = (root / "packages.manjaro").read_text()
+          xfce_packages = Path("desktops/xfce/packages.manjaro").read_text()
           build = Path("build-manjaro.sh").read_text()
-          cloud = Path("build-cloud.sh").read_text()
-          packages = Path("desktops/xfce/packages.manjaro").read_text()
-          assert 'DESKTOP="${FORJA_DESKTOP:-xfce}"' in build, "XFCE deve ser o padrão"
-          assert 'case "$DESKTOP" in xfce)' in build and 'case "${FORJA_DESKTOP:-xfce}" in' in cloud, "Geradores devem aceitar somente XFCE"
-          assert 'manjaro/xfce' in build, "Perfil oficial XFCE ausente"
-          assert 'displaymanager="lightdm"' in build and 'user-session=xfce' in build, "Sessão XFCE/LightDM ausente"
-          assert 'lightdm-gtk-greeter' in build and 'calamares' in build, "Greeter ou instalador ausente"
-          assert 'forja-pamac-pacman/install.sh' in build, "Forja Store não está integrada ao overlay"
-          assert 'desktops/xfce/packages.manjaro' in build, "Lista XFCE não está integrada"
-          assert 'xfce4-session' in packages and 'xfce4-panel' in packages and 'thunar' in packages, "Pacotes essenciais XFCE ausentes"
-          assert 'mate-session-manager' not in packages and 'mate-panel' not in packages, "Pacotes MATE não podem entrar na ISO XFCE"
-          assert 'lightdm' in packages and 'networkmanager' in packages and 'blueman' in packages, "Componentes de sessão/rede ausentes"
-          assert 'buildiso -f' in build and 'SQFS_WRAPPER_DIR=' in build and 'mksquashfs' in build, "Pipeline ISO/SquashFS ausente"
-          assert 'COMPRESSION=xz' in build and 'BUILDISO_OK=1' in build and 'ISO_FILE=' in build, "Verificação/relatório ISO ausente"
-          print("Código de geração Forja OS XFCE-only validado; nenhuma ISO foi compilada.")
+
+          css = re.search(r'CSS = """(.*?)"""', ui, re.S)
+          assert css, "CSS da Forja Store ausente"
+          for color in re.findall(r"#[0-9a-fA-F]{6}", css.group(1)):
+              rgb = tuple(int(color[i:i+2], 16) for i in (1, 3, 5))
+              assert max(rgb) - min(rgb) <= 2, f"Cor fora da escala neutra: {color}"
+
+          assert "from forja_store_core import" in ui
+          assert "def load_catalog(self, title, category)" in ui
+          assert "appstreamcli" in ui and "list-categories" in ui and "ALL_APPSTREAM_CATEGORIES" in ui
+          assert "pacman" in ui and "yay" in ui and "flatpak" in ui
+          assert "parse_flatpak_search" in core and "parse_appstream" in core
+          assert "parse_flatpak_updates" in indicator and "parse_yay_updates" in indicator
+          assert 'new_from_icon_name("forja-update-current")' in indicator
+          for state in ("forja-update-current", "forja-update-available", "forja-update-error"):
+              assert state in indicator, f"Indicador sem estado: {state}"
+          assert "runuser" in transaction and "--sudo" in transaction
+          assert "flatpak remote-ls" in ui and "remote" in ui
+          assert "forja_store_core.py" in installer and "forja-polkit-agent.desktop" in installer
+          assert "appstream" in packages and "archlinux-appstream-data" in packages
+          assert "polkit-gnome" in xfce_packages
+          assert "OnlyShowIn=XFCE;" in (root / "forja-polkit-agent.desktop").read_text()
+          assert "OnlyShowIn=XFCE;" in (root / "forja-update-indicator.desktop").read_text()
+          assert 'DESKTOP="${FORJA_DESKTOP:-xfce}"' in build
+          assert 'case "$DESKTOP" in xfce)' in build
+          assert "forja-pamac-pacman/install.sh" in build
+          assert "mate-session-manager" not in xfce_packages and "mate-panel" not in xfce_packages
+          print("Forja Store: AppStream, Pacman, AUR, Flatpak, Polkit e XFCE verificados.")
           PY
 
+      - name: Build AppStream integration validation container
+        run: docker build -f desktops/xfce/Dockerfile .

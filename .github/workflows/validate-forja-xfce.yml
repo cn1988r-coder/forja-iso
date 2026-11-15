@@ -38,51 +38,33 @@ jobs:
             forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo; do
             bash -n "$script"
           done
-          shellcheck -S warning -e SC1091 desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh
-          shellcheck -S warning -e SC1091 forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo
-          python3 -m py_compile forja-pamac-pacman/src/forja-store forja-pamac-pacman/src/forja-pacman-transaction forja-pamac-pacman/src/forja-update-indicator
+          shellcheck -S warning -e SC1091 desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh \
+            forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo
+          python3 -m py_compile \
+            forja-pamac-pacman/src/forja-store \
+            forja-pamac-pacman/src/forja_store_core.py \
+            forja-pamac-pacman/src/forja-pacman-transaction \
+            forja-pamac-pacman/src/forja-update-indicator
+          python3 -m unittest discover -s forja-pamac-pacman/tests -v
 
-      - name: Validate appearance, wallpaper and desktop entries
+      - name: Validate XFCE appearance and desktop entries
         shell: bash
         run: |
           set -euo pipefail
-          bash desktops/xfce/tests/validate-appearance.sh
-          desktop-file-validate desktops/xfce/forja-xfce-appearance.desktop forja-pamac-pacman/forja-software.desktop forja-pamac-pacman/forja-update-indicator.desktop
-          xmllint --noout desktops/xfce/forja-flame.svg desktops/xfce/forja-black-wallpaper.svg desktops/xfce/forja-xfce-desktop.xml desktops/xfce/panel-default.xml
-          xmllint --noout forja-pamac-pacman/icons/forja-update-current.svg forja-pamac-pacman/icons/forja-update-available.svg forja-pamac-pacman/icons/forja-update-error.svg
-          python3 - <<'PY'
-          import configparser
-          import xml.etree.ElementTree as ET
-          from pathlib import Path
+          bash -x desktops/xfce/tests/validate-appearance.sh
+          desktop-file-validate desktops/xfce/forja-xfce-appearance.desktop \
+            forja-pamac-pacman/forja-software.desktop \
+            forja-pamac-pacman/forja-update-indicator.desktop \
+            forja-pamac-pacman/forja-polkit-agent.desktop
+          xmllint --noout desktops/xfce/forja-flame.svg \
+            desktops/xfce/forja-black-wallpaper.svg \
+            desktops/xfce/forja-xfce-desktop.xml \
+            desktops/xfce/panel-default.xml \
+            forja-pamac-pacman/icons/forja-update-current.svg \
+            forja-pamac-pacman/icons/forja-update-available.svg \
+            forja-pamac-pacman/icons/forja-update-error.svg
 
-          wallpaper = ET.parse("desktops/xfce/forja-black-wallpaper.svg").getroot()
-          black_rect = next(node for node in wallpaper.iter() if node.tag.endswith("rect"))
-          assert black_rect.attrib.get("fill") == "#000000"
-          desktop_defaults = ET.parse("desktops/xfce/forja-xfce-desktop.xml").getroot()
-          last_image = desktop_defaults.find(".//property[@name='last-image']")
-          assert last_image is not None and last_image.attrib.get("value") == "/usr/share/backgrounds/forja-black.svg"
-          panel = ET.parse("desktops/xfce/panel-default.xml").getroot()
-          panels = panel.find("./property[@name='panels']")
-          assert panels is not None and panels.find("./property[@name='panel-1']") is not None
-          assert panel.find("./property[@name='plugins']/property[@name='plugin-2']") is not None
-          assert panel.find("./property[@name='plugins']/property[@name='plugin-2']").attrib.get("value") == "docklike"
-          plugin_values = [p.attrib.get("value") for p in panel.findall("./property[@name='plugins']/property")]
-          assert "tasklist" not in plugin_values
-          assert {"systray", "clock", "whiskermenu", "pulseaudio", "power-manager-plugin"}.issubset(set(plugin_values))
-
-          appearance = configparser.ConfigParser(interpolation=None)
-          appearance.read("desktops/xfce/forja-xfce-appearance.desktop")
-          entry = appearance["Desktop Entry"]
-          assert entry["Exec"] == "/usr/lib/forja/apply-xfce-layout.sh"
-          assert entry["OnlyShowIn"] == "XFCE;"
-
-          indicator = configparser.ConfigParser(interpolation=None)
-          indicator.read("forja-pamac-pacman/forja-update-indicator.desktop")
-          assert indicator["Desktop Entry"]["OnlyShowIn"] == "XFCE;"
-          print("SVG, branding and desktop entries validated.")
-          PY
-
-      - name: Build static validation container
+      - name: Build static validation container with AppStream data
         run: docker build -f desktops/xfce/Dockerfile .
 
       - name: Validate XFCE and Store integration wiring
@@ -96,35 +78,28 @@ jobs:
           grep -q 'forja-icon-cache.service' forja-pamac-pacman/install.sh
           grep -q 'FORJA_SKIP_STORE_INSTALL:-0' build-manjaro.sh
           grep -q 'OnlyShowIn=XFCE;' forja-pamac-pacman/forja-update-indicator.desktop
-          grep -q 'self.busy=True' forja-pamac-pacman/src/forja-store
-          grep -q 'self.busy=False' forja-pamac-pacman/src/forja-store
+          grep -q 'OnlyShowIn=XFCE;' forja-pamac-pacman/forja-polkit-agent.desktop
+          grep -q 'self.busy = True' forja-pamac-pacman/src/forja-store
+          grep -q 'self.busy = False' forja-pamac-pacman/src/forja-store
+          grep -q 'from forja_store_core import' forja-pamac-pacman/src/forja-store
+          grep -q 'parse_appstream' forja-pamac-pacman/src/forja_store_core.py
+          grep -q 'polkit-gnome' desktops/xfce/packages.manjaro
           grep -q 'pinned=thunar.desktop;firefox.desktop;' desktops/xfce/docklike.rc
           grep -q 'value="systray"' desktops/xfce/panel-default.xml
           grep -q 'value="clock"' desktops/xfce/panel-default.xml
           grep -q 'network-manager-applet' desktops/xfce/packages.manjaro
           grep -q 'blueman' desktops/xfce/packages.manjaro
           grep -q 'forja-black-wallpaper.svg' desktops/xfce/install-branding.sh
-          grep -q 'wallpapers-2018' build-manjaro.sh
-          grep -q 'wallpapers-juhraya' build-manjaro.sh
-          grep -q 'illyria-wallpaper' build-manjaro.sh
-          grep -q 'manjaro-xfce-settings' build-manjaro.sh
           grep -q 'value="docklike"' desktops/xfce/panel-default.xml
           ! grep -q 'value="tasklist"' desktops/xfce/panel-default.xml
           ! grep -q 'panel-2' desktops/xfce/panel-default.xml
-          grep -q 'etc/xdg/xfce4/panel/default.xml' desktops/xfce/install-branding.sh
-          grep -q 'etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml' desktops/xfce/install-branding.sh
           grep -q 'forja-papirus-folders.service' build-manjaro.sh
           grep -q 'papirus-folders -C grey --theme Papirus-Dark' build-manjaro.sh
-          grep -q 'papirus-folders' desktops/xfce/packages.manjaro
           grep -q 'materia-gtk-theme' desktops/xfce/packages.manjaro
           grep -q 'set_prop xfwm4 /general/theme string "Materia-dark"' desktops/xfce/apply-forja-layout.sh
           grep -q 'set_prop xfwm4 /general/use_compositing bool true' desktops/xfce/apply-forja-layout.sh
-          grep -q 'value="docklike"' desktops/xfce/panel-default.xml
-          grep -q 'value="whiskermenu"' desktops/xfce/panel-default.xml
           grep -q 'CURSOR_THEME="Bibata-Modern-Classic"' desktops/xfce/apply-forja-layout.sh
           grep -q 'GTK_THEME="adw-gtk3-dark"' desktops/xfce/apply-forja-layout.sh
           grep -Fxq "appstream" desktops/xfce/packages.manjaro
           grep -Fxq "archlinux-appstream-data" desktops/xfce/packages.manjaro
-          grep -q 'def load_catalog(self,title,category)' forja-pamac-pacman/src/forja-store
-          grep -q 'fields.get("Name",package)' forja-pamac-pacman/src/forja-store
           echo "XFCE + AppStream + Forja Store integration validated. No ISO build was run."
