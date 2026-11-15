@@ -3,8 +3,8 @@ set -Eeuo pipefail
 
 command -v xfconf-query >/dev/null 2>&1 || exit 0
 
-# Appearance only. The panel layout is provisioned system-wide by
-# /etc/xdg/xfce4/panel/default.xml and copied into /etc/skel at image build.
+# The panel and black background are provisioned before the first login.
+# This login hook only applies the desktop theme, icons and window decorations.
 GTK_THEME="adw-gtk3-dark"
 ICON_THEME="Papirus-Dark"
 CURSOR_THEME="Bibata-Modern-Classic"
@@ -19,7 +19,6 @@ set_prop() {
   }
 }
 
-# GTK 3/4, cursor and window decorations.
 set_prop xsettings /Net/ThemeName string "$GTK_THEME"
 set_prop xsettings /Net/IconThemeName string "$ICON_THEME"
 set_prop xsettings /Gtk/CursorThemeName string "$CURSOR_THEME"
@@ -33,20 +32,4 @@ if command -v gsettings >/dev/null 2>&1; then
   gsettings set org.gnome.desktop.interface gtk-theme "$GTK_THEME" >/dev/null 2>&1 || true
   gsettings set org.gnome.desktop.interface icon-theme "$ICON_THEME" >/dev/null 2>&1 || true
   gsettings set org.gnome.desktop.interface cursor-theme "$CURSOR_THEME" >/dev/null 2>&1 || true
-fi
-
-# Apply the Forja wallpaper to every configured monitor/workspace.
-WALLPAPER="/usr/share/backgrounds/forja-os-xfce.svg"
-if [[ -f "$WALLPAPER" ]]; then
-  mapfile -t wallpaper_properties < <(
-    xfconf-query -c xfce4-desktop -l 2>/dev/null | grep -E '/last-image$' || true
-  )
-  if (("${#wallpaper_properties[@]}")); then
-    for property in "${wallpaper_properties[@]}"; do
-      xfconf-query -c xfce4-desktop -p "$property" -s "$WALLPAPER" >/dev/null 2>&1 || true
-    done
-  else
-    xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/last-image \
-      --create -t string -s "$WALLPAPER" >/dev/null 2>&1 || true
-  fi
 fi
