@@ -181,9 +181,15 @@ jobs:
           checksum_file="${iso}.sha256"
           test -s "$checksum_file"
           (cd "$(dirname "$iso")" && sha256sum --check "$(basename "$checksum_file")")
+          size_bytes="$(stat -c '%s' "$iso")"
+          if (( size_bytes >= 2147483648 )); then
+            echo "ERRO: ISO com $size_bytes bytes excede o limite de 2 GiB por arquivo da GitHub Release." >&2
+            exit 32
+          fi
           test -s forja-output/build-info.txt
           grep -Fxq 'DESKTOP=mate' forja-output/build-info.txt
           grep -Fxq 'BASE=Manjaro' forja-output/build-info.txt
+          grep -Fxq 'COMPRESSION=xz' forja-output/build-info.txt
           echo "iso=$iso" >> "$GITHUB_OUTPUT"
 
       - name: Report ISO validation
