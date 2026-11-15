@@ -55,9 +55,22 @@ jobs:
           indicator = (root / "forja-update-indicator").read_text()
           assert 'Gtk.StatusIcon' in indicator, "Indicador não usa a área de notificação do painel MATE"
           assert 'checkupdates' in indicator and 'Instalar atualizações' in indicator
+          assert 'GLib.timeout_add_seconds(1800, self.check)' in indicator, "Verificação automática periódica ausente"
+          assert 'GLib.timeout_add_seconds(60, self.check)' in indicator, "Verificação inicial após login ausente"
+          assert 'indicator = UpdateIndicator()' in indicator, "O indicador precisa permanecer referenciado durante a sessão"
+          assert 'forja-update-available' in indicator and 'forja-update-current' in indicator
+          assert 'Gtk.Button.new_with_label("Verificar atualizações")' in ui, "Botão manual de busca ausente"
+          assert 'Gtk.Button.new_with_label("Verificar novamente")' in ui, "Botão de nova busca na tela de atualizações ausente"
+          assert 'side.get_style_context().add_class("sidebar")' in ui, "A barra lateral precisa usar API GTK3"
+          assert 'side.add_css_class' not in ui, "API GTK4 incompatível com a interface GTK3"
           assert '["forja-store", "--updates"]' in indicator, "Indicador não abre a tela do atualizador"
           assert 'AyatanaAppIndicator' not in indicator, "Indicador antigo não deve depender de Ayatana"
           assert 'FORJA OS' in indicator or 'Atualizações' in indicator
+          autostart = pathlib.Path("forja-pamac-pacman/forja-update-indicator.desktop").read_text()
+          assert 'Exec=/usr/bin/forja-update-indicator' in autostart
+          assert 'OnlyShowIn=MATE;' in autostart
+          assert pathlib.Path("forja-pamac-pacman/icons/forja-update-available.svg").is_file()
+          assert pathlib.Path("forja-pamac-pacman/icons/forja-update-current.svg").is_file()
           assert 'forja-pamac-pacman/install.sh' in pathlib.Path("build-manjaro.sh").read_text(), "Pamac/Forja Software não está instalado na imagem"
 
           module = runpy.run_path(str(root / "forja-pacman-transaction"))
