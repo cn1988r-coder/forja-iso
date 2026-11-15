@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=Forja OS Appearance
-Comment=Apply the Forja OS XFCE panel, dark theme and Whisker branding
+Comment=Apply the Forja OS XFCE dark theme, icons and wallpaper
 Exec=/usr/lib/forja/apply-xfce-layout.sh
 OnlyShowIn=XFCE;
 X-GNOME-Autostart-enabled=true
