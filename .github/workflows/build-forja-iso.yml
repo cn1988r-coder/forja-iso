@@ -28,9 +28,15 @@ jobs:
       - name: Checkout Forja OS source
         uses: actions/checkout@v4
 
-      - name: Prepare temporary output directory
+      - name: Prepare temporary build and output directories
         shell: bash
-        run: mkdir -p "$RUNNER_TEMP/forja-iso-output"
+        run: |
+          set -Eeuo pipefail
+          mkdir -p "$RUNNER_TEMP/forja-iso-output"
+          mkdir -p "$RUNNER_TEMP/forja-manjaro-work"
+          # Keep Manjaro Tools' chroot/desktopfs on the runner's host filesystem.
+          # This avoids nesting OverlayFS upperdirs inside Docker's overlay2 rootfs.
+          find "$RUNNER_TEMP/forja-manjaro-work" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
 
       - name: Build ISO from the independent Forja XFCE profile
         shell: bash
@@ -43,6 +49,7 @@ jobs:
             --privileged \
             --security-opt seccomp=unconfined \
             -v "$GITHUB_WORKSPACE:/forja-ci:ro" \
+            -v "$RUNNER_TEMP/forja-manjaro-work:/tmp/forja-manjaro" \
             -v "$RUNNER_TEMP/forja-iso-output:/forja-output" \
             -e FORJA_DISTRIBUTION=manjaro \
             -e FORJA_DESKTOP=xfce \
@@ -50,13 +57,13 @@ jobs:
             -e FORJA_PREFLIGHT_ONLY=0 \
             -e FORJA_OUTPUT=/forja-output \
             manjarolinux/base:latest \
-            bash -lc 'bash /forja-ci/build-cloud.sh'
+            bash -lc 'mountpoint -q /tmp/forja-manjaro && bash /forja-ci/build-cloud.sh'
 
       - name: Verify ISO and checksum exist
         shell: bash
         run: |
           set -Eeuo pipefail
-          find "$RUNNER_TEMP/forja-iso-output" -maxdepth 2 -type f -printf '%p %s bytes\n'
+          find "$RUNNER_TEMP/forja-iso-output" -maxdepth 2 -type f -printf '%p %s bytes\\n'
           test -n "$(find "$RUNNER_TEMP/forja-iso-output" -type f -name '*.iso' -print -quit)"
           test -n "$(find "$RUNNER_TEMP/forja-iso-output" -type f -name '*.iso.sha256' -print -quit)"
 
