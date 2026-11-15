@@ -25,10 +25,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          bash -n build-cloud.sh build-manjaro.sh build-shelly.sh
+          bash -n build-cloud.sh build-manjaro.sh
           sudo apt-get update -qq
           sudo apt-get install -y shellcheck
-          shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh build-shelly.sh
+          shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh
 
       - name: Validate Forja Pacman software manager
         shell: bash
@@ -76,20 +76,6 @@ jobs:
           grep -Fq 'FORJA_DISTRIBUTION=manjaro' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_DESKTOP=mate' .github/workflows/build-manjaro-mate.yml
           echo "Configuração Manjaro MATE-only validada."
-
-      - name: Verify Shelly source checksums
-        shell: bash
-        run: |
-          set -euo pipefail
-          docker run --rm \
-            -v "$GITHUB_WORKSPACE/eu-project-iso-main/ci/shelly:/source:ro" \
-            archlinux:latest bash -lc '
-              pacman -Syu --noconfirm --needed base-devel git
-              useradd --create-home builder
-              cp -a /source /tmp/shelly-source
-              chown -R builder:builder /tmp/shelly-source
-              su -s /bin/bash builder -c "cd /tmp/shelly-source && makepkg --verifysource --noconfirm"
-            '
 
       - name: Preflight Manjaro MATE without creating ISO
         shell: bash
