@@ -50,12 +50,12 @@ jobs:
           assert '["pacman", "-Ss", query]' in ui, "Pesquisa não consulta os repositórios Pacman"
           assert 'Gtk.FlowBox' in ui and 'Aplicativos em destaque' in ui, "Catálogo visual de aplicativos não foi implementado"
           assert 'def show_updates' in ui and 'Instalar todas as atualizações' in ui, "Tela do atualizador não foi implementada"
-          assert 'FORJA_OPEN_UPDATES' in ui, "A loja não abre diretamente na tela de atualizações"
+          assert 'do_command_line' in ui and '"--updates"' in ui, "A loja não abre diretamente na tela de atualizações"
           assert 'pacman' in ui.lower(), "A loja não está integrada ao Pacman"
           indicator = (root / "forja-update-indicator").read_text()
           assert 'Gtk.StatusIcon' in indicator, "Indicador não usa a área de notificação do painel MATE"
           assert 'checkupdates' in indicator and 'Instalar atualizações' in indicator
-          assert 'FORJA_OPEN_UPDATES' in indicator, "Indicador não abre a tela do atualizador"
+          assert '["forja-store", "--updates"]' in indicator, "Indicador não abre a tela do atualizador"
           assert 'AyatanaAppIndicator' not in indicator, "Indicador antigo não deve depender de Ayatana"
           assert 'FORJA OS' in indicator or 'Atualizações' in indicator
           assert 'forja-pamac-pacman/install.sh' in pathlib.Path("build-manjaro.sh").read_text(), "Pamac/Forja Software não está instalado na imagem"
