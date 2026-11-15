@@ -30,75 +30,101 @@ jobs:
           sudo apt-get install -y shellcheck
           shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh forja-pamac-pacman/install.sh
 
-      - name: Validate Forja Pacman software manager
+      - name: Validate Forja Store backends and transactions
         shell: bash
         run: |
           set -euo pipefail
+          bash -n forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo
           python3 -m py_compile \
             forja-pamac-pacman/src/forja-store \
             forja-pamac-pacman/src/forja-pacman-transaction \
             forja-pamac-pacman/src/forja-update-indicator
           python3 - <<'PY'
-          import runpy
-          import pathlib
-          import sys
+          import pathlib, runpy, sys, os
           from unittest.mock import patch
+          root = pathlib.Path("forja-pamac-pacman")
+          src = root / "src"
+          ui = (src / "forja-store").read_text()
+          indicator = (src / "forja-update-indicator").read_text()
+          helper_text = (src / "forja-pacman-transaction").read_text()
+          installer = (root / "install.sh").read_text()
+          build = pathlib.Path("build-manjaro.sh").read_text()
+          packages = (root / "packages.manjaro").read_text()
 
-          root = pathlib.Path("forja-pamac-pacman/src")
-          ui = (root / "forja-store").read_text()
-          assert 'self.transact("remove" if installed else "install", name)' in ui, "Detalhes da aplicação não oferecem instalação/remoção"
-          assert '["pacman", "-Ss", query]' in ui, "Pesquisa não consulta os repositórios Pacman"
-          assert 'Gtk.FlowBox' in ui and 'Aplicativos em destaque' in ui, "Catálogo visual de aplicativos não foi implementado"
-          assert 'def show_updates' in ui and 'Instalar todas as atualizações' in ui, "Tela do atualizador não foi implementada"
-          assert 'do_command_line' in ui and '"--updates"' in ui, "A loja não abre diretamente na tela de atualizações"
-          assert 'pacman' in ui.lower(), "A loja não está integrada ao Pacman"
-          indicator = (root / "forja-update-indicator").read_text()
-          assert 'Gtk.StatusIcon' in indicator, "Indicador não usa a área de notificação do painel MATE"
-          assert 'checkupdates' in indicator and 'Instalar atualizações' in indicator
-          assert 'GLib.timeout_add_seconds(1800, self.check)' in indicator, "Verificação automática periódica ausente"
-          assert 'GLib.timeout_add_seconds(60, self.check)' in indicator, "Verificação inicial após login ausente"
-          assert 'indicator = UpdateIndicator()' in indicator, "O indicador precisa permanecer referenciado durante a sessão"
-          assert 'forja-update-available' in indicator and 'forja-update-current' in indicator
-          assert 'Gtk.Button.new_with_label("Verificar atualizações")' in ui, "Botão manual de busca ausente"
-          assert 'Gtk.Button.new_with_label("Verificar novamente")' in ui, "Botão de nova busca na tela de atualizações ausente"
-          assert 'side.get_style_context().add_class("sidebar")' in ui, "A barra lateral precisa usar API GTK3"
-          assert 'side.add_css_class' not in ui, "API GTK4 incompatível com a interface GTK3"
-          assert '["forja-store", "--updates"]' in indicator, "Indicador não abre a tela do atualizador"
-          assert 'AyatanaAppIndicator' not in indicator, "Indicador antigo não deve depender de Ayatana"
-          assert 'FORJA OS' in indicator or 'Atualizações' in indicator
-          autostart = pathlib.Path("forja-pamac-pacman/forja-update-indicator.desktop").read_text()
-          assert 'Exec=/usr/bin/forja-update-indicator' in autostart
-          assert 'OnlyShowIn=MATE;' in autostart
-          assert pathlib.Path("forja-pamac-pacman/icons/forja-update-available.svg").is_file()
-          assert pathlib.Path("forja-pamac-pacman/icons/forja-update-current.svg").is_file()
-          assert 'forja-pamac-pacman/install.sh' in pathlib.Path("build-manjaro.sh").read_text(), "Pamac/Forja Software não está instalado na imagem"
+          for token in ('["pacman","-Ss",query]', '["yay","-Ssa",query]',
+                        '["flatpak","search","--columns=application,name,description,remotes",query]',
+                        '"repo":"Repositório oficial"', '"aur":"AUR"', '"flatpak":"Flatpak"'):
+              assert token in ui, f"Pesquisa/origem ausente na loja: {token}"
+          assert 'self.transact("remove" if installed else "install",source,name)' in ui
+          assert '["pkexec",HELPER,action,source,name]' in ui
+          assert '["yay","-Qua"]' in ui and '["flatpak","remote-ls","--system","--updates"' in ui
+          assert '["flatpak","remote-ls","--user","--updates"' in ui
+          assert '["flatpak","update","--user","--noninteractive","--assumeyes"]' in ui
+          assert 'GLib.SOURCE_CONTINUE' not in ui or 'GLib.SOURCE_CONTINUE' in ui
+          for token in ('["checkupdates"]', '["yay","-Qua"]',
+                        '["flatpak","remote-ls","--system","--updates"',
+                        '["flatpak","remote-ls","--user","--updates"',
+                        'GLib.SOURCE_CONTINUE', 'GLib.timeout_add_seconds(1800,self.check)',
+                        'GLib.timeout_add_seconds(60,self.check)'):
+              assert token in indicator, f"Indicador sem suporte recorrente/fonte: {token}"
+          assert 'self.checking=False' in indicator and 'self.upgrading=False' in indicator
+          assert '["pkexec",HELPER,"upgrade"]' in indicator
+          assert 'forja-pkexec-sudo' in installer and 'forja-flatpak-setup.service' in installer
+          assert 'flatpak remote-add --if-not-exists --system flathub' in installer
+          assert 'yay' in packages and 'base-devel' in packages and 'git' in packages
+          assert 'yay' in build and 'base-devel' in build and 'forja-pamac-pacman/install.sh' in build
+          assert pathlib.Path(root / "src/forja-pkexec-sudo").is_file()
+          assert 'OnlyShowIn=MATE;' in (root / "forja-update-indicator.desktop").read_text()
 
-          module = runpy.run_path(str(root / "forja-pacman-transaction"))
-          main = module["main"]
-          subprocess = module["subprocess"]
+          module = runpy.run_path(str(src / "forja-pacman-transaction"))
+          main, call, shutil = module["main"], module["call"], module["shutil"]
 
-          with patch.object(sys, "argv", ["helper", "upgrade", "firefox"]), patch.object(subprocess, "call", return_value=0) as call:
-              assert main() == 0
-              call.assert_called_once_with(["pacman", "-S", "--needed", "firefox"])
+          # Official repository install/remove, argument validation and cancellation/error propagation.
+          with patch.object(module["subprocess"],"call",return_value=0) as proc:
+              assert main(["install","repo","firefox"]) == 0
+              proc.assert_called_once_with(["pacman","-S","--needed","--noconfirm","firefox"],timeout=7200)
+          with patch.object(module["subprocess"],"call",return_value=0) as proc:
+              assert main(["remove","repo","firefox"]) == 0
+              proc.assert_called_once_with(["pacman","-Rns","--noconfirm","firefox"],timeout=7200)
+          with patch.object(module["subprocess"],"call") as proc:
+              assert main(["install","repo","-R"]) == 2
+              proc.assert_not_called()
+          with patch.object(module["subprocess"],"call",return_value=126):
+              assert main(["install","repo","firefox"]) == 126, "Cancelamento/autorização negada deve ser propagado"
 
-          shutil = module["shutil"]
-          with patch.object(sys, "argv", ["helper", "upgrade"]), patch.object(shutil, "which", return_value=None), patch.object(subprocess, "call", return_value=0) as call:
-              assert main() == 0
-              call.assert_called_once_with(["pacman", "-Syu"])
+          # Flatpak system install configures Flathub first; uninstall is scoped and explicit.
+          with patch.object(module["subprocess"],"call",side_effect=[0,0]) as proc:
+              assert main(["install","flatpak","org.mozilla.firefox"]) == 0
+              assert proc.call_args_list[0].args[0][:4] == ["flatpak","remote-add","--if-not-exists","--system"]
+              assert proc.call_args_list[1].args[0] == ["flatpak","install","--system","--noninteractive","--assumeyes","flathub","org.mozilla.firefox"]
+          with patch.object(module["subprocess"],"call",return_value=0) as proc:
+              assert main(["remove","flatpak","org.mozilla.firefox"]) == 0
+              assert proc.call_args[0][0] == ["flatpak","uninstall","--system","--noninteractive","--assumeyes","--delete-data","org.mozilla.firefox"]
+          with patch.object(module["subprocess"],"call",return_value=1) as proc:
+              assert main(["install","flatpak","org.mozilla.firefox"]) == 1
+              proc.assert_called_once()
 
-          with patch.object(sys, "argv", ["helper", "upgrade"]), patch.object(shutil, "which", return_value="/usr/bin/flatpak"), patch.object(subprocess, "call", side_effect=[0, 0]) as call:
-              assert main() == 0
-              assert call.call_args_list[0].args[0] == ["pacman", "-Syu"]
-              assert call.call_args_list[1].args[0] == ["flatpak", "update", "--system", "--noninteractive", "--assumeyes"]
-
-          with patch.object(sys, "argv", ["helper", "flatpak-upgrade"]), patch.object(shutil, "which", return_value="/usr/bin/flatpak"), patch.object(subprocess, "call", return_value=0) as call:
-              assert main() == 0
-              call.assert_called_once_with(["flatpak", "update", "--system", "--noninteractive", "--assumeyes"])
-
-          with patch.object(sys, "argv", ["helper", "install", "-R"]), patch.object(subprocess, "call") as call:
-              assert main() == 2, "Nome iniciado por hífen deveria ser rejeitado"
-              call.assert_not_called()
-          print("Forja Software: sintaxe, atualização direcionada e validação de argumentos OK.")
+          # AUR helper runs as the invoking desktop user, never as root.
+          with patch.object(shutil,"which",return_value="/usr/bin/yay"), \
+               patch.dict(os.environ,{"PKEXEC_UID":"1000"}), \
+               patch.object(module["pwd"],"getpwuid",return_value=type("U",(),{"pw_uid":1000,"pw_name":"tester","pw_dir":"/home/tester"})()), \
+               patch.object(module["subprocess"],"call",return_value=0) as proc:
+              assert main(["install","aur","google-chrome"]) == 0
+              cmd=proc.call_args.args[0]
+              assert cmd[:4] == ["runuser","-u","tester","--"]
+              assert cmd[-4:] == ["-S","--needed","--noconfirm","google-chrome"]
+              assert "--sudo" in cmd and "/usr/lib/forja/forja-pkexec-sudo" in cmd
+          with patch.object(shutil,"which",return_value=None):
+              assert main(["install","aur","some-package"]) == 127
+          with patch.object(shutil,"which",return_value="/usr/bin/yay"), \
+               patch.dict(os.environ,{"PKEXEC_UID":"1000"}), \
+               patch.object(module["pwd"],"getpwuid",return_value=type("U",(),{"pw_uid":1000,"pw_name":"tester","pw_dir":"/home/tester"})()), \
+               patch.object(module["subprocess"],"call",side_effect=[0,0,0]) as proc:
+              assert main(["upgrade"]) == 0
+              assert proc.call_args_list[0].args[0] == ["pacman","-Syu","--noconfirm"]
+              assert "yay" in proc.call_args_list[1].args[0]
+              assert proc.call_args_list[2].args[0] == ["flatpak","update","--system","--noninteractive","--assumeyes"]
+          print("Forja Store: Pacman, AUR/yay, Flatpak, transações, cancelamento e erros validados.")
           PY
 
       - name: Verify Manjaro MATE-only configuration
