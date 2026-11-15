@@ -15,5 +15,6 @@ Loja gráfica própria da Forja OS. É independente do Pamac e utiliza o Pacman 
 - `forja-update-indicator`: indicador GTK3 de área de notificação compatível com os painéis XFCE e MATE.
 - `forja-pacman-transaction`: auxiliar privilegiado restrito para transações Pacman e Flatpak.
 - Ícone e identidade visual próprios da Forja Store.
+- O indicador distingue sistema atualizado, atualizações disponíveis e falha de consulta com três símbolos próprios em escala de cinza.
 
 Este módulo é exclusivo da base Manjaro. A base Ubuntu utiliza o módulo separado `forja-pamac-ubuntu/`.
