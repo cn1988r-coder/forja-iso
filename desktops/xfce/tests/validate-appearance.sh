@@ -208,11 +208,11 @@ grep -q '@define-color forja_surface #303030' "$ROOT/forja-gtk.css"
 grep -q '@define-color forja_text #ffffff' "$ROOT/forja-gtk.css"
 ! grep -qiE '#[0-9a-f]*(00a|08f|f80|f00)' "$ROOT/forja-gtk.css"
 
-# Update badge is intentionally white with a gray check; pending updates use a red X.
+# Update badge is intentionally white with a gray check; pending updates use a gray X.
 grep -q 'stroke="#ffffff"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-current.svg"
 grep -q 'stroke="#777777"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-current.svg"
 grep -q 'stroke="#ffffff"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-available.svg"
-grep -q 'stroke="#e53935"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-available.svg"
+grep -q 'stroke="#777777"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-available.svg"
 grep -q 'OnlyShowIn=XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-update-indicator.desktop"
 
 # Forja Store is the Pamac GTK4/libadwaita frontend with Forja styling.
