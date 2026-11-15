@@ -1,9 +1,7 @@
 name: Build Manjaro MATE ISO
 
 on:
-  push:
-    branches: [main]
-  # A fila é consultada automaticamente. Nenhuma ação manual no GitHub é necessária.
+  # A fila é consultada automaticamente; builds diretos ficam restritos ao dispatch.
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
@@ -96,6 +94,37 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y shellcheck
           shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh
+
+      - name: Authenticate MEGA and prepare destination before build
+        shell: bash
+        env:
+          MEGA_EMAIL: ${{ secrets.MEGA_EMAIL }}
+          MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
+          KERNEL: ${{ env.FORJA_KERNEL }}
+        run: |
+          set -Eeuo pipefail
+          if [[ -z "${MEGA_EMAIL:-}" || -z "${MEGA_PASSWORD:-}" ]]; then
+            echo "ERRO: cadastre MEGA_EMAIL e MEGA_PASSWORD nos Secrets do repositório. A compilação foi bloqueada antes de começar." >&2
+            exit 1
+          fi
+          sudo apt-get update -qq
+          sudo apt-get install -y rclone
+          if ! rclone help backends | grep -Eq '(^|[[:space:]])mega([[:space:]]|$)'; then
+            echo "Versão do rclone sem suporte ao MEGA; instalando a versão oficial atual." >&2
+            curl --fail --location --silent --show-error https://rclone.org/install.sh | sudo bash
+          fi
+          if ! rclone help backends | grep -Eq '(^|[[:space:]])mega([[:space:]]|$)'; then
+            echo "ERRO: rclone não disponibiliza o backend MEGA neste runner." >&2
+            exit 1
+          fi
+          config="$RUNNER_TEMP/rclone-mega.conf"
+          rm -f "$config"
+          rclone config create mega mega user "$MEGA_EMAIL" pass "$MEGA_PASSWORD" --config "$config"
+          chmod 600 "$config"
+          rclone lsd mega: --config "$config"
+          remote="mega:Forja-ISO/Manjaro-MATE/$KERNEL/$GITHUB_RUN_ID"
+          rclone mkdir "$remote" --config "$config"
+          echo "MEGA autenticado e destino preparado: $remote"
 
       - name: Free disk space for ISO build
         shell: bash
@@ -190,6 +219,66 @@ jobs:
           grep -Fxq 'COMPRESSION=xz' forja-output/build-info.txt
           echo "iso=$iso" >> "$GITHUB_OUTPUT"
 
+      - name: Upload verified ISO to MEGA
+        id: mega_upload
+        shell: bash
+        env:
+          ISO_PATH: ${{ steps.verify.outputs.iso }}
+          KERNEL: ${{ env.FORJA_KERNEL }}
+        run: |
+          set -Eeuo pipefail
+          config="$RUNNER_TEMP/rclone-mega.conf"
+          test -s "$config"
+          remote="mega:Forja-ISO/Manjaro-MATE/$KERNEL/$GITHUB_RUN_ID"
+          iso_name="$(basename "$ISO_PATH")"
+          test -s "$ISO_PATH.sha256"
+          test -s forja-output/build-info.txt
+
+          # MEGA não fornece hashes ao rclone; a integridade local já foi
+          # validada por sha256sum. Aqui a cópia remota é conferida por tamanho.
+          rclone copyto "$ISO_PATH" "$remote/$iso_name" \
+            --config "$config" --retries 3 --low-level-retries 10 --stats 30s
+          rclone copyto "$ISO_PATH.sha256" "$remote/$iso_name.sha256" \
+            --config "$config" --retries 3 --low-level-retries 10 --stats 30s
+          rclone copyto "forja-output/build-info.txt" "$remote/build-info.txt" \
+            --config "$config" --retries 3 --low-level-retries 10 --stats 30s
+
+          rclone lsjson "$remote" --config "$config" > "$RUNNER_TEMP/mega-files.json"
+          python3 - "$ISO_PATH" "$RUNNER_TEMP/mega-files.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          iso = Path(sys.argv[1])
+          entries = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+          expected = {
+              iso.name: iso.stat().st_size,
+              iso.name + ".sha256": Path(str(iso) + ".sha256").stat().st_size,
+              "build-info.txt": Path("forja-output/build-info.txt").stat().st_size,
+          }
+          actual = {
+              entry["Name"]: int(entry["Size"])
+              for entry in entries
+              if not entry.get("IsDir", False)
+          }
+          for name, size in expected.items():
+              if actual.get(name) != size:
+                  raise SystemExit(
+                      f"ERRO: arquivo MEGA ausente ou com tamanho divergente: "
+                      f"{name}; esperado={size}; remoto={actual.get(name)}"
+                  )
+          print("ISO, checksum e metadados conferidos no MEGA por tamanho.")
+          PY
+
+          mega_url="$(rclone link "$remote/$iso_name" --config "$config" | tail -n 1)"
+          if [[ "$mega_url" != https://mega.nz/* ]]; then
+            echo "ERRO: o MEGA não retornou um link público válido para a ISO." >&2
+            exit 1
+          fi
+          echo "download_url=$mega_url" >> "$GITHUB_OUTPUT"
+          echo "remote_path=$remote" >> "$GITHUB_OUTPUT"
+          echo "Upload MEGA verificado: $remote"
+
       - name: Report ISO validation
         if: ${{ success() && env.FORJA_REQUEST_ID != '' }}
         uses: actions/github-script@v7
@@ -203,8 +292,9 @@ jobs:
             });
             if (!response.ok) throw new Error(`Forja status update failed: ${await response.text()}`);
 
-      - name: Publish direct temporary ISO release (24 hours)
+      - name: Publish optional GitHub fallback release (24 hours)
         id: publish_release
+        continue-on-error: true
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -226,11 +316,11 @@ jobs:
           echo "download_url=$url" >> "$GITHUB_OUTPUT"
           echo "release_tag=$tag" >> "$GITHUB_OUTPUT"
 
-      - name: Publish temporary download link to Forja panel
+      - name: Publish MEGA download link to Forja panel
         if: ${{ success() && env.FORJA_REQUEST_ID != '' }}
         uses: actions/github-script@v7
         env:
-          DOWNLOAD_URL: ${{ steps.publish_release.outputs.download_url }}
+          MEGA_DOWNLOAD_URL: ${{ steps.mega_upload.outputs.download_url }}
         with:
           script: |
             const token = await core.getIDToken('forja-iso-worker');
@@ -241,29 +331,35 @@ jobs:
                 id: process.env.FORJA_REQUEST_ID,
                 status: 'complete',
                 progress: 100,
-                stage: 'ISO compilada; link temporário válido por 24 horas',
-                downloadUrl: process.env.DOWNLOAD_URL
+                stage: 'ISO compilada; link MEGA gerado',
+                downloadUrl: process.env.MEGA_DOWNLOAD_URL
               })
             });
             if (!response.ok) throw new Error(`Forja completion update failed: ${await response.text()}`);
 
-      - name: Add temporary download link to workflow summary
+      - name: Add MEGA download link to workflow summary
         if: ${{ success() }}
         shell: bash
         env:
-          DOWNLOAD_URL: ${{ steps.publish_release.outputs.download_url }}
+          MEGA_DOWNLOAD_URL: ${{ steps.mega_upload.outputs.download_url }}
+          GITHUB_FALLBACK_URL: ${{ steps.publish_release.outputs.download_url }}
           KERNEL: ${{ env.FORJA_KERNEL }}
         run: |
           set -Eeuo pipefail
-          test -n "$DOWNLOAD_URL"
+          test -n "$MEGA_DOWNLOAD_URL"
           {
             echo "## ISO FORJA OS MATE pronta"
             echo
             echo "- **Kernel:** $KERNEL"
             echo "- **Arquivo:** ISO completa, sem divisão em partes"
-            echo "- **Disponibilidade:** link temporário por 24 horas"
+            echo "- **Destino principal:** MEGA"
             echo
-            echo "[**BAIXAR A ISO COMPLETA**]($DOWNLOAD_URL)"
+            echo "[**BAIXAR A ISO NO MEGA**]($MEGA_DOWNLOAD_URL)"
+            if [[ -n "$GITHUB_FALLBACK_URL" ]]; then
+              echo
+              echo "- **Espelho alternativo:** GitHub Releases, temporário por 24 horas"
+              echo "[Baixar pelo espelho temporário do GitHub]($GITHUB_FALLBACK_URL)"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Mark Forja request as failed
@@ -287,4 +383,10 @@ jobs:
               })
             });
             if (!response.ok) core.warning(`Could not report failure to Forja: ${await response.text()}`);
+
+      - name: Remove temporary MEGA configuration
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/rclone-mega.conf" "$RUNNER_TEMP/mega-files.json"
 
