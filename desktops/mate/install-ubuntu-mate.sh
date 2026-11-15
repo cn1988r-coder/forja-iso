@@ -28,7 +28,7 @@ X-GNOME-Autostart-enabled=true
 DESKTOP
 chmod 644 /etc/xdg/autostart/forja-ubuntu-mate-visual.desktop
 
-if [[ -x "$ROOT/../../forja-pamac-ubuntu/install.sh" ]]; then
+if [[ -f "$ROOT/../../forja-pamac-ubuntu/install.sh" ]]; then
   bash "$ROOT/../../forja-pamac-ubuntu/install.sh"
 else
   echo "Forja Software não está ao lado do módulo MATE; instale-o separadamente."
