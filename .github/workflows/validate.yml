@@ -99,18 +99,30 @@ jobs:
           grep -Fq 'FORJA_DESKTOP=mate' .github/workflows/build-manjaro-mate.yml
           ! grep -Eiq 'shelly' build-manjaro.sh .github/workflows/build-manjaro-mate.yml
           grep -Fq 'scour' build-manjaro.sh
-          grep -Fq 'biglinux-icons-material.git' build-manjaro.sh
-          grep -Fq 'BigLinux-Icons-Material-Dark' build-manjaro.sh
-          grep -Fq "icon-theme='BigLinux-Icons-Material-Dark'" build-manjaro.sh
-          grep -Fq 'Inherits=hicolor' build-manjaro.sh
-          grep -Fq 'papirus-icon-theme|papirus-folders|' build-manjaro.sh
-          ! grep -Fq 'papirus-icon-theme bibata-cursor-theme' build-manjaro.sh
-          ! grep -Fq 'Papirus-Dark' build-manjaro.sh
+          grep -Fq 'materia-gtk-theme' build-manjaro.sh
+          grep -Fq 'papirus-icon-theme' build-manjaro.sh
+          grep -Fq 'bibata-cursor-theme' build-manjaro.sh
+          grep -Fq "icon-theme='Papirus'" build-manjaro.sh
+          grep -Fq "gtk-theme='Materia-dark'" build-manjaro.sh
+          grep -Fq "cursor-theme='Bibata-Modern-Ice'" build-manjaro.sh
+          grep -Fq 'Inherits=Bibata-Modern-Ice' build-manjaro.sh
+          test "$(grep -c '^papirus-icon-theme          echo "Configuração Manjaro MATE + Forja Software validada."
+
+      - name: Preflight Manjaro MATE without creating ISO
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/forja-ci:ro" \
+            -e FORJA_DESKTOP=mate \
+            -e FORJA_KERNEL=lts \
+            -e FORJA_PREFLIGHT_ONLY=1 \
+            manjarolinux/base:latest bash -lc 'bash /forja-ci/build-manjaro.sh'
+ <(sed -n '/^DESKTOP_CORE_PACKAGES=(/,/^)/p' build-manjaro.sh))" -eq 1
           grep -Fq 'forja-pamac-pacman/install.sh' build-manjaro.sh
           for package in networkmanager network-manager-applet bluez bluez-utils blueman firefox calamares; do
             grep -Fq "$package" build-manjaro.sh
           done
-          ! grep -Eiq 'flatpak|cups|system-config-printer|mate-applets|mate-calc|engrampa|atril|pluma' build-manjaro.sh
           echo "Configuração Manjaro MATE + Forja Software validada."
 
       - name: Preflight Manjaro MATE without creating ISO
