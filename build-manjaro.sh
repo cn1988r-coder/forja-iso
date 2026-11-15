@@ -144,10 +144,15 @@ for overlay_name in desktop-overlay live-overlay; do
 user-db:user
 system-db:local
 DCPROFILE
+      install -Dm644 /forja-ci/desktops/mate/forja-mate-wallpaper.svg "$overlay/usr/share/backgrounds/forja/forja-mate-wallpaper.svg"
       cat > "$overlay/etc/dconf/db/local.d/00-forja-visual" <<'DCCONF'
 [org/mate/interface]
 icon-theme='Papirus-Dark'
 gtk-theme='Materia-dark'
+
+[org/mate/desktop/background]
+picture-uri='file:///usr/share/backgrounds/forja/forja-mate-wallpaper.svg'
+picture-options='zoom'
 
 [org/mate/peripherals-mouse]
 left-handed=true
