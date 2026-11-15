@@ -18,6 +18,8 @@ on:
           - lts
           - latest
         default: lts
+  repository_dispatch:
+    types: [forja-build]
 
 permissions:
   contents: read
@@ -35,10 +37,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate build scripts
+      - name: Validate build scripts and request
         shell: bash
+        env:
+          FORJA_KERNEL: ${{ inputs.kernel || github.event.client_payload.kernel || 'lts' }}
         run: |
           set -euo pipefail
+          case "$FORJA_KERNEL" in
+            lts|latest) ;;
+            *) echo "Kernel inválido: $FORJA_KERNEL" >&2; exit 2 ;;
+          esac
           bash -n build-cloud.sh build-manjaro.sh build-shelly.sh
           sudo apt-get update -qq
           sudo apt-get install -y shellcheck
@@ -64,11 +72,9 @@ jobs:
       - name: Build Manjaro MATE ISO
         shell: bash
         env:
-          FORJA_KERNEL: ${{ inputs.kernel || 'lts' }}
+          FORJA_KERNEL: ${{ inputs.kernel || github.event.client_payload.kernel || 'lts' }}
         run: |
           set -Eeuo pipefail
-          # O buildiso cria OverlayFS dentro do chroot. O upperdir precisa
-          # ficar em filesystem real do runner, não no overlay2 do container.
           mkdir -p "$RUNNER_TEMP/forja-manjaro"
           work_fs="$(stat -f -c %T "$RUNNER_TEMP/forja-manjaro")"
           echo "Filesystem da área de trabalho: $work_fs"
@@ -114,7 +120,7 @@ jobs:
         id: upload_iso
         uses: actions/upload-artifact@v7
         with:
-          name: Forja-Manjaro-MATE-${{ inputs.kernel || 'lts' }}
+          name: Forja-Manjaro-MATE-${{ inputs.kernel || github.event.client_payload.kernel || 'lts' }}
           path: ${{ steps.verify.outputs.iso }}
           if-no-files-found: error
           retention-days: 1
@@ -125,7 +131,7 @@ jobs:
         shell: bash
         env:
           ARTIFACT_URL: ${{ steps.upload_iso.outputs.artifact-url }}
-          KERNEL: ${{ inputs.kernel || 'lts' }}
+          KERNEL: ${{ inputs.kernel || github.event.client_payload.kernel || 'lts' }}
         run: |
           set -Eeuo pipefail
           test -n "$ARTIFACT_URL"
@@ -139,5 +145,4 @@ jobs:
             echo "[**BAIXAR A ISO COMPLETA**]($ARTIFACT_URL)"
             echo
             echo "O link exige login no GitHub e acesso de leitura ao repositório."
-            echo "O GitHub enviará uma notificação por e-mail quando esta execução terminar, se as notificações de Actions por e-mail estiverem ativadas na conta."
           } >> "$GITHUB_STEP_SUMMARY"
