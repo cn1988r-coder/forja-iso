@@ -611,6 +611,30 @@ if [[ "${FORJA_PREFLIGHT_ONLY:-0}" == "1" ]]; then
 fi
 
 cd "$PROFILE_ROOT"
+# Resiliência de rede para downloads durante a montagem do sistema Live.
+# Atualiza a lista para os 10 espelhos Manjaro mais rápidos e configura o
+# libalpm para tolerar conexões lentas e repetir downloads interrompidos.
+PACMAN_CONF=/etc/pacman.conf
+command -v pacman-mirrors >/dev/null 2>&1 || {
+  echo "ERRO: pacman-mirrors não está disponível no ambiente de compilação." >&2
+  exit 42
+}
+echo "Atualizando espelhos Manjaro (10 mais rápidos)..."
+pacman-mirrors --fasttrack 10
+if ! grep -Eq '^[[:space:]]*XferCommand[[:space:]]*=' "$PACMAN_CONF"; then
+  sed -i '/^\[options\]/a XferCommand = /usr/bin/curl --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 600 -L -C - -f -o %o %u' "$PACMAN_CONF"
+fi
+if ! grep -Eq '^[[:space:]]*DisableDownloadTimeout([[:space:]]|$)' "$PACMAN_CONF"; then
+  sed -i '/^\[options\]/a DisableDownloadTimeout' "$PACMAN_CONF"
+fi
+if grep -Eq '^[[:space:]]*ParallelDownloads[[:space:]]*=' "$PACMAN_CONF"; then
+  sed -i -E 's/^[[:space:]]*ParallelDownloads[[:space:]]*=.*/ParallelDownloads = 3/' "$PACMAN_CONF"
+else
+  sed -i '/^\[options\]/a ParallelDownloads = 3' "$PACMAN_CONF"
+fi
+echo "Sincronizando bancos de pacotes após atualizar os espelhos..."
+pacman -Syy --noconfirm
+
 # Compressão SquashFS reforçada: XZ com blocos/dicionário de 1 MiB.
 # O wrapper limpa somente caches temporários do sistema-alvo antes da imagem.
 SQFS_WRAPPER_DIR="$WORK/squashfs-bin"
@@ -638,7 +662,25 @@ grep -q -- '-Xdict-size' <<< "$XZ_HELP" || {
   exit 41
 }
 # Não usar -f: ele ativa o conjunto extra do perfil Manjaro.
-PATH="$SQFS_WRAPPER_DIR:$PATH" buildiso -d xz -p "forja-$DESKTOP" -b stable -k "$KERNEL_PKG" -r "$CHROOTS" -t "$OUT" -v
+BUILDISO_OK=0
+for attempt in 1 2 3; do
+  echo "Iniciando geração do sistema Live e da ISO (tentativa $attempt/3)..."
+  if PATH="$SQFS_WRAPPER_DIR:$PATH" buildiso -d xz -p "forja-$DESKTOP" -b stable -k "$KERNEL_PKG" -r "$CHROOTS" -t "$OUT" -v; then
+    BUILDISO_OK=1
+    break
+  fi
+
+  if (( attempt < 3 )); then
+    echo "Aviso: buildiso falhou na tentativa $attempt. Atualizando espelhos e preparando nova tentativa..." >&2
+    pacman-mirrors --fasttrack 10
+    pacman -Syy --noconfirm
+    sleep $((attempt * 20))
+  fi
+done
+if (( BUILDISO_OK != 1 )); then
+  echo "ERRO: geração do sistema Live/ISO falhou após 3 tentativas." >&2
+  exit 43
+fi
 
 ISO="$(find "$OUT" -type f -name '*.iso' -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)"
 test -n "$ISO" && test -s "$ISO" || {
