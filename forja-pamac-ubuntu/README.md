@@ -1,33 +1,41 @@
 # Forja Software for Ubuntu LTS
 
-Ubuntu-focused adaptation of the Pamac-style software manager. The intended interface follows Pamac's application layout; the package backend is native to Ubuntu.
+Gerenciador de programas inspirado no Pamac, com interface própria e backend nativo do Ubuntu (APT/DPKG).
 
-## Supported software sources
+## Política de atualização contínua
 
-- **Ubuntu APT repositories:** primary source for package search, installation, removal and system updates. APT must use the mirrors and repositories configured on the user's Ubuntu installation, including enabled Ubuntu LTS updates and security pockets.
-- **Flatpak:** optional second source for applications, using Flatpak remotes already configured by the user or distribution. The application must show the source clearly and must not silently add third-party remotes.
-- **Snap: not supported.** Do not install snapd, show Snap packages, or expose Snap actions or services.
+A Forja mantém a instalação na mesma série Ubuntu LTS. O gerenciador atualiza pacotes, bibliotecas, aplicações, correções de segurança e pacotes de kernel disponíveis nos repositórios configurados para a versão instalada.
 
-## Separation of responsibilities
+- Atualização normal: `apt-get update` e `apt-get --with-new-pkgs upgrade`.
+- O modo de atualização pode instalar dependências novas necessárias para atualizar pacotes, mas não remove pacotes existentes.
+- Não executa `do-release-upgrade`, `full-upgrade` ou `dist-upgrade`.
+- Não troca automaticamente de Ubuntu 26.04 para uma futura versão LTS.
+- Os repositórios APT configurados para a série instalada são a fonte dos pacotes.
+- Flatpak é opcional e usa somente os remotes já configurados pelo usuário ou pela distribuição.
+- Snap não é suportado: não instalar snapd, não exibir pacotes Snap e não adicionar serviços Snap.
 
-The Forja repository stores source code and release artifacts only. It is not an APT repository, package mirror, Flatpak remote, or update server.
+Isso oferece atualizações contínuas dentro da versão LTS instalada, mas não transforma o Ubuntu em uma distribuição rolling release. Cada versão LTS tem um período oficial de suporte. Ao fim desse período, continuar recebendo correções de segurança exige uma decisão explícita sobre suporte estendido ou migração in-place para outra LTS. A Forja não deve formatar o computador nem iniciar essa migração por conta própria.
 
-APT package metadata and downloads come from the Ubuntu repositories and mirrors configured on the target system. Flatpak metadata and downloads come only from the Flatpak remotes configured on that system.
+## Fontes de software
 
-## Implementation notes
+- **APT:** pesquisa, instalação, remoção e atualização dos pacotes dos repositórios configurados no próprio Ubuntu.
+- **Flatpak:** fonte opcional, sem adicionar Flathub ou qualquer remote automaticamente.
+- **Snap:** deliberadamente fora do escopo.
 
-The APT backend must use APT/python-apt for package metadata and transactions. System upgrades must use the normal APT transaction path and must not perform partial upgrades. Flatpak support must use the system Flatpak installation and configured remotes, without adding Flathub or another remote automatically.
+O repositório Forja guarda código-fonte e artefatos de lançamento. Não é um repositório APT, espelho de pacotes ou servidor de atualizações.
 
-The visual target is the original Pamac experience: application browsing, categories, search, package details, installed applications, updates and a panel update indicator. This is a compatibility project, not a claim that the current prototype already implements every screen or backend.
+## Segurança das transações
 
-## Current status
+As operações privilegiadas passam por `pkexec` e pelo helper `forja-apt-transaction`. Os nomes de pacotes são validados antes de executar operações. A atualização comum usa `--with-new-pkgs`, evitando remoções automáticas durante a atualização.
 
-The current Ubuntu frontend is an early prototype. It currently queries APT only. Flatpak integration, the complete Pamac-style UI, build integration and runtime testing are still pending. It has not been validated on Ubuntu and must not yet be included in a released ISO.
+## Estado de implementação
 
-## Runtime dependencies
+O frontend GTK4 e o indicador Ayatana ainda são protótipos. A política de transação APT foi preparada para atualizações dentro da mesma série, mas a integração com a sessão MATE, instalação no sistema, suporte completo a Flatpak, testes em Ubuntu real e validação ponta a ponta ainda precisam ser concluídos. Não considerar pronto para uma ISO de produção antes desses testes.
 
-See packages.ubuntu. Snap-related packages and services are intentionally excluded.
+## Dependências
 
-## Licensing
+Consulte `packages.ubuntu`. Dependências relacionadas a Snap são intencionalmente excluídas.
 
-Pamac is GPL-3.0. This prototype currently uses an independent APT frontend and does not copy Pamac source files. If Pamac source code is incorporated later, retain its GPL-3.0 notices and comply with the license.
+## Licença
+
+Este projeto é uma implementação independente inspirada no fluxo de uso do Pamac. Não incorpora código-fonte do Pamac.
