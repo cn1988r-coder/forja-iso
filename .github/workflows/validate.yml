@@ -46,6 +46,17 @@ jobs:
           src = root / "src"
           ui = (src / "forja-store").read_text()
           indicator = (src / "forja-update-indicator").read_text()
+          icon_current = (root / "icons/forja-update-current.svg").read_text().lower()
+          icon_available = (root / "icons/forja-update-available.svg").read_text().lower()
+          for label, svg in (("atualizado", icon_current), ("atualizações disponíveis", icon_available)):
+              assert "<svg" in svg and "</svg>" in svg, f"Ícone SVG inválido: {label}"
+              assert not any(color in svg for color in ("#ff", "#f80", "#f90", "#3584e4", "orange", "blue")), f"Cor fora da escala de cinza no ícone: {label}"
+              import re
+              for color in re.findall(r"#[0-9a-f]{6}", svg):
+                  rgb = tuple(int(color[i:i+2], 16) for i in (1, 3, 5))
+                  assert max(rgb) - min(rgb) <= 2, f"Cor não é cinza: {color} ({label})"
+          assert 'new_from_icon_name("forja-update-current")' in indicator, "O indicador deve iniciar com ícone próprio da Forja"
+          assert 'icon="forja-update-available"' in indicator and 'icon="forja-update-current"' in indicator, "Os dois estados precisam trocar para os ícones próprios"
           helper_text = (src / "forja-pacman-transaction").read_text()
           installer = (root / "install.sh").read_text()
           build = pathlib.Path("build-manjaro.sh").read_text()
