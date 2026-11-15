@@ -50,6 +50,8 @@ python
 python-gobject
 libayatana-appindicator
 pacman-contrib
+appstream
+archlinux-appstream-data
 polkit
 # Forja Store: Pacman, AUR/yay e Flatpak
 flatpak
