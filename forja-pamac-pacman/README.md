@@ -1,20 +1,19 @@
 # Forja Update + Forja Software (Arch / Manjaro)
 
-GTK interface inspired by the Pamac workflow, with a Pacman backend. This is a separate implementation and does not copy Pamac source code.
+GTK interface inspired by the Pamac workflow, with native package backends.
 
-## Variants
-- Arch Linux: blue accent.
-- Manjaro: green accent.
-- Both use pacman and the native repositories of the selected distribution.
+## Repository sources and updates
+- **Manjaro packages:** use only the repositories and mirror list configured by Manjaro (`pacman` / `pacman-mirrors`). Forja is not a package mirror.
+- **Flatpak apps:** use the official Flathub remote (`https://dl.flathub.org/repo/flathub.flatpakrepo`). No Forja repository is added.
+- **Arch packages:** use the repositories configured by Arch.
+- System upgrades run `pacman -Syu`, followed by system Flatpak updates. The logged-in user's Flatpak installation is updated in the user session, without running it as root.
+- Update checks use `checkupdates` for Pacman and Flatpak's configured remote update listing. No unsafe `pacman -Sy` partial-upgrade operation is used.
 
 ## Components
 - `forja-store`: GTK4 package browser with Installed, Search and Updates views.
 - `forja-update-indicator`: Ayatana indicator for XFCE and MATE panels.
-- `forja-pacman-transaction`: narrow privileged helper. It accepts only refresh-check, install, remove and full-upgrade actions; package names are validated.
-- `pamac-inspired.svg`: custom P-shaped app/status icon, not the original Pamac artwork.
-
-## Safety
-Updates are checked with `checkupdates` from pacman-contrib. The application never runs `pacman -Sy` by itself. System upgrades always use `pacman -Syu` to avoid partial upgrades. Privileged operations are requested through PolicyKit.
+- `forja-pacman-transaction`: restricted privileged helper for Pacman and system Flatpak transactions.
+- `pamac-inspired.svg`: custom P-shaped app/status icon, not original Pamac artwork.
 
 ## Status
-The installer is now staged into the Manjaro MATE ISO desktop overlay, with its runtime dependencies and panel autostart entry. CI checks Python syntax, transaction mapping, package-name validation, installer shell syntax, and the Manjaro builder preflight. The GTK interface and panel indicator still require a booted ISO test on a live Manjaro MATE session; they are not yet certified as runtime-tested. Arch integration remains separate.
+The Manjaro MATE image installs Flatpak and enables a first-boot system service that registers the official Flathub remote with signature verification enabled. CI validates Python syntax, transaction mapping, package-name validation, installer shell syntax and the Manjaro builder preflight. The GTK interface and panel indicator still require a booted ISO test; they are not certified as runtime-tested.
