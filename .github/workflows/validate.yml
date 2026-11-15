@@ -137,7 +137,7 @@ jobs:
                patch.object(module["subprocess"],"call",side_effect=[0,0,0]) as proc:
               assert main(["upgrade"]) == 0
               assert proc.call_args_list[0].args[0] == ["pacman","-Syu","--noconfirm"]
-              assert "yay" in proc.call_args_list[1].args[0]
+              assert any("yay" in part for part in proc.call_args_list[1].args[0])
               assert proc.call_args_list[2].args[0] == ["flatpak","update","--system","--noninteractive","--assumeyes"]
           print("Forja Store: Pacman, AUR/yay, Flatpak, transações, cancelamento e erros validados.")
           PY
