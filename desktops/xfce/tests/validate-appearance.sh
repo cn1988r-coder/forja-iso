@@ -137,6 +137,14 @@ grep -q 'blueman' "$ROOT/packages.manjaro"
 grep -q "'NetworkManager'" "$REPO_ROOT/build-manjaro.sh"
 grep -q "'bluetooth'" "$REPO_ROOT/build-manjaro.sh"
 
+# The Forja desktop must never inherit the upstream Manjaro XFCE profile.
+grep -q 'TARGET="$PROFILE_ROOT/manjaro/forja-xfce"' "$REPO_ROOT/build-manjaro.sh"
+grep -q 'desktops/xfce/profile.conf' "$REPO_ROOT/build-manjaro.sh"
+! grep -q 'BASE_PROFILE="$PROFILE_ROOT/manjaro/\$DESKTOP"' "$REPO_ROOT/build-manjaro.sh"
+! grep -q 'cp -a "$BASE_PROFILE/.' "$REPO_ROOT/build-manjaro.sh"
+grep -q 'rm -rf "$TARGET/live-overlay/etc/skel/.config/xfce4"' "$REPO_ROOT/build-manjaro.sh"
+grep -q 'rm -rf "$TARGET/live-overlay/etc/skel/.config/xfce4"' "$REPO_ROOT/build-manjaro.sh" || true
+
 grep -q 'etc/xdg/xfce4/panel/default.xml' "$ROOT/install-branding.sh"
 grep -q 'etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml' "$ROOT/install-branding.sh"
 grep -q 'etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml' "$ROOT/install-branding.sh"
