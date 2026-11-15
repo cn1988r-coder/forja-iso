@@ -53,6 +53,12 @@ grep -q 'etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml' "$ROOT/inst
 grep -q 'etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml' "$ROOT/install-branding.sh"
 grep -q 'etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml' "$ROOT/install-branding.sh"
 grep -q 'forja-black-wallpaper.svg' "$ROOT/install-branding.sh"
+for stock_wallpaper in manjaro-wallpapers-18.0 wallpapers-2018 wallpapers-juhraya illyria-wallpaper manjaro-xfce-settings manjaro-xfce-minimal-settings; do
+  grep -q "$stock_wallpaper" "$REPO_ROOT/build-manjaro.sh" || {
+    printf 'Pacote de wallpaper/preset XFCE não está excluído: %s\n' "$stock_wallpaper" >&2
+    exit 1
+  }
+done
 grep -q 'forja-papirus-folders.service' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'papirus-folders -C grey --theme Papirus-Dark' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'forja-pamac-pacman/install.sh' "$REPO_ROOT/build-manjaro.sh"
