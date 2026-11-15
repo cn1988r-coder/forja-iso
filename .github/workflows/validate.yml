@@ -48,10 +48,8 @@ jobs:
           ui = (root / "forja-store").read_text()
           assert '"atualizar":"upgrade"' in ui, "Botão Atualizar não está ligado a upgrade"
           assert '"remover":"remove"' in ui, "Botão Remover não está ligado a remove"
-          assert 'remote-ls' in ui, "A loja não consulta atualizações Flatpak"
-          assert '"--user"' in ui and '"flatpak"' in ui, "A loja não atualiza Flatpak do usuário"
-          assert 'flatpak' in pathlib.Path("build-manjaro.sh").read_text(), "Flatpak não está integrado ao perfil Manjaro"
-          assert 'dl.flathub.org/repo/flathub.flatpakrepo' in pathlib.Path("build-manjaro.sh").read_text(), "O remote oficial Flathub não está configurado"
+          assert 'pacman' in ui.lower(), "A loja não está integrada ao Pacman"
+          assert 'forja-pamac-pacman/install.sh' in pathlib.Path("build-manjaro.sh").read_text(), "Pamac/Forja Software não está instalado na imagem"
 
           module = runpy.run_path(str(root / "forja-pacman-transaction"))
           main = module["main"]
@@ -97,6 +95,10 @@ jobs:
           grep -Fq 'FORJA_DESKTOP=mate' .github/workflows/build-manjaro-mate.yml
           ! grep -Eiq 'shelly' build-manjaro.sh .github/workflows/build-manjaro-mate.yml
           grep -Fq 'forja-pamac-pacman/install.sh' build-manjaro.sh
+          for package in networkmanager network-manager-applet bluez bluez-utils blueman firefox calamares; do
+            grep -Fq "$package" build-manjaro.sh
+          done
+          ! grep -Eiq 'flatpak|cups|system-config-printer|mate-applets|mate-calc|engrampa|atril|pluma' build-manjaro.sh
           echo "Configuração Manjaro MATE + Forja Software validada."
 
       - name: Preflight Manjaro MATE without creating ISO
