@@ -1,0 +1,3 @@
+#!/bin/sh
+# yay chama este wrapper como usuário comum; pkexec eleva somente o pacman.
+exec /usr/bin/pkexec /usr/bin/pacman "$@"
