@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Indicador recorrente de atualizações Pacman, AUR e Flatpak para MATE."""
+"""Indicador recorrente de atualizações Pacman, AUR e Flatpak para XFCE e MATE."""
 import subprocess
 import threading
 import shutil
