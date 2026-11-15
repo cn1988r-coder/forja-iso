@@ -8,7 +8,7 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib
 
-from forja_store_core import parse_yay_updates, parse_checkupdates, parse_flatpak_updates
+from forja_store_core import parse_checkupdates, parse_flatpak_updates
 
 HELPER = "/usr/lib/forja/forja-pacman-transaction"
 
@@ -57,21 +57,21 @@ class UpdateIndicator:
         if self.checking or self.upgrading:
             return GLib.SOURCE_CONTINUE
         self.checking = True
-        self.state.set_label("Verificando Pacman, AUR e Flatpak…")
+        self.state.set_label("Verificando Pamac e Flatpak…")
         self.icon.set_tooltip_text("Forja OS: verificando atualizações…")
 
         def worker():
-            pac = run(["checkupdates"])
-            aur = run(["yay", "-Qua"]) if shutil.which("yay") else subprocess.CompletedProcess([], 127, "", "yay não instalado")
+            pac = run(["pamac", "checkupdates", "--aur", "--quiet"], 240)
+            aur = subprocess.CompletedProcess([], 0, "", "")
             flat_system = run(["flatpak", "remote-ls", "--updates", "--system", "--app",
                                "--columns=application,name,branch"]) if shutil.which("flatpak") else subprocess.CompletedProcess([], 127, "", "flatpak não instalado")
             flat_user = run(["flatpak", "remote-ls", "--updates", "--user", "--app",
                              "--columns=application,name,branch"]) if shutil.which("flatpak") else subprocess.CompletedProcess([], 0, "", "")
             pac_lines, pac_error = parse_checkupdates(pac)
-            aur_lines, aur_error = parse_yay_updates(aur)
+            aur_lines, aur_error = [], False
             system_lines, system_error = parse_flatpak_updates(flat_system)
             user_lines, user_error = parse_flatpak_updates(flat_user)
-            GLib.idle_add(self.set_state, len(pac_lines), len(aur_lines),
+            GLib.idle_add(self.set_state, len(pac_lines), 0,
                           len(system_lines) + len(user_lines),
                           pac_error or aur_error or system_error or user_error)
         threading.Thread(target=worker, daemon=True).start()
@@ -104,11 +104,11 @@ class UpdateIndicator:
         if self.upgrading:
             return
         self.upgrading = True
-        self.state.set_label("Instalando atualizações…")
-        self.icon.set_tooltip_text("Forja OS: atualizando Pacman, AUR e Flatpak…")
+        self.state.set_label("Instalando atualizações do Pamac e Flatpak…")
+        self.icon.set_tooltip_text("Forja OS: atualizando Pamac e Flatpak…")
 
         def worker():
-            system = run(["pkexec", HELPER, "upgrade"], 7200)
+            system = run([HELPER, "upgrade"], 7200)
             user = run(["flatpak", "update", "--user", "--noninteractive", "--assumeyes"], 7200) if shutil.which("flatpak") else subprocess.CompletedProcess([], 127, "", "flatpak não instalado")
             code = system.returncode or user.returncode
             GLib.idle_add(self.upgrade_done, code)
