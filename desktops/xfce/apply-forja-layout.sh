@@ -5,8 +5,9 @@ command -v xfce4-panel >/dev/null 2>&1 || exit 0
 ICON_THEME="Papirus-Dark"
 CURSOR_THEME="Bibata-Modern-Ice"
 GTK_THEME="Materia-dark"
-PANEL_CONFIG_DIR="\${XDG_CONFIG_HOME:-$HOME/.config}/xfce4/panel"
+PANEL_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/xfce4/panel"
 DOCKLIKE_CONFIG="$PANEL_CONFIG_DIR/docklike-2.rc"
+DOCKLIKE_CSS_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/xfce4-docklike-plugin"
 set_prop() {
   local channel="$1" property="$2" type="$3" value="$4"
   if xfconf-query -c "$channel" -p "$property" -s "$value" >/dev/null 2>&1; then return 0; fi
@@ -35,6 +36,22 @@ keyAloneActive=false
 inactiveColor=rgb(145,145,145)
 showWindowCount=false
 DOCKLIKE
+mkdir -p "$DOCKLIKE_CSS_DIR"
+cat > "$DOCKLIKE_CSS_DIR/gtk.css" <<'DOCKLIKE_CSS'
+/* Forja Dock: neutral hover treatment; indicators are drawn by Docklike. */
+#docklike-plugin { background-color: transparent; }
+.group { border-radius: 8px; padding: 2px; }
+.hover_group { background-color: rgba(255,255,255,0.08); }
+.menu {
+  background-color: #17181b;
+  color: #eeeeee;
+  border: 1px solid #34363a;
+  border-radius: 8px;
+}
+.menu_item { color: #e5e5e5; }
+.hover_menu_item { background-color: rgba(255,255,255,0.08); }
+DOCKLIKE_CSS
+
 xfconf-query -c xfce4-panel -p /panels -n -t int -s 1 >/dev/null 2>&1 || true
 set_prop xfce4-panel /panels/panel-1/position string 'p=8;x=0;y=0'
 set_prop xfce4-panel /panels/panel-1/length uint 100
