@@ -94,12 +94,8 @@ XFCE_PROFILE
   fi
   touch "$TARGET/Packages-Desktop"
 
-  # Inclui somente os pacotes definidos para a edição XFCE.
+  # Inclui uma única vez os pacotes definidos para a edição XFCE.
   cat /forja-ci/desktops/xfce/packages.manjaro >> "$TARGET/Packages-Desktop"
-if [[ "$DESKTOP" == xfce ]]; then
-  # Pacotes próprios da edição XFCE, mantidos fora do perfil MATE.
-  cat /forja-ci/desktops/xfce/packages.manjaro >> "$TARGET/Packages-Desktop"
-fi
 
 # Cada edição recebe o tema GTK escuro que realmente configura.
 REQUIRED_GTK_THEME="adw-gtk-theme"
