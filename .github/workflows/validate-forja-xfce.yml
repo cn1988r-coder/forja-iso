@@ -1,4 +1,4 @@
-name: Validate Forja OS XFCE and Store integration
+name: Validate Forja OS XFCE and Pamac Store
 
 on:
   push:
@@ -17,8 +17,7 @@ permissions:
   contents: read
 
 jobs:
-  validate-xfce-store:
-    name: Static XFCE and Forja Store validation (no ISO build)
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,77 +28,58 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y shellcheck desktop-file-utils libxml2-utils
 
-      - name: Validate shell syntax and Python sources
+      - name: Validate shell and Python sources
         shell: bash
         run: |
           set -euo pipefail
           for script in build-cloud.sh build-manjaro.sh \
             desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh \
-            forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo; do
+            forja-pamac-pacman/install.sh forja-pamac-pacman/build-pamac.sh \
+            forja-pamac-pacman/src/forja-pkexec-sudo; do
             bash -n "$script"
           done
-          shellcheck -S warning -e SC1091 desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh \
-            forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo
+          shellcheck -S warning -e SC1091 \
+            desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh \
+            forja-pamac-pacman/install.sh forja-pamac-pacman/build-pamac.sh \
+            forja-pamac-pacman/src/forja-pkexec-sudo
           python3 -m py_compile \
-            forja-pamac-pacman/src/forja-store \
             forja-pamac-pacman/src/forja_store_core.py \
             forja-pamac-pacman/src/forja-pacman-transaction \
             forja-pamac-pacman/src/forja-update-indicator
           python3 -m unittest discover -s forja-pamac-pacman/tests -v
 
-      - name: Validate XFCE appearance and desktop entries
+      - name: Validate desktop entries, XML and visual integration
         shell: bash
         run: |
           set -euo pipefail
           bash -x desktops/xfce/tests/validate-appearance.sh
-          desktop-file-validate desktops/xfce/forja-xfce-appearance.desktop \
+          desktop-file-validate \
+            desktops/xfce/forja-xfce-appearance.desktop \
             forja-pamac-pacman/forja-software.desktop \
-            forja-pamac-pacman/forja-update-indicator.desktop \
-            forja-pamac-pacman/forja-polkit-agent.desktop
-          xmllint --noout desktops/xfce/forja-flame.svg \
+            forja-pamac-pacman/forja-update-indicator.desktop
+          xmllint --noout \
+            desktops/xfce/forja-flame.svg \
             desktops/xfce/forja-black-wallpaper.svg \
             desktops/xfce/forja-xfce-desktop.xml \
             desktops/xfce/panel-default.xml \
+            forja-pamac-pacman/icons/forja-store.svg \
             forja-pamac-pacman/icons/forja-update-current.svg \
             forja-pamac-pacman/icons/forja-update-available.svg \
             forja-pamac-pacman/icons/forja-update-error.svg
 
-      - name: Build static validation container with AppStream data
-        run: docker build -f desktops/xfce/Dockerfile .
-
-      - name: Validate XFCE and Store integration wiring
+      - name: Validate Pamac customization contract
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'desktops/xfce/packages.manjaro' build-manjaro.sh
-          grep -q 'desktops/xfce/install-branding.sh' build-manjaro.sh
-          grep -q 'forja-pamac-pacman/install.sh' build-manjaro.sh
-          grep -q 'for overlay_name in desktop-overlay live-overlay' build-manjaro.sh
-          grep -q 'forja-icon-cache.service' forja-pamac-pacman/install.sh
-          grep -q 'FORJA_SKIP_STORE_INSTALL:-0' build-manjaro.sh
-          grep -q 'OnlyShowIn=XFCE;' forja-pamac-pacman/forja-update-indicator.desktop
-          grep -q 'OnlyShowIn=XFCE;' forja-pamac-pacman/forja-polkit-agent.desktop
-          grep -q 'self.busy = True' forja-pamac-pacman/src/forja-store
-          grep -q 'self.busy = False' forja-pamac-pacman/src/forja-store
-          grep -q 'from forja_store_core import' forja-pamac-pacman/src/forja-store
-          grep -q 'parse_appstream' forja-pamac-pacman/src/forja_store_core.py
-          grep -q 'polkit-gnome' desktops/xfce/packages.manjaro
-          grep -q 'pinned=thunar.desktop;firefox.desktop;' desktops/xfce/docklike.rc
-          grep -q 'value="systray"' desktops/xfce/panel-default.xml
-          grep -q 'value="clock"' desktops/xfce/panel-default.xml
-          grep -q 'network-manager-applet' desktops/xfce/packages.manjaro
-          grep -q 'blueman' desktops/xfce/packages.manjaro
-          grep -q 'forja-black-wallpaper.svg' desktops/xfce/install-branding.sh
-          grep -q 'value="docklike"' desktops/xfce/panel-default.xml
-          ! grep -q 'value="tasklist"' desktops/xfce/panel-default.xml
-          ! grep -q 'panel-2' desktops/xfce/panel-default.xml
-          grep -q 'forja-papirus-folders.service' build-manjaro.sh
-          grep -q 'papirus-folders -C grey --theme Papirus-Dark' build-manjaro.sh
-          grep -q 'materia-gtk-theme' desktops/xfce/packages.manjaro
-          grep -q 'set_prop xfwm4 /general/theme string "Materia-dark"' desktops/xfce/apply-forja-layout.sh
-          grep -q 'set_prop xfwm4 /general/use_compositing bool true' desktops/xfce/apply-forja-layout.sh
-          grep -q 'CURSOR_THEME="Bibata-Modern-Classic"' desktops/xfce/apply-forja-layout.sh
-          grep -q 'GTK_THEME="adw-gtk3-dark"' desktops/xfce/apply-forja-layout.sh
-          grep -Fxq "appstream" desktops/xfce/packages.manjaro
-          grep -Fxq "archlinux-appstream-data" desktops/xfce/packages.manjaro
-          echo "XFCE + AppStream + Forja Store integration validated. No ISO build was run."
+          grep -q 'UPSTREAM_COMMIT=' forja-pamac-pacman/build-pamac.sh
+          grep -q 'meson compile -C "$BUILD" pamac-manager' forja-pamac-pacman/build-pamac.sh
+          grep -q 'about.application_name = "Forja Store"' forja-pamac-pacman/build-pamac.sh
+          grep -q 'boxed-list > row' forja-pamac-pacman/patches/forja-store.css
+          grep -q 'FORJA_PAMAC_BUILD_DIR' forja-pamac-pacman/install.sh
+          grep -q 'build-pamac.sh' build-manjaro.sh
+          grep -q 'pamac-gtk' desktops/xfce/packages.manjaro
+          grep -q 'libpamac-flatpak-plugin' desktops/xfce/packages.manjaro
+          echo "Pamac GTK4/libadwaita + visual Forja: validação estática aprovada."
+
+      - name: Validate Docker static checks
+        run: docker build -f desktops/xfce/Dockerfile .

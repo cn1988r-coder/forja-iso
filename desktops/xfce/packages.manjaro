@@ -44,6 +44,9 @@ pipewire-alsa
 pipewire-pulse
 wireplumber
 gtk3
+gtk4
+libadwaita
+libnotify
 gsettings-desktop-schemas
 python
 python-gobject
@@ -55,6 +58,8 @@ polkit-gnome
 # Forja Store: Pamac CLI (repositórios + AUR) e Flatpak
 flatpak
 pamac-cli
+pamac-gtk
 libpamac
+libpamac-flatpak-plugin
 base-devel
 git

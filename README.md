@@ -22,7 +22,9 @@ Distribuição própria baseada em **Manjaro**, com uma única edição gráfica
 
 ## Forja Store
 
-A loja própria usa o Pamac CLI/libpamac como backend para os repositórios Manjaro e AUR, além de Flatpak/Flathub e catálogo AppStream. A interface GTK3 herda o tema ativo do sistema e usa apenas um realce branco discreto ao passar o mouse. O conjunto precisa passar pelas verificações automatizadas e por teste funcional em uma sessão Manjaro XFCE real antes de ser considerado pronto.
+A Forja Store é a interface visual personalizada do **Pamac Manager GTK4/libadwaita**. O backend continua sendo o Pamac/libpamac original, com repositórios Manjaro, AUR e suporte Flatpak. A interface recebe identidade visual própria em tons escuros e neutros, cartões de aplicativos, navegação e detalhes de instalação. O indicador de atualizações permanece integrado ao painel XFCE.
+
+A compilação usa uma revisão upstream fixa do Pamac e preserva o código-fonte correspondente no sistema. A compilação da interface será validada no ambiente Manjaro antes de qualquer geração de ISO. Ainda será necessário testar a loja em uma sessão XFCE real, incluindo pesquisa, detalhes, instalação, remoção, AUR, Flatpak e atualizações.
 
 ## Estado da entrega
 

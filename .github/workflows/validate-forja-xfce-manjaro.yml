@@ -34,7 +34,7 @@ jobs:
           set -euo pipefail
           for script in build-cloud.sh build-manjaro.sh \
             desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh \
-            forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo; do
+            forja-pamac-pacman/install.sh forja-pamac-pacman/build-pamac.sh forja-pamac-pacman/src/forja-pkexec-sudo; do
             bash -n "$script"
           done
           python3 -m py_compile forja-pamac-pacman/src/forja-store forja-pamac-pacman/src/forja_store_core.py forja-pamac-pacman/src/forja-pacman-transaction forja-pamac-pacman/src/forja-update-indicator
@@ -45,7 +45,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y shellcheck
           shellcheck -S warning -e SC1091 desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh
-          shellcheck -S warning -e SC1091 forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo
+          shellcheck -S warning -e SC1091 forja-pamac-pacman/install.sh forja-pamac-pacman/build-pamac.sh forja-pamac-pacman/src/forja-pkexec-sudo
           docker --version
           docker info
 

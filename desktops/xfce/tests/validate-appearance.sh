@@ -4,14 +4,14 @@ set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO_ROOT="$(cd -- "$ROOT/../.." && pwd)"
 
-for script in "$ROOT/apply-forja-layout.sh" "$ROOT/install-branding.sh" "$REPO_ROOT/build-manjaro.sh" "$REPO_ROOT/forja-pamac-pacman/install.sh"; do
+for script in "$ROOT/apply-forja-layout.sh" "$ROOT/install-branding.sh" "$REPO_ROOT/build-manjaro.sh" "$REPO_ROOT/forja-pamac-pacman/install.sh" "$REPO_ROOT/forja-pamac-pacman/build-pamac.sh"; do
   bash -n "$script"
 done
 
 for package in \
   adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders \
-  bibata-cursor-theme noto-fonts ttf-jetbrains-mono gtk3 \
-  gsettings-desktop-schemas appstream archlinux-appstream-data flatpak pamac-cli libpamac base-devel git \
+  bibata-cursor-theme noto-fonts ttf-jetbrains-mono gtk3 gtk4 libadwaita libnotify libpamac-flatpak-plugin \
+  gsettings-desktop-schemas appstream archlinux-appstream-data flatpak pamac-cli pamac-gtk libpamac libpamac-flatpak-plugin base-devel git \
   xfce4-panel xfce4-docklike-plugin xfce4-whiskermenu-plugin \
   xfce4-pulseaudio-plugin xfce4-power-manager xfce4-notifyd \
   xfce4-clipman-plugin networkmanager network-manager-applet bluez bluez-utils blueman; do
@@ -66,9 +66,7 @@ grep -q 'for overlay_name in desktop-overlay live-overlay' "$REPO_ROOT/build-man
 grep -q 'FORJA_SKIP_STORE_INSTALL:-0' "$REPO_ROOT/build-manjaro.sh"
 
 grep -q 'OnlyShowIn=XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-update-indicator.desktop"
-grep -q 'OnlyShowIn=XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-polkit-agent.desktop"
 grep -q 'polkit-gnome' "$ROOT/packages.manjaro"
-grep -q 'forja-polkit-agent.desktop' "$REPO_ROOT/forja-pamac-pacman/install.sh"
 grep -q 'for state in available current error' "$REPO_ROOT/forja-pamac-pacman/install.sh"
 grep -q '"forja-update-error"' "$REPO_ROOT/forja-pamac-pacman/src/forja-update-indicator"
 
@@ -107,16 +105,21 @@ grep -q 'stroke="#ffffff"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-ava
 grep -q 'stroke="#e53935"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-available.svg"
 grep -q 'OnlyShowIn=XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-update-indicator.desktop"
 
-# Store must ship its independent parser and test the real AppStream/Pacman/AUR/Flatpak paths.
-test -f "$REPO_ROOT/forja-pamac-pacman/src/forja_store_core.py"
-test -f "$REPO_ROOT/forja-pamac-pacman/tests/test_store_core.py"
-test -f "$REPO_ROOT/forja-pamac-pacman/tests/test_transactions.py"
-grep -q 'forja_store_core.py' "$REPO_ROOT/forja-pamac-pacman/install.sh"
-grep -q 'from forja_store_core import' "$REPO_ROOT/forja-pamac-pacman/src/forja-store"
-grep -q 'parse_flatpak_updates' "$REPO_ROOT/forja-pamac-pacman/src/forja-update-indicator"
-grep -q '"flatpak", "remote-ls"' "$REPO_ROOT/forja-pamac-pacman/src/forja-store"
-grep -q 'archlinux-appstream-data' "$REPO_ROOT/forja-pamac-pacman/packages.manjaro"
-grep -q '"flatpak", "install"' "$REPO_ROOT/forja-pamac-pacman/src/forja-pacman-transaction"
+# Forja Store is the Pamac GTK4/libadwaita frontend with Forja styling.
+test -f "$REPO_ROOT/forja-pamac-pacman/build-pamac.sh"
+test -f "$REPO_ROOT/forja-pamac-pacman/patches/forja-store.css"
+grep -q 'UPSTREAM_COMMIT="363e794fef4f9f6a0e54757fd12155cf27e02cc3"' "$REPO_ROOT/forja-pamac-pacman/build-pamac.sh"
+grep -q 'meson compile -C "$BUILD" pamac-manager' "$REPO_ROOT/forja-pamac-pacman/build-pamac.sh"
+grep -q 'about.application_name = "Forja Store"' "$REPO_ROOT/forja-pamac-pacman/build-pamac.sh"
+grep -q '@define-color forja_bg #111111' "$REPO_ROOT/forja-pamac-pacman/patches/forja-store.css"
+grep -q 'boxed-list > row' "$REPO_ROOT/forja-pamac-pacman/patches/forja-store.css"
+grep -q 'button.suggested-action' "$REPO_ROOT/forja-pamac-pacman/patches/forja-store.css"
+grep -q 'FORJA_PAMAC_BUILD_DIR' "$REPO_ROOT/forja-pamac-pacman/install.sh"
+grep -q 'libpamac-flatpak-plugin' "$ROOT/packages.manjaro"
+grep -q 'build-pamac.sh' "$REPO_ROOT/build-manjaro.sh"
+grep -q 'LD_LIBRARY_PATH="/usr/lib/forja' "$REPO_ROOT/forja-pamac-pacman/bin/forja-store"
 grep -q 'pamac' "$REPO_ROOT/forja-pamac-pacman/src/forja-pacman-transaction"
+grep -q 'parse_flatpak_updates' "$REPO_ROOT/forja-pamac-pacman/src/forja-update-indicator"
+grep -q 'forja_store_core.py' "$REPO_ROOT/forja-pamac-pacman/install.sh"
 
-echo "Forja XFCE: aparência, painel, Docklike, indicador e Forja Store validados."
+echo "Forja XFCE: aparência, painel, Docklike, indicador e interface Pamac da Forja validados."

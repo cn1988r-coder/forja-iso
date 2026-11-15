@@ -1,35 +1,28 @@
-# Forja Store para Manjaro XFCE
+# Forja Store
 
-Loja gráfica própria da Forja OS. A interface GTK3 herda o tema GTK ativo do sistema, seja escuro ou claro. O realce de passagem do mouse é neutro e discreto, sem superfícies fixas cinzas nem cores de ação impostas.
+A Forja Store é a interface visual personalizada do **Pamac**, não um gerenciador de pacotes independente.
 
-## Backend e fontes
+## Arquitetura
 
-- **Pamac CLI / libpamac:** backend de pesquisa, instalação, remoção, consulta de pacotes instalados e atualização dos repositórios Manjaro.
-- **AUR:** operações encaminhadas ao próprio Pamac, com suporte de compilação AUR. O AUR é mantido pela comunidade; os PKGBUILDs devem ser revisados antes da instalação.
-- **Flatpak:** pesquisa e instalação pelo Flatpak, com Flathub configurado para o sistema. A loja consulta instalações de usuário e sistema.
-- **AppStream:** catálogo de aplicativos gráficos e metadados de nomes, descrições e ícones.
+- **Interface:** Pamac Manager GTK4 com libadwaita, compilado a partir do código-fonte upstream.
+- **Visual Forja:** folha de estilos GTK própria, superfícies escuras, cartões arredondados, navegação discreta e paleta monocromática.
+- **Backend:** libpamac e transações originais do Pamac. Não substituímos a lógica de dependências, resolução, download ou instalação.
+- **Repositórios e AUR:** mantidos pelo próprio Pamac.
+- **Flatpak:** suporte do libpamac via plugin Flatpak, com Flathub configurado no sistema.
+- **Atualizações no painel XFCE:** indicador Forja separado, que consulta Pamac e Flatpak e abre a Forja Store na seção de atualizações.
 
-## Operações
+## Integração
 
-- Instalar e remover pacotes oficiais pelo Pamac.
-- Compilar/instalar e remover pacotes AUR pelo Pamac.
-- Atualizar repositórios oficiais e pacotes AUR em uma única transação: `pamac upgrade --aur`.
-- Atualizar Flatpaks do sistema e do usuário pela própria Forja Store.
-- Mostrar o resultado da operação, incluindo falhas e cancelamentos.
-- O indicador XFCE consulta Pamac e Flatpak periodicamente e abre a Forja Store na seção de atualizações.
+O construtor obtém o código Pamac upstream em um commit fixo, aplica apenas as alterações visuais e de identidade da Forja e compila o alvo gráfico. O executável e a biblioteca GTK do Pamac são instalados em `/usr/lib/forja`, sem substituir o `pamac` CLI nem a biblioteca `libpamac` do sistema.
 
-O Pamac deve ser executado como usuário da sessão. Não o execute com `sudo` ou `pkexec`: o próprio Pamac solicita a autorização necessária. As operações Flatpak usam Polkit quando exigem privilégios administrativos.
+O código-fonte correspondente, já com as alterações Forja, é instalado em:
 
-## Componentes
+`/usr/share/doc/forja-store/pamac-11.7.5-forja-source.tar.gz`
 
-- `src/forja-store`: interface GTK3.
-- `src/forja_store_core.py`: parsers de catálogo e atualizações.
-- `src/forja-pacman-transaction`: adaptador que encaminha as transações ao Pamac e Flatpak; não implementa um gerenciador de pacotes próprio.
-- `src/forja-update-indicator`: indicador GTK3 integrado exclusivamente ao painel XFCE.
-- `install.sh`: instala a loja, indicador, lançadores, ícones, agente Polkit e configuração do Flathub.
+O lançador `/usr/bin/forja-store` carrega a biblioteca GTK compilada junto com a interface. O Pamac é executado como usuário da sessão e solicita a autorização necessária por Polkit. Não executar com `sudo`.
 
-## Validação
+## Compilação e validação
 
-Os testes automatizados verificam parsers e encaminhamento das transações. Eles não substituem um teste funcional em uma sessão Manjaro XFCE real, com Pamac, Polkit, rede e Flathub disponíveis.
+`build-pamac.sh` compila a interface no ambiente Manjaro de construção. A validação Manjaro executa essa compilação antes de aceitar o perfil XFCE. A compilação da interface não gera uma ISO.
 
-Esta loja pertence exclusivamente à edição XFCE do Forja OS sobre a base Manjaro.
+O indicador de atualizações continua usando os utilitários CLI e os parsers da Forja. O antigo frontend GTK3 independente não é instalado.

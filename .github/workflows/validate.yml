@@ -31,10 +31,10 @@ jobs:
         run: |
           set -euo pipefail
           bash -n forja-pamac-pacman/install.sh
+          bash -n forja-pamac-pacman/build-pamac.sh
           bash -n forja-pamac-pacman/src/forja-pkexec-sudo
-          shellcheck -S warning -e SC1091 forja-pamac-pacman/install.sh forja-pamac-pacman/src/forja-pkexec-sudo
+          shellcheck -S warning -e SC1091 forja-pamac-pacman/install.sh forja-pamac-pacman/build-pamac.sh forja-pamac-pacman/src/forja-pkexec-sudo
           python3 -m py_compile \
-            forja-pamac-pacman/src/forja-store \
             forja-pamac-pacman/src/forja_store_core.py \
             forja-pamac-pacman/src/forja-pacman-transaction \
             forja-pamac-pacman/src/forja-update-indicator
@@ -49,7 +49,6 @@ jobs:
             desktops/xfce/forja-xfce-appearance.desktop \
             forja-pamac-pacman/forja-software.desktop \
             forja-pamac-pacman/forja-update-indicator.desktop \
-            forja-pamac-pacman/forja-polkit-agent.desktop
           xmllint --noout \
             desktops/xfce/forja-flame.svg \
             desktops/xfce/forja-black-wallpaper.svg \
@@ -64,46 +63,35 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import re
           from pathlib import Path
 
           root = Path("forja-pamac-pacman")
-          ui = (root / "src/forja-store").read_text()
-          core = (root / "src/forja_store_core.py").read_text()
+          css = (root / "patches/forja-store.css").read_text()
+          build_store = (root / "build-pamac.sh").read_text()
+          installer = (root / "install.sh").read_text()
+          launcher = (root / "bin/forja-store").read_text()
           transaction = (root / "src/forja-pacman-transaction").read_text()
           indicator = (root / "src/forja-update-indicator").read_text()
-          installer = (root / "install.sh").read_text()
-          packages = (root / "packages.manjaro").read_text()
-          xfce_packages = Path("desktops/xfce/packages.manjaro").read_text()
+          core = (root / "src/forja_store_core.py").read_text()
+          packages = Path("desktops/xfce/packages.manjaro").read_text()
           build = Path("build-manjaro.sh").read_text()
 
-          css = re.search(r'CSS = """(.*?)"""', ui, re.S)
-          assert css, "CSS da Forja Store ausente"
-          for color in re.findall(r"#[0-9a-fA-F]{6}", css.group(1)):
-              rgb = tuple(int(color[i:i+2], 16) for i in (1, 3, 5))
-              assert max(rgb) - min(rgb) <= 2, f"Cor fora da escala neutra: {color}"
-
-          assert "from forja_store_core import" in ui
-          assert "def load_catalog(self, title, category)" in ui
-          assert "appstreamcli" in ui and "list-categories" in ui and "ALL_APPSTREAM_CATEGORIES" in ui
-          assert "pamac" in ui and "flatpak" in ui
-          assert "parse_flatpak_search" in core and "parse_appstream" in core
-          assert "parse_flatpak_updates" in indicator and "parse_checkupdates" in indicator
-          assert 'new_from_icon_name("forja-update-current")' in indicator
-          for state in ("forja-update-current", "forja-update-available", "forja-update-error"):
-              assert state in indicator, f"Indicador sem estado: {state}"
-          assert '"pamac", "upgrade", "--aur", "--no-confirm"' in transaction and '"pamac", "build", "--no-confirm"' in transaction
-          assert '"flatpak", "remote-ls"' in ui and "remote" in ui
-          assert "forja_store_core.py" in installer and "forja-polkit-agent.desktop" in installer
-          assert "appstream" in packages and "archlinux-appstream-data" in packages
-          assert "polkit-gnome" in xfce_packages
-          assert "OnlyShowIn=XFCE;" in (root / "forja-polkit-agent.desktop").read_text()
-          assert "OnlyShowIn=XFCE;" in (root / "forja-update-indicator.desktop").read_text()
-          assert 'DESKTOP="${FORJA_DESKTOP:-xfce}"' in build
-          assert 'case "$DESKTOP" in xfce)' in build
-          assert "forja-pamac-pacman/install.sh" in build
-          assert "mate-session-manager" not in xfce_packages and "mate-panel" not in xfce_packages
-          print("Forja Store: AppStream, Pamac, AUR, Flatpak, Polkit e XFCE verificados.")
+          assert 'UPSTREAM_COMMIT="363e794fef4f9f6a0e54757fd12155cf27e02cc3"' in build_store
+          assert 'meson compile -C "$BUILD" pamac-manager' in build_store
+          assert 'about.application_name = "Forja Store"' in build_store
+          assert '@define-color forja_bg #111111' in css
+          assert 'boxed-list > row' in css and 'button.suggested-action' in css
+          assert 'FORJA_PAMAC_BUILD_DIR' in installer
+          assert 'pamac-11.7.5-forja-source.tar.gz' in installer
+          assert 'LD_LIBRARY_PATH="/usr/lib/forja' in launcher
+          assert 'pamac' in transaction and 'flatpak' in transaction
+          assert 'parse_flatpak_updates' in indicator and 'parse_checkupdates' in core
+          assert 'gtk4' in packages and 'libadwaita' in packages
+          assert 'pamac-gtk' in packages and 'libpamac-flatpak-plugin' in packages
+          assert 'build-pamac.sh' in build
+          assert 'OnlyShowIn=XFCE;' in (root / "forja-update-indicator.desktop").read_text()
+          assert 'polkit-gnome' in packages
+          print("Forja Store: Pamac GTK4/libadwaita, libpamac, AUR, Flatpak, visual Forja e XFCE verificados.")
           PY
 
       - name: Build AppStream integration validation container
