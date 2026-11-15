@@ -467,7 +467,7 @@ class Store(Gtk.Application):
                     errors.append("Pacman")
             else:
                 errors.append("Pacman")
-            if shutil.which("yay"):
+            if shutil.which("pamac"):
                 aur = run(["pamac", "search", "--aur", query], 180)
                 if aur.returncode in (0, 1):
                     results.extend(parse_pacman_search(aur.stdout, "aur"))
