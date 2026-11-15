@@ -77,7 +77,17 @@ class UpdateIndicator:
         threading.Thread(target=worker, daemon=True).start()
 
     def refresh(self, *_):
-        self.run(["pkexec", HELPER, "apt-refresh"])
+        def worker():
+            codes = []
+            for action in ("apt-refresh", "flatpak-refresh"):
+                result = subprocess.run(["pkexec", HELPER, action],
+                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                        text=True)
+                codes.append(result.returncode)
+            GLib.idle_add(self.set_state, 0, 0,
+                          None if all(code == 0 for code in codes) else "Falha ao atualizar índices.")
+            GLib.timeout_add_seconds(3, self.check)
+        threading.Thread(target=worker, daemon=True).start()
 
 
 if __name__ == "__main__":
