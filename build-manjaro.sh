@@ -96,8 +96,9 @@ XFCE_PROFILE
 
   # Inclui uma única vez os pacotes definidos para a edição XFCE.
   cat /forja-ci/desktops/xfce/packages.manjaro >> "$TARGET/Packages-Desktop"
+fi
 
-# Cada edição recebe o tema GTK escuro que realmente configura.
+# A edição única recebe o tema GTK escuro que realmente configura.
 REQUIRED_GTK_THEME="adw-gtk-theme"
 grep -Fxq "$REQUIRED_GTK_THEME" "$TARGET/Packages-Desktop" || printf '%s\n' "$REQUIRED_GTK_THEME" >> "$TARGET/Packages-Desktop"
 if ! pacman_info "$REQUIRED_GTK_THEME" >/dev/null 2>&1; then
@@ -197,7 +198,6 @@ LOGO
   "modules": ["host", "kernel", "uptime", "packages", "shell", "display", "de", "wm", "theme", "icons", "terminal", "cpu", "gpu", "memory"]
 }
 FASTFETCH
-    fi
   fi
 done
 
