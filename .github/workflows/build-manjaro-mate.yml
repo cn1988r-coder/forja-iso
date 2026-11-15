@@ -1,6 +1,10 @@
 name: Build Manjaro MATE ISO
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-manjaro-mate.yml'
   # A fila é consultada automaticamente. Nenhuma ação manual no GitHub é necessária.
   schedule:
     - cron: "*/5 * * * *"
