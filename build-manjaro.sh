@@ -294,6 +294,59 @@ install -Dm644 /forja-ci/desktops/xfce/plymouth/plymouthd.conf "$TARGET/rootfs/e
 install -Dm644 /forja-ci/desktops/xfce/plymouth/forja.plymouth "$TARGET/rootfs/usr/share/plymouth/themes/forja/forja.plymouth"
 install -Dm644 /forja-ci/desktops/xfce/plymouth/forja.script "$TARGET/rootfs/usr/share/plymouth/themes/forja/forja.script"
 
+# Repositórios do sistema instalado: pacman usa exclusivamente a mirrorlist
+# gerada pelo utilitário oficial pacman-mirrors do Manjaro.
+install -Dm644 /dev/stdin "$TARGET/rootfs/etc/pacman.conf" <<'PACMANCONF'
+[options]
+HoldPkg = pacman glibc manjaro-system
+Architecture = auto
+Color
+CheckSpace
+ParallelDownloads = 5
+SigLevel = Required DatabaseOptional
+LocalFileSigLevel = Optional
+
+[core]
+SigLevel = PackageRequired
+Include = /etc/pacman.d/mirrorlist
+
+[extra]
+SigLevel = PackageRequired
+Include = /etc/pacman.d/mirrorlist
+PACMANCONF
+
+install -Dm644 /dev/stdin "$TARGET/rootfs/etc/pacman-mirrors.conf" <<'MIRRORSCONF'
+Branch = stable
+Method = rank
+Protocols = https,http
+MIRRORSCONF
+
+install -Dm644 /dev/stdin "$TARGET/rootfs/etc/pacman.d/mirrorlist" <<'MIRRORLIST'
+## Mirrorlist gerada no primeiro boot pelo forja-manjaro-mirrors.service.
+## Não adicione servidores de outras distribuições neste arquivo.
+MIRRORLIST
+
+install -Dm644 /dev/stdin "$TARGET/rootfs/etc/systemd/system/forja-manjaro-mirrors.service" <<'MIRRORSERVICE'
+[Unit]
+Description=Generate current official Manjaro mirror list for Forja OS
+Wants=network-online.target
+After=network-online.target
+ConditionPathExists=/usr/bin/pacman-mirrors
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/pacman-mirrors --fasttrack 10
+TimeoutStartSec=10min
+Restart=on-failure
+RestartSec=30
+StartLimitIntervalSec=0
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+MIRRORSERVICE
+ln -sfn ../forja-manjaro-mirrors.service "$TARGET/rootfs/etc/systemd/system/multi-user.target.wants/forja-manjaro-mirrors.service"
+
 DM=lightdm
 if grep -q '^#\?displaymanager=' "$TARGET/profile.conf"; then
   sed -i "s/^#\?displaymanager=.*/displaymanager=\"$DM\"/" "$TARGET/profile.conf"
@@ -431,6 +484,161 @@ command -v pacman-mirrors >/dev/null 2>&1 || {
 }
 echo "Atualizando espelhos Manjaro (10 mais rápidos)..."
 pacman-mirrors --fasttrack 10
+MIRRORLIST=/etc/pacman.d/mirrorlist
+if ! grep -Eq '^[[:space:]]*Include[[:space:]]*=[[:space:]]*/etc/pacman.d/mirrorlist([[:space:]]|$)' "$PACMAN_CONF"; then
+  echo "ERRO: pacman.conf não está direcionando os repositórios para a mirrorlist Manjaro." >&2
+  exit 42
+fi
+if ! grep -Eq '^[[:space:]]*\\[core\\][[:space:]]*
+  sed -i '/^\[options\]/a XferCommand = /usr/bin/curl --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 600 -L -C - -f -o %o %u' "$PACMAN_CONF"
+fi
+if ! grep -Eq '^[[:space:]]*DisableDownloadTimeout([[:space:]]|$)' "$PACMAN_CONF"; then
+  sed -i '/^\[options\]/a DisableDownloadTimeout' "$PACMAN_CONF"
+fi
+if grep -Eq '^[[:space:]]*ParallelDownloads[[:space:]]*=' "$PACMAN_CONF"; then
+  sed -i -E 's/^[[:space:]]*ParallelDownloads[[:space:]]*=.*/ParallelDownloads = 3/' "$PACMAN_CONF"
+else
+  sed -i '/^\[options\]/a ParallelDownloads = 3' "$PACMAN_CONF"
+fi
+echo "Sincronizando bancos de pacotes após atualizar os espelhos..."
+pacman -Syy --noconfirm
+
+# Compressão SquashFS reforçada: XZ com blocos/dicionário de 1 MiB.
+# O wrapper limpa somente caches temporários do sistema-alvo antes da imagem.
+SQFS_WRAPPER_DIR="$WORK/squashfs-bin"
+mkdir -p "$SQFS_WRAPPER_DIR"
+cat > "$SQFS_WRAPPER_DIR/mksquashfs" <<'MKSQUASHFS'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+REAL_MKSQUASHFS=/usr/bin/mksquashfs
+[[ -x "$REAL_MKSQUASHFS" ]] || { echo "ERRO: mksquashfs não encontrado." >&2; exit 40; }
+SOURCE="${1:-}"
+if [[ -d "$SOURCE" && -d "$SOURCE/var/cache/pacman/pkg" ]]; then
+  find "$SOURCE/var/cache/pacman/pkg" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+  for temp_dir in "$SOURCE/var/tmp" "$SOURCE/tmp"; do
+    if [[ -d "$temp_dir" ]]; then
+      find "$temp_dir" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+    fi
+  done
+fi
+exec "$REAL_MKSQUASHFS" "$@" -b 1M -Xdict-size 1M
+MKSQUASHFS
+chmod 0755 "$SQFS_WRAPPER_DIR/mksquashfs"
+XZ_HELP="$("$SQFS_WRAPPER_DIR/mksquashfs" -help-comp xz 2>&1 || true)"
+grep -q -- '-Xdict-size' <<< "$XZ_HELP" || {
+  echo "ERRO: mksquashfs não oferece suporte aos parâmetros XZ avançados." >&2
+  exit 41
+}
+# Usar -f para incluir o conjunto completo do perfil próprio Forja XFCE.
+BUILDISO_OK=0
+for attempt in 1 2 3; do
+  echo "Iniciando geração do sistema Live e da ISO (tentativa $attempt/3)..."
+  if PATH="$SQFS_WRAPPER_DIR:$PATH" buildiso -f -d xz -p "forja-$DESKTOP" -b stable -k "$KERNEL_PKG" -r "$CHROOTS" -t "$OUT" -v; then
+    BUILDISO_OK=1
+    break
+  fi
+
+  if (( attempt < 3 )); then
+    echo "Aviso: buildiso falhou na tentativa $attempt. Atualizando espelhos e preparando nova tentativa..." >&2
+    pacman-mirrors --fasttrack 10
+    pacman -Syy --noconfirm
+    sleep $((attempt * 20))
+  fi
+done
+if (( BUILDISO_OK != 1 )); then
+  echo "ERRO: geração do sistema Live/ISO falhou após 3 tentativas." >&2
+  exit 43
+fi
+
+ISO="$(find "$OUT" -type f -name '*.iso' -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)"
+test -n "$ISO" && test -s "$ISO" || {
+  echo "ERRO: buildiso terminou sem produzir ISO."
+  exit 30
+}
+SIZE="$(stat -c '%s' "$ISO")"
+(( SIZE >= 1000000000 )) || { echo "ISO pequena/incompleta: $SIZE bytes"; exit 31; }
+(cd "$(dirname "$ISO")" && sha256sum "$(basename "$ISO")" | tee "$(basename "$ISO").sha256")
+printf 'ISO_FILE=%s\nISO_SIZE=%s\nDESKTOP=%s\nKERNEL=%s\nKERNEL_PACKAGE=%s\nBASE=Manjaro\nCOMPRESSION=xz\n' "$(basename "$ISO")" "$SIZE" "$DESKTOP" "$KERNEL" "$KERNEL_PKG" > "$OUT/build-info.txt"
+echo "BUILD_OK: $ISO"
+ "$PACMAN_CONF" || ! grep -Eq '^[[:space:]]*\\[extra\\][[:space:]]*
+  sed -i '/^\[options\]/a XferCommand = /usr/bin/curl --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 600 -L -C - -f -o %o %u' "$PACMAN_CONF"
+fi
+if ! grep -Eq '^[[:space:]]*DisableDownloadTimeout([[:space:]]|$)' "$PACMAN_CONF"; then
+  sed -i '/^\[options\]/a DisableDownloadTimeout' "$PACMAN_CONF"
+fi
+if grep -Eq '^[[:space:]]*ParallelDownloads[[:space:]]*=' "$PACMAN_CONF"; then
+  sed -i -E 's/^[[:space:]]*ParallelDownloads[[:space:]]*=.*/ParallelDownloads = 3/' "$PACMAN_CONF"
+else
+  sed -i '/^\[options\]/a ParallelDownloads = 3' "$PACMAN_CONF"
+fi
+echo "Sincronizando bancos de pacotes após atualizar os espelhos..."
+pacman -Syy --noconfirm
+
+# Compressão SquashFS reforçada: XZ com blocos/dicionário de 1 MiB.
+# O wrapper limpa somente caches temporários do sistema-alvo antes da imagem.
+SQFS_WRAPPER_DIR="$WORK/squashfs-bin"
+mkdir -p "$SQFS_WRAPPER_DIR"
+cat > "$SQFS_WRAPPER_DIR/mksquashfs" <<'MKSQUASHFS'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+REAL_MKSQUASHFS=/usr/bin/mksquashfs
+[[ -x "$REAL_MKSQUASHFS" ]] || { echo "ERRO: mksquashfs não encontrado." >&2; exit 40; }
+SOURCE="${1:-}"
+if [[ -d "$SOURCE" && -d "$SOURCE/var/cache/pacman/pkg" ]]; then
+  find "$SOURCE/var/cache/pacman/pkg" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+  for temp_dir in "$SOURCE/var/tmp" "$SOURCE/tmp"; do
+    if [[ -d "$temp_dir" ]]; then
+      find "$temp_dir" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+    fi
+  done
+fi
+exec "$REAL_MKSQUASHFS" "$@" -b 1M -Xdict-size 1M
+MKSQUASHFS
+chmod 0755 "$SQFS_WRAPPER_DIR/mksquashfs"
+XZ_HELP="$("$SQFS_WRAPPER_DIR/mksquashfs" -help-comp xz 2>&1 || true)"
+grep -q -- '-Xdict-size' <<< "$XZ_HELP" || {
+  echo "ERRO: mksquashfs não oferece suporte aos parâmetros XZ avançados." >&2
+  exit 41
+}
+# Usar -f para incluir o conjunto completo do perfil próprio Forja XFCE.
+BUILDISO_OK=0
+for attempt in 1 2 3; do
+  echo "Iniciando geração do sistema Live e da ISO (tentativa $attempt/3)..."
+  if PATH="$SQFS_WRAPPER_DIR:$PATH" buildiso -f -d xz -p "forja-$DESKTOP" -b stable -k "$KERNEL_PKG" -r "$CHROOTS" -t "$OUT" -v; then
+    BUILDISO_OK=1
+    break
+  fi
+
+  if (( attempt < 3 )); then
+    echo "Aviso: buildiso falhou na tentativa $attempt. Atualizando espelhos e preparando nova tentativa..." >&2
+    pacman-mirrors --fasttrack 10
+    pacman -Syy --noconfirm
+    sleep $((attempt * 20))
+  fi
+done
+if (( BUILDISO_OK != 1 )); then
+  echo "ERRO: geração do sistema Live/ISO falhou após 3 tentativas." >&2
+  exit 43
+fi
+
+ISO="$(find "$OUT" -type f -name '*.iso' -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)"
+test -n "$ISO" && test -s "$ISO" || {
+  echo "ERRO: buildiso terminou sem produzir ISO."
+  exit 30
+}
+SIZE="$(stat -c '%s' "$ISO")"
+(( SIZE >= 1000000000 )) || { echo "ISO pequena/incompleta: $SIZE bytes"; exit 31; }
+(cd "$(dirname "$ISO")" && sha256sum "$(basename "$ISO")" | tee "$(basename "$ISO").sha256")
+printf 'ISO_FILE=%s\nISO_SIZE=%s\nDESKTOP=%s\nKERNEL=%s\nKERNEL_PACKAGE=%s\nBASE=Manjaro\nCOMPRESSION=xz\n' "$(basename "$ISO")" "$SIZE" "$DESKTOP" "$KERNEL" "$KERNEL_PKG" > "$OUT/build-info.txt"
+echo "BUILD_OK: $ISO"
+ "$PACMAN_CONF"; then
+  echo "ERRO: repositórios core/extra do Manjaro não estão habilitados no pacman.conf." >&2
+  exit 42
+fi
+if ! grep -Eq '^[[:space:]]*Server[[:space:]]*=[[:space:]]*https?://' "$MIRRORLIST"; then
+  echo "ERRO: pacman-mirrors não gerou servidores válidos em $MIRRORLIST." >&2
+  exit 42
+fi
 if ! grep -Eq '^[[:space:]]*XferCommand[[:space:]]*=' "$PACMAN_CONF"; then
   sed -i '/^\[options\]/a XferCommand = /usr/bin/curl --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 600 -L -C - -f -o %o %u' "$PACMAN_CONF"
 fi
