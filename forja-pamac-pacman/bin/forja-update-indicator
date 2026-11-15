@@ -1,7 +1,2 @@
 #!/bin/sh
-. /etc/os-release
-case "${ID:-arch}" in
-  manjaro) export FORJA_ICON_NAME="forja-pamac-manjaro" ;;
-  *) export FORJA_ICON_NAME="forja-pamac-arch" ;;
-esac
 exec /usr/bin/python3 /usr/lib/forja/forja-update-indicator "$@"
