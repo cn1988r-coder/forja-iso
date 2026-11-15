@@ -57,46 +57,36 @@ done
   exit 20
 }
 
-TARGET="$PROFILE_ROOT/manjaro/forja-$DESKTOP"
-BASE_PROFILE="$PROFILE_ROOT/manjaro/$DESKTOP"
+TARGET="$PROFILE_ROOT/manjaro/forja-xfce"
 rm -rf "$TARGET"
+mkdir -p "$TARGET/desktop-overlay" "$TARGET/live-overlay"
 
-if [[ "$DESKTOP" == xfce ]]; then
-  mkdir -p "$TARGET"
+# Perfil gráfico independente: usa somente a infraestrutura compartilhada
+# necessária para gerar uma ISO Manjaro. Nunca importa manjaro/xfce.
+for shared_list in Packages-Root Packages-Mhwd Packages-Live; do
+  test -f "$PROFILE_ROOT/shared/$shared_list" || {
+    echo "ERRO: componente técnico compartilhado ausente: $shared_list" >&2
+    exit 21
+  }
+  install -m 0644 "$PROFILE_ROOT/shared/$shared_list" "$TARGET/$shared_list"
+done
 
-  # A edição única usa o perfil oficial XFCE do Manjaro.
-  # Se o perfil não existir na revisão obtida, monta a estrutura a partir dos
-  # componentes compartilhados, sem importar arquivos de outro ambiente.
-  if [[ -d "$BASE_PROFILE" ]]; then
-    echo "Usando perfil oficial como base: manjaro/xfce"
-    cp -a "$BASE_PROFILE/." "$TARGET/"
-  else
-    echo "Perfil manjaro/xfce ausente; montando perfil XFCE a partir dos componentes compartilhados."
-    mkdir -p "$TARGET/desktop-overlay" "$TARGET/live-overlay"
-    cp "$PROFILE_ROOT/shared/Packages-Root" "$TARGET/Packages-Root"
-    cp "$PROFILE_ROOT/shared/Packages-Mhwd" "$TARGET/Packages-Mhwd"
-    cp "$PROFILE_ROOT/shared/Packages-Live" "$TARGET/Packages-Live"
-    cp -a "$PROFILE_ROOT/shared/manjaro/live-overlay/." "$TARGET/live-overlay/"
-    cat > "$TARGET/profile.conf" <<'XFCE_PROFILE'
-displaymanager="lightdm"
-autologin="true"
-nonfree_mhwd="false"
-enable_systemd=('NetworkManager' 'bluetooth')
-enable_systemd_live=('NetworkManager' 'bluetooth' 'manjaro-live' 'mhwd-live' 'pacman-init' 'mirrors-live')
-XFCE_PROFILE
-  fi
-
-  mkdir -p "$TARGET/desktop-overlay" "$TARGET/live-overlay"
-  # Materializa a lista antes de anexar pacotes, sem alterar symlinks do perfil oficial.
-  if [[ -L "$TARGET/Packages-Desktop" ]]; then
-    cp "$(readlink -f "$TARGET/Packages-Desktop")" "$TARGET/Packages-Desktop.materialized"
-    mv "$TARGET/Packages-Desktop.materialized" "$TARGET/Packages-Desktop"
-  fi
-  touch "$TARGET/Packages-Desktop"
-
-  # Inclui uma única vez os pacotes definidos para a edição XFCE.
-  cat /forja-ci/desktops/xfce/packages.manjaro >> "$TARGET/Packages-Desktop"
+# A sessão Live usa apenas os mecanismos de inicialização da base.
+# Todas as configurações XFCE do overlay genérico são descartadas e recriadas
+# pela Forja antes da criação da imagem.
+if [[ -d "$PROFILE_ROOT/shared/manjaro/live-overlay" ]]; then
+  cp -a "$PROFILE_ROOT/shared/manjaro/live-overlay/." "$TARGET/live-overlay/"
 fi
+rm -rf "$TARGET/live-overlay/etc/skel/.config/xfce4" \
+       "$TARGET/live-overlay/etc/xdg/xfce4"
+rm -f "$TARGET/live-overlay/etc/xdg/autostart/manjaro-hello.desktop" \
+      "$TARGET/live-overlay/etc/xdg/autostart/manjaro-settings-manager.desktop" \
+      "$TARGET/live-overlay/etc/xdg/autostart/xfce4-tour.desktop"
+
+# Perfil de sessão e pacotes mantido no próprio repositório Forja.
+install -m 0644 /forja-ci/desktops/xfce/profile.conf "$TARGET/profile.conf"
+install -m 0644 /forja-ci/desktops/xfce/packages.manjaro "$TARGET/Packages-Desktop"
+
 
 # A edição única recebe o tema GTK escuro que realmente configura.
 REQUIRED_GTK_THEME="adw-gtk-theme"
