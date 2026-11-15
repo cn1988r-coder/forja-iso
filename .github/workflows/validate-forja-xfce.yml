@@ -123,4 +123,10 @@ jobs:
           grep -q 'value="whiskermenu"' desktops/xfce/panel-default.xml
           grep -q 'CURSOR_THEME="Bibata-Modern-Classic"' desktops/xfce/apply-forja-layout.sh
           grep -q 'GTK_THEME="adw-gtk3-dark"' desktops/xfce/apply-forja-layout.sh
-          echo "XFCE + Forja Store integration wiring validated. No ISO build was run."
+          grep -q '^appstream
+ desktops/xfce/packages.manjaro
+          grep -q '^archlinux-appstream-data
+ desktops/xfce/packages.manjaro
+          grep -q 'def load_catalog(self,title,category)' forja-pamac-pacman/src/forja-store
+          grep -q 'fields.get("Name",package)' forja-pamac-pacman/src/forja-store
+          echo "XFCE + AppStream + Forja Store integration validated. No ISO build was run."
