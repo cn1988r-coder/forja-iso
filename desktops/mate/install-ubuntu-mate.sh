@@ -6,12 +6,14 @@ set -Eeuo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 MANIFEST="$ROOT/packages.ubuntu"
 PROFILE="$ROOT/apply-ubuntu-mate.sh"
-[[ -f "$MANIFEST" && -f "$PROFILE" ]] || { echo "Manifesto ou perfil MATE ausente." >&2; exit 1; }
+MATERIA_INSTALLER="$ROOT/install-materia-ubuntu.sh"
+[[ -f "$MANIFEST" && -f "$PROFILE" && -f "$MATERIA_INSTALLER" ]] || { echo "Manifesto ou perfil MATE ausente." >&2; exit 1; }
 
 mapfile -t packages < <(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' "$MANIFEST")
 apt-get update
 apt-get install -y "${packages[@]}"
 
+bash "$MATERIA_INSTALLER"
 install -Dm755 "$PROFILE" /usr/lib/forja/apply-ubuntu-mate.sh
 install -d /etc/xdg/autostart
 cat > /etc/xdg/autostart/forja-ubuntu-mate-visual.desktop <<'DESKTOP'
