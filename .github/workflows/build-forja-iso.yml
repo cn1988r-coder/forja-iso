@@ -30,9 +30,37 @@ jobs:
         with:
           ref: feature/forja-xfce-store-integration
 
-      - name: Prepare temporary output directory
+      - name: Prepare dedicated ext4 filesystem for Manjaro OverlayFS
         shell: bash
-        run: mkdir -p "$RUNNER_TEMP/forja-iso-output"
+        run: |
+          set -Eeuo pipefail
+          mkdir -p "$RUNNER_TEMP/forja-iso-output"
+          mkdir -p "$RUNNER_TEMP/forja-manjaro-ext4"
+          image="$RUNNER_TEMP/forja-manjaro-work.ext4"
+          mountpoint="$RUNNER_TEMP/forja-manjaro-ext4"
+          if mountpoint -q "$mountpoint"; then
+            sudo umount "$mountpoint"
+          fi
+          rm -f "$image"
+          # OverlayFS requires a supported upper filesystem. A bind-mounted
+          # directory can still inherit the runner/Docker backing filesystem.
+          # Put the complete Manjaro chroot tree on a real ext4 loop filesystem.
+          truncate -s 10G "$image"
+          sudo mkfs.ext4 -F -m 0 "$image"
+          sudo mount -o loop "$image" "$mountpoint"
+          sudo chmod 0777 "$mountpoint"
+          df -hT "$mountpoint"
+          test "$(stat -f -c %T "$mountpoint")" = ext2/ext3
+          mkdir -p "$mountpoint/overlay-test/lower" "$mountpoint/overlay-test/upper" \
+                   "$mountpoint/overlay-test/work" "$mountpoint/overlay-test/merged"
+          printf 'overlay-test-ok\n' > "$mountpoint/overlay-test/lower/probe"
+          sudo mount -t overlay forja-preflight \
+            -o "lowerdir=$mountpoint/overlay-test/lower,upperdir=$mountpoint/overlay-test/upper,workdir=$mountpoint/overlay-test/work" \
+            "$mountpoint/overlay-test/merged"
+          grep -Fxq 'overlay-test-ok' "$mountpoint/overlay-test/merged/probe"
+          sudo umount "$mountpoint/overlay-test/merged"
+          rm -rf "$mountpoint/overlay-test"
+          echo "OVERLAYFS_HOST_PREFLIGHT_OK: upperdir/workdir em ext4."
 
       - name: Build ISO from the independent Forja XFCE profile
         shell: bash
@@ -45,6 +73,7 @@ jobs:
             --privileged \
             --security-opt seccomp=unconfined \
             -v "$GITHUB_WORKSPACE:/forja-ci:ro" \
+            -v "$RUNNER_TEMP/forja-manjaro-ext4:/tmp/forja-manjaro" \
             -v "$RUNNER_TEMP/forja-iso-output:/forja-output" \
             -e FORJA_DISTRIBUTION=manjaro \
             -e FORJA_DESKTOP=xfce \
@@ -52,7 +81,21 @@ jobs:
             -e FORJA_PREFLIGHT_ONLY=0 \
             -e FORJA_OUTPUT=/forja-output \
             manjarolinux/base:latest \
-            bash -lc 'bash /forja-ci/build-cloud.sh'
+            bash -lc '
+              set -Eeuo pipefail
+              mountpoint -q /tmp/forja-manjaro
+              test "$(stat -f -c %T /tmp/forja-manjaro)" = ext2/ext3
+              mkdir -p /tmp/forja-manjaro/overlay-test/{lower,upper,work,merged}
+              printf "overlay-test-ok\\n" > /tmp/forja-manjaro/overlay-test/lower/probe
+              mount -t overlay forja-container-preflight \
+                -o lowerdir=/tmp/forja-manjaro/overlay-test/lower,upperdir=/tmp/forja-manjaro/overlay-test/upper,workdir=/tmp/forja-manjaro/overlay-test/work \
+                /tmp/forja-manjaro/overlay-test/merged
+              grep -Fxq "overlay-test-ok" /tmp/forja-manjaro/overlay-test/merged/probe
+              umount /tmp/forja-manjaro/overlay-test/merged
+              rm -rf /tmp/forja-manjaro/overlay-test
+              echo "OVERLAYFS_CONTAINER_PREFLIGHT_OK: ext4 bind mount aceita upperdir."
+              bash /forja-ci/build-cloud.sh
+            '
 
       - name: Verify ISO and checksum exist
         shell: bash
@@ -72,6 +115,17 @@ jobs:
             ${{ runner.temp }}/forja-iso-output/build-info.txt
           if-no-files-found: error
           retention-days: 1
+
+      - name: Clean dedicated ext4 build filesystem
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          mountpoint="$RUNNER_TEMP/forja-manjaro-ext4"
+          if mountpoint -q "$mountpoint"; then
+            sudo umount "$mountpoint"
+          fi
+          rm -f "$RUNNER_TEMP/forja-manjaro-work.ext4"
 
       - name: Show temporary download instructions
         if: success()
