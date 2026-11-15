@@ -5,11 +5,11 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 DESTDIR="${DESTDIR:-}"
 target() { printf "%s%s" "$DESTDIR" "$1"; }
 . /etc/os-release
-case "${ID:-arch}" in
-  manjaro) ICON="$ROOT/icons/forja-pamac-manjaro.svg" ;;
-  arch) ICON="$ROOT/icons/forja-pamac-arch.svg" ;;
-  *) echo "Esta instalação suporta somente Arch Linux e Manjaro."; exit 1 ;;
-esac
+[[ "${ID:-}" == manjaro ]] || {
+  echo "Forja Software Pacman é exclusivo da base Manjaro."
+  exit 1
+}
+ICON="$ROOT/icons/forja-pamac-manjaro.svg"
 install -d "$(target /usr/lib/forja)" "$(target /usr/bin)" \
   "$(target /usr/share/icons/hicolor/scalable/apps)" \
   "$(target /etc/xdg/autostart)" "$(target /usr/share/applications)"

@@ -1,8 +1,0 @@
-# Arch Linux only
-gtk4
-gtk3
-python
-python-gobject
-libayatana-appindicator
-pacman-contrib
-polkit

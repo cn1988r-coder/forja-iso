@@ -1,17 +1,17 @@
-# Desktop modules
+# Módulos de desktop
 
-Desktop packages and desktop-session configuration live here, separately from all operating-system bases. A base builder must not install a desktop's tools.
+Os pacotes e as configurações de sessão ficam separados das bases do sistema operacional. Um construtor de base não deve instalar ferramentas de desktop.
 
 ## XFCE
 
-The XFCE module has independent package manifests for Arch Linux, Manjaro, and Ubuntu LTS. It includes XFCE Goodies and the Whisker Menu plugin, plus Firefox, Materia Dark, Papirus, and Bibata as desktop-level choices.
+O módulo XFCE mantém manifestos independentes para **Manjaro** e **Ubuntu LTS**. Inclui XFCE, Whisker Menu, Docklike e plugins selecionados, além de Firefox, Materia Dark, Papirus e Bibata como escolhas de desktop.
 
-`apply-mint-layout.sh` configures the XFCE session with a full-width bottom panel, Whisker Menu at the left, a window list, system tray, clock, and show-desktop control. It deliberately leaves the distribution's default XFCE wallpaper unchanged; the Forja branding does not replace desktop backgrounds. Install it as `/usr/lib/forja/apply-xfce-mint-layout.sh` and install `forja-xfce-mint-layout.desktop` in `/etc/xdg/autostart/`.
+`apply-mint-layout.sh` configura a sessão XFCE com painel inferior, Whisker Menu à esquerda, lista de janelas, bandeja do sistema, relógio e controle de mostrar área de trabalho.
 
 ## MATE
 
-The Ubuntu MATE package manifest is independent of the Ubuntu base. The Manjaro MATE image includes `mate-backgrounds` and keeps the MATE desktop's native wallpaper instead of applying a Forja background.
+O manifesto de pacotes MATE para Ubuntu é independente da base Ubuntu. A imagem Manjaro MATE utiliza o perfil próprio do construtor Manjaro.
 
-## Integration status
+## Bases suportadas
 
-These are desktop-module definitions. The current cloud ISO entry point and Manjaro builder still need refactoring before the selection can build all base/desktop combinations. The Ubuntu base builder remains base-only.
+Somente Ubuntu LTS e Manjaro. Não manter manifestos, pacotes ou caminhos de compilação para Arch Linux.
