@@ -26,10 +26,14 @@ showPreviews=false
 pinned=thunar;firefox;
 indicatorStyle=1
 inactiveIndicatorStyle=1
+indicatorOrientation=1
+indicatorColorFromTheme=false
+indicatorColor=rgb(232,232,232)
 forceIconSize=false
 keyComboActive=false
 keyAloneActive=false
 inactiveColor=rgb(145,145,145)
+showWindowCount=false
 DOCKLIKE
 xfconf-query -c xfce4-panel -p /panels -n -t int -s 1 >/dev/null 2>&1 || true
 set_prop xfce4-panel /panels/panel-1/position string 'p=8;x=0;y=0'
