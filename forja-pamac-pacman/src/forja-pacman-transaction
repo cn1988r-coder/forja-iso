@@ -83,7 +83,8 @@ def main(argv=None):
                 return 1
             return call(["flatpak", "install", "--system", "--noninteractive", "--assumeyes", "flathub", name], 7200)
         if action == "remove":
-            return call(["flatpak", "uninstall", "--system", "--noninteractive", "--assumeyes", "--delete-data", name], 7200)
+            scope = "--system" if call(["flatpak", "info", "--system", name]) == 0 else "--user"
+            return call(["flatpak", "uninstall", scope, "--noninteractive", "--assumeyes", "--delete-data", name], 7200)
         return 2
     if not PACKAGE.fullmatch(name):
         print("Nome de pacote inválido.", file=sys.stderr)
