@@ -119,8 +119,13 @@ jobs:
         run: |
           set -Eeuo pipefail
           find "$RUNNER_TEMP/forja-iso-output" -maxdepth 2 -type f -printf '%p %s bytes\n'
-          test -n "$(find "$RUNNER_TEMP/forja-iso-output" -type f -name '*.iso' -print -quit)"
-          test -n "$(find "$RUNNER_TEMP/forja-iso-output" -type f -name '*.iso.sha256' -print -quit)"
+          iso="$(find "$RUNNER_TEMP/forja-iso-output" -type f -name '*.iso' -print -quit)"
+          test -n "$iso"
+          test -s "$iso"
+          checksum="$iso.sha256"
+          test -s "$checksum"
+          (cd "$(dirname "$iso")" && sha256sum -c "$(basename "$checksum")")
+          test -s "$RUNNER_TEMP/forja-iso-output/build-info.txt"
 
       - name: Publish temporary ISO download (24 hours)
         uses: actions/upload-artifact@v4
