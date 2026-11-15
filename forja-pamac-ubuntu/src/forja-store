@@ -147,8 +147,8 @@ class ForjaStore(Gtk.Application):
                 cols = line.split("\t")
                 if len(cols) >= 1 and cols[0]:
                     installed_map[cols[0]] = {
-                        "name": cols[1] if len(cols) > 1 and cols[1] else cols[0],
-                        "remote": cols[2] if len(cols) > 2 else "",
+                        "name": cols[0],
+                        "remote": cols[1] if len(cols) > 1 else "",
                     }
 
             updates, update_err = command([
@@ -164,7 +164,7 @@ class ForjaStore(Gtk.Application):
 
             remote_apps, remote_err = command([
                 FLATPAK, "remote-ls", "--system", "--app",
-                "--columns=application,name,description,origin",
+                "--columns=application,origin",
             ])
             if remote_err and "não está instalado" not in remote_err:
                 errors.append("Flatpak: " + remote_err)
