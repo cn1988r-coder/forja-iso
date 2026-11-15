@@ -9,7 +9,7 @@ target() { printf "%s%s" "$DESTDIR" "$1"; }
   echo "Forja Software Pacman é exclusivo da base Manjaro."
   exit 1
 }
-ICON="$ROOT/icons/forja-pamac-manjaro.svg"
+ICON="$ROOT/icons/forja-store.svg"
 install -d "$(target /usr/lib/forja)" "$(target /usr/bin)" \
   "$(target /usr/share/icons/hicolor/scalable/apps)" \
   "$(target /etc/xdg/autostart)" "$(target /usr/share/applications)"
@@ -22,4 +22,4 @@ install -m 644 "$ICON" "$(target "/usr/share/icons/hicolor/scalable/apps/$(basen
 install -m 644 "$ROOT/forja-update-indicator.desktop" "$(target /etc/xdg/autostart/forja-update-indicator.desktop)"
 install -m 644 "$ROOT/forja-software.desktop" "$(target /usr/share/applications/forja-software.desktop)"
 if [[ -z "$DESTDIR" ]]; then gtk-update-icon-cache -f /usr/share/icons/hicolor 2>/dev/null || true; fi
-echo "Forja Software instalado."
+echo "Forja Store e indicador de atualizações instalados."
