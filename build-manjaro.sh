@@ -219,38 +219,19 @@ Name=Default
 Comment=Forja default cursor
 Inherits=Bibata-Modern-Ice
 CURSOR
+    # Tema, ícones e cursor são gravados juntos para evitar que uma etapa
+    # sobrescreva as configurações produzidas pela outra.
     for settings in \
       "$overlay/etc/gtk-3.0/settings.ini" \
       "$overlay/etc/gtk-4.0/settings.ini" \
       "$overlay/etc/skel/.config/gtk-3.0/settings.ini" \
       "$overlay/etc/skel/.config/gtk-4.0/settings.ini"; do
       mkdir -p "$(dirname "$settings")"
-      if [[ -f "$settings" ]]; then
-        if grep -q '^gtk-cursor-theme-name=' "$settings"; then
-          sed -i 's/^gtk-cursor-theme-name=.*/gtk-cursor-theme-name=Bibata-Modern-Ice/' "$settings"
-        else
-          printf '\ngtk-cursor-theme-name=Bibata-Modern-Ice\n' >> "$settings"
-        fi
-      else
-        cat > "$settings" <<'GTK'
-[Settings]
-gtk-theme-name=Materia-dark
-gtk-cursor-theme-name=Bibata-Modern-Ice
-GTK
-      fi
-    done
-    # Tema GTK Materia Dark como padrão global e para novos usuários.
-    mkdir -p "$overlay/etc/gtk-3.0" "$overlay/etc/gtk-4.0" \
-             "$overlay/etc/skel/.config/gtk-3.0" \
-             "$overlay/etc/skel/.config/gtk-4.0"
-    for settings in \
-      "$overlay/etc/gtk-3.0/settings.ini" \
-      "$overlay/etc/gtk-4.0/settings.ini" \
-      "$overlay/etc/skel/.config/gtk-3.0/settings.ini" \
-      "$overlay/etc/skel/.config/gtk-4.0/settings.ini"; do
       cat > "$settings" <<'GTK'
 [Settings]
 gtk-theme-name=Materia-dark
+gtk-icon-theme-name=BigLinux-Icons-Material-Dark
+gtk-cursor-theme-name=Bibata-Modern-Ice
 GTK
     done
     mkdir -p "$overlay/etc/systemd/system/multi-user.target.wants"
@@ -389,7 +370,7 @@ if [[ "$DESKTOP" == mate ]]; then
     lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet
     bluez bluez-utils blueman
     pipewire pipewire-alsa pipewire-pulse wireplumber
-    gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib polkit fastfetch
+    gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib polkit fastfetch bibata-cursor-theme dconf
     systemd grub efibootmgr mkinitcpio calamares linux-firmware
     manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db
   )
@@ -408,11 +389,15 @@ if [[ "$DESKTOP" == mate ]]; then
   fi
   awk '!seen[$0]++' "$TARGET/Packages-Desktop" > "$TARGET/Packages-Desktop.unique"
   mv "$TARGET/Packages-Desktop.unique" "$TARGET/Packages-Desktop"
-  package=bibata-cursor-theme
-  if ! pacman_info "$package" >/dev/null 2>&1; then
-    sed -i "/^$package$/d" "$TARGET/Packages-Desktop"
-    echo "Aviso: tema opcional indisponível, removido: $package" >&2
-  fi
+  # O cursor configurado precisa existir na ISO; não aceitar uma configuração quebrada.
+  pacman_info bibata-cursor-theme >/dev/null 2>&1 || {
+    echo "ERRO: bibata-cursor-theme não está disponível nos repositórios Manjaro configurados." >&2
+    exit 27
+  }
+  pacman_info dconf >/dev/null 2>&1 || {
+    echo "ERRO: dconf não está disponível nos repositórios Manjaro configurados." >&2
+    exit 28
+  }
   echo "Preflight do núcleo MATE, rede e Bluetooth aprovado."
 fi
 
@@ -469,7 +454,7 @@ done < <(find -L "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
 BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
-DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit marco caja lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib fastfetch)
+DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit marco caja lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib fastfetch bibata-cursor-theme dconf)
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
   if ! pacman_info "$package" >/dev/null 2>&1; then
