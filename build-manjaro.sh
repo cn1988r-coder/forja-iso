@@ -104,6 +104,7 @@ pipewire-pulse
 wireplumber
 materia-gtk-theme
 bibata-cursor-theme
+papirus-icon-theme
 dconf
 gtk3
 gtk4
@@ -145,7 +146,7 @@ DCPROFILE
         "$overlay/usr/share/backgrounds/forja/forja-mate-wallpaper.svg"
       cat > "$overlay/etc/dconf/db/local.d/00-forja-visual" <<'DCCONF'
 [org/mate/interface]
-icon-theme='BigLinux-Icons-Material-Dark'
+icon-theme='Papirus'
 gtk-theme='Materia-dark'
 
 [org/mate/peripherals-mouse]
@@ -232,7 +233,7 @@ CURSOR
       cat > "$settings" <<'GTK'
 [Settings]
 gtk-theme-name=Materia-dark
-gtk-icon-theme-name=BigLinux-Icons-Material-Dark
+gtk-icon-theme-name=Papirus
 gtk-cursor-theme-name=Bibata-Modern-Ice
 GTK
     done
@@ -286,67 +287,7 @@ LIGHTDM
   fi
 done
 
-# Tema de ícones BigLinux, otimizado para reduzir o espaço ocupado na ISO.
-# Usa apenas a variante escura; não instala Breeze/KDE nem duplica a variante clara.
-if [[ "$DESKTOP" == mate ]]; then
-  ICONS_REPO="https://github.com/biglinux/biglinux-icons-material.git"
-  ICONS_COMMIT="49569de789ff2365dc5faa401a55e9cc9e70dfa9"
-  ICONS_SOURCE="$WORK/biglinux-icons-material"
-  rm -rf "$ICONS_SOURCE"
-  git clone --filter=blob:none "$ICONS_REPO" "$ICONS_SOURCE"
-  git -C "$ICONS_SOURCE" checkout --detach "$ICONS_COMMIT"
-  ICONS_THEME_SOURCE="$ICONS_SOURCE/usr/share/icons/biglinux-icons-material-dark"
-  [[ -s "$ICONS_THEME_SOURCE/index.theme" ]] || {
-    echo "ERRO: tema BigLinux não contém index.theme." >&2
-    exit 26
-  }
-
-  for overlay_name in desktop-overlay live-overlay; do
-    ICONS_DEST="$TARGET/$overlay_name/usr/share/icons/BigLinux-Icons-Material-Dark"
-    mkdir -p "$(dirname "$ICONS_DEST")"
-    rm -rf "$ICONS_DEST"
-    cp -a "$ICONS_THEME_SOURCE" "$ICONS_DEST"
-
-    # Evita depender do tema Breeze do KDE: os ícones ausentes usam hicolor.
-    sed -i 's/^Inherits=.*/Inherits=hicolor/' "$ICONS_DEST/index.theme"
-
-    # Scour remove dados de edição e redundâncias, preservando metadados de
-    # licença, títulos e descrições. Só substitui o SVG quando fica menor.
-    svg_count=0
-    saved_bytes=0
-    while IFS= read -r -d '' svg; do
-      svg_count=$((svg_count + 1))
-      optimized="${svg}.forja-optimized"
-      if scour -q -i "$svg" -o "$optimized" \
-          --enable-comment-stripping --shorten-ids \
-          --set-precision=5 --set-c-precision=5 \
-          --indent=none --no-line-breaks --disable-embed-rasters \
-          >/dev/null 2>&1 && [[ -s "$optimized" ]]; then
-        original_size="$(stat -c '%s' "$svg")"
-        optimized_size="$(stat -c '%s' "$optimized")"
-        if (( optimized_size < original_size )); then
-          saved_bytes=$((saved_bytes + original_size - optimized_size))
-          mv "$optimized" "$svg"
-        else
-          rm -f "$optimized"
-        fi
-      else
-        rm -f "$optimized"
-      fi
-    done < <(find "$ICONS_DEST" -type f -name '*.svg' -print0)
-
-    echo "BigLinux Icons: $svg_count SVGs verificados; redução nesta cópia: $saved_bytes bytes."
-  done
-
-  # Preserva a licença e a origem do tema na imagem instalada e na sessão live.
-  for overlay_name in desktop-overlay live-overlay; do
-    install -Dm644 "$ICONS_SOURCE/LICENSE" \
-      "$TARGET/$overlay_name/usr/share/licenses/biglinux-icons-material/GPL-3.0.txt"
-    install -Dm644 "$ICONS_SOURCE/README.md" \
-      "$TARGET/$overlay_name/usr/share/doc/biglinux-icons-material/README.md"
-  done
-fi
-
+# Papirus é fornecido pelo pacote oficial papirus-icon-theme.
 # Instala o Pamac/Forja Software na imagem, sem incluir Flatpak.
 if [[ "$DESKTOP" == mate ]]; then
   DESTDIR="$TARGET/desktop-overlay" bash /forja-ci/forja-pamac-pacman/install.sh
@@ -372,7 +313,7 @@ if [[ "$DESKTOP" == mate ]]; then
     lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet
     bluez bluez-utils blueman
     pipewire pipewire-alsa pipewire-pulse wireplumber
-    gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib polkit fastfetch bibata-cursor-theme dconf
+    gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib polkit fastfetch bibata-cursor-theme papirus-icon-theme dconf
     systemd grub efibootmgr mkinitcpio calamares linux-firmware
     manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db
   )
@@ -436,7 +377,7 @@ while IFS= read -r -d '' package_list; do
     fi
     case "$package" in
       # Drivers opcionais incompatíveis/dispensáveis na ISO desktop: módulo RT3562STA legado e módulos de convidado VirtualBox.
-      linux[0-9]*-rt3562sta|linux[0-9]*-virtualbox-guest-modules|gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|xdg-su|manjaro-documentation-en|papirus-icon-theme|papirus-folders|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*)
+      linux[0-9]*-rt3562sta|linux[0-9]*-virtualbox-guest-modules|gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|xdg-su|manjaro-documentation-en|papirus-folders|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*)
         echo "Forja: pacote legado/NVIDIA removido: $package" >&2
         printf '# Forja: pacote legado removido: %s\n' "$package" >> "$filtered_list"
         continue
@@ -456,7 +397,7 @@ done < <(find -L "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
 BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
-DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit marco caja lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib fastfetch bibata-cursor-theme dconf)
+DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit marco caja lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib fastfetch bibata-cursor-theme papirus-icon-theme dconf)
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
   if ! pacman_info "$package" >/dev/null 2>&1; then
