@@ -142,22 +142,16 @@ for overlay_name in desktop-overlay live-overlay; do
 user-db:user
 system-db:local
 DCPROFILE
-      install -Dm644 /forja-ci/desktops/mate/forja-mate-wallpaper.svg \
-        "$overlay/usr/share/backgrounds/forja/forja-mate-wallpaper.svg"
       cat > "$overlay/etc/dconf/db/local.d/00-forja-visual" <<'DCCONF'
 [org/mate/interface]
 icon-theme='Papirus'
 gtk-theme='Materia-dark'
 
 [org/mate/peripherals-mouse]
-left-handed=true
 cursor-theme='Bibata-Modern-Ice'
 
 [org/mate/marco/general]
 theme='Materia-dark'
-[org/mate/desktop/background]
-picture-filename='/usr/share/backgrounds/forja/forja-mate-wallpaper.svg'
-picture-options='zoom'
 DCCONF
       # Fastfetch com identidade visual FORJA OS, disponível na sessão Live e instalada.
       install -Dm644 /dev/null "$overlay/etc/fastfetch/config.jsonc"
@@ -189,7 +183,7 @@ FASTFETCH
       [#168cff]   ██╔══╝  ██║   ██║██╔══██╗
       [#168cff]   ██║     ╚██████╔╝██║  ██║
       [#168cff]   ╚═╝      ╚═════╝ ╚═╝  ╚═╝
-      [#ff8a2a]       M A N J A R O   M A T E
+      [#ff8a2a]          F O R J A   O S
 LOGO
       # Firefox is the system default for HTTP/HTTPS and HTML documents.
       mkdir -p "$overlay/etc/xdg" "$overlay/etc/skel/.config"
@@ -281,8 +275,8 @@ LIGHTDM
         ' "$overlay/etc/lightdm/lightdm.conf" > "$overlay/etc/lightdm/lightdm.conf.forja"
         mv "$overlay/etc/lightdm/lightdm.conf.forja" "$overlay/etc/lightdm/lightdm.conf"
       fi
-      if [[ -f "$overlay/etc/lightdm/lightdm-slick-greeter.conf" ]]; then
-        sed -i -E 's/^icon-theme-name[[:space:]]*=.*/icon-theme-name = Adwaita/; s/^cursor-theme-name[[:space:]]*=.*/cursor-theme-name = Bibata-Modern-Ice/' "$overlay/etc/lightdm/lightdm-slick-greeter.conf"
+      if [[ -f "$overlay/etc/lightdm/slick-greeter.conf" ]]; then
+        sed -i -E 's/^icon-theme-name[[:space:]]*=.*/icon-theme-name = Adwaita/; s/^cursor-theme-name[[:space:]]*=.*/cursor-theme-name = Bibata-Modern-Ice/' "$overlay/etc/lightdm/slick-greeter.conf"
       fi
   fi
 done
@@ -397,7 +391,7 @@ done < <(find -L "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
 BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
-DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit marco caja lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib fastfetch bibata-cursor-theme papirus-icon-theme dconf)
+DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit marco caja lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme gtk3 gtk4 python python-gobject libayatana-appindicator pacman-contrib fastfetch bibata-cursor-theme dconf)
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
   if ! pacman_info "$package" >/dev/null 2>&1; then
