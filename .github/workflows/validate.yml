@@ -94,6 +94,17 @@ jobs:
           grep -Fq -- '-b 1M -Xdict-size 1M' build-manjaro.sh
           grep -Fq 'buildiso -f' build-manjaro.sh
           grep -Fq 'forja-mate-wallpaper.svg' build-manjaro.sh
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          source = Path("build-manjaro.sh").read_text()
+          config = re.search(r"cat > \"\$overlay/etc/fastfetch/config.jsonc\" <<'FASTFETCH'\\n(.*?)\\nFASTFETCH", source, re.S)
+          logo = re.search(r"cat > \"\$overlay/usr/share/fastfetch/forja-logo.txt\" <<'LOGO'\\n(.*?)\\nLOGO", source, re.S)
+          assert config and logo, "Configuração ou texto do Fastfetch não foi encontrado"
+          assert '"source": "/usr/share/fastfetch/forja-logo.txt"' in config.group(1)
+          assert '"os"' not in config.group(1), "Fastfetch não deve exibir o nome da base técnica"
+          assert logo.group(1).strip() == "FORJA OS", "O cabeçalho deve conter somente FORJA OS, sem ícone ou arte ASCII"
+          PY
           grep -Fq 'sha256sum --check' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_DISTRIBUTION=manjaro' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_DESKTOP=mate' .github/workflows/build-manjaro-mate.yml
