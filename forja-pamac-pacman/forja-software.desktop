@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Forja Software
+Comment=Gerencie aplicativos e atualizações do sistema
+Exec=/usr/bin/forja-store
+Icon=system-software-install
+Terminal=false
+Categories=System;PackageManager;
