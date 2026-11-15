@@ -1,15 +1,19 @@
 #!/usr/bin/python3
-"""Restricted PolicyKit helper for safe full-system pacman transactions."""
+"""Restricted privileged helper for Manjaro/Arch package transactions."""
 import re
-import sys
+import shutil
 import subprocess
+import sys
 
 NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9@._+:-]*$")
-ACTIONS = {"check", "install", "remove", "upgrade"}
+ACTIONS = {"check", "install", "remove", "upgrade", "flatpak-upgrade"}
+
+def run(command):
+    return subprocess.call(command)
 
 def main():
     if len(sys.argv) < 2 or sys.argv[1] not in ACTIONS:
-        print("Uso: forja-pacman-transaction {check|install|remove|upgrade} [pacote...]")
+        print("Uso: forja-pacman-transaction {check|install|remove|upgrade|flatpak-upgrade} [pacote...]")
         return 2
     action, packages = sys.argv[1], sys.argv[2:]
     if action in {"install", "remove"} or (action == "upgrade" and packages):
@@ -17,19 +21,26 @@ def main():
             print("Nome de pacote inválido.")
             return 2
     elif packages:
-        print("Esta ação não aceita nomes de pacotes.")
+        print("Esta ação não aceita argumentos.")
         return 2
     if action == "check":
-        return subprocess.call(["checkupdates"])
+        return run(["checkupdates"])
+    if action == "flatpak-upgrade":
+        if not shutil.which("flatpak"):
+            return 0
+        return run(["flatpak", "update", "--system", "--noninteractive", "--assumeyes"])
     if action == "upgrade":
-        cmd = ["pacman", "-S", "--needed", *packages] if packages else ["pacman", "-Syu"]
-    elif action == "install":
-        cmd = ["pacman", "-S", "--needed", *packages]
-    elif action == "remove":
-        cmd = ["pacman", "-Rns", *packages]
-    else:
-        cmd = ["pacman", "-Syu"]
-    return subprocess.call(cmd)
+        if packages:
+            return run(["pacman", "-S", "--needed", *packages])
+        result = run(["pacman", "-Syu"])
+        if result != 0 or not shutil.which("flatpak"):
+            return result
+        return run(["flatpak", "update", "--system", "--noninteractive", "--assumeyes"])
+    if action == "install":
+        return run(["pacman", "-S", "--needed", *packages])
+    if action == "remove":
+        return run(["pacman", "-Rns", *packages])
+    return 2
 
 if __name__ == "__main__":
     raise SystemExit(main())
