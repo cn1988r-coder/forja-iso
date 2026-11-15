@@ -336,7 +336,7 @@ class Store(Gtk.Application):
         generation = self.query_generation
         self.clear()
         self.heading("Atualizações disponíveis")
-        self.content.pack_start(Gtk.Label(label="Consultando Pacman, AUR e Flatpak…", xalign=0), False, False, 0)
+        self.content.pack_start(Gtk.Label(label="Consultando Pamac e Flatpak…", xalign=0), False, False, 0)
         self.content.show_all()
         def worker():
             pac = run(["pamac", "checkupdates", "--aur", "--quiet"], 240)
@@ -381,7 +381,7 @@ class Store(Gtk.Application):
             self.content.pack_start(button, False, False, 0)
         elif not errors:
             self.content.pack_start(Gtk.Label(label="Tudo em dia.", xalign=0), False, False, 0)
-        self.status.set_text(f"Pacman: {len(pac)} · AUR: {len(aur)} · Flatpak: {len(flat)}")
+        self.status.set_text(f"Pamac: {len(pac)} · Flatpak: {len(flat)}")
         self.content.show_all()
         return GLib.SOURCE_REMOVE
 
