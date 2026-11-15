@@ -117,6 +117,6 @@ grep -q 'parse_flatpak_updates' "$REPO_ROOT/forja-pamac-pacman/src/forja-update-
 grep -q '"flatpak", "remote-ls"' "$REPO_ROOT/forja-pamac-pacman/src/forja-store"
 grep -q 'archlinux-appstream-data' "$REPO_ROOT/forja-pamac-pacman/packages.manjaro"
 grep -q '"flatpak", "install"' "$REPO_ROOT/forja-pamac-pacman/src/forja-pacman-transaction"
-grep -q 'yay' "$REPO_ROOT/forja-pamac-pacman/src/forja-pacman-transaction"
+grep -q 'pamac' "$REPO_ROOT/forja-pamac-pacman/src/forja-pacman-transaction"
 
 echo "Forja XFCE: aparência, painel, Docklike, indicador e Forja Store validados."
