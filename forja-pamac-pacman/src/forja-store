@@ -148,7 +148,7 @@ class Store(Gtk.Application):
         root.pack_start(self.status, False, False, 0)
         self.window.add(root)
         self.search.connect("search-changed", self.on_search)
-        self.category_rows["home"].activate()
+        side.select_row(self.category_rows["home"])
         self.window.show_all()
         self.reload_installed()
 
