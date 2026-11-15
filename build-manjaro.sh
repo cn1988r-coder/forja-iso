@@ -217,8 +217,7 @@ DCCONF
     "separator": "  "
   },
   "modules": [
-    "title", "separator",
-    "os", "host", "kernel", "uptime",
+    "host", "kernel", "uptime",
     "packages", "shell", "display", "de", "wm",
     "theme", "icons", "terminal", "cpu", "gpu", "memory",
     "break", "colors"
@@ -227,13 +226,7 @@ DCCONF
 FASTFETCH
       install -Dm644 /dev/null "$overlay/usr/share/fastfetch/forja-logo.txt"
       cat > "$overlay/usr/share/fastfetch/forja-logo.txt" <<'LOGO'
-      [#168cff]   ███████╗ ██████╗ ██████╗      [#ff8a2a]OS
-      [#168cff]   ██╔════╝██╔═══██╗██╔══██╗
-      [#168cff]   █████╗  ██║   ██║██████╔╝
-      [#168cff]   ██╔══╝  ██║   ██║██╔══██╗
-      [#168cff]   ██║     ╚██████╔╝██║  ██║
-      [#168cff]   ╚═╝      ╚═════╝ ╚═╝  ╚═╝
-      [#ff8a2a]          F O R J A   O S
+FORJA OS
 LOGO
       # Firefox is the system default for HTTP/HTTPS and HTML documents.
       mkdir -p "$overlay/etc/xdg" "$overlay/etc/skel/.config"
