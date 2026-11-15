@@ -13,7 +13,7 @@ for package in \
   bibata-cursor-theme noto-fonts ttf-jetbrains-mono gtk3 gtk4 libadwaita libnotify libpamac-flatpak-plugin \
   gsettings-desktop-schemas appstream archlinux-appstream-data flatpak pamac-cli pamac-gtk libpamac libpamac-flatpak-plugin base-devel git \
   xfce4-panel xfce4-docklike-plugin xfce4-whiskermenu-plugin \
-  xfce4-pulseaudio-plugin xfce4-power-manager xfce4-notifyd \
+  xfce4-pulseaudio-plugin xfce4-power-manager xfce4-notifyd plymouth \
   xfce4-clipman-plugin networkmanager network-manager-applet bluez bluez-utils blueman; do
   grep -Fxq "$package" "$ROOT/packages.manjaro" || {
     printf 'Pacote obrigatório ausente no perfil XFCE da Forja: %s\n' "$package" >&2
@@ -130,6 +130,19 @@ plugin_ids = [node.attrib["value"] for node in panel.findall("./property[@name='
 assert plugin_ids[1] == "2", f"Docklike não está na segunda posição: {plugin_ids}"
 print("Docklike: pacote, posição no painel, bolinhas ativas/inativas em cinza, prévias e contagem validados.")
 PY
+
+# Plymouth: tema Forja, hook mkinitcpio e parâmetros silenciosos do GRUB.
+grep -Fxq 'plymouth' "$ROOT/packages.manjaro"
+test -s "$ROOT/plymouth/forja.plymouth"
+test -s "$ROOT/plymouth/forja.script"
+grep -q 'Name=Forja OS' "$ROOT/plymouth/forja.plymouth"
+grep -q 'Image.Text("FORJA OS"' "$ROOT/plymouth/forja.script"
+grep -q 'Plymouth.SetRefreshFunction' "$ROOT/plymouth/forja.script"
+grep -q 'HOOKS+=( "plymouth" )' "$ROOT/plymouth/forja-mkinitcpio.conf" || grep -q 'plymouth' "$ROOT/plymouth/forja-mkinitcpio.conf"
+grep -q 'quiet splash loglevel=3' "$ROOT/plymouth/forja-grub"
+grep -q 'forja-mkinitcpio.conf' "$REPO_ROOT/build-manjaro.sh"
+grep -q 'TARGET/rootfs/etc/default/grub' "$REPO_ROOT/build-manjaro.sh"
+grep -q 'usr/share/plymouth/themes/forja' "$ROOT/install-branding.sh"
 
 # Tray applets are supplied by their packages and autostart through XDG.
 grep -q 'network-manager-applet' "$ROOT/packages.manjaro"
