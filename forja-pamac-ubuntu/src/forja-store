@@ -148,8 +148,13 @@ class ForjaStore(Gtk.Application):
                 "Operação cancelada ou falhou. Código: " + str(result.returncode))
             GLib.idle_add(self.status.set_text, message)
             if result.returncode == 0:
-                GLib.idle_add(lambda: threading.Thread(target=self.load_cache, daemon=True).start())
+                GLib.idle_add(self.reload_cache)
+
         threading.Thread(target=worker, daemon=True).start()
+
+    def reload_cache(self):
+        threading.Thread(target=self.load_cache, daemon=True).start()
+        return GLib.SOURCE_REMOVE
 
 
 if __name__ == "__main__":
