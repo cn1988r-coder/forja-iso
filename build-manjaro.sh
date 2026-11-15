@@ -345,6 +345,24 @@ GREETER
         "$overlay/etc/lightdm/lightdm.conf.d"
       install -Dm644 /forja-ci/desktops/xfce/forja-xfce-wallpaper.svg \
         "$overlay/usr/share/backgrounds/forja-os-xfce.svg"
+      # Recolor Papirus-Dark folders as root before the graphical session starts.
+      # Running papirus-folders from a user autostart would require sudo and fail without a terminal.
+      mkdir -p "$overlay/etc/systemd/system/multi-user.target.wants"
+      cat > "$overlay/etc/systemd/system/forja-papirus-folders.service" <<'UNIT'
+[Unit]
+Description=Apply neutral gray Papirus folder icons for Forja OS
+Before=display-manager.service
+ConditionPathExists=/usr/bin/papirus-folders
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/papirus-folders -C grey --theme Papirus-Dark
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+      ln -sfn ../forja-papirus-folders.service "$overlay/etc/systemd/system/multi-user.target.wants/forja-papirus-folders.service"
       cat > "$overlay/usr/share/icons/default/index.theme" <<'CURSOR'
 [Icon Theme]
 Name=Default
@@ -518,7 +536,7 @@ BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware 
 if [[ "$DESKTOP" == mate ]]; then
   DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media mate-system-monitor mate-terminal mate-calc mate-utils marco caja mozo pluma engrampa atril eom lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme gtk3 python python-gobject pacman-contrib flatpak yay git fastfetch bibata-cursor-theme dconf vlc htop gparted noto-fonts ttf-jetbrains-mono)
 else
-  DESKTOP_CORE_PACKAGES=(xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin xfce4-docklike-plugin xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme materia-gtk-theme papirus-icon-theme bibata-cursor-theme gtk3 gtk4 python python-gobject pacman-contrib polkit flatpak yay git base-devel)
+  DESKTOP_CORE_PACKAGES=(xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin xfce4-docklike-plugin xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders bibata-cursor-theme gtk3 gtk4 python python-gobject pacman-contrib polkit flatpak yay git base-devel)
 fi
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
