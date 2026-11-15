@@ -371,6 +371,8 @@ greeter-session=lightdm-gtk-greeter
 LIGHTDM
       cat > "$overlay/etc/lightdm/lightdm-gtk-greeter.conf" <<'GREETER'
 [greeter]
+background=/usr/share/backgrounds/forja-os-xfce.svg
+user-background=false
 theme-name=adw-gtk3-dark
 icon-theme-name=Papirus-Dark
 cursor-theme-name=Bibata-Modern-Classic
@@ -516,7 +518,7 @@ BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares linux-firmware 
 if [[ "$DESKTOP" == mate ]]; then
   DESKTOP_CORE_PACKAGES=(mate-session-manager mate-panel mate-control-center mate-settings-daemon mate-desktop mate-menus mate-polkit mate-applets mate-notification-daemon mate-power-manager mate-screensaver mate-media mate-system-monitor mate-terminal mate-calc mate-utils marco caja mozo pluma engrampa atril eom lightdm lightdm-slick-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman materia-gtk-theme papirus-icon-theme gtk3 python python-gobject pacman-contrib flatpak yay git fastfetch bibata-cursor-theme dconf vlc htop gparted noto-fonts ttf-jetbrains-mono)
 else
-  DESKTOP_CORE_PACKAGES=(xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin xfce4-docklike-plugin xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme papirus-icon-theme bibata-cursor-theme gtk3 gtk4 python python-gobject pacman-contrib polkit flatpak yay git)
+  DESKTOP_CORE_PACKAGES=(xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin xfce4-docklike-plugin xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme materia-gtk-theme papirus-icon-theme bibata-cursor-theme gtk3 gtk4 python python-gobject pacman-contrib polkit flatpak yay git base-devel)
 fi
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
