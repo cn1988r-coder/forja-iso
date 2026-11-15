@@ -80,7 +80,6 @@ jobs:
           buildiso_at = build.index("buildiso -f -d xz")
           preflight_at = build.index('FORJA_PREFLIGHT_ONLY:-0')
           assert preflight_at < buildiso_at, "Preflight-only mode must exit before invoking buildiso"
-          assert "forja-pamac-pacman" not in Path(".github/workflows/validate-mate-build.yml").read_text(), "ISO builder validation must not test the Store"
 
           print("PASS: cloud wrapper and ISO generator structure verified.")
           print("PASS: MATE profile, kernel selection, preflight, SquashFS, ISO checks and metadata verified.")
