@@ -1,13 +1,12 @@
 #!/usr/bin/python3
-"""Panel indicator for Arch and Manjaro using checkupdates safely."""
-import subprocess, threading, os
+"""Panel indicator for Manjaro/Arch mirrors and configured Flatpak remotes."""
+import subprocess, threading, os, shutil
 import gi
 gi.require_version("Gtk","3.0")
 gi.require_version("AyatanaAppIndicator3","0.1")
 from gi.repository import Gtk, GLib, AyatanaAppIndicator3 as AppIndicator
 
 HELPER="/usr/lib/forja/forja-pacman-transaction"
-ICON="/usr/share/icons/hicolor/scalable/apps/forja-pamac-style.svg"
 ICON_NAME=os.environ.get("FORJA_ICON_NAME","forja-pamac-style")
 class Indicator:
     def __init__(self):
@@ -15,12 +14,12 @@ class Indicator:
         self.ind.set_icon_theme_path("/usr/share/icons/hicolor/scalable/apps")
         self.ind.set_status(AppIndicator.IndicatorStatus.ACTIVE)
         self.menu=Gtk.Menu()
-        self.state=Gtk.MenuItem(label="Verificando atualizações…"); self.state.set_sensitive(False); self.menu.append(self.state)
+        self.state=Gtk.MenuItem(label="Verificando Manjaro e Flathub…"); self.state.set_sensitive(False); self.menu.append(self.state)
         for label,fn in [("Abrir Forja Software",self.open),("Verificar agora",self.check),("Instalar atualizações",self.upgrade)]:
             item=Gtk.MenuItem(label=label); item.connect("activate",fn); self.menu.append(item)
         self.menu.show_all(); self.ind.set_menu(self.menu); self.check(); GLib.timeout_add_seconds(1800,self.check)
-    def set_state(self,count,error=False):
-        text="Falha ao verificar atualizações" if error else ("Sistema atualizado" if count==0 else f"{count} atualização(ões) disponíveis")
+    def set_state(self,count,error=False,flatpak_count=0):
+        text="Falha ao verificar repositórios" if error else ("Sistema atualizado" if count+flatpak_count==0 else f"{count+flatpak_count} atualização(ões) disponíveis")
         self.state.set_label(text)
         self.ind.set_icon_full(ICON_NAME,text)
         return GLib.SOURCE_REMOVE
@@ -28,9 +27,24 @@ class Indicator:
         def worker():
             p=subprocess.run(["checkupdates"],text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             count=len([x for x in p.stdout.splitlines() if x.strip()]) if p.returncode in (0,2) else 0
-            GLib.idle_add(self.set_state,count,p.returncode not in (0,2))
+            flatpak_count=0
+            error=p.returncode not in (0,2)
+            if shutil.which("flatpak"):
+                for scope in ("--system","--user"):
+                    fp=subprocess.run(["flatpak","remote-ls",scope,"--updates","--columns=application"],text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    if fp.returncode==0:
+                        flatpak_count += len([x for x in fp.stdout.splitlines() if x.strip()])
+                    else:
+                        error=True
+            GLib.idle_add(self.set_state,count,error,flatpak_count)
         threading.Thread(target=worker,daemon=True).start()
         return GLib.SOURCE_CONTINUE
     def open(self,*_): subprocess.Popen(["forja-store"])
-    def upgrade(self,*_): subprocess.Popen(["pkexec",HELPER,"upgrade"]); GLib.timeout_add_seconds(30,self.check)
+    def upgrade(self,*_):
+        def worker():
+            p=subprocess.run(["pkexec",HELPER,"upgrade"])
+            if p.returncode==0 and shutil.which("flatpak"):
+                subprocess.run(["flatpak","update","--user","--noninteractive","--assumeyes"])
+            GLib.idle_add(self.check)
+        threading.Thread(target=worker,daemon=True).start()
 if __name__=="__main__": Indicator(); Gtk.main()
