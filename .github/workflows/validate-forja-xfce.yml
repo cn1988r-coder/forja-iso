@@ -55,7 +55,24 @@ jobs:
           grep -q 'xfce4-docklike-plugin' desktops/xfce/packages.manjaro
           grep -q 'xfce4-whiskermenu-plugin' desktops/xfce/packages.manjaro
           grep -q 'Papirus-Dark' desktops/xfce/apply-forja-layout.sh
-          grep -q 'papirus-folders -C grey' desktops/xfce/apply-forja-layout.sh
+          grep -q 'papirus-folders -C grey --theme Papirus-Dark' build-manjaro.sh
+          grep -q 'forja-papirus-folders.service' build-manjaro.sh
+          grep -q '^papirus-folders
+          grep -q 'Bibata-Modern-Classic' desktops/xfce/apply-forja-layout.sh
+          grep -q 'forja-os-xfce.svg' desktops/xfce/apply-forja-layout.sh
+          grep -q '^flatpak
+ desktops/xfce/packages.manjaro
+          grep -q '^yay
+ desktops/xfce/packages.manjaro
+          grep -q '^base-devel
+ desktops/xfce/packages.manjaro
+          grep -q '^git
+ desktops/xfce/packages.manjaro
+          grep -q 'OnlyShowIn=MATE;XFCE;' forja-pamac-pacman/forja-update-indicator.desktop
+          grep -q 'forja-pamac-pacman/install.sh' build-manjaro.sh
+          python3 -m py_compile forja-pamac-pacman/src/forja-store forja-pamac-pacman/src/forja-pacman-transaction forja-pamac-pacman/src/forja-update-indicator
+          bash -n forja-pamac-pacman/install.sh
+ desktops/xfce/packages.manjaro
           grep -q 'Bibata-Modern-Classic' desktops/xfce/apply-forja-layout.sh
           grep -q 'forja-os-xfce.svg' desktops/xfce/apply-forja-layout.sh
           grep -q '^flatpak
