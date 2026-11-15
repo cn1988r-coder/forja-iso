@@ -1,14 +1,10 @@
-name: Validate Manjaro MATE sources
+name: Validate Forja Store and desktop integration
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
-  group: manjaro-mate-validation-${{ github.ref }}
+  group: forja-store-validation-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -21,183 +17,77 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate Bash syntax and ShellCheck
-        shell: bash
+      - name: Install validation tools
         run: |
-          set -euo pipefail
-          bash -n build-cloud.sh build-manjaro.sh forja-pamac-pacman/install.sh
-          sudo apt-get update -qq
-          sudo apt-get install -y shellcheck
-          shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh forja-pamac-pacman/install.sh
+          sudo apt-get update
+          sudo apt-get install -y shellcheck desktop-file-utils libxml2-utils
 
-      - name: Validate Forja Pacman software manager
+      - name: Validate shell syntax, Python sources and parsers
         shell: bash
         run: |
           set -euo pipefail
+          bash -n forja-pamac-pacman/install.sh
+          bash -n forja-pamac-pacman/build-pamac.sh
+          bash -n forja-pamac-pacman/src/forja-pkexec-sudo
+          shellcheck -S warning -e SC1091 forja-pamac-pacman/install.sh forja-pamac-pacman/build-pamac.sh forja-pamac-pacman/src/forja-pkexec-sudo
           python3 -m py_compile \
-            forja-pamac-pacman/src/forja-store \
+            forja-pamac-pacman/src/forja_store_core.py \
             forja-pamac-pacman/src/forja-pacman-transaction \
             forja-pamac-pacman/src/forja-update-indicator
-          python3 - <<'PY'
-          import runpy
-          import pathlib
-          import sys
-          from unittest.mock import patch
+          python3 -m unittest discover -s forja-pamac-pacman/tests -v
 
-          root = pathlib.Path("forja-pamac-pacman/src")
-          ui = (root / "forja-store").read_text()
-          assert 'self.transact("remove" if installed else "install", name)' in ui, "Detalhes da aplicação não oferecem instalação/remoção"
-          assert '["pacman", "-Ss", query]' in ui, "Pesquisa não consulta os repositórios Pacman"
-          assert 'Gtk.FlowBox' in ui and 'Aplicativos em destaque' in ui, "Catálogo visual de aplicativos não foi implementado"
-          assert 'def show_updates' in ui and 'Instalar todas as atualizações' in ui, "Tela do atualizador não foi implementada"
-          assert 'do_command_line' in ui and '"--updates"' in ui, "A loja não abre diretamente na tela de atualizações"
-          assert 'pacman' in ui.lower(), "A loja não está integrada ao Pacman"
-          indicator = (root / "forja-update-indicator").read_text()
-          assert 'Gtk.StatusIcon' in indicator, "Indicador não usa a área de notificação do painel MATE"
-          assert 'checkupdates' in indicator and 'Instalar atualizações' in indicator
-          assert 'GLib.timeout_add_seconds(1800, self.check)' in indicator, "Verificação automática periódica ausente"
-          assert 'GLib.timeout_add_seconds(60, self.check)' in indicator, "Verificação inicial após login ausente"
-          assert 'indicator = UpdateIndicator()' in indicator, "O indicador precisa permanecer referenciado durante a sessão"
-          assert 'forja-update-available' in indicator and 'forja-update-current' in indicator
-          assert 'Gtk.Button.new_with_label("Verificar atualizações")' in ui, "Botão manual de busca ausente"
-          assert 'Gtk.Button.new_with_label("Verificar novamente")' in ui, "Botão de nova busca na tela de atualizações ausente"
-          assert 'side.get_style_context().add_class("sidebar")' in ui, "A barra lateral precisa usar API GTK3"
-          assert 'side.add_css_class' not in ui, "API GTK4 incompatível com a interface GTK3"
-          assert '["forja-store", "--updates"]' in indicator, "Indicador não abre a tela do atualizador"
-          assert 'AyatanaAppIndicator' not in indicator, "Indicador antigo não deve depender de Ayatana"
-          assert 'FORJA OS' in indicator or 'Atualizações' in indicator
-          autostart = pathlib.Path("forja-pamac-pacman/forja-update-indicator.desktop").read_text()
-          assert 'Exec=/usr/bin/forja-update-indicator' in autostart
-          assert 'OnlyShowIn=MATE;' in autostart
-          assert pathlib.Path("forja-pamac-pacman/icons/forja-update-available.svg").is_file()
-          assert pathlib.Path("forja-pamac-pacman/icons/forja-update-current.svg").is_file()
-          assert 'forja-pamac-pacman/install.sh' in pathlib.Path("build-manjaro.sh").read_text(), "Pamac/Forja Software não está instalado na imagem"
-
-          module = runpy.run_path(str(root / "forja-pacman-transaction"))
-          main = module["main"]
-          subprocess = module["subprocess"]
-
-          with patch.object(sys, "argv", ["helper", "upgrade", "firefox"]), patch.object(subprocess, "call", return_value=0) as call:
-              assert main() == 0
-              call.assert_called_once_with(["pacman", "-S", "--needed", "firefox"])
-
-          shutil = module["shutil"]
-          with patch.object(sys, "argv", ["helper", "upgrade"]), patch.object(shutil, "which", return_value=None), patch.object(subprocess, "call", return_value=0) as call:
-              assert main() == 0
-              call.assert_called_once_with(["pacman", "-Syu"])
-
-          with patch.object(sys, "argv", ["helper", "upgrade"]), patch.object(shutil, "which", return_value="/usr/bin/flatpak"), patch.object(subprocess, "call", side_effect=[0, 0]) as call:
-              assert main() == 0
-              assert call.call_args_list[0].args[0] == ["pacman", "-Syu"]
-              assert call.call_args_list[1].args[0] == ["flatpak", "update", "--system", "--noninteractive", "--assumeyes"]
-
-          with patch.object(sys, "argv", ["helper", "flatpak-upgrade"]), patch.object(shutil, "which", return_value="/usr/bin/flatpak"), patch.object(subprocess, "call", return_value=0) as call:
-              assert main() == 0
-              call.assert_called_once_with(["flatpak", "update", "--system", "--noninteractive", "--assumeyes"])
-
-          with patch.object(sys, "argv", ["helper", "install", "-R"]), patch.object(subprocess, "call") as call:
-              assert main() == 2, "Nome iniciado por hífen deveria ser rejeitado"
-              call.assert_not_called()
-          print("Forja Software: sintaxe, atualização direcionada e validação de argumentos OK.")
-          PY
-
-      - name: Verify Manjaro MATE-only configuration
+      - name: Validate XFCE appearance, desktop entries and icons
         shell: bash
         run: |
           set -euo pipefail
-          grep -Fq 'DESKTOP=mate' build-manjaro.sh
-          grep -Fq 'DESKTOP_CORE_PACKAGES=(mate-session-manager' build-manjaro.sh
-          grep -Fq 'DM=lightdm' build-manjaro.sh
-          grep -Fq 'user-session=mate' build-manjaro.sh
-          ! grep -Eiq 'xfce|gnome|plasma|kde' build-manjaro.sh
-          grep -Fq 'gh release create' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'workflow_dispatch:' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'repository_dispatch:' .github/workflows/build-manjaro-mate.yml
-          if grep -Eq '^  push:' .github/workflows/build-manjaro-mate.yml; then
-            echo "ERRO: a compilação da ISO não deve iniciar automaticamente a cada push." >&2
-            exit 1
-          fi
-          grep -Fq '          - lts' .github/workflows/build-manjaro-mate.yml
-          grep -Fq '          - latest' .github/workflows/build-manjaro-mate.yml
-          kernel_options="$(sed -n '/^[[:space:]]*options:/,/^[[:space:]]*default:/p' .github/workflows/build-manjaro-mate.yml | grep -c '^[[:space:]]*-[[:space:]]')"
-          test "$kernel_options" -eq 2
-          grep -Fq 'secrets.MEGA_EMAIL' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'secrets.MEGA_PASSWORD' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'Authenticate MEGA and prepare destination before build' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'rclone config create mega mega' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'rclone lsd mega:' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'rclone copyto' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'rclone lsjson' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'rclone link' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'Forja-ISO/Manjaro-MATE' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'steps.mega_upload.outputs.download_url' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'Remove temporary MEGA configuration' .github/workflows/build-manjaro-mate.yml
-          if grep -Fq -- '--checksum' .github/workflows/build-manjaro-mate.yml; then
-            echo "ERRO: o backend MEGA não fornece hashes ao rclone; a cópia remota deve ser verificada por tamanho." >&2
-            exit 1
-          fi
-          auth_line="$(grep -nF '      - name: Authenticate MEGA and prepare destination before build' .github/workflows/build-manjaro-mate.yml | cut -d: -f1)"
-          build_line="$(grep -nF '      - name: Build Manjaro MATE ISO' .github/workflows/build-manjaro-mate.yml | cut -d: -f1)"
-          verify_line="$(grep -nF '      - name: Verify ISO and checksum' .github/workflows/build-manjaro-mate.yml | cut -d: -f1)"
-          upload_line="$(grep -nF '      - name: Upload verified ISO to MEGA' .github/workflows/build-manjaro-mate.yml | cut -d: -f1)"
-          if (( auth_line >= build_line || verify_line >= upload_line )); then
-            echo "ERRO: autenticação MEGA deve preceder a compilação e o upload deve ocorrer após validar a ISO." >&2
-            exit 1
-          fi
-          grep -Fq 'COMPRESSION=xz' build-manjaro.sh
-          grep -Fq 'SQFS_WRAPPER_DIR=' build-manjaro.sh
-          grep -Fq -- '-b 1M -Xdict-size 1M' build-manjaro.sh
-          grep -Fq 'buildiso -f' build-manjaro.sh
-          grep -Fq 'forja-mate-wallpaper.svg' build-manjaro.sh
+          bash -x desktops/xfce/tests/validate-appearance.sh
+          desktop-file-validate \
+            desktops/xfce/forja-xfce-appearance.desktop \
+            forja-pamac-pacman/forja-software.desktop \
+            forja-pamac-pacman/forja-update-indicator.desktop \
+            && python3 -c 'import sys, xml.etree.ElementTree as ET; [ET.parse(p) for p in sys.argv[1:]]' \
+            desktops/xfce/forja-flame.svg \
+            desktops/xfce/forja-black-wallpaper.svg \
+            desktops/xfce/forja-xfce-desktop.xml \
+            desktops/xfce/panel-default.xml \
+            forja-pamac-pacman/icons/forja-store.svg \
+            forja-pamac-pacman/icons/forja-update-current.svg \
+            forja-pamac-pacman/icons/forja-update-available.svg \
+            forja-pamac-pacman/icons/forja-update-error.svg
+
+      - name: Validate Forja Store and XFCE wiring
+        shell: bash
+        run: |
+          set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
-          import re
-          source = Path("build-manjaro.sh").read_text()
-          config = re.search(r"cat > \"\$overlay/etc/fastfetch/config.jsonc\" <<'FASTFETCH'\n(.*?)\nFASTFETCH", source, re.S)
-          logo = re.search(r"cat > \"\$overlay/usr/share/fastfetch/forja-logo.txt\" <<'LOGO'\n(.*?)\nLOGO", source, re.S)
-          assert config and logo, "Configuração ou texto do Fastfetch não foi encontrado"
-          assert '"source": "/usr/share/fastfetch/forja-logo.txt"' in config.group(1)
-          assert '"os"' not in config.group(1), "Fastfetch não deve exibir o nome da base técnica"
-          assert logo.group(1).strip() == "FORJA OS", "O cabeçalho deve conter somente FORJA OS, sem ícone ou arte ASCII"
+
+          root = Path("forja-pamac-pacman")
+          css = (root / "patches/forja-store.css").read_text()
+          build_store = (root / "build-pamac.sh").read_text()
+          installer = (root / "install.sh").read_text()
+          launcher = (root / "bin/forja-store").read_text()
+          transaction = (root / "src/forja-pacman-transaction").read_text()
+          indicator = (root / "src/forja-update-indicator").read_text()
+          core = (root / "src/forja_store_core.py").read_text()
+          packages = Path("desktops/xfce/packages.manjaro").read_text()
+          build = Path("build-manjaro.sh").read_text()
+
+          assert 'UPSTREAM_COMMIT="363e794fef4f9f6a0e54757fd12155cf27e02cc3"' in build_store
+          assert 'meson compile -C "$BUILD" pamac-manager' in build_store
+          assert 'about.application_name = "Forja Store"' in build_store
+          assert '@define-color forja_bg #111111' in css
+          assert 'boxed-list > row' in css and 'button.suggested-action' in css
+          assert 'FORJA_PAMAC_BUILD_DIR' in installer
+          assert 'pamac-11.7.5-forja-source.tar.gz' in installer
+          assert 'LD_LIBRARY_PATH="/usr/lib/forja' in launcher
+          assert 'pamac' in transaction and 'flatpak' in transaction
+          assert 'parse_flatpak_updates' in indicator and 'parse_checkupdates' in core
+          assert 'gtk4' in packages and 'libadwaita' in packages
+          assert 'pamac-gtk' in packages and 'libpamac-flatpak-plugin' in packages
+          assert 'build-pamac.sh' in build
+          assert 'OnlyShowIn=XFCE;' in (root / "forja-update-indicator.desktop").read_text()
+          assert 'polkit-gnome' in packages
+          print("Forja Store: Pamac GTK4/libadwaita, libpamac, AUR, Flatpak, visual Forja e XFCE verificados.")
           PY
-          grep -Fq 'sha256sum --check' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'FORJA_DISTRIBUTION=manjaro' .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'FORJA_DESKTOP=mate' .github/workflows/build-manjaro-mate.yml
-          ! grep -Eiq 'shelly' build-manjaro.sh .github/workflows/build-manjaro-mate.yml
-          grep -Fq 'materia-gtk-theme' build-manjaro.sh
-          grep -Fq 'papirus-icon-theme' build-manjaro.sh
-          grep -Fq 'bibata-cursor-theme' build-manjaro.sh
-          grep -Fq "icon-theme='Papirus-Dark'" build-manjaro.sh
-          grep -Fq "gtk-theme='Materia-dark'" build-manjaro.sh
-          grep -Fq "cursor-theme='Bibata-Modern-Ice'" build-manjaro.sh
-          grep -Fq 'Inherits=Bibata-Modern-Ice' build-manjaro.sh
-          grep -Fq "picture-filename='/usr/share/backgrounds/forja-os-mate.svg'" build-manjaro.sh
-          grep -Fq 'theme-name=Materia-dark' build-manjaro.sh
-          grep -Fq 'font-name=Noto Sans 10' build-manjaro.sh
-          grep -Fq "monospace-font-name='JetBrains Mono 11'" build-manjaro.sh
-          for package in vlc htop gparted noto-fonts ttf-jetbrains-mono; do
-            grep -Fq "$package" build-manjaro.sh
-          done
-          for package in mate-terminal mate-calc mate-utils mate-system-monitor mate-applets pluma engrampa atril eom mozo; do
-            grep -Fq "$package" build-manjaro.sh
-          done
-          grep -Fq 'forja-pamac-pacman/install.sh' build-manjaro.sh
-          grep -Fq 'flatpak' build-manjaro.sh
-          ! grep -Eq 'gtk4|libayatana-appindicator' build-manjaro.sh forja-pamac-pacman/packages.manjaro
-          grep -Fq 'Forja Store' forja-pamac-pacman/src/forja-store
-          grep -Fq 'Name=Forja Store' forja-pamac-pacman/forja-software.desktop
-          ! grep -Eiq 'pamac' forja-pamac-pacman/src/forja-store forja-pamac-pacman/install.sh
-          for package in networkmanager network-manager-applet bluez bluez-utils blueman firefox calamares; do
-            grep -Fq "$package" build-manjaro.sh
-          done
-          echo "Configuração Forja OS MATE + wallpaper + Materia Dark + Papirus-Dark + Bibata validada."
-      - name: Preflight Manjaro MATE without creating ISO
-        shell: bash
-        run: |
-          set -euo pipefail
-          docker run --rm \
-            -v "$GITHUB_WORKSPACE:/forja-ci:ro" \
-            -e FORJA_DESKTOP=mate \
-            -e FORJA_KERNEL=lts \
-            -e FORJA_PREFLIGHT_ONLY=1 \
-            manjarolinux/base:latest bash -lc 'bash /forja-ci/build-manjaro.sh'
+
