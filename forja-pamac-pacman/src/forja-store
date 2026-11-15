@@ -118,6 +118,9 @@ class Store(Gtk.Application):
         self.search.set_placeholder_text("Pesquisar aplicativos")
         self.search.set_size_request(360, -1)
         header.set_custom_title(self.search)
+        check = Gtk.Button.new_with_label("Verificar atualizações")
+        check.connect("clicked", self.check_updates)
+        header.pack_end(check)
         refresh = Gtk.Button.new_with_label("Atualizar sistema")
         refresh.get_style_context().add_class("suggested-action")
         refresh.connect("clicked", self.update_system)
@@ -233,7 +236,11 @@ class Store(Gtk.Application):
                            for name in CATEGORY_TERMS.get(self.category, [])])
         self.content.show_all()
 
-    def load_updates(self):
+    def check_updates(self, *_):
+        self.side.select_row(self.category_rows["updates"])
+        return GLib.SOURCE_REMOVE
+
+    def load_updates(self, *_):
         loading = Gtk.Label(label="Verificando atualizações do sistema e Flatpak…", xalign=0)
         self.content.pack_start(loading, False, False, 0)
         self.content.show_all()
@@ -423,6 +430,8 @@ class Store(Gtk.Application):
         self.status.set_text("Atualizando o sistema e os aplicativos…")
         def worker():
             result = run(["pkexec", HELPER, "upgrade"], 7200)
+            if result.returncode == 0 and shutil.which("flatpak"):
+                run(["flatpak", "update", "--user", "--noninteractive", "--assumeyes"], 7200)
             GLib.idle_add(self.update_done, result.returncode)
         threading.Thread(target=worker, daemon=True).start()
 
