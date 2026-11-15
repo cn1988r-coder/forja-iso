@@ -21,6 +21,7 @@ def run(args, timeout=90):
 class UpdateIndicator:
     def __init__(self):
         self.icon = Gtk.StatusIcon.new_from_icon_name(ICON)
+        self.icon.set_name("forja-update-indicator")
         self.icon.set_title("Atualizações da FORJA OS")
         self.icon.set_tooltip_text("Verificando atualizações…")
         self.icon.set_visible(True)
@@ -30,12 +31,13 @@ class UpdateIndicator:
         self.menu.append(self.state)
         self.menu.append(Gtk.SeparatorMenuItem())
         self.add_item("Abrir Forja Store", self.open_store)
-        self.add_item("Verificar atualizações", self.check)
+        self.add_item("Verificar atualizações agora", self.check)
         self.add_item("Instalar atualizações", self.upgrade)
         self.menu.show_all()
         self.icon.connect("activate", self.open_store)
         self.icon.connect("popup-menu", self.popup)
         self.check()
+        # Verifica novamente a cada 30 minutos enquanto a sessão MATE estiver aberta.
         GLib.timeout_add_seconds(1800, self.check)
 
     def add_item(self, label, callback):
@@ -64,6 +66,7 @@ class UpdateIndicator:
 
     def check(self, *_):
         self.state.set_label("Verificando atualizações…")
+        self.icon.set_tooltip_text("FORJA OS: verificando atualizações…")
         def worker():
             pac = run(["checkupdates"], 180)
             count = len([line for line in pac.stdout.splitlines() if line.strip()])
@@ -86,6 +89,7 @@ class UpdateIndicator:
 
     def upgrade(self, *_):
         self.state.set_label("Instalando atualizações…")
+        self.icon.set_tooltip_text("FORJA OS: instalando atualizações…")
         def worker():
             result = run(["pkexec", HELPER, "upgrade"], 7200)
             if result.returncode == 0 and shutil.which("flatpak"):
@@ -94,5 +98,6 @@ class UpdateIndicator:
         threading.Thread(target=worker, daemon=True).start()
 
 if __name__ == "__main__":
-    UpdateIndicator()
+    # Mantém uma referência forte ao indicador durante toda a sessão.
+    indicator = UpdateIndicator()
     Gtk.main()
