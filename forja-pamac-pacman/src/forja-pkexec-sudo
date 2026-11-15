@@ -1,3 +1,6 @@
 #!/bin/sh
-# yay chama este wrapper como usuário comum; pkexec eleva somente o pacman.
+# yay pode passar o executável pacman como primeiro argumento ao wrapper sudo.
+if [ "${1:-}" = "pacman" ]; then
+  shift
+fi
 exec /usr/bin/pkexec /usr/bin/pacman "$@"
