@@ -12,7 +12,7 @@ from gi.repository import Gtk, Gdk, GLib, Gio
 from forja_store_core import (
     APPSTREAM_CATEGORIES, ALL_APPSTREAM_CATEGORIES,
     parse_appstream, parse_pacman_search, parse_flatpak_search,
-    parse_yay_updates, parse_checkupdates, parse_flatpak_updates,
+    parse_checkupdates, parse_flatpak_updates,
 )
 
 HELPER = "/usr/lib/forja/forja-pacman-transaction"
@@ -82,7 +82,7 @@ def parse_flatpak_catalog(output):
     return parse_flatpak_search("\n".join(rows))
 
 def update_lines(result, source):
-    if source == "Pacman":
+    if source == "Pamac":
         return parse_checkupdates(result)
     if source == "AUR":
         return parse_yay_updates(result)
@@ -345,7 +345,7 @@ class Store(Gtk.Application):
                                "--columns=application,name,branch"], 180) if shutil.which("flatpak") else subprocess.CompletedProcess([], 127, "", "flatpak não está instalado")
             flat_user = run(["flatpak", "remote-ls", "--updates", "--user", "--app",
                              "--columns=application,name,branch"], 180) if shutil.which("flatpak") else subprocess.CompletedProcess([], 0, "", "")
-            pac_lines, pac_error = update_lines(pac, "Pacman")
+            pac_lines, pac_error = update_lines(pac, "Pamac")
             aur_lines, aur_error = update_lines(aur, "AUR")
             flat_lines, flat_error = update_lines(flat_system, "Flatpak")
             user_lines, user_error = update_lines(flat_user, "Flatpak")
@@ -464,7 +464,7 @@ class Store(Gtk.Application):
                 if repo.returncode in (0, 1):
                     results.extend(parse_pacman_search(repo.stdout, "repo"))
                 else:
-                    errors.append("Pacman")
+                    errors.append("Pamac")
             else:
                 errors.append("Pacman")
             if shutil.which("pamac"):
