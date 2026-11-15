@@ -321,7 +321,7 @@ PACMANCONF
 install -Dm644 /dev/stdin "$TARGET/rootfs/etc/pacman-mirrors.conf" <<'MIRRORSCONF'
 Branch = stable
 Method = rank
-Protocols = https,http
+Protocols = https
 MIRRORSCONF
 
 install -Dm644 /dev/stdin "$TARGET/rootfs/etc/pacman.d/mirrorlist" <<'MIRRORLIST'
@@ -487,7 +487,7 @@ command -v pacman-mirrors >/dev/null 2>&1 || {
   exit 42
 }
 echo "Definindo branch Manjaro Stable e priorizando HTTPS..."
-pacman-mirrors --api --set-branch stable --protocol https,http
+pacman-mirrors --api --set-branch stable --protocol https
 echo "Atualizando espelhos Manjaro (10 mais rápidos)..."
 pacman-mirrors --fasttrack 10
 MIRRORLIST=/etc/pacman.d/mirrorlist
