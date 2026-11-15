@@ -57,6 +57,10 @@ jobs:
               assert main() == 0
               call.assert_called_once_with(["pacman", "-S", "--needed", "firefox"])
 
+          with patch.object(sys, "argv", ["helper", "upgrade"]), patch.object(subprocess, "call", return_value=0) as call:
+              assert main() == 0
+              call.assert_called_once_with(["pacman", "-Syu"])
+
           with patch.object(sys, "argv", ["helper", "install", "-R"]), patch.object(subprocess, "call") as call:
               assert main() == 2, "Nome iniciado por hífen deveria ser rejeitado"
               call.assert_not_called()
@@ -75,7 +79,9 @@ jobs:
           grep -Fq 'retention-days: 1' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_DISTRIBUTION=manjaro' .github/workflows/build-manjaro-mate.yml
           grep -Fq 'FORJA_DESKTOP=mate' .github/workflows/build-manjaro-mate.yml
-          echo "Configuração Manjaro MATE-only validada."
+          ! grep -Eiq 'shelly' build-manjaro.sh .github/workflows/build-manjaro-mate.yml
+          grep -Fq 'forja-pamac-pacman/install.sh' build-manjaro.sh
+          echo "Configuração Manjaro MATE + Forja Software validada."
 
       - name: Preflight Manjaro MATE without creating ISO
         shell: bash
