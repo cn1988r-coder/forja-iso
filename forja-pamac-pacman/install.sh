@@ -4,8 +4,10 @@ set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 DESTDIR="${DESTDIR:-}"
 target() { printf "%s%s" "$DESTDIR" "$1"; }
-. /etc/os-release
-[[ "${ID:-}" == manjaro ]] || { echo "Forja Store é exclusiva da base Manjaro." >&2; exit 1; }
+if [[ -z "$DESTDIR" ]]; then
+  . /etc/os-release
+  [[ "${ID:-}" == manjaro ]] || { echo "Forja Store é exclusiva da base Manjaro." >&2; exit 1; }
+fi
 
 install -d "$(target /usr/lib/forja)" "$(target /usr/bin)" \
   "$(target /usr/share/icons/hicolor/scalable/apps)" \
