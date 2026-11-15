@@ -114,7 +114,6 @@ jobs:
           fi
 
       - name: Report preparation progress
-        if: ${{ env.FORJA_REQUEST_ID != '' }}
         uses: actions/github-script@v7
         with:
           script: |
