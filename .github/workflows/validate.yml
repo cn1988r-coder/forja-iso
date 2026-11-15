@@ -91,7 +91,7 @@ jobs:
           assert pathlib.Path(root / "src/forja-pkexec-sudo").is_file()
           assert 'OnlyShowIn=MATE;XFCE;' in (root / "forja-update-indicator.desktop").read_text()
           build = pathlib.Path("build-manjaro.sh").read_text()
-          assert 'DESKTOP=mate' in build, "A integração precisa permanecer na edição MATE"
+          assert 'DESKTOP="${FORJA_DESKTOP:-mate}"' in build, "A edição MATE precisa continuar como padrão"
           assert 'forja-pamac-pacman/install.sh' in build, "A Forja Store não está instalada no perfil Manjaro MATE"
           assert 'forja-mate-wallpaper.svg' in build and 'forja-os-mate.svg' in build, "O wallpaper próprio da Forja OS não está integrado"
           assert "yay" in build and "base-devel" in build, "Dependências AUR ausentes no perfil MATE"
@@ -172,7 +172,7 @@ jobs:
           from pathlib import Path
           import re
           build = Path("build-manjaro.sh").read_text()
-          assert re.search(r"^DESKTOP=mate" + chr(36), build, re.M), "A edição precisa ser MATE"
+          assert 'DESKTOP="${FORJA_DESKTOP:-mate}"' in build, "A edição MATE precisa continuar como padrão"
           assert 'displaymanager="lightdm"' in build, "LightDM não está definido no perfil"
           assert 'user-session=mate' in build, "Sessão MATE não está definida no LightDM"
           assert 'greeter-session=lightdm-slick-greeter' in build, "Greeter LightDM não está configurado"
