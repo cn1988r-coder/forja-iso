@@ -8,7 +8,7 @@ install -Dm644 "$ROOT/forja-flame.svg" "$DEST/usr/share/icons/hicolor/scalable/a
 install -Dm644 "$ROOT/forja-black-wallpaper.svg" "$DEST/usr/share/backgrounds/forja-black.svg"
 install -Dm755 "$ROOT/apply-forja-layout.sh" "$DEST/usr/lib/forja/apply-xfce-layout.sh"
 install -Dm644 "$ROOT/forja-xfce-appearance.desktop" "$DEST/etc/xdg/autostart/forja-xfce-appearance.desktop"
-install -Dm644 "$ROOT/forja-gtk.css" "$DEST/etc/xdg/gtk-3.0/gtk.css"
+install -Dm644 "$ROOT/forja-gtk.css" "$DEST/etc/skel/.config/gtk-3.0/gtk.css"
 install -Dm644 "$ROOT/forja-whiskermenu.rc" "$DEST/etc/skel/.config/xfce4/panel/whiskermenu-1.rc"
 
 # A single system-wide panel: Whisker + Docklike + system tray + clock.
