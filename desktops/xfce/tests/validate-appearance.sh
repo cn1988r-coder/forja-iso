@@ -73,4 +73,16 @@ grep -q '#000000' "$ROOT/forja-black-wallpaper.svg"
 grep -q '/usr/share/backgrounds/forja-black.svg' "$ROOT/forja-xfce-desktop.xml"
 ! grep -RqiE 'forja-xfce-wallpaper|xfce-wallpaper.svg' "$ROOT"
 
+
+grep -q 'button-icon.*forja' "$ROOT/panel-default.xml"
+grep -q 'show-button-icon.*true' "$ROOT/panel-default.xml"
+grep -q 'position-search-alternate.*true' "$ROOT/panel-default.xml"
+grep -q 'position-categories-alternate.*true' "$ROOT/panel-default.xml"
+grep -q 'menu-width.*560' "$ROOT/panel-default.xml"
+grep -q 'whiskermenu-1.rc' "$ROOT/install-branding.sh"
+grep -q '#whiskermenu-button:checked' "$ROOT/forja-gtk.css"
+grep -q 'box-shadow:inset 0 -2px 0' "$ROOT/forja-gtk.css"
+grep -q '#whiskermenu-window .category-button:checked' "$ROOT/forja-gtk.css"
+grep -q '#whiskermenu-window .search-area' "$ROOT/forja-gtk.css"
+
 echo "Forja XFCE: Docklike, system tray, clock, black background and Store checks passed."
