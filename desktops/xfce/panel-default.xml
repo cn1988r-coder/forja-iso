@@ -5,7 +5,7 @@
     <value type="int" value="1"/>
     <property name="dark-mode" type="bool" value="true"/>
     <property name="panel-1" type="empty">
-      <property name="position" type="string" value="p=8;x=0;y=0"/>
+      <property name="position" type="string" value="p=6;x=0;y=0"/>
       <property name="length" type="uint" value="100"/>
       <property name="length-adjust" type="bool" value="true"/>
       <property name="position-locked" type="bool" value="true"/>
@@ -38,8 +38,20 @@
       <property name="expand" type="bool" value="true"/>
       <property name="style" type="uint" value="0"/>
     </property>
-    <property name="plugin-4" type="string" value="systray"/>
-    <property name="plugin-5" type="string" value="pulseaudio"/>
+    <property name="plugin-4" type="string" value="systray">
+      <property name="menu-is-primary" type="bool" value="true"/>
+      <property name="show-frame" type="bool" value="false"/>
+      <property name="square-icons" type="bool" value="true"/>
+      <property name="size-max" type="uint" value="22"/>
+      <property name="symbolic-icons" type="bool" value="true"/>
+      <property name="icon-size" type="int" value="0"/>
+      <property name="hide-new-items" type="bool" value="false"/>
+    </property>
+    <property name="plugin-5" type="string" value="pulseaudio">
+      <property name="enable-keyboard-shortcuts" type="bool" value="true"/>
+      <property name="enable-mpris" type="bool" value="true"/>
+      <property name="show-notifications" type="bool" value="true"/>
+    </property>
     <property name="plugin-6" type="string" value="power-manager-plugin"/>
     <property name="plugin-7" type="string" value="notification-plugin"/>
     <property name="plugin-8" type="string" value="clock">
