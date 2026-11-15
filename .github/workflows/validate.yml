@@ -59,6 +59,7 @@ jobs:
           assert 'forja-update-error.svg' in installer, "O ícone de erro precisa ser instalado"
           helper_text = (src / "forja-pacman-transaction").read_text()
           packages = (root / "packages.manjaro").read_text()
+          xfce_packages = pathlib.Path("desktops/xfce/packages.manjaro").read_text()
 
           for token in ('["pacman","-Ss",query]', '["yay","-Ssa",query]',
                         '["flatpak","search","--columns=application,name,description,remotes",query]',
@@ -89,7 +90,7 @@ jobs:
           assert 'forja-icon-cache.service' in installer and 'gtk-update-icon-cache' in installer
           assert 'flatpak remote-add --if-not-exists --system flathub' in installer
           assert 'yay' in packages and 'base-devel' in packages and 'git' in packages
-          assert 'appstream' in packages and 'archlinux-appstream-data' in packages
+          assert 'appstream' in xfce_packages and 'archlinux-appstream-data' in xfce_packages
           assert 'def parse_appstream(output)' in ui and 'appstreamcli' in ui and 'list-categories' in ui
           assert 'ALL_APPSTREAM_CATEGORIES' in ui, "O catálogo geral deve vir dos metadados AppStream, não de uma lista de destaques"
           assert pathlib.Path(root / "src/forja-pkexec-sudo").is_file()
