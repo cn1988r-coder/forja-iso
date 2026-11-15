@@ -1,0 +1,55 @@
+# Forja OS CachyOS base: XFCE + MATE
+# Manifesto inicial. Validar nomes/disponibilidade no repositório CachyOS
+# durante a etapa de preflight antes de iniciar a compilação.
+
+# Sessões XFCE
+xfce4-session
+xfce4-panel
+xfce4-settings
+xfce4-terminal
+thunar
+thunar-volman
+tumbler
+xfdesktop
+xfwm4
+xfce4-appfinder
+xfce4-power-manager
+xfce4-notifyd
+xfconf
+xfce4-taskmanager
+ristretto
+mousepad
+
+# Sessões MATE
+mate-panel
+caja
+marco
+mate-session-manager
+mate-settings-daemon
+mate-control-center
+mate-terminal
+mate-utils
+mate-screensaver
+mate-notification-daemon
+mate-polkit
+mate-themes
+engrampa
+atril
+eom
+pluma
+
+# Login gráfico e serviços
+lightdm
+lightdm-gtk-greeter
+networkmanager
+network-manager-applet
+bluez
+bluez-utils
+blueman
+
+# Aparência e aplicativos
+materia-gtk-theme
+papirus-icon-theme
+bibata-cursor-theme
+firefox
+fastfetch

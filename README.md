@@ -1,28 +1,30 @@
 # Forja OS
 
-Projeto de construção das bases **Ubuntu LTS** e **Manjaro**, com módulos de desktop separados.
+Projeto de uma distribuição própria com base **CachyOS**, mantendo somente os ambientes gráficos **XFCE** e **MATE**.
 
-## Bases mantidas
+## Base escolhida
 
-- **Ubuntu LTS:** base independente, construída por `build-ubuntu.sh`. Atualmente gera o sistema-base sem ambiente gráfico.
-- **Manjaro:** compilação da ISO MATE por `build-manjaro.sh`, com workflow próprio em nuvem.
-- **Arch Linux:** removido do escopo. Não há perfil ou opção de compilação Arch.
+- **CachyOS:** base Arch Linux, com repositório e chaveiro CachyOS.
+- **Construtor de ISO:** projeto oficial CachyOS Live ISO, baseado em Archiso.
+- **Instalador:** Calamares da família CachyOS, a ser adaptado à identidade e ao processo de instalação do Forja OS.
+- **Ambientes:** XFCE e MATE, sem KDE Plasma ou GNOME.
 
-## Manjaro MATE
+## Ambientes Forja
 
-O workflow **Build Manjaro MATE ISO** executa a compilação em nuvem, gera a imagem SquashFS com compressão XZ, verifica o checksum SHA-256 e publica a ISO como um único arquivo.
+- **XFCE:** perfil próprio inspirado no BigLinux Community, com painel inferior, menu no canto inferior esquerdo, Docklike, Materia Dark, Papirus, Bibata e papel de parede Forja.
+- **MATE:** perfil próprio Forja, com Materia Dark, Papirus, Bibata, papel de parede Forja e Fastfetch.
 
-A compilação só deve ser considerada concluída após verificar o arquivo ISO, seu checksum e o download. O teste de inicialização em BIOS/UEFI e UEFI, sessão MATE, LightDM, rede, Bluetooth e instalador ainda precisa ser realizado em máquina virtual antes da distribuição.
+Os dois ambientes devem estar disponíveis na sessão Live e permanecer configurados após a instalação pelo Calamares.
 
-## Estrutura
+## Estado da migração CachyOS
 
-- `build-cloud.sh`: entrada da compilação Manjaro MATE em contêiner.
-- `build-manjaro.sh`: perfil e compilação Manjaro MATE.
-- `build-ubuntu.sh`: geração da base Ubuntu LTS.
-- `.github/workflows/build-manjaro-mate.yml`: compilação Manjaro, verificação e publicação.
-- `.github/workflows/validate.yml`: validação estática e pré-validação Manjaro MATE.
-- `desktops/`: módulos e manifestos de pacotes XFCE/MATE para as bases suportadas.
-- `forja-pamac-pacman/`: Forja Software para Manjaro.
-- `forja-pamac-ubuntu/`: Forja Software para Ubuntu.
+A definição inicial da base e o manifesto de pacotes XFCE/MATE estão em `bases/cachyos/`. A migração do pipeline antigo ainda não está concluída: `build-cloud.sh` e os workflows existentes continuam apontando para a compilação legada Manjaro/Ubuntu. Portanto, ainda não existe uma ISO Forja CachyOS pronta ou validada.
 
-As bases Ubuntu e Manjaro permanecem separadas. Ferramentas e pacotes de uma base não devem ser misturados com a outra.
+## Fontes técnicas oficiais
+
+- CachyOS Live ISO: https://github.com/CachyOS/CachyOS-Live-ISO
+- CachyOS Calamares: https://github.com/CachyOS/cachyos-calamares
+
+## Regra de entrega
+
+A ISO final deve ser um único arquivo `.iso`, completo e sem divisão em partes. Só será anunciada como pronta depois da compilação, verificação de conteúdo, checksum, download real e testes de inicialização/instalação que forem efetivamente executados.
