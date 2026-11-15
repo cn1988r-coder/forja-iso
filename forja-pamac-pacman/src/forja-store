@@ -118,11 +118,13 @@ class Store(Gtk.Application):
 
     def reload_installed(self):
         def worker():
-            repo=run(["pacman","-Qq"],60); aur=run(["pacman","-Qmq"],60)
+            # -Qn lista pacotes nativos presentes nas bases sincronizadas;
+            # -Qm lista pacotes estrangeiros (AUR ou instalação local manual).
+            repo=run(["pacman","-Qnq"],60); foreign=run(["pacman","-Qmq"],60)
             flat=run(["flatpak","list","--app","--columns=application"],60) if shutil.which("flatpak") else None
             GLib.idle_add(self.set_installed,
                 set(repo.stdout.splitlines()) if repo.returncode==0 else set(),
-                set(aur.stdout.splitlines()) if aur.returncode==0 else set(),
+                set(foreign.stdout.splitlines()) if foreign.returncode==0 else set(),
                 set(flat.stdout.splitlines()) if flat and flat.returncode==0 else set())
         threading.Thread(target=worker,daemon=True).start()
 
@@ -201,7 +203,7 @@ class Store(Gtk.Application):
         box.pack_start(Gtk.Image.new_from_icon_name("application-x-executable",Gtk.IconSize.DIALOG),False,False,4)
         details=Gtk.Box(orientation=Gtk.Orientation.VERTICAL,spacing=5)
         title=Gtk.Label(label="<b>%s</b>"%GLib.markup_escape_text(name),xalign=0); title.set_use_markup(True)
-        source_label={"repo":"Repositório oficial","aur":"AUR","flatpak":"Flatpak"}[source]
+        source_label={"repo":"Repositório oficial","aur":"AUR / pacote externo","flatpak":"Flatpak"}[source]
         installed=name in {"repo":self.installed_repo,"aur":self.installed_aur,"flatpak":self.installed_flatpak}[source]
         details.pack_start(title,False,False,0)
         details.pack_start(Gtk.Label(label=summary,xalign=0),False,False,0)
@@ -251,7 +253,7 @@ class Store(Gtk.Application):
         action.get_style_context().add_class("suggested-action")
         area=dialog.get_content_area(); area.set_spacing(10); area.set_margin_start(22); area.set_margin_end(22)
         area.set_margin_top(18); area.set_margin_bottom(18)
-        for text in (summary,{"repo":"Origem: repositórios oficiais Manjaro/Pacman","aur":"Origem: Arch User Repository (AUR)","flatpak":"Origem: Flathub/Flatpak"}[source]):
+        for text in (summary,{"repo":"Origem: repositórios oficiais Manjaro/Pacman","aur":"Origem: AUR (pacotes instalados fora dos repositórios oficiais são classificados como externos)","flatpak":"Origem: Flathub/Flatpak"}[source]):
             area.pack_start(Gtk.Label(label=text,xalign=0),False,False,0)
         dialog.show_all(); response=dialog.run(); dialog.destroy()
         if response==Gtk.ResponseType.ACCEPT: self.transact("remove" if installed else "install",source,name)
