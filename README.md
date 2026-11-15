@@ -11,6 +11,7 @@ Distribuição própria baseada em **Manjaro**, com uma única edição gráfica
 - Forja Store integrada ao sistema Live e à instalação final.
 - Indicador de atualizações no painel XFCE.
 - Rede, Bluetooth, áudio PipeWire, Firefox e Calamares.
+- Instalação em **Btrfs por padrão** pelo Calamares, com compressão transparente Zstandard (`zstd:1`); ext4 e f2fs continuam selecionáveis.
 
 ## Base e compilação
 
