@@ -1,104 +1,93 @@
 #!/usr/bin/python3
-"""Indicador de atualizações da Forja OS para a área de notificação do painel MATE."""
+"""Indicador recorrente de atualizações Pacman, AUR e Flatpak para MATE."""
 import subprocess
 import threading
 import shutil
 import gi
 
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib
+gi.require_version("Gtk","3.0")
+from gi.repository import Gtk,GLib
 
-HELPER = "/usr/lib/forja/forja-pacman-transaction"
-ICON = "software-update-available"
+HELPER="/usr/lib/forja/forja-pacman-transaction"
 
-def run(args, timeout=90):
+def run(args,timeout=180):
     try:
-        return subprocess.run(args, text=True, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE, timeout=timeout)
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return subprocess.CompletedProcess(args, 1, "", str(exc))
+        return subprocess.run(args,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=timeout)
+    except (OSError,subprocess.TimeoutExpired) as exc:
+        return subprocess.CompletedProcess(args,1,"",str(exc))
 
 class UpdateIndicator:
     def __init__(self):
-        self.icon = Gtk.StatusIcon.new_from_icon_name(ICON)
-        self.icon.set_title("Atualizações da FORJA OS")
-        self.icon.set_tooltip_text("Verificando atualizações…")
+        self.checking=False; self.upgrading=False
+        self.icon=Gtk.StatusIcon.new_from_icon_name("software-update-available")
+        self.icon.set_title("Atualizações da FORJA OS"); self.icon.set_tooltip_text("Aguardando verificação…")
         self.icon.set_visible(True)
-        self.menu = Gtk.Menu()
-        self.state = Gtk.MenuItem(label="Verificando atualizações…")
-        self.state.set_sensitive(False)
-        self.menu.append(self.state)
-        self.menu.append(Gtk.SeparatorMenuItem())
-        self.add_item("Abrir Forja Store", self.open_store)
-        self.add_item("Verificar atualizações agora", self.check)
-        self.add_item("Instalar atualizações", self.upgrade)
-        self.menu.show_all()
-        self.icon.connect("activate", self.open_store)
-        self.icon.connect("popup-menu", self.popup)
-        # Aguarda a rede subir após o login; depois verifica periodicamente.
-        GLib.timeout_add_seconds(60, self.check)
-        GLib.timeout_add_seconds(1800, self.check)
+        self.menu=Gtk.Menu(); self.state=Gtk.MenuItem(label="Aguardando verificação…"); self.state.set_sensitive(False)
+        self.menu.append(self.state); self.menu.append(Gtk.SeparatorMenuItem())
+        self.add_item("Abrir Forja Store",self.open_store)
+        self.add_item("Verificar atualizações agora",self.check)
+        self.add_item("Instalar atualizações",self.upgrade)
+        self.menu.show_all(); self.icon.connect("activate",self.open_store)
+        self.icon.connect("popup-menu",self.popup)
+        GLib.timeout_add_seconds(60,self.check)
+        GLib.timeout_add_seconds(1800,self.check)
 
-    def add_item(self, label, callback):
-        item = Gtk.MenuItem(label=label)
-        item.connect("activate", callback)
-        self.menu.append(item)
+    def add_item(self,label,callback):
+        item=Gtk.MenuItem(label=label); item.connect("activate",callback); self.menu.append(item)
 
-    def popup(self, _icon, button, activate_time):
+    def popup(self,_icon,button,activate_time):
         self.menu.popup_at_pointer(None)
 
-    def set_state(self, count, flatpak_count, error):
-        total = count + flatpak_count
-        if error:
-            label = "Não foi possível verificar atualizações"
-            tooltip = "A verificação de atualizações encontrou um erro."
-        elif total:
-            label = f"{total} atualização(ões) disponível(is)"
-            tooltip = f"{count} do sistema · {flatpak_count} Flatpak"
-        else:
-            label = "O sistema está atualizado"
-            tooltip = "FORJA OS está atualizada."
-        self.state.set_label(label)
-        self.icon.set_tooltip_text(tooltip)
-        self.icon.set_from_icon_name("forja-update-available" if total or error else "forja-update-current")
-        if error:
-            GLib.timeout_add_seconds(300, self.check)
-        return GLib.SOURCE_REMOVE
-
-    def check(self, *_):
-        self.state.set_label("Verificando atualizações…")
+    def check(self,*_):
+        if self.checking or self.upgrading: return GLib.SOURCE_CONTINUE
+        self.checking=True; self.state.set_label("Verificando Pacman, AUR e Flatpak…")
         self.icon.set_tooltip_text("FORJA OS: verificando atualizações…")
         def worker():
-            pac = run(["checkupdates"], 180)
-            count = len([line for line in pac.stdout.splitlines() if line.strip()])
-            error = pac.returncode not in (0, 2)
-            flat_count = 0
-            if shutil.which("flatpak"):
-                for scope in ("--system", "--user"):
-                    result = run(["flatpak", "remote-ls", scope, "--updates",
-                                  "--columns=application"], 180)
-                    if result.returncode == 0:
-                        flat_count += len([line for line in result.stdout.splitlines() if line.strip()])
-                    elif "No remote refs found" not in result.stderr:
-                        error = True
-            GLib.idle_add(self.set_state, count, flat_count, error)
-        threading.Thread(target=worker, daemon=True).start()
+            pac=run(["checkupdates"])
+            aur=run(["yay","-Qua"]) if shutil.which("yay") else subprocess.CompletedProcess([],127,"","yay não instalado")
+            flat_system=run(["flatpak","remote-ls","--system","--updates","--columns=application"]) if shutil.which("flatpak") else subprocess.CompletedProcess([],127,"","flatpak não instalado")
+            flat_user=run(["flatpak","remote-ls","--user","--updates","--columns=application"]) if shutil.which("flatpak") else subprocess.CompletedProcess([],0,"","")
+            pc=len([x for x in pac.stdout.splitlines() if x.strip()])
+            ac=len([x for x in aur.stdout.splitlines() if x.strip()])
+            fc=len([x for x in (flat_system.stdout+"\n"+flat_user.stdout).splitlines() if x.strip()])
+            error=(pac.returncode not in (0,2) or aur.returncode not in (0,1)
+                   or flat_system.returncode not in (0,1) or flat_user.returncode not in (0,1))
+            GLib.idle_add(self.set_state,pc,ac,fc,error)
+        threading.Thread(target=worker,daemon=True).start()
+        return GLib.SOURCE_CONTINUE
+
+    def set_state(self,pac,aur,flat,error):
+        self.checking=False; total=pac+aur+flat
+        if error:
+            label=f"{total} atualização(ões); falha ao consultar uma fonte"
+            tooltip="Falha em uma ou mais fontes. Abra a Forja Store para detalhes."
+            icon="forja-update-available"
+        elif total:
+            label=f"{total} atualização(ões) disponíveis (Pacman {pac} · AUR {aur} · Flatpak {flat})"
+            tooltip=label; icon="forja-update-available"
+        else:
+            label="O sistema está atualizado"; tooltip="FORJA OS está atualizada."; icon="forja-update-current"
+        self.state.set_label(label); self.icon.set_tooltip_text(tooltip); self.icon.set_from_icon_name(icon)
         return GLib.SOURCE_REMOVE
 
-    def open_store(self, *_):
-        subprocess.Popen(["forja-store", "--updates"])
+    def open_store(self,*_):
+        subprocess.Popen(["forja-store","--updates"])
 
-    def upgrade(self, *_):
-        self.state.set_label("Instalando atualizações…")
-        self.icon.set_tooltip_text("FORJA OS: instalando atualizações…")
+    def upgrade(self,*_):
+        if self.upgrading: return
+        self.upgrading=True; self.state.set_label("Instalando atualizações…")
+        self.icon.set_tooltip_text("FORJA OS: atualizando Pacman, AUR e Flatpak…")
         def worker():
-            result = run(["pkexec", HELPER, "upgrade"], 7200)
-            if result.returncode == 0 and shutil.which("flatpak"):
-                run(["flatpak", "update", "--user", "--noninteractive", "--assumeyes"], 7200)
-            GLib.idle_add(self.check)
-        threading.Thread(target=worker, daemon=True).start()
+            system=run(["pkexec",HELPER,"upgrade"],7200)
+            user=run(["flatpak","update","--user","--noninteractive","--assumeyes"],7200) if system.returncode==0 and shutil.which("flatpak") else subprocess.CompletedProcess([],0,"","")
+            GLib.idle_add(self.upgrade_done,system.returncode or user.returncode)
+        threading.Thread(target=worker,daemon=True).start()
 
-if __name__ == "__main__":
-    # Mantém uma referência forte ao indicador durante toda a sessão.
-    indicator = UpdateIndicator()
+    def upgrade_done(self,code):
+        self.upgrading=False
+        self.state.set_label("Atualização concluída; verificando novamente." if code==0 else "Atualização falhou ou foi cancelada.")
+        self.check(); return GLib.SOURCE_REMOVE
+
+if __name__=="__main__":
+    indicator=UpdateIndicator()
     Gtk.main()
