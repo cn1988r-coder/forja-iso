@@ -129,7 +129,7 @@ class Store(Gtk.Application):
 
         body = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         side = Gtk.ListBox()
-        side.add_css_class("sidebar")
+        side.get_style_context().add_class("sidebar")
         side.set_selection_mode(Gtk.SelectionMode.SINGLE)
         side.set_size_request(220, -1)
         self.category_rows = {}
