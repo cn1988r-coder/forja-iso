@@ -1,7 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <defs><linearGradient id="flame" x1="0" y1="1" x2=".8" y2="0">
-    <stop offset="0" stop-color="#777777"/><stop offset=".58" stop-color="#bdbdbd"/><stop offset="1" stop-color="#f2f2f2"/>
-  </linearGradient></defs>
-  <path d="M64 8 C76 29 105 48 103 76 C101 101 83 119 64 122 C45 119 27 101 25 76 C23 48 52 29 64 8 Z" fill="url(#flame)"/>
-  <path d="M64 52 C73 66 83 76 80 91 C78 102 70 109 64 111 C58 109 50 102 48 91 C45 76 55 66 64 52 Z" fill="#242424"/>
+  <rect x="7" y="7" width="114" height="114" rx="27" fill="#dededb"/>
+  <path d="M65 17 C70 32 89 45 96 64 C105 88 88 111 65 114 C42 111 24 92 29 69 C32 53 47 42 54 29 C57 24 60 20 65 17 Z" fill="#171717"/>
+  <path d="M65 57 C70 68 81 77 78 91 C76 100 70 105 65 107 C59 104 53 98 52 90 C50 78 60 68 65 57 Z" fill="#dededb"/>
 </svg>
