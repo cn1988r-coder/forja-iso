@@ -369,12 +369,11 @@ if [[ "$DESKTOP" == mate ]]; then
   fi
   awk '!seen[$0]++' "$TARGET/Packages-Desktop" > "$TARGET/Packages-Desktop.unique"
   mv "$TARGET/Packages-Desktop.unique" "$TARGET/Packages-Desktop"
-  for package in bibata-cursor-theme; do
-    if ! pacman_info "$package" >/dev/null 2>&1; then
-      sed -i "/^$package$/d" "$TARGET/Packages-Desktop"
-      echo "Aviso: tema opcional indisponível, removido: $package" >&2
-    fi
-  done
+  package=bibata-cursor-theme
+  if ! pacman_info "$package" >/dev/null 2>&1; then
+    sed -i "/^$package$/d" "$TARGET/Packages-Desktop"
+    echo "Aviso: tema opcional indisponível, removido: $package" >&2
+  fi
   echo "Preflight do núcleo MATE, rede e Bluetooth aprovado."
 fi
 
