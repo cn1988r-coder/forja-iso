@@ -1,30 +1,33 @@
 # Forja OS
 
-Projeto de uma distribuição própria com base **CachyOS**, mantendo somente os ambientes gráficos **XFCE** e **MATE**.
+Distribuição própria baseada em **Manjaro**, com uma única edição gráfica: **XFCE**.
 
-## Base escolhida
+## Edição única: XFCE
 
-- **CachyOS:** base Arch Linux, com repositório e chaveiro CachyOS.
-- **Construtor de ISO:** projeto oficial CachyOS Live ISO, baseado em Archiso.
-- **Instalador:** Calamares da família CachyOS, a ser adaptado à identidade e ao processo de instalação do Forja OS.
-- **Ambientes:** XFCE e MATE, sem KDE Plasma ou GNOME.
+- XFCE enxuto, com painel inferior e Docklike.
+- Whisker Menu personalizado com identidade visual Forja.
+- Adwaita Dark, decoração Materia Dark, Papirus Dark com pastas cinza e cursor Bibata.
+- LightDM com sessão XFCE como padrão.
+- Forja Store integrada ao sistema Live e à instalação final.
+- Indicador de atualizações no painel XFCE.
+- Rede, Bluetooth, áudio PipeWire, Firefox e Calamares.
 
-## Ambientes Forja
+## Base e compilação
 
-- **XFCE:** perfil próprio inspirado no BigLinux Community, com painel inferior, menu no canto inferior esquerdo, Docklike, Materia Dark, Papirus, Bibata e papel de parede Forja.
-- **MATE:** perfil próprio Forja, com Materia Dark, Papirus, Bibata, papel de parede Forja e Fastfetch.
+- **Base do sistema:** Manjaro.
+- **Perfil:** `manjaro/forja-xfce`, derivado do perfil oficial Manjaro XFCE.
+- **Construtor:** `build-cloud.sh` chama `build-manjaro.sh` em um contêiner Manjaro.
+- **Dockerfile de validação:** `desktops/xfce/Dockerfile` verifica sintaxe, arquivos SVG/XML, entradas de desktop e integração da Forja Store. Ele não compila a ISO.
+- **Validação de perfil:** executada com `FORJA_PREFLIGHT_ONLY=1`, sem chamar `buildiso`.
 
-Os dois ambientes devem estar disponíveis na sessão Live e permanecer configurados após a instalação pelo Calamares.
+## Forja Store
 
-## Estado da migração CachyOS
+A Forja Store é a interface visual personalizada do **Pamac Manager GTK4/libadwaita**. O backend continua sendo o Pamac/libpamac original, com repositórios Manjaro, AUR e suporte Flatpak. A interface recebe identidade visual própria em tons escuros e neutros, cartões de aplicativos, navegação e detalhes de instalação. O indicador de atualizações permanece integrado ao painel XFCE.
 
-A definição inicial da base e o manifesto de pacotes XFCE/MATE estão em `bases/cachyos/`. A migração do pipeline antigo ainda não está concluída: `build-cloud.sh` e os workflows existentes continuam apontando para a compilação legada Manjaro/Ubuntu. Portanto, ainda não existe uma ISO Forja CachyOS pronta ou validada.
+A compilação usa uma revisão upstream fixa do Pamac e preserva o código-fonte correspondente no sistema. A compilação da interface será validada no ambiente Manjaro antes de qualquer geração de ISO. Ainda será necessário testar a loja em uma sessão XFCE real, incluindo pesquisa, detalhes, instalação, remoção, AUR, Flatpak e atualizações.
 
-## Fontes técnicas oficiais
+## Estado da entrega
 
-- CachyOS Live ISO: https://github.com/CachyOS/CachyOS-Live-ISO
-- CachyOS Calamares: https://github.com/CachyOS/cachyos-calamares
+O projeto está em fase de revisão e validação do código XFCE. Nenhuma ISO final deve ser anunciada como pronta até que a compilação, o checksum, a inicialização Live e a instalação pelo Calamares sejam efetivamente testados.
 
-## Regra de entrega
-
-A ISO final deve ser um único arquivo `.iso`, completo e sem divisão em partes. Só será anunciada como pronta depois da compilação, verificação de conteúdo, checksum, download real e testes de inicialização/instalação que forem efetivamente executados.
+A ISO final deverá ser entregue como um único arquivo `.iso`, completo e sem divisão em partes.
