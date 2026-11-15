@@ -65,7 +65,7 @@ class UpdateIndicator:
         if error:
             label=f"{total} atualização(ões); falha ao consultar uma fonte"
             tooltip="Falha em uma ou mais fontes. Abra a Forja Store para detalhes."
-            icon="forja-update-available"
+            icon="forja-update-error"
         elif total:
             label=f"{total} atualização(ões) disponíveis (Pacman {pac} · AUR {aur} · Flatpak {flat})"
             tooltip=label; icon="forja-update-available"
