@@ -51,20 +51,21 @@ set_prop xfce4-panel /panels/panel-1/nrows uint 1
 set_prop xfce4-panel /panels/panel-1/autohide-behavior uint 0
 set_prop xfce4-panel /panels/panel-1/position-locked bool true
 xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids -a \
-  -t int -s 1 -t int -s 2 -t int -s 3 -t int -s 4 -t int -s 5 \
-  -t int -s 6 -t int -s 7 -t int -s 8 -t int -s 9
+  -t int -s 1 -t int -s 2 -t int -s 7 -t int -s 9 -t int -s 4 \
+  -t int -s 3 -t int -s 6 -t int -s 10 -t int -s 5 -t int -s 8
 
 set_prop xfce4-panel /plugins/plugin-1 string whiskermenu
 set_prop xfce4-panel /plugins/plugin-2 string docklike
-set_prop xfce4-panel /plugins/plugin-3 string separator
-set_prop xfce4-panel /plugins/plugin-3/expand bool true
-set_prop xfce4-panel /plugins/plugin-3/style uint 0
+set_prop xfce4-panel /plugins/plugin-3 string pulseaudio
 set_prop xfce4-panel /plugins/plugin-4 string systray
-set_prop xfce4-panel /plugins/plugin-5 string pulseaudio
+set_prop xfce4-panel /plugins/plugin-5 string clock
 set_prop xfce4-panel /plugins/plugin-6 string power-manager-plugin
-set_prop xfce4-panel /plugins/plugin-7 string xfce4-clipman-plugin
-set_prop xfce4-panel /plugins/plugin-8 string clock
-set_prop xfce4-panel /plugins/plugin-9 string showdesktop
+set_prop xfce4-panel /plugins/plugin-7 string separator
+set_prop xfce4-panel /plugins/plugin-7/expand bool true
+set_prop xfce4-panel /plugins/plugin-7/style uint 0
+set_prop xfce4-panel /plugins/plugin-8 string showdesktop
+set_prop xfce4-panel /plugins/plugin-9 string notification-plugin
+set_prop xfce4-panel /plugins/plugin-10 string xfce4-clipman-plugin
 
 # Ícone da Forja no botão Whisker.
 if [[ -s "$ICON_FILE" ]]; then
