@@ -2,7 +2,7 @@ name: Build Manjaro MATE ISO
 
 on:
   push:
-    branches: [main]
+    branches: [main, forja-store-full-support]
   # A fila é consultada automaticamente. Nenhuma ação manual no GitHub é necessária.
   schedule:
     - cron: "*/5 * * * *"
