@@ -4,7 +4,7 @@ import re
 import sys
 import subprocess
 
-NAME = re.compile(r"^[A-Za-z0-9@._+:-]+$")
+NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9@._+:-]*$")
 ACTIONS = {"check", "install", "remove", "upgrade"}
 
 def main():
@@ -12,7 +12,7 @@ def main():
         print("Uso: forja-pacman-transaction {check|install|remove|upgrade} [pacote...]")
         return 2
     action, packages = sys.argv[1], sys.argv[2:]
-    if action in {"install", "remove"}:
+    if action in {"install", "remove", "upgrade"}:
         if not packages or any(not NAME.fullmatch(p) for p in packages):
             print("Nome de pacote inválido.")
             return 2
@@ -21,7 +21,7 @@ def main():
         return 2
     if action == "check":
         return subprocess.call(["checkupdates"])
-    if action == "install":
+    if action in {"install", "upgrade"}:
         cmd = ["pacman", "-S", "--needed", *packages]
     elif action == "remove":
         cmd = ["pacman", "-Rns", *packages]
