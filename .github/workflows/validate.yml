@@ -1,4 +1,4 @@
-name: Validate Forja Store and MATE integration
+name: Validate Forja Store and desktop integration
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: manjaro-mate-validation-${{ github.ref }}
+  group: forja-store-validation-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -43,6 +43,7 @@ jobs:
               rgb = tuple(int(color[i:i+2], 16) for i in (1, 3, 5))
               assert max(rgb) - min(rgb) <= 2, f"A interface ainda contém cor fora da escala de cinza: {color}"
           indicator = (src / "forja-update-indicator").read_text()
+          installer = (root / "install.sh").read_text()
           icon_current = (root / "icons/forja-update-current.svg").read_text().lower()
           icon_available = (root / "icons/forja-update-available.svg").read_text().lower()
           icon_error = (root / "icons/forja-update-error.svg").read_text().lower()
@@ -57,7 +58,6 @@ jobs:
           assert 'icon="forja-update-available"' in indicator and 'icon="forja-update-current"' in indicator and 'icon="forja-update-error"' in indicator, "Os três estados precisam trocar para os ícones próprios"
           assert 'forja-update-error.svg' in installer, "O ícone de erro precisa ser instalado"
           helper_text = (src / "forja-pacman-transaction").read_text()
-          installer = (root / "install.sh").read_text()
           packages = (root / "packages.manjaro").read_text()
 
           for token in ('["pacman","-Ss",query]', '["yay","-Ssa",query]',
