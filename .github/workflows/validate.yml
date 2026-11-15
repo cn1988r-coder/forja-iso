@@ -65,9 +65,10 @@ jobs:
                         '["flatpak","remote-ls","--system","--updates"',
                         '["flatpak","remote-ls","--user","--updates"',
                         'GLib.SOURCE_CONTINUE', 'GLib.timeout_add_seconds(1800,self.check)',
-                        'GLib.timeout_add_seconds(60,self.check)'):
+                        'GLib.timeout_add_seconds(60,self.initial_check)'):
               assert token in indicator, f"Indicador sem suporte recorrente/fonte: {token}"
           assert 'self.checking=False' in indicator and 'self.upgrading=False' in indicator
+          assert 'def initial_check(self)' in indicator and 'return GLib.SOURCE_REMOVE' in indicator
           assert '["pkexec",HELPER,"upgrade"]' in indicator
           assert 'forja-pkexec-sudo' in installer and 'forja-flatpak-setup.service' in installer
           assert 'flatpak remote-add --if-not-exists --system flathub' in installer
