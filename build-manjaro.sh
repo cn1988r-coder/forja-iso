@@ -205,15 +205,16 @@ if [[ "${FORJA_SKIP_STORE_INSTALL:-0}" != "1" ]]; then
   done
 fi
 
-# Materialize package lists in the XFCE profile so filtering cannot modify upstream files.
-for package_list in "$TARGET"/Packages-*; do
-  [[ -f "$package_list" ]] || continue
-  if [[ -L "$package_list" ]]; then
-    resolved_list="$(readlink -f "$package_list")"
-    cp "$resolved_list" "$package_list.materialized"
-    mv "$package_list.materialized" "$package_list"
-  fi
-done
+# Materialize every package-list symlink before editing. Never rewrite
+# shared Manjaro profile files through a symlink from the Forja profile.
+while IFS= read -r -d '' package_list; do
+  materialized="${package_list}.forja-materialized"
+  cp -L -- "$package_list" "$materialized"
+  chmod 0644 "$materialized"
+  mv -f -- "$materialized" "$package_list"
+done < <(find "$TARGET" -type l -name 'Packages-*' -print0)
+
+# Package-list edits below operate only on regular files owned by this profile.
 
 # Full package preflight runs after the desktop-specific list is finalized.
 
@@ -264,7 +265,7 @@ while IFS= read -r -d '' package_list; do
     fi
   done < "$resolved_list"
   mv "$filtered_list" "$resolved_list"
-done < <(find -L "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
+done < <(find "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 
 
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
@@ -412,7 +413,7 @@ while IFS= read -r -d "" package_list; do
     fi
   done < "$resolved_list"
   mv "$filtered_list" "$resolved_list"
-done < <(find -L "$TARGET" -type f -name "Packages-*" -print0 | sort -zu)
+done < <(find "$TARGET" -type f -name "Packages-*" -print0 | sort -zu)
 
 if [[ "${FORJA_PREFLIGHT_ONLY:-0}" == "1" ]]; then
   echo "PREFLIGHT_OK: Forja XFCE / base Manjaro / $KERNEL ($KERNEL_PKG). ISO build intentionally skipped."
