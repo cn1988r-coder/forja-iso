@@ -87,7 +87,7 @@ jobs:
           assert 'flatpak remote-add --if-not-exists --system flathub' in installer
           assert 'yay' in packages and 'base-devel' in packages and 'git' in packages
           assert pathlib.Path(root / "src/forja-pkexec-sudo").is_file()
-          assert 'OnlyShowIn=MATE;' in (root / "forja-update-indicator.desktop").read_text()
+          assert 'OnlyShowIn=MATE;XFCE;' in (root / "forja-update-indicator.desktop").read_text()
           build = pathlib.Path("build-manjaro.sh").read_text()
           assert 'DESKTOP=mate' in build, "A integração precisa permanecer na edição MATE"
           assert 'forja-pamac-pacman/install.sh' in build, "A Forja Store não está instalada no perfil Manjaro MATE"
