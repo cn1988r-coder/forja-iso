@@ -49,3 +49,8 @@ python-gobject
 libayatana-appindicator
 pacman-contrib
 polkit
+# Forja Store: Pacman, AUR/yay e Flatpak
+flatpak
+yay
+base-devel
+git
