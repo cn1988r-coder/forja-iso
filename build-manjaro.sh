@@ -331,6 +331,7 @@ install -Dm644 /dev/stdin "$TARGET/rootfs/etc/systemd/system/forja-manjaro-mirro
 Description=Generate current official Manjaro mirror list for Forja OS
 Wants=network-online.target
 After=network-online.target
+Before=display-manager.service
 ConditionPathExists=/usr/bin/pacman-mirrors
 
 [Service]
