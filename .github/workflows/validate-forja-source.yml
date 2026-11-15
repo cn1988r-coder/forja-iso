@@ -107,7 +107,11 @@ jobs:
           printf '#!/bin/sh\\nexit 0\\n' > /tmp/forja-systemd-root/usr/bin/pacman-mirrors
           chmod 0755 /tmp/forja-systemd-root/usr/bin/pacman-mirrors
           cp /tmp/forja-manjaro-mirrors.service /tmp/forja-systemd-root/etc/systemd/system/
-          printf '[Unit]\\nDescription=Network online\\n' > /tmp/forja-systemd-root/etc/systemd/system/network-online.target
-          printf '[Unit]\\nDescription=Display manager\\n' > /tmp/forja-systemd-root/etc/systemd/system/display-manager.service
+          for target in sysinit.target basic.target network-online.target display-manager.service; do
+            cat > "/tmp/forja-systemd-root/etc/systemd/system/$target" <<'UNIT'
+          [Unit]
+          Description=Validation placeholder
+          UNIT
+          done
           systemd-analyze verify --root=/tmp/forja-systemd-root forja-manjaro-mirrors.service
 
