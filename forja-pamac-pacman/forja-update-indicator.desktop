@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Forja Update Indicator
+Comment=Notifica atualizações dos repositórios da distribuição
+Exec=/usr/bin/forja-update-indicator
+Icon=system-software-update
+Terminal=false
+X-GNOME-Autostart-enabled=true
