@@ -86,13 +86,13 @@ jobs:
           assert "from forja_store_core import" in ui
           assert "def load_catalog(self, title, category)" in ui
           assert "appstreamcli" in ui and "list-categories" in ui and "ALL_APPSTREAM_CATEGORIES" in ui
-          assert "pacman" in ui and "yay" in ui and "flatpak" in ui
+          assert "pamac" in ui and "flatpak" in ui
           assert "parse_flatpak_search" in core and "parse_appstream" in core
-          assert "parse_flatpak_updates" in indicator and "parse_yay_updates" in indicator
+          assert "parse_flatpak_updates" in indicator and "parse_checkupdates" in indicator
           assert 'new_from_icon_name("forja-update-current")' in indicator
           for state in ("forja-update-current", "forja-update-available", "forja-update-error"):
               assert state in indicator, f"Indicador sem estado: {state}"
-          assert "runuser" in transaction and "--sudo" in transaction
+          assert '"pamac", "upgrade", "--aur", "--no-confirm"' in transaction and '"pamac", "build", "--no-confirm"' in transaction
           assert "flatpak remote-ls" in ui and "remote" in ui
           assert "forja_store_core.py" in installer and "forja-polkit-agent.desktop" in installer
           assert "appstream" in packages and "archlinux-appstream-data" in packages
@@ -103,7 +103,7 @@ jobs:
           assert 'case "$DESKTOP" in xfce)' in build
           assert "forja-pamac-pacman/install.sh" in build
           assert "mate-session-manager" not in xfce_packages and "mate-panel" not in xfce_packages
-          print("Forja Store: AppStream, Pacman, AUR, Flatpak, Polkit e XFCE verificados.")
+          print("Forja Store: AppStream, Pamac, AUR, Flatpak, Polkit e XFCE verificados.")
           PY
 
       - name: Build AppStream integration validation container
