@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     permissions:
-      contents: read
+      contents: write
       id-token: write
     env:
       FORJA_KERNEL: ${{ inputs.kernel || github.event.client_payload.kernel || needs.check-queue.outputs.kernel || 'lts' }}
