@@ -158,3 +158,34 @@ jobs:
           print("Forja Store: Pacman, AUR/yay, Flatpak, transações, cancelamento e erros validados.")
           PY
 
+      - name: Validate Forja OS MATE build code (without building ISO)
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n build-cloud.sh build-manjaro.sh
+          sudo apt-get update -qq
+          sudo apt-get install -y shellcheck
+          shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          build = Path("build-manjaro.sh").read_text()
+          assert re.search(r'^DESKTOP=mate
+, build, re.M), "A edição precisa ser MATE"
+          assert 'displaymanager="lightdm"' in build, "LightDM não está definido no perfil"
+          assert 'user-session=mate' in build, "Sessão MATE não está definida no LightDM"
+          assert 'greeter-session=lightdm-slick-greeter' in build, "Greeter LightDM não está configurado"
+          assert 'calamares' in build, "Calamares não está incluído"
+          assert 'forja-pamac-pacman/install.sh' in build, "Forja Store não está integrada ao overlay"
+          assert 'forja-mate-wallpaper.svg' in build, "Wallpaper da Forja não está integrado"
+          assert 'forja-os-mate.svg' in build, "Identidade visual Forja OS não está integrada"
+          assert 'mate-session-manager' in build and 'mate-panel' in build and 'caja' in build, "Conjunto essencial MATE incompleto"
+          assert 'lightdm' in build and 'networkmanager' in build and 'blueman' in build, "Componentes de sessão/rede ausentes"
+          assert 'buildiso -f' in build, "Comando de geração da ISO não foi encontrado"
+          assert 'SQFS_WRAPPER_DIR=' in build and 'mksquashfs' in build, "Preparação do SquashFS não foi encontrada"
+          assert 'COMPRESSION=xz' in build, "Metadados de compressão XZ não estão definidos"
+          assert 'BUILDISO_OK=1' in build and 'ISO_FILE=' in build, "Verificação/relatório de saída ISO ausente"
+          assert 'gh release create' not in build, "O script de validação não deve publicar releases"
+          print("Código de geração Forja OS MATE: estrutura, sessão, Calamares, Store e pipeline ISO verificados; nenhuma ISO foi compilada.")
+          PY
+
