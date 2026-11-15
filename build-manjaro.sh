@@ -57,24 +57,42 @@ done
 }
 
 TARGET="$PROFILE_ROOT/manjaro/forja-$DESKTOP"
+BASE_PROFILE="$PROFILE_ROOT/manjaro/mate"
 rm -rf "$TARGET"
 
 if [[ "$DESKTOP" == mate ]]; then
-  # Perfil MATE próprio, construído sobre os componentes-base do Manjaro.
-  mkdir -p "$TARGET/desktop-overlay" "$TARGET/live-overlay"
-  cp "$PROFILE_ROOT/shared/Packages-Root" "$TARGET/Packages-Root"
-  cp "$PROFILE_ROOT/shared/Packages-Mhwd" "$TARGET/Packages-Mhwd"
-  cp "$PROFILE_ROOT/shared/Packages-Live" "$TARGET/Packages-Live"
-  cp -a "$PROFILE_ROOT/shared/manjaro/live-overlay/." "$TARGET/live-overlay/"
-  cat > "$TARGET/profile.conf" <<'MATE_PROFILE'
+  mkdir -p "$TARGET"
+
+  # Primeiro tenta usar o perfil MATE oficial, como no método da Cloud.
+  # Algumas versões do iso-profiles podem não publicar mais esse perfil;
+  # nesse caso, usa os componentes compartilhados oficiais do Manjaro.
+  if [[ -d "$BASE_PROFILE" ]]; then
+    echo "Usando perfil oficial como base: manjaro/mate"
+    cp -a "$BASE_PROFILE/." "$TARGET/"
+  else
+    echo "Perfil manjaro/mate não existe nesta revisão; montando perfil MATE a partir de shared."
+    mkdir -p "$TARGET/desktop-overlay" "$TARGET/live-overlay"
+    cp "$PROFILE_ROOT/shared/Packages-Root" "$TARGET/Packages-Root"
+    cp "$PROFILE_ROOT/shared/Packages-Mhwd" "$TARGET/Packages-Mhwd"
+    cp "$PROFILE_ROOT/shared/Packages-Live" "$TARGET/Packages-Live"
+    cp -a "$PROFILE_ROOT/shared/manjaro/live-overlay/." "$TARGET/live-overlay/"
+    cat > "$TARGET/profile.conf" <<'MATE_PROFILE'
 displaymanager="lightdm"
 autologin="true"
 nonfree_mhwd="false"
 enable_systemd=('NetworkManager' 'bluetooth')
 enable_systemd_live=('NetworkManager' 'bluetooth' 'manjaro-live' 'mhwd-live' 'pacman-init' 'mirrors-live')
 MATE_PROFILE
-  cat > "$TARGET/Packages-Desktop" <<'MATE_PACKAGES'
-# Ambiente MATE completo: sessão, painel, ferramentas e aplicativos padrão.
+  fi
+
+  mkdir -p "$TARGET/desktop-overlay" "$TARGET/live-overlay"
+  touch "$TARGET/Packages-Desktop"
+
+  # Complementa o perfil-base com os programas e a identidade da Forja OS.
+  # Não substitui a lista oficial: preserva os pacotes próprios do perfil.
+  cat >> "$TARGET/Packages-Desktop" <<'MATE_PACKAGES'
+
+# Forja OS: aplicativos completos do ambiente MATE.
 mate-desktop
 mate-backgrounds
 mate-menus
@@ -101,7 +119,7 @@ atril
 eom
 fastfetch
 
-# Login, rede cabeada/Wi-Fi, Bluetooth e navegador.
+# Login, rede, Bluetooth e navegador.
 lightdm
 lightdm-slick-greeter
 networkmanager
