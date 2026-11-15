@@ -27,13 +27,14 @@ CATEGORIES = [
  ("Escritório","x-office-document-symbolic","office"),("Gráficos","applications-graphics-symbolic","graphics"),
  ("Som e vídeo","applications-multimedia-symbolic","multimedia"),("Jogos","applications-games-symbolic","games"),
  ("Sistema","applications-system-symbolic","system")]
-FEATURED = [("firefox","Navegador web","repo"),("libreoffice-fresh","Suíte de produtividade","repo"),
- ("vlc","Reprodução de áudio e vídeo","repo"),("gimp","Edição de imagens","repo"),
- ("inkscape","Ilustração vetorial","repo"),("audacity","Edição de áudio","repo")]
-CATEGORY_TERMS = {
- "internet":["firefox","chromium","thunderbird","filezilla"],"office":["libreoffice-fresh","hunspell-pt-br"],
- "graphics":["gimp","inkscape","krita","blender"],"multimedia":["vlc","audacity","obs-studio","kdenlive"],
- "games":["steam","lutris","supertuxkart"],"system":["htop","gparted","timeshift"]}
+FEATURED = [
+ ("Firefox","firefox","Navegador web","repo"),
+ ("LibreOffice","libreoffice-fresh","Suíte de produtividade","repo"),
+ ("VLC","vlc","Reprodução de áudio e vídeo","repo"),
+ ("GIMP","gimp","Edição de imagens","repo"),
+ ("Inkscape","inkscape","Ilustração vetorial","repo"),
+ ("Audacity","audacity","Edição de áudio","repo")
+]
 APPSTREAM_CATEGORIES = {
  "internet":["Network"], "office":["Office"], "graphics":["Graphics"],
  "multimedia":["AudioVideo"], "games":["Game"], "system":["System","Settings","Utility"]
@@ -52,7 +53,7 @@ def parse_search(output, source):
         if line and not line[0].isspace():
             match=re.match(r"^(?:[^/]+/)?([^ ]+) ([^ ]+)",line)
             if match:
-                current=(match.group(1),match.group(2),"Pacote disponível",source)
+                current=(match.group(1),match.group(1),"Pacote disponível",source)
                 found.append(current)
         elif current and line.strip():
             found[-1]=(current[0],current[1],line.strip(),source); current=None
@@ -72,11 +73,11 @@ def parse_appstream(output):
         package=fields.get("Package","").split(",")[0].strip()
         bundle=fields.get("Bundle","")
         if package:
-            found.append((package,"",fields.get("Summary","Aplicativo disponível"),"repo"))
+            found.append((fields.get("Name",package),package,fields.get("Summary","Aplicativo disponível"),"repo"))
         elif bundle.startswith("flatpak:app/"):
             parts=bundle.split("/")
             if len(parts)>=2:
-                found.append((parts[1],"",fields.get("Summary","Aplicativo Flatpak"),"flatpak"))
+                found.append((fields.get("Name",parts[1]),parts[1],fields.get("Summary","Aplicativo Flatpak"),"flatpak"))
     return found
 
 class Store(Gtk.Application):
@@ -191,7 +192,7 @@ class Store(Gtk.Application):
                 if key not in seen:
                     seen.add(key); unique.append(item)
             unique.sort(key=lambda item:item[0].casefold())
-            apps=[(name,summary,source) for name,_version,summary,source in unique]
+            apps=unique
             GLib.idle_add(self.show_catalog_results,generation,title,apps)
         threading.Thread(target=worker,daemon=True).start()
 
@@ -253,23 +254,23 @@ class Store(Gtk.Application):
         grid=Gtk.FlowBox(); grid.set_selection_mode(Gtk.SelectionMode.NONE); grid.set_homogeneous(True)
         grid.set_min_children_per_line(2); grid.set_max_children_per_line(3)
         grid.set_column_spacing(14); grid.set_row_spacing(14)
-        for name,summary,source in apps: grid.add(self.app_tile(name,summary,source))
+        for name,package,summary,source in apps: grid.add(self.app_tile(name,package,summary,source))
         self.content.pack_start(grid,False,False,0)
 
-    def app_tile(self,name,summary,source):
+    def app_tile(self,name,package,summary,source):
         button=Gtk.Button(); button.set_relief(Gtk.ReliefStyle.NONE)
         box=Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,spacing=12); box.get_style_context().add_class("app-card")
         box.pack_start(Gtk.Image.new_from_icon_name("application-x-executable",Gtk.IconSize.DIALOG),False,False,4)
         details=Gtk.Box(orientation=Gtk.Orientation.VERTICAL,spacing=5)
         title=Gtk.Label(label="<b>%s</b>"%GLib.markup_escape_text(name),xalign=0); title.set_use_markup(True)
         source_label={"repo":"Repositório oficial","aur":"AUR / pacote externo","flatpak":"Flatpak"}[source]
-        installed=name in {"repo":self.installed_repo,"aur":self.installed_aur,"flatpak":self.installed_flatpak}[source]
+        installed=package in {"repo":self.installed_repo,"aur":self.installed_aur,"flatpak":self.installed_flatpak}[source]
         details.pack_start(title,False,False,0)
         details.pack_start(Gtk.Label(label=summary,xalign=0),False,False,0)
         meta=Gtk.Label(label=source_label+" · "+("Instalado" if installed else "Disponível"),xalign=0)
         meta.get_style_context().add_class("dim-label"); details.pack_start(meta,False,False,0)
         box.pack_start(details,True,True,0); button.add(box)
-        button.connect("clicked",self.show_details,name,summary,source); return button
+        button.connect("clicked",self.show_details,name,package,summary,source); return button
 
     def search_packages(self,query):
         self.query_generation+=1; generation=self.query_generation
@@ -290,7 +291,7 @@ class Store(Gtk.Application):
                     for line in fp.stdout.splitlines():
                         cols=line.split("\t")
                         if len(cols)>=2 and "." in cols[0]:
-                            results.append((cols[0],"",cols[2] if len(cols)>2 else cols[1],"flatpak"))
+                            results.append((cols[1],cols[0],cols[2] if len(cols)>2 else cols[1],"flatpak"))
             unique=[]; seen=set()
             for item in results:
                 key=(item[0],item[3])
@@ -301,13 +302,13 @@ class Store(Gtk.Application):
     def show_search_results(self,generation,results):
         if generation!=self.query_generation: return GLib.SOURCE_REMOVE
         self.clear(); self.heading("Resultados da pesquisa")
-        if results: self.add_apps([(n,d,s) for n,_v,d,s in results])
+        if results: self.add_apps(results)
         else: self.content.pack_start(Gtk.Label(label="Nenhum resultado encontrado ou fontes indisponíveis.",xalign=0),False,False,0)
         self.status.set_text(f"{len(results)} resultado(s) em Pacman, AUR e Flatpak.")
         self.content.show_all(); return GLib.SOURCE_REMOVE
 
-    def show_details(self,_button,name,summary,source):
-        installed=name in {"repo":self.installed_repo,"aur":self.installed_aur,"flatpak":self.installed_flatpak}[source]
+    def show_details(self,_button,name,package,summary,source):
+        installed=package in {"repo":self.installed_repo,"aur":self.installed_aur,"flatpak":self.installed_flatpak}[source]
         dialog=Gtk.Dialog(title=name,transient_for=self.window,flags=Gtk.DialogFlags.MODAL)
         dialog.add_button("Fechar",Gtk.ResponseType.CLOSE)
         action=dialog.add_button("Remover" if installed else "Instalar",Gtk.ResponseType.ACCEPT)
@@ -317,7 +318,7 @@ class Store(Gtk.Application):
         for text in (summary,{"repo":"Origem: repositórios oficiais Manjaro/Pacman","aur":"Origem: AUR (pacotes instalados fora dos repositórios oficiais são classificados como externos)","flatpak":"Origem: Flathub/Flatpak"}[source]):
             area.pack_start(Gtk.Label(label=text,xalign=0),False,False,0)
         dialog.show_all(); response=dialog.run(); dialog.destroy()
-        if response==Gtk.ResponseType.ACCEPT: self.transact("remove" if installed else "install",source,name)
+        if response==Gtk.ResponseType.ACCEPT: self.transact("remove" if installed else "install",source,package)
 
     def transact(self,action,source,name):
         if self.busy:
