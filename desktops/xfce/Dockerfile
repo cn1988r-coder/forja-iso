@@ -29,7 +29,7 @@ RUN bash -n /src/build-manjaro.sh \
       /src/forja-pamac-pacman/src/forja-update-indicator \
     && desktop-file-validate \
       /src/desktops/xfce/forja-xfce-appearance.desktop \
-      /src/forja-pamac-pacman/forja-store.desktop \
+      /src/forja-pamac-pacman/forja-software.desktop \
       /src/forja-pamac-pacman/forja-update-indicator.desktop \
     && xmllint --noout \
       /src/desktops/xfce/forja-flame.svg \
