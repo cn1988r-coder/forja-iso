@@ -65,8 +65,20 @@ def main(argv=None):
                     return result
             return call(["flatpak", "install", "--system", "--noninteractive",
                          "--assumeyes", remote, name])
-        return call(["flatpak", "uninstall", "--system", "--noninteractive",
-                     "--assumeyes", "--delete-data", name])
+        removed = False
+        for scope in ("--system", "--user"):
+            probe = subprocess.run(["flatpak", "info", scope, name],
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if probe.returncode == 0:
+                result = call(["flatpak", "uninstall", scope, "--noninteractive",
+                               "--assumeyes", "--delete-data", name])
+                if result:
+                    return result
+                removed = True
+        if not removed:
+            print("Aplicativo Flatpak não encontrado no escopo system ou user.", file=sys.stderr)
+            return 1
+        return 0
     print("Origem de pacote desconhecida.", file=sys.stderr)
     return 2
 
