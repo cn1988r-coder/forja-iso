@@ -103,6 +103,8 @@ pipewire-alsa
 pipewire-pulse
 wireplumber
 materia-gtk-theme
+bibata-cursor-theme
+dconf
 gtk3
 gtk4
 python
