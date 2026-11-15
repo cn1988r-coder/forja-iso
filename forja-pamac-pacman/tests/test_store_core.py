@@ -61,6 +61,11 @@ Bundle: flatpak:app/org.example.App/x86_64/stable
         self.assertEqual(apps[0]["source"], "aur")
         self.assertEqual(apps[0]["package"], "example-app")
 
+    def test_aur_search_does_not_relabel_official_repo_packages(self):
+        sample = "extra/firefox 1.0-1\n    Navegador oficial\naur/example-app 2.0-1 (+1 0.10)\n    Pacote AUR\n"
+        apps = parse_pacman_search(sample, "aur")
+        self.assertEqual([item["package"] for item in apps], ["example-app"])
+
     def test_flatpak_search_preserves_remote(self):
         sample = "Application\tName\tDescription\tRemotes\norg.example.App\tExample App\tAplicativo de teste\tflathub\n"
         apps = parse_flatpak_search(sample)
