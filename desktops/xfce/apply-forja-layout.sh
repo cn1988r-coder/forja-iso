@@ -27,6 +27,8 @@ set_prop xsettings /Net/IconThemeName string "$ICON_THEME"
 set_prop xsettings /Gtk/CursorThemeName string "$CURSOR_THEME"
 set_prop xsettings /Gtk/CursorThemeSize int 24
 set_prop xsettings /Gtk/FontName string "Cantarell 10"
+set_prop xfwm4 /general/theme string "Materia-dark"
+set_prop xfwm4 /general/use_compositing bool true
 
 # Keep Papirus folders neutral instead of introducing accent colors.
 if command -v papirus-folders >/dev/null 2>&1; then
