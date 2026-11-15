@@ -37,7 +37,7 @@ jobs:
             forja-pamac-pacman/install.sh forja-pamac-pacman/build-pamac.sh forja-pamac-pacman/src/forja-pkexec-sudo; do
             bash -n "$script"
           done
-          python3 -m py_compile forja-pamac-pacman/src/forja-store forja-pamac-pacman/src/forja_store_core.py forja-pamac-pacman/src/forja-pacman-transaction forja-pamac-pacman/src/forja-update-indicator
+          python3 -m py_compile forja-pamac-pacman/src/forja_store_core.py forja-pamac-pacman/src/forja-pacman-transaction forja-pamac-pacman/src/forja-update-indicator
           python3 -m unittest discover -s forja-pamac-pacman/tests -v
 
       - name: Install ShellCheck and Docker
