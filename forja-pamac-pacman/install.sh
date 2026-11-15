@@ -13,14 +13,13 @@ install -d "$(target /usr/lib/forja)" "$(target /usr/bin)" \
   "$(target /etc/xdg/autostart)" "$(target /usr/share/applications)" \
   "$(target /etc/systemd/system/multi-user.target.wants)"
 
-for file in forja-store forja_store_core.py forja-update-indicator forja-pacman-transaction forja-pkexec-sudo; do
+for file in forja-store forja_store_core.py forja-update-indicator forja-pacman-transaction; do
   [[ -f "$ROOT/src/$file" ]] || { echo "Arquivo obrigatório ausente: $ROOT/src/$file" >&2; exit 1; }
 done
 install -m 755 "$ROOT/src/forja-store" "$(target /usr/lib/forja/forja-store)"
 install -m 644 "$ROOT/src/forja_store_core.py" "$(target /usr/lib/forja/forja_store_core.py)"
 install -m 755 "$ROOT/src/forja-update-indicator" "$(target /usr/lib/forja/forja-update-indicator)"
 install -m 755 "$ROOT/src/forja-pacman-transaction" "$(target /usr/lib/forja/forja-pacman-transaction)"
-install -m 755 "$ROOT/src/forja-pkexec-sudo" "$(target /usr/lib/forja/forja-pkexec-sudo)"
 install -m 755 "$ROOT/bin/forja-store" "$(target /usr/bin/forja-store)"
 install -m 755 "$ROOT/bin/forja-update-indicator" "$(target /usr/bin/forja-update-indicator)"
 install -m 644 "$ROOT/icons/forja-store.svg" "$(target /usr/share/icons/hicolor/scalable/apps/forja-store.svg)"
