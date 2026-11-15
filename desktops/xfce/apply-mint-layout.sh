@@ -8,7 +8,6 @@ ICON_THEME="Papirus-Dark"
 CURSOR_THEME="Bibata-Modern-Ice"
 GTK_THEME="Materia-dark"
 ICON_FILE="/usr/share/icons/hicolor/scalable/apps/forja.svg"
-WALLPAPER="/usr/share/backgrounds/forja/forja-xfce.svg"
 PANEL_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/xfce4/panel"
 DOCKLIKE_CONFIG="$PANEL_CONFIG_DIR/docklike-2.rc"
 
@@ -76,15 +75,6 @@ fi
 # Super abre o Whisker, como no Big Community.
 set_prop xfce4-keyboard-shortcuts /commands/custom/Super_L string xfce4-popup-whiskermenu
 
-# Wallpaper Forja em todos os espaços de trabalho/monitores reconhecidos pelo XFCE.
-if [[ -s "$WALLPAPER" ]]; then
-  mapfile -t backdrop_props < <(xfconf-query -c xfce4-desktop -l 2>/dev/null | grep '/last-image$' || true)
-  if (("${#backdrop_props[@]}" == 0)); then
-    backdrop_props=("/backdrop/screen0/monitor0/workspace0/last-image")
-  fi
-  for prop in "${backdrop_props[@]}"; do
-    set_prop xfce4-desktop "$prop" string "$WALLPAPER"
-  done
-fi
+# Não altera o fundo: preservar o wallpaper padrão fornecido pelo XFCE.
 
 xfce4-panel --restart
