@@ -13,11 +13,12 @@ COPY build-manjaro.sh /src/build-manjaro.sh
 COPY desktops/xfce /src/desktops/xfce
 COPY forja-pamac-pacman /src/forja-pamac-pacman
 
-RUN bash -n /src/build-manjaro.sh \
-    /src/desktops/xfce/apply-forja-layout.sh \
-    /src/desktops/xfce/install-branding.sh \
-    /src/forja-pamac-pacman/install.sh \
-    /src/forja-pamac-pacman/src/forja-pkexec-sudo \
+RUN for script in \
+      /src/build-manjaro.sh \
+      /src/desktops/xfce/apply-forja-layout.sh \
+      /src/desktops/xfce/install-branding.sh \
+      /src/forja-pamac-pacman/install.sh \
+      /src/forja-pamac-pacman/src/forja-pkexec-sudo; do bash -n "$script"; done \
     && shellcheck -S warning -e SC1091 \
       /src/desktops/xfce/apply-forja-layout.sh \
       /src/desktops/xfce/install-branding.sh \
