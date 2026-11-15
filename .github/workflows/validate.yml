@@ -25,10 +25,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          bash -n build-cloud.sh build-manjaro.sh
+          bash -n build-cloud.sh build-manjaro.sh forja-pamac-pacman/install.sh
           sudo apt-get update -qq
           sudo apt-get install -y shellcheck
-          shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh
+          shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh forja-pamac-pacman/install.sh
 
       - name: Validate Forja Pacman software manager
         shell: bash
