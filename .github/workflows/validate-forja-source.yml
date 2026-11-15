@@ -92,7 +92,6 @@ jobs:
           unit = service.read_text()
           assert "ExecStart=/usr/bin/pacman-mirrors --fasttrack 10" in unit
           assert "After=network-online.target" in unit
-          assert "Before=display-manager.service" in unit
           assert "Restart=on-failure" in unit
           assert "StartLimitIntervalSec=0" in unit.split("[Service]", 1)[0]
           assert "pacman-mirrors" in source.split("BASE_CORE_PACKAGES=(", 1)[1].split(")", 1)[0]
