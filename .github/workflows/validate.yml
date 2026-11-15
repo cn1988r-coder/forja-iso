@@ -39,7 +39,7 @@ jobs:
             forja-pamac-pacman/src/forja-pacman-transaction \
             forja-pamac-pacman/src/forja-update-indicator
           python3 - <<'PY'
-          import importlib.util
+          import runpy
           import pathlib
           import sys
           from unittest.mock import patch
@@ -49,16 +49,16 @@ jobs:
           assert '"atualizar":"upgrade"' in ui, "Botão Atualizar não está ligado a upgrade"
           assert '"remover":"remove"' in ui, "Botão Remover não está ligado a remove"
 
-          spec = importlib.util.spec_from_file_location("forja_transaction", root / "forja-pacman-transaction")
-          module = importlib.util.module_from_spec(spec)
-          spec.loader.exec_module(module)
+          module = runpy.run_path(str(root / "forja-pacman-transaction"))
+          main = module["main"]
+          subprocess = module["subprocess"]
 
-          with patch.object(sys, "argv", ["helper", "upgrade", "firefox"]), patch.object(module.subprocess, "call", return_value=0) as call:
-              assert module.main() == 0
+          with patch.object(sys, "argv", ["helper", "upgrade", "firefox"]), patch.object(subprocess, "call", return_value=0) as call:
+              assert main() == 0
               call.assert_called_once_with(["pacman", "-S", "--needed", "firefox"])
 
           with patch.object(sys, "argv", ["helper", "install", "-R"]), patch.object(subprocess, "call") as call:
-              assert module.main() == 2, "Nome iniciado por hífen deveria ser rejeitado"
+              assert main() == 2, "Nome iniciado por hífen deveria ser rejeitado"
               call.assert_not_called()
           print("Forja Software: sintaxe, atualização direcionada e validação de argumentos OK.")
           PY
