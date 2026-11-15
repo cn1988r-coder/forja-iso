@@ -425,7 +425,7 @@ while IFS= read -r -d '' package_list; do
         continue
         ;;
     esac
-    if pacman_info "$package" >/dev/null 2>&1; then
+    if pacman_info "$package" >/dev/null 2>&1 || [[ -n "$(pacman -Sgq "$package" 2>/dev/null)" ]]; then
       printf '%s\n' "$line" >> "$filtered_list"
     else
       echo "Aviso: pacote ausente removido: $package (lista $resolved_list)" >&2
