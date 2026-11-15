@@ -289,7 +289,7 @@ class Store(Gtk.Application):
             if category != "flatpak" and categories:
                 if available is not None:
                     for app_category in categories:
-                        result = run(["appstreamcli", "--no-color", "--details", "list-categories", app_category], 120)
+                        result = run(["appstreamcli", "--no-color", "list-categories", app_category], 120)
                         if result.returncode == 0:
                             apps.extend(parse_appstream(result.stdout, available))
                         else:
@@ -454,7 +454,7 @@ class Store(Gtk.Application):
             results = []
             errors = []
             available, package_error = package_sources()
-            catalog = run(["appstreamcli", "--no-color", "--details", "search", query], 120) if shutil.which("appstreamcli") else subprocess.CompletedProcess([], 127, "", "appstreamcli ausente")
+            catalog = run(["appstreamcli", "--no-color", "search", query], 120) if shutil.which("appstreamcli") else subprocess.CompletedProcess([], 127, "", "appstreamcli ausente")
             if available is not None and catalog.returncode == 0:
                 results.extend(parse_appstream(catalog.stdout, available))
             else:
