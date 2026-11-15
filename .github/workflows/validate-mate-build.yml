@@ -1,4 +1,4 @@
-name: Validate Forja OS MATE build code
+name: Validate Forja OS ISO Builder (code only)
 
 on:
   push:
@@ -23,10 +23,11 @@ permissions:
   contents: read
 
 jobs:
-  validate-mate-build:
+  validate-iso-builder:
+    name: Validate ISO generator only
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout generator source
         uses: actions/checkout@v4
 
       - name: Validate shell syntax
@@ -37,40 +38,51 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y shellcheck
 
-      - name: Run ShellCheck
+      - name: Analyze generator scripts with ShellCheck
         run: shellcheck -S warning -e SC1091 build-cloud.sh build-manjaro.sh
 
-      - name: Validate Forja OS MATE build configuration
+      - name: Validate ISO generator structure (no Store tests, no ISO build)
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
 
+          cloud = Path("build-cloud.sh").read_text()
           build = Path("build-manjaro.sh").read_text()
-          assert re.search(r"^DESKTOP=mate$", build, re.M), "A edição precisa ser MATE"
-          checks = {
-              'LightDM no perfil': 'displaymanager="lightdm"',
-              'Sessão MATE no LightDM': 'user-session=mate',
-              'Greeter do LightDM': 'greeter-session=lightdm-slick-greeter',
-              'Calamares': 'calamares',
-              'Integração da Forja Store': 'forja-pamac-pacman/install.sh',
-              'Wallpaper da Forja': 'forja-mate-wallpaper.svg',
-              'Ícone da edição': 'forja-os-mate.svg',
-              'Sessão MATE': 'mate-session-manager',
-              'Painel MATE': 'mate-panel',
-              'Gerenciador de arquivos Caja': 'caja',
-              'Gerenciador de login': 'lightdm',
-              'NetworkManager': 'networkmanager',
-              'Bluetooth': 'blueman',
-              'Comando buildiso': 'buildiso -f',
-              'Preparação SquashFS': 'SQFS_WRAPPER_DIR=',
-              'Compressor SquashFS': 'mksquashfs',
-              'Metadados XZ': 'COMPRESSION=xz',
-              'Confirmação da ISO': 'BUILDISO_OK=1',
-              'Relatório da ISO': 'ISO_FILE=',
+
+          assert re.search(r"^DESKTOP=mate$", build, re.M), "Generator target must be MATE"
+          assert ': "${FORJA_KERNEL:?Defina FORJA_KERNEL}"' in cloud, "Cloud wrapper must require kernel selection"
+          assert 'exec bash /forja-ci/build-manjaro.sh' in cloud, "Cloud wrapper must invoke the Manjaro generator"
+          assert 'FORJA_DISTRIBUTION' in cloud and 'FORJA_DESKTOP' in cloud, "Cloud wrapper must reject unsupported targets"
+
+          required = {
+              "Manjaro package database refresh": "pacman -Syu --noconfirm",
+              "Official Manjaro ISO profile retrieval": "iso-profiles.git",
+              "MATE profile selection": 'TARGET="$PROFILE_ROOT/manjaro/forja-$DESKTOP"',
+              "LightDM display manager": 'DM=lightdm',
+              "MATE desktop package profile": "mate-session-manager",
+              "Calamares installer package": "calamares",
+              "NetworkManager service": "NetworkManager",
+              "Bluetooth service": "'bluetooth'",
+              "Kernel selection": 'KERNEL_PKG="$(python',
+              "Preflight-only exit before build": 'FORJA_PREFLIGHT_ONLY:-0',
+              "SquashFS wrapper": 'SQFS_WRAPPER_DIR="$WORK/squashfs-bin"',
+              "XZ compression configuration": 'buildiso -f -d xz',
+              "ISO output discovery": "find \"$OUT\" -type f -name '*.iso'",
+              "Minimum ISO size check": 'SIZE >= 1000000000',
+              "SHA256 generation": "sha256sum",
+              "Build metadata report": 'build-info.txt',
+              "Successful build marker": "BUILD_OK:",
           }
-          for label, needle in checks.items():
-              assert needle in build, f"Faltando: {label}"
-          print("Validação estrutural do código de geração Forja OS MATE concluída.")
-          print("Nenhuma compilação de ISO foi iniciada.")
+          for label, needle in required.items():
+              assert needle in build, f"Missing generator component: {label}"
+
+          buildiso_at = build.index("buildiso -f -d xz")
+          preflight_at = build.index('FORJA_PREFLIGHT_ONLY:-0')
+          assert preflight_at < buildiso_at, "Preflight-only mode must exit before invoking buildiso"
+          assert "forja-pamac-pacman" not in Path(".github/workflows/validate-mate-build.yml").read_text(), "ISO builder validation must not test the Store"
+
+          print("PASS: cloud wrapper and ISO generator structure verified.")
+          print("PASS: MATE profile, kernel selection, preflight, SquashFS, ISO checks and metadata verified.")
+          print("PASS: no Store validation and no ISO compilation were run.")
           PY
