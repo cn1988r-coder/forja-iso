@@ -67,7 +67,7 @@ jobs:
               assert token in ui, f"Pesquisa/origem ausente na loja: {token}"
           assert '["pacman","-Qnq"]' in ui and '["pacman","-Qmq"]' in ui
           assert "AUR / pacote externo" in ui, "Pacotes estrangeiros não podem ser identificados como AUR com certeza"
-          assert 'self.transact("remove" if installed else "install",source,name)' in ui
+          assert 'self.transact("remove" if installed else "install",source,package)' in ui
           assert '["pkexec",HELPER,action,source,name]' in ui
           assert '["yay","-Qua"]' in ui and '["flatpak","remote-ls","--system","--updates"' in ui
           assert '["flatpak","remote-ls","--user","--updates"' in ui
