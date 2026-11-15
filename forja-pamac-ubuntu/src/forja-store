@@ -139,7 +139,7 @@ class ForjaStore(Gtk.Application):
                 errors.append("APT: " + str(exc))
 
             installed, err = command([FLATPAK, "list", "--system", "--app",
-                                      "--columns=application,name,origin"])
+                                      "--columns=application,origin"])
             if err and "não está instalado" not in err:
                 errors.append("Flatpak instalado: " + err)
             installed_map = {}
