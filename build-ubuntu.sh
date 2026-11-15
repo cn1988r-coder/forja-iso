@@ -24,6 +24,8 @@ BASE_PACKAGES=(
   curl wget gnupg
   apt-transport-https
   unattended-upgrades
+  ubuntu-release-upgrader-core
+  update-manager-core
   dbus
   xdg-user-dirs
 )
@@ -112,8 +114,9 @@ Papirus e Bibata a partir de fontes compatíveis com Ubuntu e aplicar este perfi
 A base não instala nem configura ambiente gráfico.
 VISUAL_README
 
-# O atualizador de versão só deve oferecer upgrades entre versões LTS.
-# Ex.: 26.04 LTS -> 28.04 LTS; nunca 26.10 ou 27.04.
+# O Ubuntu Release Upgrader oferece migração in-place somente para outra LTS.
+# Os pacotes da LTS instalada continuam recebendo atualizações normais via APT.
+# A migração preserva /home e configurações; não é uma reinstalação/formatagem.
 cat > "$ROOTFS/etc/update-manager/release-upgrades" <<'RELEASE'
 [DEFAULT]
 Prompt=lts
@@ -173,7 +176,7 @@ DESKTOP=none
 KERNEL=linux-generic
 VISUAL_PROFILE=Materia-dark;Papirus;Bibata-Modern-Ice
 UPDATES=Ubuntu official LTS repositories
-RELEASE_UPGRADES=disabled
+RELEASE_UPGRADES=LTS-only in-place via ubuntu-release-upgrader
 INFO
 
 log "BASE_OK: $OUTPUT/forja-ubuntu-resolute-base.tar.zst"
