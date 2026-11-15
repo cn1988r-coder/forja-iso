@@ -73,7 +73,7 @@ def parse_appstream(output):
         package=fields.get("Package","").split(",")[0].strip()
         bundle=fields.get("Bundle","")
         if package:
-            found.append((fields.get("Name",package),package,fields.get("Summary","Aplicativo disponível"),"repo",fields.get("Icon","application-x-executable").removeprefix("stock:")))
+            found.append((fields.get("Name",package),package,fields.get("Summary","Aplicativo disponível"),"repo",fields.get("Icon","application-x-executable").split(":",1)[-1].removesuffix(".png").removesuffix(".svg")))
         elif bundle.startswith("flatpak:app/"):
             parts=bundle.split("/")
             if len(parts)>=2:
