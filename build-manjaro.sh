@@ -149,12 +149,11 @@ bibata-cursor-theme
 papirus-icon-theme
 dconf
 gtk3
-gtk4
 python
 python-gobject
-libayatana-appindicator
 pacman-contrib
 polkit
+flatpak
 MATE_PACKAGES
 fi
 
