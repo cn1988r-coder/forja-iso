@@ -49,11 +49,12 @@ jobs:
             desktops/xfce/forja-xfce-appearance.desktop \
             forja-pamac-pacman/forja-software.desktop \
             forja-pamac-pacman/forja-update-indicator.desktop \
-          xmllint --noout \
+          python3 -c 'import sys, xml.etree.ElementTree as ET; [ET.parse(p) for p in sys.argv[1:]]' \
             desktops/xfce/forja-flame.svg \
             desktops/xfce/forja-black-wallpaper.svg \
             desktops/xfce/forja-xfce-desktop.xml \
             desktops/xfce/panel-default.xml \
+            forja-pamac-pacman/icons/forja-store.svg \
             forja-pamac-pacman/icons/forja-update-current.svg \
             forja-pamac-pacman/icons/forja-update-available.svg \
             forja-pamac-pacman/icons/forja-update-error.svg

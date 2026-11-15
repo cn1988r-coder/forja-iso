@@ -91,7 +91,7 @@ replace_once(
 # Somente a apresentação, os metadados visuais e o tamanho inicial são alterados.
 PY
 
-xmllint --noout "$SOURCE/resources/manager_window.ui" "$SOURCE/resources/package_row.ui"
+python3 -c 'import sys, xml.etree.ElementTree as ET; [ET.parse(p) for p in sys.argv[1:]]' "$SOURCE/resources/manager_window.ui" "$SOURCE/resources/package_row.ui"
 meson setup "$BUILD" "$SOURCE" --prefix=/usr --sysconfdir=/etc --buildtype=release
 meson compile -C "$BUILD" pamac-manager
 
