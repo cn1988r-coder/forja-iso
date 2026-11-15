@@ -46,6 +46,7 @@ jobs:
           bash -n forja-pamac-ubuntu/install.sh
           bash -n desktops/mate/install-ubuntu-mate.sh
           bash -n desktops/mate/apply-ubuntu-mate.sh
+          bash -n desktops/mate/install-materia-ubuntu.sh
 
       - name: Validate GTK and Python APT bindings
         run: |
