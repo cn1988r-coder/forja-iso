@@ -5,6 +5,8 @@ xfce4-whiskermenu-plugin
 lightdm
 lightdm-gtk-greeter
 network-manager-gnome
+update-manager
+update-notifier
 firefox
 papirus-icon-theme
 bibata-cursor-theme
