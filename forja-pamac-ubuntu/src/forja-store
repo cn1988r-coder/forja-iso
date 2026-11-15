@@ -50,9 +50,13 @@ class ForjaStore(Gtk.Application):
         self.search.set_placeholder_text("Pesquisar aplicativos e pacotes")
         self.search.set_hexpand(True)
         header.set_title_widget(self.search)
-        refresh = Gtk.Button(label="Atualizar bancos")
-        refresh.connect("clicked", self.refresh_all)
-        header.pack_end(refresh)
+        self.refresh_button = Gtk.Button(label="Atualizar bancos")
+        self.refresh_button.connect("clicked", self.refresh_all)
+        header.pack_end(self.refresh_button)
+        self.upgrade_button = Gtk.Button(label="Atualizar tudo")
+        self.upgrade_button.connect("clicked", self.update_all)
+        self.upgrade_button.set_visible(False)
+        header.pack_end(self.upgrade_button)
         self.window.set_titlebar(header)
 
         body = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
@@ -101,6 +105,7 @@ class ForjaStore(Gtk.Application):
     def change_mode(self, _list, row):
         if row:
             self.mode = row.mode
+            self.upgrade_button.set_visible(self.mode == "updates")
             self.populate()
 
     def change_source(self, *_):
@@ -148,7 +153,7 @@ class ForjaStore(Gtk.Application):
 
             updates, update_err = command([
                 FLATPAK, "remote-ls", "--system", "--updates", "--app",
-                "--columns=application,name,description,origin",
+                "--columns=application,origin",
             ])
             update_ids = set()
             if not update_err:
@@ -170,9 +175,9 @@ class ForjaStore(Gtk.Application):
                     continue
                 app_id = cols[0]
                 seen.add(app_id)
-                name = cols[1] if len(cols) > 1 and cols[1] else app_id
-                description = cols[2] if len(cols) > 2 else "Aplicativo Flatpak"
-                remote = cols[3] if len(cols) > 3 else ""
+                name = cols[0]
+                description = "Aplicativo Flatpak disponível no repositório configurado."
+                remote = cols[1] if len(cols) > 1 else ""
                 is_installed = app_id in installed_map
                 items.append({
                     "source": "flatpak", "id": app_id, "name": name,
@@ -256,13 +261,13 @@ class ForjaStore(Gtk.Application):
             self.rows.append(row)
 
     def transact(self, _button, action, item):
-        if action == "upgrade-one":
-            action = "install"
         if item["source"] == "apt":
-            helper_action = "apt-" + action
+            helper_action = "apt-install" if action == "upgrade-one" else "apt-" + action
             args = ["pkexec", HELPER, helper_action, item["id"]]
         else:
-            if action == "install":
+            if action == "upgrade-one":
+                args = ["pkexec", HELPER, "flatpak-update-app", item["id"]]
+            elif action == "install":
                 if not item["remote"]:
                     self.status.set_text("Não foi possível identificar o repositório Flatpak deste aplicativo.")
                     return
@@ -322,11 +327,25 @@ class ForjaStore(Gtk.Application):
 
         threading.Thread(target=worker, daemon=True).start()
 
-    def update_all(self):
+    def update_all(self, *_):
         if self.busy:
             return
-        self.run_transaction(["pkexec", HELPER, "apt-upgrade"])
-        # Flatpak updates are started separately after the APT transaction completes.
+        self.busy = True
+        self.status.set_text("Instalando atualizações do Ubuntu e do Flatpak…")
+
+        def worker():
+            results = []
+            for action in ("apt-upgrade", "flatpak-upgrade"):
+                result = subprocess.run(["pkexec", HELPER, action],
+                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                        text=True)
+                results.append(result.returncode)
+            success = all(code == 0 for code in results)
+            message = ("Atualizações concluídas." if success else
+                       "Uma ou mais atualizações falharam ou foram canceladas. Verifique as mensagens do sistema.")
+            GLib.idle_add(self.transaction_finished, message, success)
+
+        threading.Thread(target=worker, daemon=True).start()
 
 
 if __name__ == "__main__":
