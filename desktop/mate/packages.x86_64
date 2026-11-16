@@ -1,7 +1,6 @@
-# MATE core (Arch Linux Extra)
+# MATE core (Arch Linux Extra, selected explicitly)
 caja
 marco
-mate-backgrounds
 mate-control-center
 mate-desktop
 mate-icon-theme
@@ -11,28 +10,33 @@ mate-panel
 mate-polkit
 mate-session-manager
 mate-settings-daemon
-mate-themes
 
-# Essential MATE applications
-atril
-engrampa
-eom
-mate-calc
+# MATE components used by the Forja session
+mate-applets
 mate-media
 mate-power-manager
 mate-screensaver
 mate-terminal
+
+# Useful basic applications, not the full mate-extra collection
+atril
+engrampa
+eom
+mate-calc
 mate-utils
 mozo
 pluma
 
-# Login and session
+# X11 session and login
+xorg-server
+mesa
 lightdm
 lightdm-gtk-greeter
 
 # Network, Bluetooth, audio and removable media
 networkmanager
 network-manager-applet
+bluez
 blueman
 pipewire
 pipewire-alsa
@@ -43,6 +47,8 @@ upower
 gvfs
 gvfs-mtp
 udisks2
+xdg-utils
+xdg-user-dirs
 
 # Forja OS visual identity
 materia-gtk-theme
