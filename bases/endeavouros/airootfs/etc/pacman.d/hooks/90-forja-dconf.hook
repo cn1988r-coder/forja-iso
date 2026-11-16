@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = dconf
+
+[Action]
+Description = Compile Forja OS system desktop defaults
+When = PostTransaction
+Exec = /usr/bin/dconf update
