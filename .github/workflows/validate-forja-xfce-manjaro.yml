@@ -29,11 +29,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate generator shell syntax
+        shell: bash
         run: |
-          set -euo pipefail
+          set -Eeuo pipefail
           for script in build-cloud.sh build-manjaro.sh \
-            desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh \
-            desktops/xfce/plymouth/forja-mkinitcpio.conf \
+            desktops/xfce/apply-forja-layout.sh \
+            desktops/xfce/install-branding.sh \
+            desktops/xfce/plymouth/forja-mkinitcpio.conf; do
+            bash -n "$script"
+          done
 
       - name: Install ShellCheck and Docker
         run: |
