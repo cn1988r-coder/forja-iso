@@ -446,7 +446,8 @@ class Store(Gtk.Application):
         box.pack_start(label, False, False, 0)
         source = {"aur": "AUR comunitário: o PKGBUILD será exibido para revisão antes da compilação.",
                   "flatpak": "Aplicativo distribuído pelo Flathub usando Flatpak.",
-                  "official": "Pacote dos repositórios oficiais do Arch Linux."}.get(item["source"], "Aplicativo")
+                  "official": "Pacote dos repositórios oficiais do Arch Linux.",
+                  "forja": "Pacote assinado distribuído pelo repositório próprio da Forja OS."}.get(item["source"], "Aplicativo")
         box.pack_start(Gtk.Label(label=source, xalign=0, wrap=True), False, False, 0)
         dialog.show_all()
         dialog.run()
