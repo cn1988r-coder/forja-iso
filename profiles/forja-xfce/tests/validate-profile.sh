@@ -64,7 +64,7 @@ grep -Fq 'cp -a "$UPSTREAM_ROOT/efiboot" "$TARGET/"' "$PROFILE/prepare-forja.sh"
 grep -Fq 'cp -a "$UPSTREAM_ROOT/syslinux" "$TARGET/"' "$PROFILE/prepare-forja.sh"
 grep -Fq "forja-recovery-*.pkg.tar.zst" "$PROFILE/prepare.sh"
 grep -Fq "forja-snapshots-*.pkg.tar.zst" "$PROFILE/prepare.sh"
-grep -Fq "grub-btrfs" "$PROFILE/prepare.sh"
+grep -Fxq "grub-btrfs" "$PACKAGES"
 grep -Fq "shelly-bin-[0-9]*.pkg.tar.zst" "$PROFILE/prepare.sh"
 grep -Fq "shelly-flatpak-backend-bin-[0-9]*.pkg.tar.zst" "$PROFILE/prepare.sh"
 grep -Fq "forja-snapshot-setup.service" "$SNAPSHOTS/PKGBUILD"
@@ -83,7 +83,7 @@ if grep -Eiq "rm[[:space:]]+-rf|mkfs\\.|dd[[:space:]]+if=" "$RECOVERY/forja-reco
 fi
 grep -Fq 'cp -a "$PROFILE_DIR/airootfs/." "$TARGET/airootfs/"' "$PROFILE/prepare-forja.sh"
 grep -Fq '"$TARGET/airootfs/root/liveuser.png"' "$PROFILE/prepare-forja.sh"
-grep -Fq '(( ${#local_packages[@]} == 7 ))' "$PROFILE/prepare.sh"
+grep -Fq '(( ${#local_packages[@]} == 6 ))' "$PROFILE/prepare.sh"
 grep -Fq '0bbb1280ccd373262561453d85201f2707483990' "$ROOT/.github/workflows/build-forja-iso.yml"
 grep -Fq '0bbb1280ccd373262561453d85201f2707483990' "$ROOT/.github/workflows/preflight-forja-xfce.yml"
 if grep -Fxq 'calamares' "$PACKAGES"; then
