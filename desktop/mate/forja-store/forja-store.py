@@ -652,9 +652,9 @@ class Store(Gtk.Application):
                 button.connect("clicked", self.launch_aur_update, name)
                 row.pack_end(button, False, False, 0)
                 self.content.pack_start(row, False, False, 2)
+        if flat_error:
+            self.content.pack_start(Gtk.Label(label="Aviso de fonte externa: " + flat_error, xalign=0, wrap=True), False, False, 6)
         if shutil.which("flatpak"):
-            if flat_error:
-                self.content.pack_start(Gtk.Label(label="Aviso de fonte externa: " + flat_error, xalign=0, wrap=True), False, False, 6)
             system_count = len(flat_system or [])
             user_count = len(flat_user or [])
             self.content.pack_start(Gtk.Label(label=f"Flatpak do sistema: {system_count} atualização(ões).", xalign=0), False, False, 4)
