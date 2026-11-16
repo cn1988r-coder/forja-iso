@@ -1,0 +1,17 @@
+pkgname=forja-recovery
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Ferramenta oficial de diagnóstico e recuperação do Forja OS"
+arch=('any')
+url="https://github.com/cn1988r-coder/forja-iso"
+license=('GPL-3.0-or-later')
+depends=('python' 'python-gobject' 'gtk3' 'btrfs-progs' 'snapper' 'pacman' 'grub')
+optdepends=('grub-btrfs: disponibilizar snapshots Btrfs no menu GRUB')
+source=('forja-recovery-cli' 'forja-recovery-gui' 'forja-recovery.desktop')
+sha256sums=('SKIP' 'SKIP' 'SKIP')
+
+package() {
+  install -Dm755 "$srcdir/forja-recovery-cli" "$pkgdir/usr/bin/forja-recovery-cli"
+  install -Dm755 "$srcdir/forja-recovery-gui" "$pkgdir/usr/bin/forja-recovery"
+  install -Dm644 "$srcdir/forja-recovery.desktop" "$pkgdir/usr/share/applications/forja-recovery.desktop"
+}
