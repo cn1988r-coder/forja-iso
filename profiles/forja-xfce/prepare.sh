@@ -18,7 +18,6 @@ for required in "$DOCKBARX_DIR/PKGBUILD" "$DOCKBARX_DIR/dockbarx.install" "$PLUG
   [[ -s "$required" ]] || { echo "Erro: receita local ausente: $required" >&2; exit 1; }
 done
 
-command -v grub-btrfsd >/dev/null 2>&1 || { echo "Erro: grub-btrfsd do pacote oficial não encontrado." >&2; exit 1; }
 (cd "$DOCKBARX_DIR" && makepkg --clean --syncdeps --noconfirm -f)
 shopt -s nullglob
 dockbarx_packages=("$DOCKBARX_DIR"/dockbarx-*.pkg.tar.zst)
@@ -34,6 +33,7 @@ recovery_packages=("$RECOVERY_DIR"/forja-recovery-*.pkg.tar.zst)
 (cd "$SNAPSHOTS_DIR" && makepkg --clean --syncdeps --noconfirm -f)
 snapshot_packages=("$SNAPSHOTS_DIR"/forja-snapshots-*.pkg.tar.zst)
 (( ${#snapshot_packages[@]} == 1 )) || { echo "Erro: Forja Snapshots não foi gerado." >&2; exit 1; }
+command -v grub-btrfsd >/dev/null 2>&1 || { echo "Erro: grub-btrfsd do pacote oficial não encontrado." >&2; exit 1; }
 
 SHELLY_DIR="$PROFILE_DIR/forja-desktop-assets/shelly"
 [[ -f "$SHELLY_DIR/PKGBUILD-bin" ]] || { echo "Erro: PKGBUILD do Shelly ausente." >&2; exit 1; }
