@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Forja Luz Noturna
+Comment=Controle a temperatura de cor da tela
+Exec=/usr/bin/forja-luz-noturna --background
+Icon=weather-clear-night
+Terminal=false
+X-GNOME-Autostart-enabled=true
