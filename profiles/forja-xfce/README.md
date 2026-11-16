@@ -42,3 +42,7 @@ A preparação compila os pacotes locais, instala temporariamente DockbarX no am
 Este perfil é exclusivamente XFCE. MATE é a próxima edição planejada, em perfil próprio. Window Maker permanece apenas em estudo. i3 não faz parte do escopo atual.
 
 A base Manjaro permanece apenas como código legado preservado no repositório. Nenhuma ferramenta ou pacote exclusivo do Manjaro deve ser usado nesta edição EndeavourOS.
+
+## Validação automatizada
+
+O GitHub Actions executa verificações estáticas do perfil XFCE, incluindo scripts, XML do painel e bloqueio do construtor legado. Essa etapa não compila nem publica uma imagem ISO; a compilação só deve ocorrer depois da aprovação da validação.
