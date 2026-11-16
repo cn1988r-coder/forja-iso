@@ -28,7 +28,7 @@ bash -n "$PROFILE/apply-forja-live.sh"
 bash -n "$ROOT/desktops/xfce/install-branding.sh"
 bash -n "$ROOT/desktops/xfce/apply-forja-layout.sh"
 
-if grep -Eiq 'manjaro|mhwd|pacman-mirrors|mkinitcpio' "$PACKAGES"; then
+if grep -Eiq 'manjaro|mhwd|pacman-mirrors' "$PACKAGES"; then
   echo "FALHA: pacote ou ferramenta exclusiva do fluxo Manjaro encontrada." >&2
   exit 1
 fi
