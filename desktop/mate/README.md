@@ -9,6 +9,8 @@ Usar o MATE upstream dos repositórios oficiais do Arch/EndeavourOS como base fu
 ## Escopo inicial
 
 - Sessão MATE com Marco, mate-panel, Caja e ferramentas essenciais.
+- Atril como visualizador padrão planejado para arquivos PDF.
+- LibreOffice Still com pacote de idioma português do Brasil para documentos, planilhas e apresentações.
 - LightDM como gerenciador de login.
 - NetworkManager com applet de rede.
 - Blueman para Bluetooth.
@@ -39,6 +41,8 @@ O GNOME Night Light não pode ser simplesmente transplantado para o MATE: seu ca
 ## Dependências e limpeza
 
 As bibliotecas exigidas pelos pacotes escolhidos devem permanecer. Não remover dependências runtime para tentar reduzir a lista: o pacman resolve dependências transitivas durante a instalação. A limpeza deve retirar aplicações opcionais sem uso, não bibliotecas necessárias.
+
+A suíte LibreOffice Still foi escolhida em vez do OnlyOffice para priorizar a integração nativa com Linux e a linha de manutenção estável. Ela acrescenta um volume considerável à instalação; não é um componente leve em termos de espaço em disco. O Atril já faz parte da seleção e atende à leitura de PDFs sem depender do LibreOffice.
 
 A lista evita instalar o grupo completo `mate-extra), mas mantém os componentes funcionais necessários para sessão, calendário, energia, rede, Bluetooth, áudio e dispositivos removíveis. A Calculadora GNOME é incluída somente como aplicativo independente; isso não instala a sessão nem o desktop GNOME. O utilitário XFCE de captura de tela é a única aplicação XFCE selecionada e não equivale a instalar o ambiente XFCE. `mate-utils` não é instalado para que o `mate-screenshot` não venha junto.
 
