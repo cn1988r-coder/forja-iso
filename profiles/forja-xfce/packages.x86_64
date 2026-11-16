@@ -11,9 +11,9 @@ endeavouros-mirrorlist
 endeavouros-branding
 eos-dracut
 dracut
-linux
+linux-lts
+linux-lts-headers
 linux-firmware
-linux-headers
 sudo
 nano
 git
