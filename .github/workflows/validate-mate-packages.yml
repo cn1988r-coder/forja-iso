@@ -60,6 +60,20 @@ jobs:
           bash -n desktop/mate/scripts/validate-packages.sh
           python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
           python -m py_compile desktop/mate/forja-monitor/forja-monitor.py
+          python -m py_compile desktop/mate/forja-monitor/record-install-time.py
+          install_test_root="$(mktemp -d)"
+          python desktop/mate/forja-monitor/record-install-time.py --root "$install_test_root" --installed-at "2026-11-16T12:34:56-03:00"
+          python - "$install_test_root" <<'PY'
+          import json, pathlib, sys
+          marker = pathlib.Path(sys.argv[1]) / "var/lib/forja-os/install-info.json"
+          data = json.loads(marker.read_text())
+          assert data["installed_at"] == "2026-11-16T12:34:56-03:00", data
+          PY
+          if python desktop/mate/forja-monitor/record-install-time.py --root "$install_test_root" --installed-at "2026-11-17T00:00:00-03:00"; then
+            echo "Install timestamp marker was unexpectedly overwritten." >&2
+            exit 1
+          fi
+          rm -rf "$install_test_root"
           xvfb-run -a dbus-run-session -- python desktop/mate/forja-monitor/forja-monitor.py --self-test
           monitor_root="$(mktemp -d)"
           bash desktop/mate/install-forja-monitor.sh "$monitor_root"
