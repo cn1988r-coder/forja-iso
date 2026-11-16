@@ -19,7 +19,7 @@ git -C "$UPSTREAM" checkout "$ARCHISO_REF"
 cp -a "$UPSTREAM/configs/releng" "$PROFILE"
 
 # Replace Arch Linux branding in the ISO boot menus and request Plymouth.
-for boot_config in "$PROFILE/grub/grub.cfg" "$PROFILE/syslinux/archiso_sys-linux.cfg" "$PROFILE/efiboot/loader/entries/01-archiso-linux.conf"; do
+for boot_config in "$PROFILE/grub/grub.cfg" "$PROFILE/syslinux/archiso_sys-linux.cfg" "$PROFILE/syslinux/archiso_head.cfg" "$PROFILE/efiboot/loader/entries/01-archiso-linux.conf"; do
   [[ -f "$boot_config" ]] || continue
   sed -i \
     -e 's/Arch Linux install medium/Forja OS Live/g' \
