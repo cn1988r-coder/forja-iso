@@ -28,6 +28,12 @@ DESKTOP
 bash "$MATE/install-forja-store.sh" /
 bash "$MATE/install-forja-monitor.sh" /
 bash "$MATE/install-forja-update-indicator.sh" /
+for home in /home/*; do
+  [[ -d "$home" ]] || continue
+  install -d "$home/.config"
+  cp -an /etc/skel/.config/. "$home/.config/"
+  chown -R "$(stat -c %U:%G "$home")" "$home/.config"
+done
 install -Dm0755 "$MATE/forja-luz-noturna/forja-luz-noturna.py" /usr/bin/forja-luz-noturna
 install -Dm0644 "$MATE/skel/.config/autostart/forja-luz-noturna.desktop" /etc/xdg/autostart/forja-luz-noturna.desktop
 install -Dm0644 "$MATE/wallpapers/forja-mate-wallpaper.svg" /usr/share/backgrounds/forja/forja-mate-wallpaper.svg
