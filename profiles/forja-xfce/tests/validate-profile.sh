@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+trap 'rc=$?; echo "FALHA: validação interrompida na linha ${LINENO}: ${BASH_COMMAND} (código ${rc})" >&2' ERR
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd)"
 PROFILE="$ROOT/profiles/forja-xfce"
 PACKAGES="$PROFILE/packages.x86_64"
@@ -70,7 +71,7 @@ grep -Fq '0bbb1280ccd373262561453d85201f2707483990' "$ROOT/.github/workflows/pre
 if grep -Fxq 'calamares' "$PACKAGES"; then
   echo "FALHA: Calamares não deve entrar sem branding e configuração Forja validados." >&2; exit 1
 fi
-grep -Fq 'não instalará o sistema pelo Calamares' "$PROFILE/README.md"
+grep -Fq 'não instala o sistema' "$PROFILE/README.md"
 grep -Fq "cn1988r-coder/forja-updates" "$PROFILE/airootfs/usr/local/bin/forja-update"
 grep -Fq "forja-update --rollback" "$PROFILE/airootfs/usr/local/bin/forja-update"
 echo "Validação estática Forja XFCE concluída: Timeshift, GRUB-Btrfs, Recovery e Btrfs; sem ISO."
