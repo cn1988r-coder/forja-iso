@@ -6,7 +6,7 @@ import subprocess
 import sys
 
 PACKAGE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9@._+:-]*$")
-FLATPAK_ID = re.compile(r"^[A-Za-z0-9_-]+(?:\\.[A-Za-z0-9_-]+)+$")
+FLATPAK_ID = re.compile(r"^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)+$")
 ACTIONS = {
     "install", "remove", "upgrade", "flatpak-install-system",
     "flatpak-remove-system", "flatpak-update-system", "install-file",
