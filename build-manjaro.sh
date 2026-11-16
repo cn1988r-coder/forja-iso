@@ -21,7 +21,7 @@ pacman -Syu --noconfirm
 
 # DockbarX é distribuído assinado pelo repositório BigCommunity community-extra.
 if ! grep -q "^\[community-extra\]" /etc/pacman.conf; then
-  printf '\\n[community-extra]\\nSigLevel = PackageRequired\\nServer = https://repo.communitybig.org/$repo/$arch\\n' >> /etc/pacman.conf
+  printf '\n[community-extra]\nSigLevel = PackageRequired\nServer = https://repo.communitybig.org/$repo/$arch\n' >> /etc/pacman.conf
 fi
 pacman -Sy --noconfirm
 BUILD_TOOLS=(git base-devel make python python-yaml python-jinja python-requests curl jq libxslt docbook2x docbook-xsl squashfs-tools dosfstools libisoburn mtools grub efibootmgr cdrtools rsync wget gawk mhwd meson ninja vala gtk3 gtk4 libadwaita libnotify libpamac pkgconf libxml2)
