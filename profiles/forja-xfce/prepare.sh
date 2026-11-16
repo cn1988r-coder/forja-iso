@@ -7,7 +7,9 @@ command -v makepkg >/dev/null 2>&1 || { echo "Erro: makepkg não encontrado." >&
 command -v sudo >/dev/null 2>&1 || { echo "Erro: sudo é necessário para instalar a dependência local durante a preparação." >&2; exit 1; }
 SKEL_DIR="$PROFILE_DIR/airootfs/root/endeavouros-skel-liveuser"
 [[ -d "$SKEL_DIR" ]] || { echo "Erro: pacote endeavouros-skel-liveuser não encontrado." >&2; exit 1; }
-(cd "$SKEL_DIR" && makepkg --syncdeps --noconfirm -f)
+(cd "$SKEL_DIR" && makepkg --clean --syncdeps --noconfirm -f)
+skel_packages=("$SKEL_DIR"/endeavouros-skel-liveuser-*.pkg.tar.zst)
+(( ${#skel_packages[@]} == 1 )) || { echo "Erro: pacote endeavouros-skel-liveuser não foi gerado de forma única." >&2; exit 1; }
 
 DOCKBARX_DIR="$PROFILE_DIR/forja-packages/dockbarx"
 PLUGIN_DIR="$PROFILE_DIR/forja-packages/xfce4-dockbarx-plugin"
@@ -34,9 +36,14 @@ SHELLY_DIR="$PROFILE_DIR/forja-desktop-assets/shelly"
 [[ -f "$SHELLY_DIR/PKGBUILD-bin" ]] || { echo "Erro: PKGBUILD do Shelly não encontrado." >&2; exit 1; }
 (cd "$SHELLY_DIR" && makepkg --config /etc/makepkg.conf --syncdeps --noconfirm -f -p PKGBUILD-bin)
 shelly_packages=("$SHELLY_DIR"/shelly-*.pkg.tar.zst)
-(( ${#shelly_packages[@]} >= 2 )) || { echo "Erro: os dois pacotes Shelly não foram gerados." >&2; exit 1; }
+(( ${#shelly_packages[@]} == 2 )) || { echo "Erro: esperado exatamente os dois pacotes Shelly (CLI/GTK e backend Flatpak)." >&2; exit 1; }
 install -d "$PROFILE_DIR/airootfs/root/packages"
 cp -f "${dockbarx_packages[@]}" "${plugin_packages[@]}" "${recovery_packages[@]}" "${shelly_packages[@]}" "$PROFILE_DIR/airootfs/root/packages/"
+local_packages=("$PROFILE_DIR"/airootfs/root/packages/*.pkg.tar.zst)
+(( ${#local_packages[@]} == 5 )) || { echo "Erro: esperado 5 pacotes Forja no rootfs (DockbarX, plugin, Recovery e 2 Shelly); encontrados ${#local_packages[@]}." >&2; exit 1; }
+for package in "${local_packages[@]}"; do
+  pacman -Qp "$package" >/dev/null || { echo "Erro: pacote local inválido: $package" >&2; exit 1; }
+done
 shopt -u nullglob
 echo "Preparação Forja concluída: DockbarX, plugin XFCE, Forja Recovery e Shelly preparados."
 echo "Os pacotes locais serão instalados pelo hook EndeavourOS antes da criação do SquashFS."
