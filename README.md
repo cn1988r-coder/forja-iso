@@ -1,34 +1,40 @@
 # Forja OS
 
-Distribuição própria baseada em **Manjaro**, com uma única edição gráfica: **XFCE**.
+Distribuição derivada do **EndeavourOS**, baseada em Arch Linux e desenvolvida com identidade, configurações e ferramentas próprias.
 
-## Edição única: XFCE
+## Edição em desenvolvimento: XFCE
 
-- XFCE enxuto, com painel inferior e Docklike.
-- Whisker Menu personalizado com identidade visual Forja.
-- Adwaita Dark, decoração Materia Dark, Papirus Dark com pastas cinza e cursor Bibata.
-- LightDM com sessão XFCE como padrão.
-- Forja Store integrada ao sistema Live e à instalação final.
-- Indicador de atualizações no painel XFCE.
-- Rede, Bluetooth, áudio PipeWire, Firefox e Calamares.
-- Instalação em **Btrfs por padrão** pelo Calamares, com compressão transparente Zstandard (`zstd:1`); ext4 e f2fs continuam selecionáveis.
+- XFCE personalizado com painel inferior e menu Whisker.
+- Tema escuro e identidade visual Forja.
+- Ícones Papirus em tons neutros e cursor Bibata.
+- LightDM como gerenciador de login.
+- Rede, Bluetooth, áudio PipeWire, Firefox e suporte a Flatpak.
+- Perfil de instalação em desenvolvimento, com Btrfs como opção prioritária.
 
-## Base e compilação
+## Base e arquitetura
 
-- **Base do sistema:** Manjaro.
-- **Perfil:** `manjaro/forja-xfce`, derivado do perfil oficial Manjaro XFCE.
-- **Construtor:** `build-cloud.sh` chama `build-manjaro.sh` em um contêiner Manjaro.
-- **Dockerfile de validação:** `desktops/xfce/Dockerfile` verifica sintaxe, arquivos SVG/XML, entradas de desktop e integração da Forja Store. Ele não compila a ISO.
-- **Validação de perfil:** executada com `FORJA_PREFLIGHT_ONLY=1`, sem chamar `buildiso`.
+- **Base oficial:** EndeavourOS / Arch Linux.
+- **Perfil ativo:** `profiles/forja-xfce`.
+- **Framework de imagem:** projeto oficial EndeavourOS-ISO, baseado em Archiso e `mkarchiso`.
+- **Preparação:** `profiles/forja-xfce/prepare-forja.sh` cria uma cópia de trabalho separada, sem modificar o checkout original do EndeavourOS.
+- **Manjaro:** código legado preservado no repositório, fora do desenvolvimento ativo da Forja OS. Não usar seus construtores, pacotes, repositórios ou ferramentas na edição EndeavourOS.
 
-## Forja Store
+## Edições futuras
 
-A Forja Store é a interface visual personalizada do **Pamac Manager GTK4/libadwaita**. O backend continua sendo o Pamac/libpamac original, com repositórios Manjaro, AUR e suporte Flatpak. A interface recebe identidade visual própria em tons escuros e neutros, cartões de aplicativos, navegação e detalhes de instalação. O indicador de atualizações permanece integrado ao painel XFCE.
+- **XFCE:** edição prioritária em preparação.
+- **i3:** possibilidade futura, a ser planejada depois da consolidação do XFCE.
+- **MATE ou Window Maker:** ainda não decidido. Nenhum deles faz parte do escopo de implementação atual.
 
-A compilação usa uma revisão upstream fixa do Pamac e preserva o código-fonte correspondente no sistema. A compilação da interface será validada no ambiente Manjaro antes de qualquer geração de ISO. Ainda será necessário testar a loja em uma sessão XFCE real, incluindo pesquisa, detalhes, instalação, remoção, AUR, Flatpak e atualizações.
+Cada edição futura deverá ter perfil, lista de pacotes, configuração visual e validação próprios. Não adicionar componentes de outra edição ao perfil XFCE.
 
-## Estado da entrega
+## Atualizações da Forja
 
-O projeto está em fase de revisão e validação do código XFCE. Nenhuma ISO final deve ser anunciada como pronta até que a compilação, o checksum, a inicialização Live e a instalação pelo Calamares sejam efetivamente testados.
+As atualizações do sistema-base permanecem nos repositórios oficiais configurados pelo EndeavourOS e Arch Linux, usando o Pacman. Componentes exclusivos da Forja serão distribuídos separadamente por versões do projeto, sem adicionar um repositório Forja ao `pacman.conf`.
 
-A ISO final deverá ser entregue como um único arquivo `.iso`, completo e sem divisão em partes.
+O atualizador próprio já possui uma estrutura inicial, mas ainda depende da implementação e validação da chave oficial de assinatura, do keyring e de releases assinadas. Até isso ser concluído, não deve ser considerado funcional.
+
+## Estado atual
+
+O perfil EndeavourOS XFCE está em preparação e validação estática. Ainda faltam etapas de integração do ambiente Live, Calamares, dracut/Plymouth, dependências e testes reais de instalação e inicialização.
+
+**Não anunciar a ISO como pronta antes de concluir essas verificações.** As validações estáticas não compilam a ISO.
