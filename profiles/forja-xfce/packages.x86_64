@@ -82,4 +82,5 @@ gvfs-mtp
 cups
 system-config-printer
 
-# Calamares is supplied separately as a verified local package.
+# Calamares is intentionally not included yet: the Forja-branded installer profile is still pending.
+# This ISO can boot the XFCE Live environment, but will not provide an installer until that integration is completed.
