@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+ROOT="${FORJA_SNAPSHOT_ROOT:-/}"
+GRUB_MKCONFIG="${GRUB_MKCONFIG:-/usr/bin/grub-mkconfig}"
 log() { printf '[forja-snapshot-setup] %s\n' "$*"; }
 die() { log "ERRO: $*" >&2; exit 1; }
 
@@ -8,25 +10,31 @@ die() { log "ERRO: $*" >&2; exit 1; }
 command -v findmnt >/dev/null || die "findmnt não encontrado."
 command -v snapper >/dev/null || die "snapper não encontrado."
 command -v btrfs >/dev/null || die "btrfs-progs não encontrado."
+[[ -d "$ROOT" ]] || die "raiz de destino inexistente: $ROOT"
 
-root_fs="$(findmnt -n -o FSTYPE /)"
+root_fs="$(findmnt -n -o FSTYPE "$ROOT" 2>/dev/null || true)"
 if [[ "$root_fs" != "btrfs" ]]; then
   log "Raiz não é Btrfs (tipo: ${root_fs:-desconhecido}); ignorando ambiente Live."
   exit 0
 fi
-root_source="$(findmnt -n -o SOURCE /)"
+root_source="$(findmnt -n -o SOURCE "$ROOT")"
 log "Raiz Btrfs detectada: $root_source"
 
-if ! snapper -c root get-config >/dev/null 2>&1; then
-  [[ ! -e /.snapshots || -d /.snapshots ]] || die "/.snapshots existe e não é um diretório."
-  if mountpoint -q /.snapshots; then
-    die "/.snapshots já é um ponto de montagem. Verifique o layout antes de continuar."
-  fi
-  rmdir /.snapshots 2>/dev/null || true
-  snapper -c root create-config /
+SNAPPER=(snapper -c root)
+if [[ "$ROOT" != "/" ]]; then
+  SNAPPER+=(--root "$ROOT")
 fi
 
-config="/etc/snapper/configs/root"
+if ! "${SNAPPER[@]}" get-config >/dev/null 2>&1; then
+  [[ ! -e "$ROOT/.snapshots" || -d "$ROOT/.snapshots" ]] || die "$ROOT/.snapshots existe e não é um diretório."
+  if mountpoint -q "$ROOT/.snapshots"; then
+    die "$ROOT/.snapshots já é um ponto de montagem. Verifique o layout antes de continuar."
+  fi
+  rmdir "$ROOT/.snapshots" 2>/dev/null || true
+  "${SNAPPER[@]}" create-config /
+fi
+
+config="$ROOT/etc/snapper/configs/root"
 [[ -s "$config" ]] || die "configuração Snapper root não foi criada."
 set_config() {
   local key="$1" value="$2"
@@ -49,15 +57,22 @@ set_config TIMELINE_LIMIT_WEEKLY '"4"'
 set_config TIMELINE_LIMIT_MONTHLY '"3"'
 set_config TIMELINE_LIMIT_YEARLY '"0"'
 
-systemctl enable snapper-timeline.timer snapper-cleanup.timer
-
-if command -v grub-btrfsd >/dev/null 2>&1 && systemctl cat grub-btrfsd.service >/dev/null 2>&1; then
-  systemctl enable grub-btrfsd.service
+if [[ "$ROOT" == "/" ]]; then
+  systemctl enable snapper-timeline.timer snapper-cleanup.timer
 else
-  die "grub-btrfs/grub-btrfsd não está instalado; snapshots serão criados, mas o menu GRUB não será integrado."
+  systemctl --root="$ROOT" enable snapper-timeline.timer snapper-cleanup.timer
 fi
 
-[[ -x /usr/bin/grub-mkconfig && -d /boot/grub ]] || die "GRUB não está instalado ou /boot/grub não existe."
-/usr/bin/grub-mkconfig -o /boot/grub/grub.cfg
-snapper -c root list >/dev/null
+grub_service="$ROOT/usr/lib/systemd/system/grub-btrfsd.service"
+[[ -s "$grub_service" ]] || grub_service="$ROOT/lib/systemd/system/grub-btrfsd.service"
+[[ -s "$grub_service" ]] || die "grub-btrfsd.service não foi encontrado no sistema de destino."
+if [[ "$ROOT" == "/" ]]; then
+  systemctl enable grub-btrfsd.service
+else
+  systemctl --root="$ROOT" enable grub-btrfsd.service
+fi
+
+[[ -x "$GRUB_MKCONFIG" && -d "$ROOT/boot/grub" ]] || die "GRUB não está instalado ou /boot/grub não existe."
+"$GRUB_MKCONFIG" -o "$ROOT/boot/grub/grub.cfg"
+"${SNAPPER[@]}" list >/dev/null
 log "Snapper configurado, timers ativados e menu GRUB atualizado."
