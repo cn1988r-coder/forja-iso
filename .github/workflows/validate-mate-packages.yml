@@ -126,6 +126,7 @@ jobs:
           rm -rf "$monitor_root"
           python -m py_compile desktop/mate/forja-store/forja-store.py
           python -m py_compile desktop/mate/forja-store/forja-pacman-transaction
+          xvfb-run -a dbus-run-session -- python desktop/mate/forja-store/forja-store.py --self-test
           python -c "import xml.etree.ElementTree as ET; ET.parse('desktop/mate/forja-store/br.forja.store.policy')"
           useradd --create-home builder
           chown -R builder:builder desktop/mate/forja-store
