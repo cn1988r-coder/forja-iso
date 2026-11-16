@@ -68,6 +68,28 @@ def create_snapshot(description: str) -> tuple[int, str]:
         return 4, "Snapper não está configurado para a raiz. Nenhuma alteração foi feita."
     return run(["snapper", "-c", "root", "create", "--description", description])
 
+def rollback_snapshot(number: int, confirmed: bool) -> tuple[int, str]:
+    if os.geteuid() != 0:
+        return 1, "A restauração exige privilégios administrativos."
+    if not confirmed:
+        return 2, "Restauração não executada. Use --confirm após conferir o número do snapshot."
+    if number < 1:
+        return 2, "Número de snapshot inválido."
+    rc, fs = run(["findmnt", "-n", "-o", "FSTYPE", "/"])
+    if rc or fs.strip() != "btrfs":
+        return 3, "A raiz não está em Btrfs. Nenhuma alteração foi feita."
+    rc, out = run(["snapper", "-c", "root", "list", "--columns", "number"])
+    if rc:
+        return 4, out or "Não foi possível consultar os snapshots."
+    numbers = {int(line.split()[0]) for line in out.splitlines()
+               if line.split() and line.split()[0].isdigit()}
+    if number not in numbers:
+        return 5, f"Snapshot {number} não existe na configuração root."
+    rc, out = run(["snapper", "-c", "root", "rollback", str(number)])
+    if rc == 0:
+        out = (out + "\\n" if out else "") + "Rollback preparado. Reinicie o Forja OS para iniciar no estado restaurado."
+    return rc, out
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Diagnóstico e recuperação segura do Forja OS")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -75,6 +97,9 @@ def main() -> int:
     sub.add_parser("snapshots", help="Lista snapshots da configuração root do Snapper")
     create = sub.add_parser("create-snapshot", help="Cria snapshot manual da raiz")
     create.add_argument("--description", required=True)
+    rollback = sub.add_parser("rollback", help="Prepara a restauração da raiz a partir de um snapshot")
+    rollback.add_argument("--snapshot", required=True, type=int)
+    rollback.add_argument("--confirm", action="store_true", help="Confirma a alteração do subvolume raiz")
     args = parser.parse_args()
     if args.command == "diagnose":
         data = diagnose()
@@ -82,8 +107,10 @@ def main() -> int:
         return 0 if all(x["status"] == "ok" for x in data) else 1
     if args.command == "snapshots":
         rc, out = snapshots()
-    else:
+    elif args.command == "create-snapshot":
         rc, out = create_snapshot(args.description)
+    else:
+        rc, out = rollback_snapshot(args.snapshot, args.confirm)
     print(out or ("Operação concluída." if rc == 0 else "A operação falhou."))
     return rc
 
