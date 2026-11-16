@@ -187,7 +187,8 @@ class ForjaMonitor(Gtk.Application):
         self.stack.set_hexpand(True)
         self.stack.set_vexpand(True)
         self.monitor_page = self.make_monitor_page()
-        self.info_page = self.make_info_page()
+        self.info_page = Gtk.Box()
+        self.info_loaded = False
         self.stack.add_named(self.monitor_page, "monitor")
         self.stack.add_named(self.info_page, "info")
         root.pack_start(self.stack, True, True, 0)
@@ -335,10 +336,11 @@ class ForjaMonitor(Gtk.Application):
         for other, name in self.nav_buttons:
             if other is not button:
                 other.set_active(name == page)
-        if page == "info":
+        if page == "info" and not self.info_loaded:
             self.stack.remove(self.info_page)
             self.info_page = self.make_info_page()
             self.stack.add_named(self.info_page, "info")
+            self.info_loaded = True
             self.stack.set_visible_child_name("info")
             self.info_page.show_all()
 
