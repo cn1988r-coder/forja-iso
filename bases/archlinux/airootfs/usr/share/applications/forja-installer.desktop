@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Instalar Forja OS
+Comment=Instalar a Forja OS no computador
+Exec=mate-terminal --command "sudo archinstall"
+Icon=system-software-install
+Terminal=false
+Categories=System;
