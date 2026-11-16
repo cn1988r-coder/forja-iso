@@ -144,7 +144,7 @@ class Store(Gtk.Application):
         sidebar = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
         sidebar.set_size_request(205, -1)
         sidebar.set_border_width(14)
-        for category in CATEGORIES:
+        for category in CATEGORIES + ["Instalados"]:
             button = Gtk.Button(label=category)
             button.set_relief(Gtk.ReliefStyle.NONE)
             button.set_halign(Gtk.Align.FILL)
@@ -225,7 +225,63 @@ class Store(Gtk.Application):
     def navigate(self, _button, category):
         self.current_page = category
         self.search.set_text("")
-        self.show_category(category)
+        if category == "Instalados":
+            self.show_installed()
+        else:
+            self.show_category(category)
+
+    def show_installed(self):
+        self.current_page = "Instalados"
+        self.clear()
+        self.heading("Aplicativos instalados", "Programas do Arch Linux, pacotes externos/AUR e aplicativos Flatpak presentes neste computador.")
+        self.content.pack_start(Gtk.Label(label="Carregando aplicativos instalados…", xalign=0), False, False, 4)
+        self.content.show_all()
+        def worker():
+            pac = run(["pacman", "-Q"], 60)
+            foreign = run(["pacman", "-Qm"], 60)
+            names = {line.split()[0] for line in pac.stdout.splitlines() if line.split()}
+            aur_names = {line.split()[0] for line in foreign.stdout.splitlines() if line.split()}
+            flatpak_apps = {}
+            if shutil.which("flatpak"):
+                listing = run(["flatpak", "list", "--app", "--columns=application,installation"], 60)
+                for line in listing.stdout.splitlines():
+                    fields = line.split()
+                    if len(fields) >= 2 and "." in fields[0]:
+                        flatpak_apps[fields[0]] = fields[1].lower()
+            GLib.idle_add(self.render_installed, names, aur_names, flatpak_apps)
+        threading.Thread(target=worker, daemon=True).start()
+
+    def render_installed(self, names, aur_names, flatpak_apps):
+        self.installed = names
+        self.installed_flatpak = flatpak_apps
+        self.clear()
+        self.heading("Aplicativos instalados", "Selecione um programa para ver detalhes ou removê-lo.")
+        items = []
+        for name in sorted(names, key=str.lower):
+            source = "aur" if name in aur_names else "official"
+            items.append({"name": name, "title": name, "version": "Instalado",
+                          "description": "Pacote instalado pelo gerenciador Pacman.",
+                          "source": source, "icon": "application-x-executable"})
+        for app_id, scope in sorted(flatpak_apps.items()):
+            items.append({"name": app_id, "title": app_id, "version": "Flatpak " + scope,
+                          "description": "Aplicativo instalado pelo Flatpak.",
+                          "source": "flatpak", "icon": "application-x-executable"})
+        if not items:
+            self.content.pack_start(Gtk.Label(label="Nenhum aplicativo instalado foi encontrado.", xalign=0), False, False, 4)
+        else:
+            grid = Gtk.FlowBox()
+            grid.set_selection_mode(Gtk.SelectionMode.NONE)
+            grid.set_homogeneous(True)
+            grid.set_min_children_per_line(2)
+            grid.set_max_children_per_line(3)
+            grid.set_column_spacing(12)
+            grid.set_row_spacing(12)
+            for item in items:
+                grid.add(self.make_card(item))
+            self.content.pack_start(grid, False, False, 4)
+        self.content.show_all()
+        self.set_status(str(len(items)) + " aplicativo(s) instalado(s).")
+        return GLib.SOURCE_REMOVE
 
     def show_home(self):
         self.current_page = "Destaques"
@@ -343,7 +399,12 @@ class Store(Gtk.Application):
         query = self.search.get_text().strip()
         if len(query) < 2:
             if not query:
-                self.show_category(self.current_page)
+                if self.current_page == "Instalados":
+                    self.show_installed()
+                elif self.current_page == "updates":
+                    self.show_updates()
+                else:
+                    self.show_category(self.current_page)
             return
         self.generation += 1
         generation = self.generation
@@ -512,6 +573,8 @@ class Store(Gtk.Application):
         if code == 0:
             if self.current_page == "updates":
                 self.show_updates()
+            elif self.current_page == "Instalados":
+                self.show_installed()
             else:
                 self.show_category(self.current_page)
         return GLib.SOURCE_REMOVE
