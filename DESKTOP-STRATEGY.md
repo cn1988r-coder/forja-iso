@@ -47,12 +47,12 @@ A adoção futura do BigDesktop dependerá da disponibilidade do código-fonte n
 
 ## Pendências de validação
 
-1. Executar o validador de pacotes em um ambiente Arch Linux atualizado.
-2. Resolver qualquer pacote ausente ou renomeado, sem remover dependências necessárias.
-3. Fazer instalação limpa do conjunto e verificar resolução de dependências.
-4. Validar sessão, LightDM, rede, áudio, Bluetooth, notificações, calendário e gerenciamento de energia.
-5. Confirmar visualmente todos os componentes com o tema aplicado.
-6. Medir RAM/CPU e testar compatibilidade com Intel HD 5500.
-7. Fazer build e testes de ISO antes de declarar a edição pronta.
+1. A validação de nomes de pacotes e resolução de dependências foi executada com sucesso no GitHub Actions em container Arch Linux.
+2. Concluir o primeiro build da ISO Archiso e revisar os logs de construção.
+3. Inicializar a ISO em VM UEFI e BIOS, quando suportado, e testar LightDM/MATE.
+4. Executar uma instalação limpa com o preset Archinstall e confirmar que as personalizações pós-instalação foram aplicadas.
+5. Validar rede, áudio, Bluetooth, notificações, calendário, gerenciamento de energia e aplicativos Forja.
+6. Confirmar visualmente os componentes e medir RAM/CPU em sessão MATE real.
+7. Testar compatibilidade de hardware, incluindo Intel HD 5500, antes de declarar a edição pronta.
 
-**Estado atual:** camada inicial documentada e arquivos adicionados ao repositório. O validador ainda não foi executado em Arch Linux, nenhuma instalação ou build foi realizada e a edição não está validada como funcional.
+**Estado atual:** camada MATE integrada ao perfil Archiso e ao preset Archinstall no branch `feature/forja-arch-mate`. A validação de pacotes/scripts no GitHub Actions passou; o primeiro build da ISO está em execução. Ainda não houve teste visual em VM nem instalação real no disco, portanto a edição não está validada como funcional.
