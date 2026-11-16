@@ -34,8 +34,6 @@ cp -a "$UPSTREAM_ROOT/syslinux" "$TARGET/" 2>/dev/null || true
 cp -a "$UPSTREAM_ROOT/pacman.conf" "$TARGET/"
 cp -a "$UPSTREAM_ROOT/mkarchiso" "$TARGET/"
 cp -a "$UPSTREAM_ROOT/run_before_squashfs.sh" "$TARGET/run_before_squashfs-upstream.sh"
-cp -a "$PROFILE_DIR/run_before_squashfs.sh" "$TARGET/run_before_squashfs.sh"
-cp -a "$PROFILE_DIR/prepare.sh" "$TARGET/prepare.sh"
 cp -a "$PROFILE_DIR/apply-forja-live.sh" "$TARGET/airootfs/root/apply-forja-live.sh"
 cp -a "$REPO_ROOT/desktops/xfce" "$TARGET/airootfs/root/forja-desktop-assets"
 cp -a "$UPSTREAM_ROOT/prepare.sh" "$TARGET/upstream-prepare.sh"
