@@ -8,7 +8,7 @@ arch=('x86_64')
 url="https://github.com/getsolus/brisk-menu"
 license=('GPL-2.0-or-later')
 depends=('libnotify' 'mate-panel')
-makedepends=('glib2-devel' 'meson' 'ninja')
+makedepends=('devtools' 'glib2-devel' 'meson' 'ninja')
 source=("brisk-menu-${pkgver}.tar.xz::https://github.com/getsolus/brisk-menu/releases/download/v${pkgver}/brisk-menu-v${pkgver}.tar.xz")
 sha256sums=('5a87f4dcf7365e81a571128bf0b8199eb06a6fcd7e15ec7739be0ccff1326488')
 
