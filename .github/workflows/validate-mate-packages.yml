@@ -159,7 +159,8 @@ jobs:
           test -s "$store_root/etc/forja/pacman.conf"
           test -s "$store_root/etc/forja/pacman-install.conf"
           grep -q 'DBPath = /var/lib/forja-repo/' "$store_root/etc/forja/pacman.conf"
-          grep -q 'Include = /etc/pacman.conf' "$store_root/etc/forja/pacman-install.conf"
+          grep -q 'DBPath = /var/lib/pacman/' "$store_root/etc/forja/pacman-install.conf"
+          ! grep -q '^\[core\]' "$store_root/etc/forja/pacman-install.conf"
           test -s "$store_root/etc/polkit-1/rules.d/49-forja-store.rules"
           rm -rf "$store_root"
           python -c "import gi; gi.require_version('Gtk', '3.0'); from gi.repository import Gtk"
@@ -187,9 +188,13 @@ jobs:
                   "/usr/bin/pacman", "-Syu", "--noconfirm"
               ]
 
-          with patch.object(helper["subprocess"], "call", return_value=0) as call:
+          with patch.object(helper["subprocess"], "call", side_effect=[0, 0]) as call:
               assert main(["forja-install", "forja-store"]) == 0
-              assert call.call_args.args[0] == [
+              assert call.call_args_list[0].args[0] == [
+                  "/usr/bin/pacman", "--config", "/etc/forja/pacman-install.conf",
+                  "-Sy", "--noconfirm"
+              ]
+              assert call.call_args_list[1].args[0] == [
                   "/usr/bin/pacman", "--config", "/etc/forja/pacman-install.conf",
                   "-S", "--needed", "--noconfirm", "forja/forja-store"
               ]
