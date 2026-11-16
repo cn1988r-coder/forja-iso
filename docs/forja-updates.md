@@ -1,21 +1,36 @@
 # Atualizações próprias da Forja
 
-## Decisão de arquitetura
+## Canais independentes
 
-As atualizações oficiais continuam sob responsabilidade dos repositórios Arch Linux e EndeavourOS configurados no `pacman.conf`. **Não adicionar um repositório de pacotes Forja ao `pacman.conf`**: a sincronização desse repositório poderia impedir um `pacman -Syu` quando o serviço da Forja estivesse indisponível.
+1. **EndeavourOS/Arch Linux:** kernel, bibliotecas e pacotes oficiais continuam sendo atualizados por `pacman -Syu`, usando somente os repositórios oficiais configurados no sistema.
+2. **Forja Updates:** componentes exclusivos da Forja OS são consultados separadamente no repositório público `cn1988r-coder/forja-updates`.
 
-As correções e os componentes exclusivos da Forja são distribuídos separadamente por versões estáveis (GitHub Releases) do repositório `cn1988r-coder/forja-iso`. O comando `sudo forja-update` consulta a versão estável mais recente e instala somente os arquivos de pacote cujo nome começa com `forja-`.
+O repositório Forja Updates **não é um repositório pacman**. Não adicionar entradas Forja ao `/etc/pacman.conf`. A indisponibilidade do GitHub não pode bloquear as atualizações do sistema-base.
 
-## Segurança obrigatória
+## Manifesto estável
 
-- Cada pacote `.pkg.tar.zst` precisa ter seu arquivo de assinatura correspondente `.pkg.tar.zst.sig na mesma Release.
-- O sistema precisa ter a chave pública oficial de assinatura da Forja importada e confiável no chaveiro do Pacman.
-- `LocalFileSigLevel` precisa exigir assinatura. O atualizador verifica essa condição e aborta sem instalar nada se ela não estiver ativa.
-- O Pacman valida as assinaturas durante `pacman -U`. O atualizador não desativa verificações, não usa `--nodeps` e não ignora erros.
-- Releases sem pacotes Forja não fazem alterações.
+O cliente XFCE consulta:
 
-## Limite do estado atual
+`https://raw.githubusercontent.com/cn1988r-coder/forja-updates/main/manifests/stable.json`
 
-Este mecanismo é a estrutura inicial do atualizador. Para habilitar atualizações reais, ainda é necessário definir e proteger a chave de assinatura da Forja, preparar o pacote de chaveiro/configuração que a instala, publicar Releases contendo pacotes Forja assinados e testar a atualização e a recuperação em uma instalação de teste. Até essa validação, o comando deve falhar de forma segura e não deve ser anunciado como funcional.
+Esquema inicial:
 
-A indisponibilidade do GitHub/Forja pode impedir uma atualização própria da Forja naquele momento, mas não interfere no `pacman -Syu` dos repositórios oficiais.
+- `schema_version`: inteiro `1`.
+- `channel`: `stable`.
+- `artifacts`: lista de arquivos individuais.
+- Cada artefato declara `name`, `edition` (`all` ou `xfce`), `url`, `sha256`, `target` e, opcionalmente, `mode`.
+- URLs devem apontar para assets de GitHub Releases do repositório Forja Updates.
+- O cliente aceita apenas destinos Forja previamente permitidos: `/usr/local/bin/forja-*`, `/usr/local/lib/forja/`, `/usr/share/forja/`, `/usr/share/applications/forja-*` e `/etc/skel/.config/forja/`.
+
+## Segurança do cliente
+
+- Valida esquema, canal, edição, URL do repositório esperado, caminho permitido e SHA-256 antes de instalar.
+- Baixa e valida todos os artefatos aplicáveis antes de alterar arquivos.
+- Não executa scripts ou comandos fornecidos pelo manifesto.
+- Cria backup dos arquivos substituídos, pede confirmação e oferece `sudo forja-update --rollback`.
+- Não altera `pacman.conf`, mirrorlists, pacotes oficiais nem componentes fora da lista permitida.
+- O atualizador não instala nada quando o manifesto está ausente, inválido ou sem artefatos.
+
+## Estado atual
+
+A integração do cliente no perfil XFCE é uma estrutura inicial. O repositório de atualizações precisa receber manifestos e assets reais, e o fluxo precisa ser testado em uma instalação descartável antes de ser considerado pronto para uso geral. Nenhuma atualização é aplicada enquanto não houver artefatos publicados e o usuário confirmar a operação.
