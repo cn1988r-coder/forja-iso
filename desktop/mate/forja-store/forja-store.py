@@ -92,9 +92,20 @@ class Store(Gtk.Application):
         self.updates_mode = False
 
     def do_command_line(self, cmdline):
-        self.updates_mode = "--updates" in cmdline.get_arguments()
+        arguments = cmdline.get_arguments()
+        self.updates_mode = "--updates" in arguments
+        self.self_test = "--self-test" in arguments
         self.activate()
+        if self.self_test:
+            GLib.idle_add(self.finish_self_test)
         return 0
+
+    def finish_self_test(self):
+        if self.window is None:
+            raise RuntimeError("Forja Store window was not created.")
+        self.window.destroy()
+        self.quit()
+        return GLib.SOURCE_REMOVE
 
     def do_activate(self):
         if self.window:
