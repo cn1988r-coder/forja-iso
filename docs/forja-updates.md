@@ -1,38 +1,27 @@
-# Atualizações próprias da Forja
+# Atualizações próprias da Forja OS
 
-## Canais independentes
+## Dois fluxos independentes
 
-1. **EndeavourOS/Arch Linux:** kernel, bibliotecas e pacotes oficiais continuam sendo atualizados por `pacman -Syu`, usando somente os repositórios oficiais configurados no sistema.
-2. **Forja Updates:** componentes exclusivos da Forja OS são consultados separadamente no repositório público `cn1988r-coder/forja-updates`.
+1. **Arch Linux:** atualiza o sistema-base, kernel, firmware, drivers, bibliotecas e pacotes oficiais pelo Pacman e pelos espelhos oficiais.
+2. **Repositório binário Forja:** distribui exclusivamente aplicativos e componentes desenvolvidos ou mantidos pela Forja OS. Não publica kernel nem versões substitutas de pacotes oficiais.
 
-O repositório Forja Updates **não é um repositório pacman**. Não adicionar entradas Forja ao `/etc/pacman.conf`. A indisponibilidade do GitHub não pode bloquear as atualizações do sistema-base.
+O repositório Forja usa um banco Pacman próprio e isolado. O cliente `forja-repo check` utiliza um arquivo de configuração e um `DBPath` exclusivos, para consultar apenas o catálogo `[forja]`. Ele não executa `pacman -Syu`, não atualiza pacotes oficiais e não altera `/etc/pacman.conf`.
 
-**Kernel:** a Forja OS adota `linux-lts` e `linux-lts-headers` como padrão nas edições. Esses pacotes são atualizados pelos repositórios oficiais via `pacman -Syu`; novas ISOs usam a versão LTS disponível no momento da compilação. Não publicar kernel nem headers no Forja Updates. Consulte `docs/kernel-lts.md`.
+## Repositório remoto
 
-## Manifesto estável
+O repositório `cn1988r-coder/forja-updates` existe, mas está vazio neste momento. O plano é publicar os pacotes binários em GitHub Pages no endereço `https://cn1988r-coder.github.io/forja-updates/x86_64/`.
 
-O cliente XFCE consulta:
+## Publicação e assinatura
 
-`https://raw.githubusercontent.com/cn1988r-coder/forja-updates/main/manifests/stable.json`
+O workflow `publish-forja-repository.yml` compila os PKGBUILDs próprios, assina os pacotes e o banco com uma chave GPG dedicada e publica o conteúdo na branch `gh-pages` do repositório separado.
 
-Esquema inicial:
+Antes da publicação, precisam ser configurados os secrets `FORJA_UPDATES_TOKEN`, `FORJA_GPG_PRIVATE_KEY`, `FORJA_GPG_KEY_ID` e, se aplicável, `FORJA_GPG_PASSPHRASE`. O token precisa ter permissão de escrita no repositório `forja-updates`. GitHub Pages deve usar a branch `gh-pages`, pasta raiz.
 
-- `schema_version`: inteiro `1`.
-- `channel`: `stable`.
-- `artifacts`: lista de arquivos individuais.
-- Cada artefato declara `name`, `edition` (`all` ou `xfce`), `url`, `sha256`, `target` e, opcionalmente, `mode`.
-- URLs devem apontar para assets de GitHub Releases do repositório Forja Updates.
-- O cliente aceita apenas destinos Forja previamente permitidos: `/usr/local/bin/forja-*`, `/usr/local/lib/forja/`, `/usr/share/forja/`, `/usr/share/applications/forja-*` e `/etc/skel/.config/forja/`.
+A chave pública deve ser conferida pelo fingerprint por um canal confiável antes de ser importada e localmente assinada com `pacman-key`. Não reduzir `SigLevel` para contornar erros de assinatura.
 
-## Segurança do cliente
+## Limites atuais
 
-- Valida esquema, canal, edição, URL do repositório esperado, caminho permitido e SHA-256 antes de instalar.
-- Baixa e valida todos os artefatos aplicáveis antes de alterar arquivos.
-- Não executa scripts ou comandos fornecidos pelo manifesto.
-- Cria backup dos arquivos substituídos, pede confirmação e oferece `sudo forja-update --rollback`.
-- Não altera `pacman.conf`, mirrorlists, pacotes oficiais nem componentes fora da lista permitida.
-- O atualizador não instala nada quando o manifesto está ausente, inválido ou sem artefatos.
-
-## Estado atual
-
-A integração do cliente no perfil XFCE é uma estrutura inicial. O repositório de atualizações precisa receber manifestos e assets reais, e o fluxo precisa ser testado em uma instalação descartável antes de ser considerado pronto para uso geral. Nenhuma atualização é aplicada enquanto não houver artefatos publicados e o usuário confirmar a operação.
+- O cliente e os PKGBUILDs estão no branch de desenvolvimento, mas ainda não foram publicados como pacotes.
+- O workflow de publicação ainda não foi executado com credenciais e chave reais.
+- `forja-repo check` apenas consulta versões disponíveis de pacotes Forja já instalados; ainda não instala nem atualiza pacotes.
+- A consulta Forja não interfere no fluxo de atualização do Arch Linux.
