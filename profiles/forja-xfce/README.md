@@ -11,7 +11,7 @@ O perfil é mantido separado do checkout upstream. A preparação cria uma pasta
 - Painel inferior da Forja com Whisker Menu e **DockbarX** como barra de tarefas.
 - DockbarX e o plugin xfce4-dockbarx-plugin são construídos como pacotes locais a partir de PKGBUILDs revisados e versionados no repositório. Não são tratados como pacotes oficiais Arch/EndeavourOS e não dependem de repositórios Manjaro ou BigCommunity.
 - Preparação de pacotes locais necessários ao ambiente Live.
-- Atualizador próprio em estágio inicial, ainda bloqueado até a implantação de assinatura confiável.
+- Cliente Forja Updates integrado ao XFCE por manifesto estável independente; instala somente arquivos próprios em destinos permitidos, após validar SHA-256, criar backup e pedir confirmação. O canal permanece sem atualizações enquanto não houver artefatos publicados.
 
 ## Preparação do perfil
 
