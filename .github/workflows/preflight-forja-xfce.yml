@@ -73,18 +73,15 @@ jobs:
           set -Eeuo pipefail
           su builder -c 'cd /tmp/EndeavourOS-ISO/forja-xfce-profile && ./prepare.sh'
           mapfile -t packages < <(find /tmp/EndeavourOS-ISO/forja-xfce-profile/airootfs/root/packages -maxdepth 1 -type f -name '*.pkg.tar.zst' -print)
-          (( ${#packages[@]} == 7 )) || {
-            echo "Esperados sete pacotes locais Forja; encontrados: ${#packages[@]}" >&2
+          (( ${#packages[@]} == 6 )) || {
+            echo "Esperados seis pacotes locais Forja; encontrados: ${#packages[@]}" >&2
             exit 1
           }
           for package in "${packages[@]}"; do
             pacman -Qp "$package"
           done
-          grub_package="$(find /tmp/EndeavourOS-ISO/forja-xfce-profile/airootfs/root/packages -name "grub-btrfs-*.pkg.tar.zst" -print -quit)"
-          test -n "$grub_package"
-          tar -tf "$grub_package" > "$RUNNER_TEMP/grub-btrfs-files.txt"
-          grep -E "(^|\./)usr/bin/grub-btrfsd$" "$RUNNER_TEMP/grub-btrfs-files.txt" >/dev/null || { echo "grub-btrfsd não encontrado no pacote:"; cat "$RUNNER_TEMP/grub-btrfs-files.txt"; exit 1; }
-          grep -E "(^|/)grub-btrfsd\.service$" "$RUNNER_TEMP/grub-btrfs-files.txt" >/dev/null || { echo "Unit grub-btrfsd não encontrada no pacote:"; cat "$RUNNER_TEMP/grub-btrfs-files.txt"; exit 1; }
+          command -v grub-btrfsd
+          test -s /usr/lib/systemd/system/grub-btrfsd.service
           bash "$GITHUB_WORKSPACE/profiles/forja-xfce/tests/test-snapshots-btrfs.sh"
           bash -n /tmp/EndeavourOS-ISO/forja-xfce-profile/run_before_squashfs.sh
           bash -n /tmp/EndeavourOS-ISO/forja-xfce-profile/run_before_squashfs-upstream.sh
