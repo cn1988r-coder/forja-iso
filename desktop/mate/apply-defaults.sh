@@ -33,6 +33,8 @@ command -v gsettings >/dev/null 2>&1 || {
 }
 
 set_if_available org.mate.interface gtk-theme "'Materia-dark'"
+set_if_available org.gnome.desktop.interface gtk-theme "'Materia-dark'"
+set_if_available org.gnome.desktop.interface color-scheme "'prefer-dark'"
 set_if_available org.mate.interface icon-theme "'Papirus-Dark'"
 set_if_available org.mate.interface font-name "'DejaVu Sans 10'"
 set_if_available org.mate.background show-desktop-icons "false"
