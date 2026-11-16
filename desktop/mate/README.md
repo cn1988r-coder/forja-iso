@@ -25,7 +25,7 @@ Usar o MATE upstream dos repositórios oficiais do Arch/EndeavourOS como base fu
 
 ## Arquivos
 
-- `packages.x86_64`: seleção explícita de pacotes, sem instalar indiscriminadamente o grupo `mate-extra`. Inclui `gnome-calculator) como aplicativo GNOME independente, sem trazer o desktop GNOME; inclui também apenas `xfce4-screenshooter` como exceção pontual para captura de tela e exclui `mate-utils`, que fornece o `mate-screenshot` nativo.
+- `packages.x86_64`: seleção explícita de pacotes, sem instalar indiscriminadamente o grupo `mate-extra`. Inclui `gnome-calculator` como aplicativo GNOME independente, sem trazer o desktop GNOME; inclui também apenas `xfce4-screenshooter` como exceção pontual para captura de tela e exclui `mate-utils`, que fornece o `mate-screenshot` nativo.
 - `skel/.config/gtk-3.0/settings.ini`: aparência GTK padrão para novos usuários quando o construtor copiar o esqueleto para `/etc/skel`.
 - `apply-defaults.sh`: aplica configurações MATE seguras ao usuário da sessão, verificando primeiro se cada schema/chave existe.
 - `services.enabled`: serviços que o perfil de imagem deverá habilitar.
@@ -44,7 +44,7 @@ As bibliotecas exigidas pelos pacotes escolhidos devem permanecer. Não remover 
 
 A suíte LibreOffice Still foi escolhida em vez do OnlyOffice para priorizar a integração nativa com Linux e a linha de manutenção estável. Ela acrescenta um volume considerável à instalação; não é um componente leve em termos de espaço em disco. O Atril já faz parte da seleção e atende à leitura de PDFs sem depender do LibreOffice.
 
-A lista evita instalar o grupo completo `mate-extra), mas mantém os componentes funcionais necessários para sessão, calendário, energia, rede, Bluetooth, áudio e dispositivos removíveis. A Calculadora GNOME é incluída somente como aplicativo independente; isso não instala a sessão nem o desktop GNOME. O utilitário XFCE de captura de tela é a única aplicação XFCE selecionada e não equivale a instalar o ambiente XFCE. `mate-utils` não é instalado para que o `mate-screenshot` não venha junto.
+A lista evita instalar o grupo completo `mate-extra`, mas mantém os componentes funcionais necessários para sessão, calendário, energia, rede, Bluetooth, áudio e dispositivos removíveis. A Calculadora GNOME é incluída somente como aplicativo independente; isso não instala a sessão nem o desktop GNOME. O utilitário XFCE de captura de tela é a única aplicação XFCE selecionada e não equivale a instalar o ambiente XFCE. `mate-utils` não é instalado para que o `mate-screenshot` não venha junto.
 
 ## Validação
 
