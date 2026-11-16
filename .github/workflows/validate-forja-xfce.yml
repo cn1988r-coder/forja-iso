@@ -38,7 +38,7 @@ jobs:
 
       - name: Validate XFCE appearance and integration
         shell: bash
-        run: bash desktops/xfce/tests/validate-appearance.sh
+        run: python3 desktops/xfce/tests/validate-profile.py
 
       - name: Validate XML files
         shell: bash
@@ -65,6 +65,8 @@ jobs:
             desktops/xfce/panel-default.xml
             desktops/xfce/forja-gtk.css
             desktops/xfce/forja-whiskermenu.rc
+            desktops/xfce/forja-black-wallpaper.svg
+            desktops/xfce/forja-xfce-desktop.xml
             desktops/xfce/install-branding.sh
             desktops/xfce/apply-forja-layout.sh
             desktops/xfce/shelly-autostart.desktop
