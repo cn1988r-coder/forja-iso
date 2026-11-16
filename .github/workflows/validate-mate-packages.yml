@@ -68,6 +68,7 @@ jobs:
           marker = pathlib.Path(sys.argv[1]) / "var/lib/forja-os/install-info.json"
           data = json.loads(marker.read_text())
           assert data["installed_at"] == "2026-11-16T12:34:56-03:00", data
+          assert marker.stat().st_mode & 0o777 == 0o644, oct(marker.stat().st_mode & 0o777)
           PY
           if python desktop/mate/forja-monitor/record-install-time.py --root "$install_test_root" --installed-at "2026-11-17T00:00:00-03:00"; then
             echo "Install timestamp marker was unexpectedly overwritten." >&2
