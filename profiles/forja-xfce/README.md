@@ -19,9 +19,9 @@ builder or the upstream EndeavourOS checkout.
    `ENDEAVOUROS_ISO_DIR` to the upstream checkout if it is not the current directory.
 3. Review the generated `forja-xfce-profile` directory before building.
 
-The upstream project currently performs live-user setup and other chroot work in
-`run_before_squashfs.sh`. The Forja hook must be inserted after that live-user
-setup and before squashfs creation. This integration is not automated yet.
+The profile wraps the upstream `run_before_squashfs.sh`: it runs the original EndeavourOS
+live-user preparation first, then executes the Forja XFCE live-session hook in the
+prepared airootfs before squashfs creation.
 
 ## Important incomplete items
 
