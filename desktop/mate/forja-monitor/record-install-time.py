@@ -37,6 +37,7 @@ def record(root, timestamp):
         with os.fdopen(fd, "w", encoding="utf-8") as stream:
             stream.write(payload)
             stream.flush()
+            os.fchmod(stream.fileno(), 0o644)
             os.fsync(stream.fileno())
         # Hard-link creation is atomic and fails if the final marker already exists.
         os.link(temporary, target)
