@@ -68,6 +68,30 @@ def create_snapshot(description: str) -> tuple[int, str]:
         return 4, "Snapper não está configurado para a raiz. Nenhuma alteração foi feita."
     return run(["snapper", "-c", "root", "create", "--description", description])
 
+def root_uses_explicit_btrfs_subvolume() -> tuple[bool, str]:
+    fstab = Path("/etc/fstab")
+    found = False
+    if not fstab.is_file():
+        return False, "/etc/fstab não está disponível."
+    for raw in fstab.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if not line:
+            continue
+        fields = line.split()
+        if len(fields) >= 4 and fields[1] == "/":
+            found = True
+            options = fields[3].split(",")
+            if any(option.startswith(("subvol=", "subvolid=")) for option in options):
+                return True, "A raiz está presa a um subvolume explícito no /etc/fstab."
+    cmdline = Path("/proc/cmdline")
+    if cmdline.is_file():
+        for token in cmdline.read_text(encoding="utf-8", errors="replace").split():
+            if token.startswith("rootflags=") and ("subvol=" in token or "subvolid=" in token):
+                return True, "A linha de comando do kernel fixa o subvolume raiz por rootflags."
+    if not found:
+        return False, "Não foi encontrada uma entrada verificável para / em /etc/fstab."
+    return False, "A raiz usa o subvolume padrão do Btrfs."
+
 def rollback_snapshot(number: int, confirmed: bool) -> tuple[int, str]:
     if os.geteuid() != 0:
         return 1, "A restauração exige privilégios administrativos."
@@ -78,6 +102,9 @@ def rollback_snapshot(number: int, confirmed: bool) -> tuple[int, str]:
     rc, fs = run(["findmnt", "-n", "-o", "FSTYPE", "/"])
     if rc or fs.strip() != "btrfs":
         return 3, "A raiz não está em Btrfs. Nenhuma alteração foi feita."
+    explicit, detail = root_uses_explicit_btrfs_subvolume()
+    if explicit or "Não foi encontrada" in detail:
+        return 6, detail + " Rollback automático bloqueado para evitar alterar o subvolume errado."
     rc, out = run(["snapper", "-c", "root", "list", "--columns", "number"])
     if rc:
         return 4, out or "Não foi possível consultar os snapshots."
