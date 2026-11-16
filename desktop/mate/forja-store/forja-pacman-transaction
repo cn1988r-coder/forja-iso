@@ -1,0 +1,38 @@
+#!/usr/bin/python3
+"""Narrow privileged transaction helper for Forja Store on Arch/EndeavourOS."""
+import re
+import shutil
+import subprocess
+import sys
+
+PACKAGE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9@._+:-]*$")
+ACTIONS = {"install", "remove", "upgrade", "flatpak-update-system"}
+
+def main():
+    if len(sys.argv) < 2 or sys.argv[1] not in ACTIONS:
+        print("Ação inválida.", file=sys.stderr)
+        return 2
+    action, packages = sys.argv[1], sys.argv[2:]
+    if action in {"install", "remove"}:
+        if not packages or any(not PACKAGE.fullmatch(name) for name in packages):
+            print("Nome de pacote inválido.", file=sys.stderr)
+            return 2
+    elif packages:
+        print("Esta ação não aceita argumentos.", file=sys.stderr)
+        return 2
+    if action == "install":
+        return subprocess.call(["/usr/bin/pacman", "-S", "--needed", "--", *packages])
+    if action == "remove":
+        return subprocess.call(["/usr/bin/pacman", "-Rns", "--", *packages])
+    if action == "upgrade":
+        return subprocess.call(["/usr/bin/pacman", "-Syu"])
+    if action == "flatpak-update-system":
+        if not shutil.which("flatpak"):
+            print("Flatpak não está instalado.", file=sys.stderr)
+            return 1
+        return subprocess.call(["/usr/bin/flatpak", "update", "--system",
+                                "--noninteractive", "--assumeyes"])
+    return 2
+
+if __name__ == "__main__":
+    raise SystemExit(main())
