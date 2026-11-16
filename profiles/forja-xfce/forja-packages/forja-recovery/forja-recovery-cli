@@ -50,6 +50,9 @@ def diagnose() -> list[dict]:
                          shutil.which("btrfs") or "Comando btrfs não encontrado."))
     results.append(check("Integração GRUB-Btrfs", shutil.which("grub-btrfsd") is not None,
                          shutil.which("grub-btrfsd") or "grub-btrfsd não encontrado."))
+    explicit, detail = root_uses_explicit_btrfs_subvolume()
+    rollback_ready = not explicit and not detail.startswith("Não foi encontrada")
+    results.append(check("Layout de rollback Snapper", rollback_ready, detail))
     return results
 
 def snapshots() -> tuple[int, str]:
