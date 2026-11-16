@@ -628,7 +628,7 @@ GRUB_EXISTING_ARGS="$(sed -n 's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"$/\1/p' "$GR
 for boot_arg in $GRUB_CMDLINE_LINUX_DEFAULT; do
   case " $GRUB_EXISTING_ARGS " in
     *" $boot_arg "*) ;;
-    *) GRUB_EXISTING_ARGS="\${GRUB_EXISTING_ARGS:+$GRUB_EXISTING_ARGS }$boot_arg" ;;
+    *) GRUB_EXISTING_ARGS="${GRUB_EXISTING_ARGS:+$GRUB_EXISTING_ARGS }$boot_arg" ;;
   esac
 done
 if grep -q '^GRUB_CMDLINE_LINUX_DEFAULT=' "$GRUB_DEFAULT_FILE"; then
