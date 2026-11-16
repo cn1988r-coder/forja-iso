@@ -46,8 +46,9 @@ jobs:
           cp -a desktop/mate/forja-repo/. "$RUNNER_TEMP/pkgbuild/forja-repo-client/"
           useradd --create-home builder
           chown -R builder:builder "$RUNNER_TEMP/pkgbuild"
-          runuser -u builder -- bash -lc "cd '$RUNNER_TEMP/pkgbuild/forja-store' && makepkg --cleanbuild --noconfirm"
           runuser -u builder -- bash -lc "cd '$RUNNER_TEMP/pkgbuild/forja-repo-client' && makepkg --cleanbuild --noconfirm"
+          pacman -U --noconfirm --nodeps "$RUNNER_TEMP/pkgbuild/forja-repo-client/"*.pkg.tar.zst
+          runuser -u builder -- bash -lc "cd '$RUNNER_TEMP/pkgbuild/forja-store' && makepkg --cleanbuild --noconfirm"
           mkdir -p public/x86_64
           cp "$RUNNER_TEMP/pkgbuild/forja-store/"*.pkg.tar.zst public/x86_64/
           cp "$RUNNER_TEMP/pkgbuild/forja-repo-client/"*.pkg.tar.zst public/x86_64/
