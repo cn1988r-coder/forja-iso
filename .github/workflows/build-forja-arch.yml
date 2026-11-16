@@ -59,6 +59,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           bash -n bases/archlinux/build-profile.sh
+          bash -n build-support/calamares/PKGBUILD
           bash -n bases/archlinux/validate-profile.sh
           bash -n desktop/mate/install-target.sh
           bash -n desktop/mate/apply-defaults.sh
@@ -81,6 +82,10 @@ jobs:
           test -s bases/archlinux/airootfs/etc/calamares/settings.conf
           test -s bases/archlinux/airootfs/etc/calamares/modules/unpackfs.conf
           test -s bases/archlinux/airootfs/etc/calamares/modules/bootloader.conf
+          test -s bases/archlinux/airootfs/etc/calamares/modules/shellprocess-pacstrap.conf
+          test -s bases/archlinux/airootfs/etc/calamares/modules/shellprocess-copy-forja.conf
+          grep -q "pacstrap -K" bases/archlinux/airootfs/etc/calamares/modules/shellprocess-pacstrap.conf
+          grep -q "pkexec" bases/archlinux/airootfs/usr/bin/forja-installer
           python -m py_compile desktop/mate/forja-store/forja-store.py
           python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
           python -m py_compile desktop/mate/forja-monitor/forja-monitor.py
