@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Forja OS desktop defaults
+Exec=/usr/local/bin/forja-apply-defaults
+OnlyShowIn=MATE;
+NoDisplay=true
