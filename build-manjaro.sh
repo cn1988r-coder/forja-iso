@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 export LANG=C
+# Evita chamadas ao systemd do host durante hooks de pacotes executados em chroot.
+# O systemd ainda é instalado normalmente e seus serviços são habilitados no perfil ISO.
+export SYSTEMD_OFFLINE=1
 DESKTOP="${FORJA_DESKTOP:-xfce}"
 case "$DESKTOP" in xfce) ;; *) echo "Esta edição da Forja OS oferece somente XFCE; valor recebido: $DESKTOP." >&2; exit 2;; esac
 KERNEL="${FORJA_KERNEL:-lts}"
