@@ -1,0 +1,11 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Type = Package
+Target = *
+
+[Action]
+Description = Finalizando snapshot Btrfs da transacao Pacman...
+When = PostTransaction
+Exec = /usr/lib/forja-snapshots/forja-pacman-snapshot post
