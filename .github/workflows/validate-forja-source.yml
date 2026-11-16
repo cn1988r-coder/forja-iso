@@ -88,7 +88,7 @@ jobs:
           assert "Server =" not in conf
           mirror_conf = mirrors.read_text()
           assert "Branch = stable" in mirror_conf
-          assert "Protocols = https,http" in mirror_conf
+          assert "Protocols = https" in mirror_conf
           unit = service.read_text()
           assert "ExecStart=/usr/bin/pacman-mirrors --fasttrack 10" in unit
           assert "After=network-online.target" in unit
@@ -97,7 +97,7 @@ jobs:
           assert "pacman-mirrors" in source.split("BASE_CORE_PACKAGES=(", 1)[1].split(")", 1)[0]
           assert 'grep -Fxq pacman-mirrors "$TARGET/Packages-Root"' in source
           assert 'ln -sfn ../forja-manjaro-mirrors.service' in source
-          assert 'pacman-mirrors --api --set-branch stable --protocol https,http' in source
+          assert 'pacman-mirrors --api --set-branch stable --protocol https' in source
           assert 'pacman-mirrors --fasttrack 10' in source
           assert 'grep -Eq \'^[[:space:]]*Server[[:space:]]*=[[:space:]]*https?://\'' in source
           print("Manjaro pacman.conf, stable mirror branch, HTTPS mirror preference and first-boot mirror service validated.")
