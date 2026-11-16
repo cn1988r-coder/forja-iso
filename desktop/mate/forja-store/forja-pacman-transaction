@@ -28,14 +28,14 @@ def main(argv=None):
             print("Nome de pacote inválido.", file=sys.stderr)
             return 2
         if action == "install":
-            return call(["/usr/bin/pacman", "-S", "--needed", "--", *args])
-        return call(["/usr/bin/pacman", "-Rns", "--", *args])
+            return call(["/usr/bin/pacman", "-S", "--needed", "--noconfirm", "--", *args])
+        return call(["/usr/bin/pacman", "-Rns", "--noconfirm", "--", *args])
 
     if action == "upgrade":
         if args:
             print("A atualização não aceita argumentos.", file=sys.stderr)
             return 2
-        return call(["/usr/bin/pacman", "-Syu"])
+        return call(["/usr/bin/pacman", "-Syu", "--noconfirm"])
 
     if action.startswith("flatpak-"):
         if action == "flatpak-update-system":
