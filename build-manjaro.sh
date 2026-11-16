@@ -325,8 +325,8 @@ echo "Preflight de componentes essenciais da Forja XFCE (base Manjaro) aprovado.
 # Isso permite que o hook do mkinitcpio esteja presente quando o initramfs do
 # kernel for gerado durante a instalação dos pacotes.
 mkdir -p "$TARGET/rootfs"
-# O pacote forja-plymouth instala os arquivos na camada Packages-Root antes
-# da geração do initramfs pelos hooks pós-transação do mkinitcpio.
+# Configurar Plymouth no rootfs real após a instalação dos pacotes e antes
+# da compactação. Assim mkinitcpio gera o initramfs já com tema e hook Forja.
 
 # Calamares: Btrfs pré-selecionado para novas instalações, mantendo ext4/f2fs disponíveis.
 install -Dm644 /forja-ci/desktops/xfce/calamares/partition.conf "$TARGET/rootfs/etc/calamares/modules/partition.conf"
