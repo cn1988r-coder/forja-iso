@@ -9,4 +9,10 @@ Estas pastas são pontos de partida técnicos, não distribuições prontas nem 
 
 O desenvolvimento de cada base deve permanecer independente. A interface e os componentes próprios da Forja OS serão construídos posteriormente, em camadas separadas.
 
+## Estratégia de ambiente gráfico
+
+A decisão atual para a edição gráfica é usar **MATE personalizado**, sobre a fundação EndeavourOS/Arch. O projeto **BigDesktop** do BigLinux fica registrado para acompanhamento e avaliação futura, sem incorporação de código neste momento.
+
+Consulte [DESKTOP-STRATEGY.md](DESKTOP-STRATEGY.md) para a decisão, a direção visual e os critérios de validação.
+
 Consulte o README de cada base antes de utilizá-la. Os arquivos atuais são uma fundação inicial e ainda precisam de validação e complementação antes de qualquer build de ISO.
