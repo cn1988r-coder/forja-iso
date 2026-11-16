@@ -43,4 +43,4 @@ for package in base dracut eos-dracut linux xfce4 lightdm firefox papirus-icon-t
   }
 done
 
-echo "Validação estática do perfil Forja XFCE/EndeavourOS concluída."
+echo "Validação estática do perfil Forja XFCE/EndeavourOS concluída (sem compilar ISO)."
