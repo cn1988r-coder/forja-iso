@@ -31,7 +31,7 @@ class RecoveryWindow(Gtk.Window):
         self.output = Gtk.TextView()
         self.output.set_editable(False)
         self.output.set_cursor_visible(False)
-        self.output.get_buffer().set_text("Execute um diagnóstico para verificar o estado do sistema.\n\nAs verificações são somente de leitura. A criação de snapshot exige confirmação e privilégios administrativos.")
+        self.output.get_buffer().set_text("Execute um diagnóstico para verificar o estado do sistema.\n\nAs verificações são somente de leitura. Criar snapshots e restaurar uma versão anterior exige confirmação e privilégios administrativos.")
         scroll = Gtk.ScrolledWindow()
         scroll.set_hexpand(True)
         scroll.set_vexpand(True)
