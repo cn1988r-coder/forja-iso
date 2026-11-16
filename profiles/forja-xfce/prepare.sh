@@ -49,7 +49,7 @@ snapshot_packages=("$SNAPSHOTS_DIR"/forja-snapshots-*.pkg.tar.zst)
 SHELLY_DIR="$PROFILE_DIR/forja-desktop-assets/shelly"
 [[ -f "$SHELLY_DIR/PKGBUILD-bin" ]] || { echo "Erro: PKGBUILD do Shelly ausente." >&2; exit 1; }
 (cd "$SHELLY_DIR" && makepkg --config /etc/makepkg.conf --syncdeps --noconfirm -f -p PKGBUILD-bin)
-shelly_packages=("$SHELLY_DIR"/shelly-*.pkg.tar.zst)
+shelly_packages=("$SHELLY_DIR"/shelly-bin-[0-9]*.pkg.tar.zst "$SHELLY_DIR"/shelly-flatpak-backend-bin-[0-9]*.pkg.tar.zst)
 (( ${#shelly_packages[@]} == 2 )) || { echo "Erro: esperado dois pacotes Shelly." >&2; exit 1; }
 
 install -d "$PROFILE_DIR/airootfs/root/packages"
