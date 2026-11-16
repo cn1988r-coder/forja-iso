@@ -82,8 +82,9 @@ jobs:
           done
           grub_package="$(find /tmp/EndeavourOS-ISO/forja-xfce-profile/airootfs/root/packages -name "grub-btrfs-*.pkg.tar.zst" -print -quit)"
           test -n "$grub_package"
-          tar -tf "$grub_package" | grep -q "usr/bin/grub-btrfsd"
-          tar -tf "$grub_package" | grep -q "grub-btrfsd.service"
+          tar -tf "$grub_package" > "$RUNNER_TEMP/grub-btrfs-files.txt"
+          grep -F "usr/bin/grub-btrfsd" "$RUNNER_TEMP/grub-btrfs-files.txt" >/dev/null
+          grep -F "grub-btrfsd.service" "$RUNNER_TEMP/grub-btrfs-files.txt" >/dev/null
           bash "$GITHUB_WORKSPACE/profiles/forja-xfce/tests/test-snapshots-btrfs.sh"
           bash -n /tmp/EndeavourOS-ISO/forja-xfce-profile/run_before_squashfs.sh
           bash -n /tmp/EndeavourOS-ISO/forja-xfce-profile/run_before_squashfs-upstream.sh
