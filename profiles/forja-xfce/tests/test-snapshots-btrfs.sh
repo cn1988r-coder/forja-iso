@@ -75,5 +75,6 @@ list="$(snapper -c root --root "$ROOT" list --columns number,type,description)"
 grep -q "Forja: antes de transação Pacman" <<<"$list"
 grep -q "Forja: depois de transação Pacman" <<<"$list"
 
-btrfs subvolume list "$TOP" | grep -q '/.snapshots/'
+subvolumes="$(btrfs subvolume list "$TOP")"
+grep -q '/.snapshots/' <<<"$subvolumes"
 echo "PASS: setup Forja, timers, GRUB hook, snapshot real e par pre/post validados em Btrfs."
