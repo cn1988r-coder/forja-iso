@@ -25,7 +25,16 @@ Ative GitHub Pages para `forja-updates`, usando a branch `gh-pages` e a pasta ra
 
 O workflow compila os PKGBUILDs Forja, assina cada pacote, gera e assina o banco Pacman e publica os arquivos estáticos em `forja-updates`.
 
-## Instalação e confiança da chave
+```bash
+gpg --quick-generate-key "Forja OS Repository Signing <forja-repo@users.noreply.github.com>" ed25519 sign 3y
+gpg --list-secret-keys --keyid-format long
+gpg --armor --export-secret-keys FINGERPRINT_COMPLETO > forja-repo-private.asc
+gpg --armor --export FINGERPRINT_COMPLETO > forja-repo.gpg
+```
+
+Adicione o conteúdo ASCII-armored de `forja-repo-private.asc` ao secret `FORJA_GPG_PRIVATE_KEY`, o fingerprint completo a `FORJA_GPG_KEY_ID` e a senha a `FORJA_GPG_PASSPHRASE`, se houver. Apague a cópia temporária da chave privada depois de confirmar que o secret foi salvo. Nunca publique esse arquivo.
+
+Configure também os secrets:
 
 Depois da primeira publicação, baixe a chave pública `forja-repo.gpg`, confira o fingerprint por um canal confiável e importe/assine localmente:
 
