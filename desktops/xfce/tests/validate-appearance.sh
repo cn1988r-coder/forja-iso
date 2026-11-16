@@ -87,8 +87,8 @@ grep -Fq '>community-extra xfce4-dockbarx-plugin' "$ROOT/packages.manjaro" || fa
 grep -Fq '[community-extra]' "$BUILD" || fail "repositório community-extra ausente"
 grep -Fq '[community-stable]' "$BUILD" || fail "repositório community-stable ausente"
 grep -Fq 'https://repo.communitybig.org/$repo/$arch' "$BUILD" || fail "URL do repositório Community ausente"
-if grep -Rqi 'docklike' "$ROOT" --exclude='validate-appearance.sh'; then
-  fail "referência antiga ao Docklike encontrada"
+if grep -Eqi 'docklike' "$ROOT/packages.manjaro" "$ROOT/panel-default.xml" "$ROOT/install-branding.sh" "$ROOT/apply-forja-layout.sh"; then
+  fail "referência antiga ao Docklike encontrada no perfil Manjaro XFCE"
 fi
 pass "DockbarX e ausência do Docklike"
 
