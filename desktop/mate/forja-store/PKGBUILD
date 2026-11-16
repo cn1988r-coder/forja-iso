@@ -1,13 +1,16 @@
 pkgname=forja-store
-pkgver=0.1.0
+pkgver=0.2.0
 pkgrel=1
-pkgdesc="Loja de aplicativos nativa da Forja OS para Arch Linux"
+pkgdesc="Central gráfica de aplicativos da Forja OS para Arch Linux"
 arch=('any')
 url="https://github.com/cn1988r-coder/forja-iso"
 license=('GPL-3.0-or-later')
-depends=('pacman' 'pacman-contrib' 'gtk3' 'python-gobject' 'polkit' 'mate-terminal' 'git' 'less' 'sudo')
+depends=('python' 'pacman' 'pacman-contrib' 'gtk3' 'python-gobject' 'polkit')
 optdepends=('flatpak: consultar e atualizar aplicativos Flatpak'
-            'base-devel: compilar pacotes do AUR')
+            'mate-terminal: abrir o fluxo de revisão de pacotes AUR'
+            'git: baixar fontes do AUR'
+            'base-devel: compilar pacotes do AUR'
+            'less: visualizar arquivos de compilação')
 backup=()
 source=()
 sha256sums=()
@@ -22,4 +25,5 @@ exec /usr/bin/python3 /usr/lib/forja/forja-store "$@"
 EOF
   install -Dm644 "$startdir/br.forja.store.policy" "$pkgdir/usr/share/polkit-1/actions/br.forja.store.policy"
   install -Dm644 "$startdir/forja-store.desktop" "$pkgdir/usr/share/applications/forja-store.desktop"
+  install -Dm644 "$startdir/forja-store.svg" "$pkgdir/usr/share/icons/hicolor/scalable/apps/forja-store.svg"
 }
