@@ -368,7 +368,7 @@ class Store(Gtk.Application):
                          "https://flathub.org/repo/flathub.flatpakrepo"], 120)
                 fp = run(["flatpak", "search", "--columns=application,name,description", query], 90)
                 for line in fp.stdout.splitlines():
-                    fields = [part.strip() for part in line.split("\\t")]
+                    fields = [part.strip() for part in line.split("\t")]
                     if len(fields) < 2:
                         fields = line.split(None, 2)
                     if len(fields) >= 2 and "." in fields[0] and fields[0].lower() not in {"application", "application id"}:
