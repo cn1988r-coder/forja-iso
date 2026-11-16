@@ -27,6 +27,10 @@ mate-utils
 mozo
 pluma
 
+# Screenshot utility: use only the XFCE screenshot application
+# This does not install the XFCE desktop, panel, session, or file manager.
+xfce4-screenshooter
+
 # X11 session and login
 xorg-server
 mesa
