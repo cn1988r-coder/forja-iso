@@ -1,4 +1,4 @@
-name: Forja OS X XFCE
+name: Forja OS XFCE
 
 on:
   workflow_dispatch:
@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   build-iso:
-    name: Build Forja OS X XFCE ISO
+    name: Build Forja OS XFCE ISO
     runs-on: ubuntu-24.04
     container:
       image: archlinux:base-devel
@@ -92,8 +92,15 @@ jobs:
         run: |
           set -Eeuo pipefail
           su builder -c 'cd /tmp/EndeavourOS-ISO/forja-xfce-profile && ./prepare.sh'
+          mapfile -t local_packages < <(find /tmp/EndeavourOS-ISO/forja-xfce-profile/airootfs/root/packages -maxdepth 1 -type f -name '*.pkg.tar.zst' -print)
+          (( ${#local_packages[@]} == 7 )) || {
+            echo "Esperados sete pacotes locais Forja; encontrados: ${#local_packages[@]}" >&2
+            exit 1
+          }
+          printf '%s\n' "${local_packages[@]}" | grep -q '/bibata-cursor-theme-'
+          for package in "${local_packages[@]}"; do pacman -Qp "$package"; done
 
-      - name: Compile Forja OS X XFCE with mkarchiso
+      - name: Compile Forja OS XFCE with mkarchiso
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -121,7 +128,7 @@ jobs:
       - name: Upload temporary Forja OS X XFCE ISO
         uses: actions/upload-artifact@v4
         with:
-          name: forja-os-x-xfce-iso-${{ github.run_number }}
+          name: forja-os-xfce-iso-${{ github.run_number }}
           path: |
             /tmp/EndeavourOS-ISO/forja-xfce-profile/out/*.iso
             /tmp/EndeavourOS-ISO/forja-xfce-profile/out/*.iso.sha256
