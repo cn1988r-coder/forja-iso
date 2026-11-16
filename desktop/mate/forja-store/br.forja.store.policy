@@ -5,7 +5,7 @@
 <policyconfig>
   <vendor>Forja OS</vendor>
   <vendor_url>https://github.com/cn1988r-coder/forja-iso</vendor_url>
-  <action id="br.forja.store.transaction">
+  <action id="org.freedesktop.policykit.exec">
     <description>Gerenciar pacotes do sistema com a Forja Store</description>
     <message>Autentique-se para instalar, remover ou atualizar programas.</message>
     <defaults>
@@ -13,5 +13,6 @@
       <allow_inactive>auth_admin</allow_inactive>
       <allow_active>auth_admin_keep</allow_active>
     </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/forja-pacman-transaction</annotate>
   </action>
 </policyconfig>
