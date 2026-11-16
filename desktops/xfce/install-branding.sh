@@ -38,7 +38,7 @@ install -Dm644 "$ROOT/forja-gtk.css" "$DEST/usr/share/forja/forja-gtk.css"
 install -Dm644 "$ROOT/forja-whiskermenu.rc" "$DEST/usr/share/forja/forja-whiskermenu.rc"
 install -Dm644 "$ROOT/forja-whiskermenu.rc" "$DEST/etc/skel/.config/xfce4/panel/whiskermenu-1.rc"
 
-# A single system-wide panel: Whisker + DockbarX + system tray + clock.
+# A single system-wide panel: Whisker + Docklike + system tray + clock.
 install -Dm644 "$ROOT/panel-default.xml" "$DEST/etc/xdg/xfce4/panel/default.xml"
 install -Dm644 "$ROOT/forja-xfce-desktop.xml" "$DEST/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml"
 
