@@ -25,7 +25,7 @@ jobs:
       - name: Update Arch package databases and install validation tools
         run: |
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm python base-devel
+          pacman -S --needed --noconfirm python base-devel shadow
 
       - name: Validate package names and dependency resolution
         shell: bash
