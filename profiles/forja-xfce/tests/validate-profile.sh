@@ -9,8 +9,9 @@ DOCKBARX_INSTALL="$PROFILE/forja-packages/dockbarx/dockbarx.install"
 DOCKBARX_PLUGIN="$PROFILE/forja-packages/xfce4-dockbarx-plugin/PKGBUILD"
 RECOVERY="$PROFILE/forja-packages/forja-recovery"
 SNAPSHOTS="$PROFILE/forja-packages/forja-snapshots"
+BIBATA="$PROFILE/forja-packages/bibata-cursor-theme/PKGBUILD"
 PANEL="$ROOT/desktops/xfce/panel-default.xml"
-required=("$PROFILE/profiledef.sh" "$PROFILE/prepare.sh" "$PROFILE/prepare-forja.sh" "$PROFILE/run_before_squashfs.sh" "$PROFILE/apply-forja-live.sh" "$PROFILE/README.md" "$DOCKBARX" "$DOCKBARX_INSTALL" "$DOCKBARX_PLUGIN" "$RECOVERY/PKGBUILD" "$RECOVERY/forja-recovery-cli" "$RECOVERY/forja-recovery-gui" "$RECOVERY/forja-recovery.desktop" "$RECOVERY/README.md" "$SNAPSHOTS/PKGBUILD" "$SNAPSHOTS/forja-snapshot-setup" "$SNAPSHOTS/forja-pacman-snapshot" "$SNAPSHOTS/forja-snapshot-pre.hook" "$SNAPSHOTS/forja-snapshot-setup.service" "$SNAPSHOTS/forja-timeshift-check.service" "$SNAPSHOTS/forja-timeshift-check.timer" "$PROFILE/tests/test-snapshots-btrfs.sh" "$ROOT/desktops/xfce/calamares/mount.conf" "$ROOT/desktops/xfce/calamares/partition.conf" "$ROOT/desktops/xfce/install-branding.sh" "$ROOT/desktops/xfce/apply-forja-layout.sh" "$PANEL" "$PROFILE/airootfs/usr/local/bin/forja-update" "$PROFILE/airootfs/usr/share/applications/forja-update.desktop")
+required=("$PROFILE/profiledef.sh" "$PROFILE/prepare.sh" "$PROFILE/prepare-forja.sh" "$PROFILE/run_before_squashfs.sh" "$PROFILE/apply-forja-live.sh" "$PROFILE/README.md" "$DOCKBARX" "$DOCKBARX_INSTALL" "$DOCKBARX_PLUGIN" "$RECOVERY/PKGBUILD" "$RECOVERY/forja-recovery-cli" "$RECOVERY/forja-recovery-gui" "$RECOVERY/forja-recovery.desktop" "$RECOVERY/README.md" "$SNAPSHOTS/PKGBUILD" "$SNAPSHOTS/forja-snapshot-setup" "$SNAPSHOTS/forja-pacman-snapshot" "$SNAPSHOTS/forja-snapshot-pre.hook" "$SNAPSHOTS/forja-snapshot-setup.service" "$SNAPSHOTS/forja-timeshift-check.service" "$SNAPSHOTS/forja-timeshift-check.timer" "$BIBATA" "$PROFILE/tests/test-snapshots-btrfs.sh" "$ROOT/desktops/xfce/calamares/mount.conf" "$ROOT/desktops/xfce/calamares/partition.conf" "$ROOT/desktops/xfce/install-branding.sh" "$ROOT/desktops/xfce/apply-forja-layout.sh" "$PANEL" "$PROFILE/airootfs/usr/local/bin/forja-update" "$PROFILE/airootfs/usr/share/applications/forja-update.desktop")
 for file in "${required[@]}"; do
   [[ -f "$file" ]] || { echo "FALHA: arquivo ausente: $file" >&2; exit 1; }
 done
@@ -67,7 +68,9 @@ grep -Fq 'Timeshift' "$RECOVERY/README.md"
 if grep -Eiq "rm[[:space:]]+-rf|mkfs\.|dd[[:space:]]+if=" "$RECOVERY/forja-recovery-cli" "$RECOVERY/forja-recovery-gui"; then
   echo "FALHA: operação destrutiva encontrada no Recovery." >&2; exit 1
 fi
-grep -Fq '(( ${#local_packages[@]} == 6 ))' "$PROFILE/prepare.sh"
+grep -Fq '(( ${#local_packages[@]} == 7 ))' "$PROFILE/prepare.sh"
+grep -Fq 'bibata-cursor-theme-*.pkg.tar.zst' "$PROFILE/prepare.sh"
+grep -Fq "172e33c4ae415278384dcecc7d1a9b7a024266bc944bc751fd86532be1cc6251" "$BIBATA"
 grep -Fq '0bbb1280ccd373262561453d85201f2707483990' "$ROOT/.github/workflows/build-forja-iso.yml"
 grep -Fq '0bbb1280ccd373262561453d85201f2707483990' "$ROOT/.github/workflows/preflight-forja-xfce.yml"
 if grep -Fxq 'calamares' "$PACKAGES"; then
