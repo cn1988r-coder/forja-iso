@@ -5,7 +5,7 @@ pkgdesc="Snapshots automaticos Btrfs e integracao GRUB do Forja OS"
 arch=('any')
 url="https://github.com/cn1988r-coder/forja-iso"
 license=('GPL-3.0-or-later')
-depends=('bash' 'btrfs-progs' 'snapper' 'grub' 'grub-btrfs')
+depends=('bash' 'btrfs-progs' 'snapper' 'grub' 'grub-btrfs' 'inotify-tools')
 source=('forja-snapshot-setup' 'forja-pacman-snapshot' 'forja-snapshot-pre.hook' 'forja-snapshot-post.hook' 'forja-snapshot-setup.service')
 sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
 
