@@ -63,6 +63,10 @@ else
   systemctl --root="$ROOT" enable snapper-timeline.timer snapper-cleanup.timer
 fi
 
+if ! "${SNAPPER[@]}" list --columns number | awk '$1 ~ /^[0-9]+$/ { found=1 } END { exit !found }'; then
+  "${SNAPPER[@]}" create --description "Forja: instalação inicial"
+fi
+
 grub_service="$ROOT/usr/lib/systemd/system/grub-btrfsd.service"
 [[ -s "$grub_service" ]] || grub_service="$ROOT/lib/systemd/system/grub-btrfsd.service"
 [[ -s "$grub_service" ]] || die "grub-btrfsd.service não foi encontrado no sistema de destino."
