@@ -378,6 +378,10 @@ class Store(Gtk.Application):
         if not PKG_RE.fullmatch(name):
             self.set_status("Nome de pacote inválido.")
             return
+        if item["source"] == "aur" and name in self.installed:
+            if self.confirm("Remover aplicativo", "Remover " + name + " do sistema?"):
+                self.run_privileged(["remove", name], "Remoção de " + name)
+            return
         if item["source"] == "aur":
             dialog = Gtk.MessageDialog(transient_for=self.window, modal=True,
                 message_type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK_CANCEL,
