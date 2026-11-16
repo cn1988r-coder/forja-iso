@@ -9,7 +9,8 @@ depends=('python' 'pacman' 'pacman-contrib' 'gtk3' 'python-gobject' 'polkit')
 optdepends=('flatpak: pesquisar, instalar e atualizar aplicativos Flathub'
             'git: baixar fontes do AUR'
             'base-devel: compilar pacotes do AUR'
-            'less: visualizar arquivos de compilação'\n            'mate-terminal: revisar e compilar pacotes AUR em uma janela dedicada')
+            'less: visualizar arquivos de compilação'
+            'mate-terminal: revisar e compilar pacotes AUR em uma janela dedicada')
 backup=()
 source=()
 sha256sums=()
