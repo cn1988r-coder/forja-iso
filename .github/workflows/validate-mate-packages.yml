@@ -195,6 +195,13 @@ jobs:
               ]
 
           with patch.object(helper["subprocess"], "call", return_value=0) as call:
+              assert main(["forja-sync"]) == 0
+              assert call.call_args.args[0] == [
+                  "/usr/bin/pacman", "--config", "/etc/forja/pacman.conf",
+                  "-Sy", "--noconfirm"
+              ]
+
+          with patch.object(helper["subprocess"], "call", return_value=0) as call:
               assert main(["remove", "firefox"]) == 0
               assert call.call_args.args[0] == [
                   "/usr/bin/pacman", "-Rns", "--noconfirm", "--", "firefox"
