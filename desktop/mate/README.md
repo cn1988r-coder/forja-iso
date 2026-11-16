@@ -39,7 +39,7 @@ Usar o MATE upstream dos repositórios oficiais do Arch/EndeavourOS como base fu
 
 ## Wallpaper padrão na imagem EndeavourOS
 
-O perfil `bases/endeavouros/airootfs/` inclui o SVG em `/usr/share/backgrounds/forja/forja-mate-wallpaper.svg`, um perfil dconf de sistema e a configuração `org.mate.desktop.background`. O hook `root/customize_airootfs.sh` executa `dconf update` durante a preparação do root filesystem da ISO, para que o MATE use esse wallpaper como padrão sem exigir configuração manual do usuário. O arquivo de wallpaper também fica em `desktop/mate/wallpapers/` como fonte editável do projeto.
+O perfil `bases/endeavouros/airootfs/` inclui o SVG em `/usr/share/backgrounds/forja/forja-mate-wallpaper.svg`, um perfil dconf de sistema e a configuração `org.mate.desktop.background`. O hook Pacman `etc/pacman.d/hooks/90-forja-dconf.hook` executa `dconf update` após a instalação do pacote dconf durante a preparação do root filesystem da ISO, para que o MATE use esse wallpaper como padrão sem exigir configuração manual do usuário. O arquivo de wallpaper também fica em `desktop/mate/wallpapers/` como fonte editável do projeto.
 
 **Limite de validação:** os arquivos foram registrados no perfil, mas ainda não houve build da ISO nem teste visual de uma sessão MATE. A presença do padrão no sistema instalado após uma instalação completa também depende de como o instalador transfere os padrões do ambiente live para o sistema de destino; isso ainda precisa ser testado e integrado.
 
