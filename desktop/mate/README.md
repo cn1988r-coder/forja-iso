@@ -70,3 +70,12 @@ Execute `bash desktop/mate/scripts/validate-packages.sh` em um ambiente Arch/End
 ## Estado
 
 Esta é uma camada inicial de definição. O wallpaper padrão está configurado no root filesystem do perfil EndeavourOS e seu banco dconf é compilado pelo hook de personalização. Ainda não houve build da ISO nem teste de uma sessão MATE real. Não declarar o desktop completo ou funcional até concluir os testes.
+
+
+## Indicador de atualizações MATE
+
+O módulo `forja-update-indicator/` fornece um indicador GTK3 para a área de notificação do painel MATE. Ele usa o utilitário `checkupdates` do pacote oficial `pacman-contrib`, faz a primeira consulta após o início da sessão e repete a verificação a cada 30 minutos. O ícone de estado normal é um escudo cinza simples; quando há atualizações, o mesmo escudo recebe um pequeno ponto laranja, inspirado no indicador do Linux Mint. Não há marca de verificação grande no centro.
+
+O clique no ícone chama `forja-store --updates`. O menu também permite solicitar uma nova verificação. O instalador `install-forja-update-indicator.sh` copia o programa, os ícones e a entrada de autostart para um root filesystem Arch/EndeavourOS já preparado. O pacote `pacman-contrib` foi incluído em `packages.x86_64`.
+
+**Limites atuais e validação:** o indicador foi adicionado à branch `foundation/dual-base`, mas a Forja Store ainda não existe nessa branch. Por isso, a chamada `forja-store --updates` está definida como contrato de integração, não como integração concluída; enquanto a loja não estiver instalada, o indicador informa essa condição em vez de falhar silenciosamente. O instalador ainda precisa ser conectado ao processo de construção da imagem. A compatibilidade visual/funcional de `Gtk.StatusIcon` depende do applet de área de notificação do MATE e precisa ser testada numa sessão MATE real. A validação estática do Python e do shell no GitHub Actions não substitui esse teste, nem um build da ISO.
