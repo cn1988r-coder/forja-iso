@@ -45,7 +45,7 @@ SHELLY_REPO_DIR="$WORK/shelly-repo"
 SHELLY_REPO_MARKER="# FORJA-SHELLY-LOCAL-REPO"
 cleanup_shelly_repo() {
   if grep -qF "$SHELLY_REPO_MARKER" /etc/pacman.conf; then
-    sed -i '/# FORJA-SHELLY-LOCAL-REPO/,+2d' /etc/pacman.conf
+    sed -i '/# FORJA-SHELLY-LOCAL-REPO/,+3d' /etc/pacman.conf
   fi
 }
 trap cleanup_shelly_repo EXIT
