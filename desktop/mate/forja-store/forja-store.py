@@ -591,7 +591,7 @@ class Store(Gtk.Application):
     def show_updates(self):
         self.current_page = "updates"
         self.clear()
-        self.heading("Atualizações", "Gerencie separadamente o Arch Linux e os aplicativos Flatpak.")
+        self.heading("Atualizações", "Gerencie atualizações do Arch Linux, pacotes AUR e aplicativos Flatpak.")
         self.content.pack_start(Gtk.Label(label="Consultando atualizações disponíveis…", xalign=0), False, False, 6)
         self.content.show_all()
         def worker():
@@ -631,7 +631,7 @@ class Store(Gtk.Application):
 
     def render_updates(self, rows, error, output, flat_system=None, flat_user=None, flat_error=None, aur_outdated=None):
         self.clear()
-        self.heading("Atualizações", "Atualização completa do Arch e atualizações independentes do Flatpak.")
+        self.heading("Atualizações", "Atualizações do Arch, revisão manual do AUR e atualizações independentes do Flatpak.")
         if error:
             self.content.pack_start(Gtk.Label(label="Falha ao consultar Pacman: " + output, xalign=0, wrap=True), False, False, 6)
         elif rows:
