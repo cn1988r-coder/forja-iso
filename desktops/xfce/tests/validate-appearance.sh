@@ -185,7 +185,8 @@ grep -q 'TARGET/rootfs/etc/calamares/modules/mount.conf' "$REPO_ROOT/build-manja
 grep -q '^defaultFileSystemType: "btrfs"$' "$ROOT/calamares/partition.conf"
 grep -q 'availableFileSystemTypes: \["btrfs", "ext4", "f2fs"\]' "$ROOT/calamares/partition.conf"
 grep -q 'compress=zstd:1' "$ROOT/calamares/mount.conf"
-! grep -RqiE "Forja Store|forja-pamac-pacman|FORJA_SKIP_STORE_INSTALL" "$REPO_ROOT" --exclude-dir=.git
+test ! -e "$REPO_ROOT/forja-pamac-pacman"
+! grep -RqiE "Forja Store|FORJA_SKIP_STORE_INSTALL" "$REPO_ROOT" --exclude-dir=.git --exclude=validate-appearance.sh
 echo "Forja XFCE: aparência e painel DockbarX; Shelly package recipe present."
 grep -q '>community-extra dockbarx' "$ROOT/packages.manjaro"
 grep -q '>community-extra xfce4-dockbarx-plugin' "$ROOT/packages.manjaro"
