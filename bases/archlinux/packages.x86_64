@@ -22,3 +22,6 @@ btrfs-progs
 efibootmgr
 grub
 syslinux
+
+# Calamares is built from a pinned AUR PKGBUILD and injected via the CI local repository.
+calamares
