@@ -39,8 +39,8 @@ fastfetch
 papirus-icon-theme
 papirus-folders
 bibata-cursor-theme
-adw-gtk-theme
-materia-gtk-theme
+adwaita-gtk-theme
+# Materia removido: a edição usa Adwaita Dark de ponta a ponta.
 noto-fonts
 ttf-jetbrains-mono
 pipewire
