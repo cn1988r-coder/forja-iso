@@ -15,7 +15,7 @@ for package in \
   xfce4-panel dockbarx xfce4-dockbarx-plugin xfce4-whiskermenu-plugin \
   xfce4-pulseaudio-plugin xfce4-power-manager xfce4-notifyd \
   xfce4-clipman-plugin networkmanager network-manager-applet bluez bluez-utils blueman; do
-  grep -Fxq "$package" "$ROOT/packages.manjaro" || {
+  grep -Fxq "$package" "$ROOT/packages.manjaro" || grep -Eq "^>[^[:space:]]+[[:space:]]+$package$" "$ROOT/packages.manjaro" || {
     printf 'Pacote obrigatório ausente no perfil XFCE da Forja: %s\n' "$package" >&2
     exit 1
   }
