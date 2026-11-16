@@ -1,11 +1,12 @@
-# Forja OS
+# Forja OS — fundações
 
-Repositório reservado à construção de uma base pura **EndeavourOS / Arch Linux**.
+Este repositório mantém duas fundações independentes para o desenvolvimento futuro da Forja OS:
 
-## Escopo atual
+- `bases/archlinux/`: fundação baseada no Arch Linux oficial.
+- `bases/endeavouros/`: fundação baseada no EndeavourOS e em seus componentes próprios.
 
-- Somente a fundação do sistema: componentes essenciais do Arch Linux e EndeavourOS.
-- Nenhum ambiente gráfico, gerenciador de janelas, display manager, painel, dock, tema ou conjunto de aplicativos de desktop.
-- Nenhuma personalização de XFCE, Window Maker, MATE, KDE ou outro desktop nesta base.
+Estas pastas são pontos de partida técnicos, não distribuições prontas nem ISOs finalizadas. Não incluem ambiente gráfico, gerenciador de login, temas, dock, loja de aplicativos ou personalização visual da Forja OS.
 
-Os perfis de desktop foram retirados desta branch para manter a base independente de interfaces gráficas. A configuração de uma interface, se vier a existir no futuro, deverá ser desenvolvida separadamente e não incorporada à base pura.
+O desenvolvimento de cada base deve permanecer independente. A interface e os componentes próprios da Forja OS serão construídos posteriormente, em camadas separadas.
+
+Consulte o README de cada base antes de utilizá-la. Os arquivos atuais são uma fundação inicial e ainda precisam de validação e complementação antes de qualquer build de ISO.

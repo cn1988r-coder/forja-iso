@@ -1,0 +1,25 @@
+# Forja OS — Arch Linux foundation
+# Seleção inicial em modo texto. Não inclui desktop ou display manager.
+
+base
+linux
+linux-firmware
+mkinitcpio
+mkinitcpio-archiso
+arch-install-scripts
+networkmanager
+openssh
+sudo
+nano
+less
+vi
+man-db
+man-pages
+git
+which
+dosfstools
+e2fsprogs
+btrfs-progs
+efibootmgr
+grub
+syslinux
