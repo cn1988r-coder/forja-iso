@@ -85,7 +85,7 @@ cp -a "$REPO_ROOT/desktops/xfce" "$TARGET/airootfs/root/forja-desktop-assets"
 cp -a "$UPSTREAM_ROOT/prepare.sh" "$TARGET/upstream-prepare.sh"
 cp -a "$UPSTREAM_ROOT/profiledef.sh" "$TARGET/upstream-profiledef.sh"
 
-chmod +x "$TARGET/prepare-forja.sh" "$TARGET/prepare.sh" "$TARGET/run_before_squashfs.sh" "$TARGET/airootfs/root/apply-forja-live.sh"
+chmod +x "$TARGET/prepare-forja.sh" "$TARGET/prepare.sh" "$TARGET/run_before_squashfs.sh" "$TARGET/airootfs/root/apply-forja-live.sh" "$TARGET/airootfs/usr/local/bin/forja-update"
 echo "Perfil Forja XFCE preparado em: $TARGET"
 echo "A estrutura upstream original não foi alterada."
 echo "Próxima etapa: entre em $TARGET e execute ./prepare.sh para preparar os pacotes locais. Isso ainda não compila a ISO."
