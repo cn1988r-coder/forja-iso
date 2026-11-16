@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Forja OS Update Indicator
+Comment=Indica quando há atualizações para a Forja OS
+Exec=/usr/bin/forja-update-indicator
+Icon=forja-update-current
+Terminal=false
+X-GNOME-Autostart-enabled=true
+OnlyShowIn=MATE;
