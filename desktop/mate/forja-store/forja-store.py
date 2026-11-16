@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Forja Store: GTK3 frontend for Arch/EndeavourOS package management."""
+"""Forja Store: a native, category-led GTK3 software center for Forja OS."""
 import json
 import re
 import shutil
@@ -10,235 +10,370 @@ import urllib.request
 
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib, Gio
+from gi.repository import Gtk, GLib, Gio, Gdk
 
 HELPER = "/usr/bin/forja-pacman-transaction"
 PKG_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9@._+:-]*$")
 AUR_API = "https://aur.archlinux.org/rpc/v5/search/"
 
-def command(args, timeout=120):
+# Curated entry points make the home screen useful before the first search.
+CATALOG = {
+    "Destaques": [
+        ("firefox", "Navegador Firefox", "internet-web-browser", "Navegue na internet com privacidade e extensões."),
+        ("vlc", "VLC Media Player", "multimedia-video-player", "Reproduza vídeos e músicas em vários formatos."),
+        ("libreoffice-fresh", "LibreOffice", "libreoffice-startcenter", "Suíte completa para documentos, planilhas e apresentações."),
+        ("gimp", "GIMP", "gimp", "Edite imagens e crie artes digitais."),
+        ("thunderbird", "Thunderbird", "thunderbird", "E-mail, agenda e contatos em um só lugar."),
+        ("obs-studio", "OBS Studio", "obs", "Grave a tela e produza transmissões."),
+    ],
+    "Internet": [
+        ("firefox", "Firefox", "internet-web-browser", "Navegador web."),
+        ("chromium", "Chromium", "web-browser", "Navegador de código aberto."),
+        ("thunderbird", "Thunderbird", "thunderbird", "Cliente de e-mail."),
+        ("transmission-gtk", "Transmission", "transmission", "Cliente simples para torrents."),
+        ("filezilla", "FileZilla", "folder-remote", "Transferência de arquivos por FTP e SFTP."),
+    ],
+    "Multimídia": [
+        ("vlc", "VLC", "multimedia-video-player", "Reprodutor multimídia."),
+        ("mpv", "MPV", "video-x-generic", "Reprodutor de vídeo leve."),
+        ("audacity", "Audacity", "audacity", "Gravação e edição de áudio."),
+        ("obs-studio", "OBS Studio", "obs", "Gravação e transmissão de tela."),
+        ("gimp", "GIMP", "gimp", "Edição de imagens."),
+        ("kdenlive", "Kdenlive", "kdenlive", "Edição de vídeo."),
+    ],
+    "Escritório": [
+        ("libreoffice-fresh", "LibreOffice", "libreoffice-startcenter", "Documentos, planilhas e apresentações."),
+        ("onlyoffice-bin", "ONLYOFFICE", "onlyoffice", "Editor de documentos compatíveis com Office (AUR)."),
+        ("evince", "Visualizador de documentos", "x-office-document", "Leitor de documentos PDF."),
+        ("calibre", "Calibre", "calibre", "Organize e leia sua biblioteca digital."),
+    ],
+    "Sistema": [
+        ("htop", "htop", "utilities-system-monitor", "Monitore processos e recursos do sistema."),
+        ("timeshift", "Timeshift", "preferences-system-backup", "Crie e restaure snapshots do sistema."),
+        ("bleachbit", "BleachBit", "edit-clear", "Limpeza de arquivos temporários."),
+        (" gufw", "Firewall", " security-high", "Interface gráfica para gerenciamento do firewall."),
+    ],
+    "Desenvolvimento": [
+        ("code", "Visual Studio Code", "com.visualstudio.code", "Editor de código (AUR)."),
+        ("git", "Git", "git", "Controle de versão distribuído."),
+        ("meld", "Meld", "meld", "Compare arquivos e diretórios."),
+        ("geany", "Geany", "geany", "Editor de código leve."),
+    ],
+}
+CATEGORIES = list(CATALOG.keys())
+
+def run(args, timeout=120):
     try:
         return subprocess.run(args, text=True, stdout=subprocess.PIPE,
                               stderr=subprocess.STDOUT, timeout=timeout, check=False)
     except (OSError, subprocess.TimeoutExpired) as exc:
         return subprocess.CompletedProcess(args, 1, str(exc))
 
-def checkupdates():
-    if not shutil.which("checkupdates"):
-        return None, "O pacote pacman-contrib (checkupdates) não está instalado."
-    result = command(["checkupdates"], 180)
-    rows = [line.strip() for line in result.stdout.splitlines() if line.strip()]
-    if result.returncode == 0:
-        return rows, None
-    if result.returncode == 2 and not rows:
-        return [], None
-    return None, result.stdout.strip() or f"checkupdates retornou {result.returncode}."
-
 def aur_search(query):
-    url = AUR_API + urllib.parse.quote(query)
-    request = urllib.request.Request(url, headers={"User-Agent": "ForjaStore/1.0"})
+    request = urllib.request.Request(AUR_API + urllib.parse.quote(query),
+        headers={"User-Agent": "ForjaStore/2.0"})
     with urllib.request.urlopen(request, timeout=20) as response:
         data = json.loads(response.read().decode("utf-8"))
-    if data.get("type") != "search":
-        raise RuntimeError("Resposta inesperada da API do AUR.")
-    return data.get("results", [])[:60]
-
-def aur_info(names):
-    if not names:
-        return []
-    query = urllib.parse.urlencode([("arg[]", name) for name in names])
-    request = urllib.request.Request("https://aur.archlinux.org/rpc/v5/info?" + query,
-                                    headers={"User-Agent": "ForjaStore/1.0"})
-    results = []
-    for start in range(0, len(names), 100):
-        chunk = names[start:start + 100]
-        query = urllib.parse.urlencode([("arg[]", name) for name in chunk])
-        request = urllib.request.Request("https://aur.archlinux.org/rpc/v5/info?" + query,
-                                        headers={"User-Agent": "ForjaStore/1.0"})
-        with urllib.request.urlopen(request, timeout=25) as response:
-            data = json.loads(response.read().decode("utf-8"))
-        if data.get("type") != "multiinfo":
-            raise RuntimeError("Resposta inesperada ao consultar versões do AUR.")
-        results.extend(data.get("results", []))
-    return results
+    return data.get("results", []) if data.get("type") == "search" else []
 
 class Store(Gtk.Application):
     def __init__(self):
         super().__init__(application_id="br.forja.Store",
                          flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
-        self.open_updates = False
         self.window = None
+        self.body = None
         self.content = None
-        self.status = None
         self.search = None
-        self.source = "official"
+        self.status = None
         self.installed = set()
         self.busy = False
         self.generation = 0
-        self.rows = []
+        self.current_page = "Destaques"
+        self.updates_mode = False
 
     def do_command_line(self, cmdline):
-        self.open_updates = "--updates" in cmdline.get_arguments()
+        self.updates_mode = "--updates" in cmdline.get_arguments()
         self.activate()
         return 0
 
     def do_activate(self):
         if self.window:
             self.window.present()
-            if self.open_updates:
+            if self.updates_mode:
                 self.show_updates()
             return
         self.window = Gtk.ApplicationWindow(application=self, title="Forja Store")
-        self.window.set_default_size(1000, 680)
-        self.window.set_border_width(12)
-        outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        title = Gtk.Label()
-        title.set_markup("<span size='x-large' weight='bold'>Forja Store</span>")
-        header.pack_start(title, False, False, 4)
+        self.window.set_default_size(1080, 720)
+        self.window.set_position(Gtk.WindowPosition.CENTER)
+        self.apply_style()
+        root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        top = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=14)
+        top.set_border_width(18)
+        brand = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        mark = Gtk.Image.new_from_icon_name("forja-store", Gtk.IconSize.DIALOG)
+        mark.set_pixel_size(38)
+        brand.pack_start(mark, False, False, 0)
+        word = Gtk.Label()
+        word.set_markup("<span size='x-large' weight='bold'>Forja</span> <span size='x-large' foreground='#76b7ed'>Store</span>")
+        brand.pack_start(word, False, False, 0)
+        top.pack_start(brand, False, False, 0)
         self.search = Gtk.SearchEntry()
-        self.search.set_placeholder_text("Pesquisar pacotes oficiais ou no AUR")
+        self.search.set_placeholder_text("Buscar aplicativos e ferramentas")
+        self.search.set_size_request(360, -1)
         self.search.set_hexpand(True)
         self.search.connect("search-changed", self.on_search)
-        header.pack_start(self.search, True, True, 8)
-        updates = Gtk.Button(label="Atualizações")
-        updates.connect("clicked", lambda *_: self.show_updates())
-        header.pack_end(updates, False, False, 0)
-        outer.pack_start(header, False, False, 0)
-        self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        scroll = Gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scroll.add(self.content)
-        outer.pack_start(scroll, True, True, 0)
-        self.status = Gtk.Label(label="Loja de aplicativos da Forja OS", xalign=0)
-        outer.pack_start(self.status, False, False, 4)
-        self.window.add(outer)
+        top.pack_start(self.search, True, True, 12)
+        update_button = Gtk.Button(label="Atualizações")
+        update_button.connect("clicked", lambda *_: self.show_updates())
+        top.pack_end(update_button, False, False, 0)
+        root.pack_start(top, False, False, 0)
+        root.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 0)
+
+        split = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
+        sidebar = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+        sidebar.set_size_request(205, -1)
+        sidebar.set_border_width(14)
+        for category in CATEGORIES:
+            button = Gtk.Button(label=category)
+            button.set_relief(Gtk.ReliefStyle.NONE)
+            button.set_halign(Gtk.Align.FILL)
+            button.connect("clicked", self.navigate, category)
+            sidebar.pack_start(button, False, False, 0)
+        split.pack_start(sidebar, False, False, 0)
+        split.pack_start(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), False, False, 0)
+        scroller = Gtk.ScrolledWindow()
+        scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
+        self.content.set_border_width(24)
+        scroller.add(self.content)
+        split.pack_start(scroller, True, True, 0)
+        root.pack_start(split, True, True, 0)
+        root.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 0)
+        self.status = Gtk.Label(label="Aplicativos para sua Forja OS", xalign=0)
+        self.status.set_border_width(10)
+        root.pack_start(self.status, False, False, 0)
+        self.window.add(root)
         self.window.show_all()
         self.reload_installed()
-        if self.open_updates:
+        if self.updates_mode:
             self.show_updates()
         else:
             self.show_home()
 
-    def set_status(self, message):
-        self.status.set_text(message)
+    def apply_style(self):
+        css = b"""
+        window, .background { background: #17191d; color: #e8eaf0; }
+        headerbar { background: #202329; }
+        button { background: #292d34; color: #e8eaf0; border: 1px solid #3a414b; border-radius: 8px; padding: 8px 13px; }
+        button:hover { background: #343b45; }
+        entry { background: #252a31; color: #f4f6fa; border: 1px solid #46505d; border-radius: 9px; padding: 9px; }
+        .card { background: #22262c; border: 1px solid #353c46; border-radius: 12px; padding: 15px; }
+        label { color: #e8eaf0; }
+        """
+        provider = Gtk.CssProvider()
+        provider.load_from_data(css)
+        Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(), provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+    def set_status(self, text):
+        if self.status:
+            self.status.set_text(text)
 
     def clear(self):
         for child in self.content.get_children():
             self.content.remove(child)
 
-    def heading(self, text):
-        label = Gtk.Label(label=text, xalign=0)
-        label.set_markup("<span size='large' weight='bold'>" +
-                         GLib.markup_escape_text(text) + "</span>")
-        self.content.pack_start(label, False, False, 6)
+    def heading(self, title, subtitle=None):
+        label = Gtk.Label(label=title, xalign=0)
+        label.set_markup("<span size='xx-large' weight='bold'>" + GLib.markup_escape_text(title) + "</span>")
+        self.content.pack_start(label, False, False, 0)
+        if subtitle:
+            sub = Gtk.Label(label=subtitle, xalign=0, wrap=True)
+            sub.set_line_wrap(True)
+            self.content.pack_start(sub, False, False, 0)
 
     def reload_installed(self):
         def worker():
-            result = command(["pacman", "-Q"], 60)
+            result = run(["pacman", "-Q"], 60)
             names = {line.split()[0] for line in result.stdout.splitlines() if line.split()}
-            GLib.idle_add(self._installed_ready, names)
+            GLib.idle_add(self.set_installed, names)
         threading.Thread(target=worker, daemon=True).start()
 
-    def _installed_ready(self, names):
+    def set_installed(self, names):
         self.installed = names
         return GLib.SOURCE_REMOVE
 
+    def navigate(self, _button, category):
+        self.current_page = category
+        self.search.set_text("")
+        self.show_category(category)
+
     def show_home(self):
+        self.current_page = "Destaques"
+        self.show_category("Destaques")
+
+    def show_category(self, category):
         self.clear()
-        self.heading("Bem-vindo à Forja Store")
-        self.content.pack_start(Gtk.Label(
-            label="Pesquise programas dos repositórios oficiais do Arch Linux e do AUR. "
-                  "Instalações do AUR exigem revisão manual do PKGBUILD.",
-            xalign=0, yalign=0, wrap=True), False, False, 8)
-        button = Gtk.Button(label="Ver atualizações disponíveis")
-        button.set_halign(Gtk.Align.START)
-        button.connect("clicked", lambda *_: self.show_updates())
-        self.content.pack_start(button, False, False, 4)
+        self.heading(category, "Aplicativos selecionados para começar. Use a busca para encontrar outros pacotes dos repositórios Arch e do AUR.")
+        grid = Gtk.FlowBox()
+        grid.set_selection_mode(Gtk.SelectionMode.NONE)
+        grid.set_homogeneous(True)
+        grid.set_min_children_per_line(2)
+        grid.set_max_children_per_line(3)
+        grid.set_column_spacing(12)
+        grid.set_row_spacing(12)
+        self.content.pack_start(grid, False, False, 4)
         self.content.show_all()
+        names = [item[0] for item in CATALOG.get(category, [])]
+        def worker():
+            results = []
+            for pkg, title, icon, desc in CATALOG.get(category, []):
+                if pkg.startswith(" "):
+                    continue
+                if pkg.endswith("-bin") or pkg == "code":
+                    results.append({"name": pkg, "title": title, "icon": icon,
+                                    "description": desc, "version": "AUR", "source": "aur"})
+                    continue
+                info = run(["pacman", "-Si", pkg], 20)
+                if info.returncode == 0:
+                    version, description = "", desc
+                    for line in info.stdout.splitlines():
+                        if line.strip().startswith("Version"):
+                            version = line.split(":", 1)[-1].strip()
+                        if line.strip().startswith("Description"):
+                            description = line.split(":", 1)[-1].strip()
+                    results.append({"name": pkg, "title": title, "icon": icon,
+                                    "description": description, "version": version,
+                                    "source": "official"})
+            GLib.idle_add(self.render_catalog, category, results)
+        threading.Thread(target=worker, daemon=True).start()
+
+    def render_catalog(self, category, results):
+        if self.current_page != category:
+            return GLib.SOURCE_REMOVE
+        for child in self.content.get_children():
+            if isinstance(child, Gtk.FlowBox):
+                self.content.remove(child)
+        grid = Gtk.FlowBox()
+        grid.set_selection_mode(Gtk.SelectionMode.NONE)
+        grid.set_homogeneous(True)
+        grid.set_min_children_per_line(2)
+        grid.set_max_children_per_line(3)
+        grid.set_column_spacing(12)
+        grid.set_row_spacing(12)
+        for item in results:
+            grid.add(self.make_card(item))
+        self.content.pack_start(grid, False, False, 4)
+        self.content.show_all()
+        self.set_status(str(len(results)) + " aplicativos nesta seleção.")
+        return GLib.SOURCE_REMOVE
+
+    def make_card(self, item):
+        card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        card.get_style_context().add_class("card")
+        top = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        icon = Gtk.Image.new_from_icon_name(item.get("icon", "application-x-executable"), Gtk.IconSize.DIALOG)
+        icon.set_pixel_size(42)
+        top.pack_start(icon, False, False, 0)
+        title = Gtk.Label(label=item["title"], xalign=0)
+        title.set_line_wrap(True)
+        title.set_markup("<b>" + GLib.markup_escape_text(item["title"]) + "</b>")
+        top.pack_start(title, True, True, 0)
+        card.pack_start(top, False, False, 0)
+        desc = Gtk.Label(label=item.get("description", ""), xalign=0, yalign=0)
+        desc.set_line_wrap(True)
+        desc.set_max_width_chars(38)
+        card.pack_start(desc, True, True, 0)
+        meta = Gtk.Label(label=("AUR comunitário" if item["source"] == "aur" else "Repositório oficial") +
+                         (" · " + item.get("version", "") if item.get("version") else ""), xalign=0)
+        card.pack_start(meta, False, False, 0)
+        actions = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        details = Gtk.Button(label="Detalhes")
+        details.connect("clicked", self.show_details, item)
+        actions.pack_start(details, False, False, 0)
+        installed = item["name"] in self.installed
+        action = Gtk.Button(label="Instalado" if installed else "Instalar")
+        action.set_sensitive(not installed)
+        action.connect("clicked", self.package_action, item)
+        actions.pack_end(action, False, False, 0)
+        card.pack_start(actions, False, False, 0)
+        return card
+
+    def show_details(self, _button, item):
+        dialog = Gtk.Dialog(title=item["title"], transient_for=self.window, modal=True)
+        dialog.add_button("Fechar", Gtk.ResponseType.CLOSE)
+        box = dialog.get_content_area()
+        box.set_border_width(20)
+        box.set_spacing(12)
+        icon = Gtk.Image.new_from_icon_name(item.get("icon", "application-x-executable"), Gtk.IconSize.DIALOG)
+        icon.set_pixel_size(64)
+        box.pack_start(icon, False, False, 0)
+        label = Gtk.Label(label=item.get("description", ""), xalign=0, wrap=True)
+        box.pack_start(label, False, False, 0)
+        source = "AUR comunitário: revise o PKGBUILD antes de instalar." if item["source"] == "aur" else "Pacote dos repositórios oficiais do Arch Linux."
+        box.pack_start(Gtk.Label(label=source, xalign=0, wrap=True), False, False, 0)
+        dialog.show_all()
+        dialog.run()
+        dialog.destroy()
 
     def on_search(self, *_):
         query = self.search.get_text().strip()
         if len(query) < 2:
+            if not query:
+                self.show_category(self.current_page)
             return
         self.generation += 1
         generation = self.generation
         self.clear()
-        self.heading("Pesquisando nos repositórios oficiais e no AUR…")
+        self.heading("Resultados da busca", "Pesquisa nos repositórios oficiais do Arch e no AUR.")
         self.content.show_all()
         def worker():
-            official = command(["pacman", "-Ss", query], 60)
+            official = run(["pacman", "-Ss", query], 90)
             matches, current = [], None
             for line in official.stdout.splitlines():
                 if line and not line[0].isspace():
-                    m = re.match(r"^([^/]+)/([^ ]+) ([^ ]+)", line)
-                    if m:
-                        current = {"name": m.group(2), "version": m.group(3),
-                                   "description": "", "source": "official"}
+                    match = re.match(r"^([^/]+)/([^ ]+) ([^ ]+)", line)
+                    if match:
+                        current = {"name": match.group(2), "title": match.group(2),
+                            "version": match.group(3), "description": "", "source": "official",
+                            "icon": "application-x-executable"}
                         matches.append(current)
                 elif current and line.strip():
                     current["description"] = line.strip()
                     current = None
             aur, error = [], None
             try:
-                aur = [{"name": item["Name"], "version": item["Version"],
-                        "description": item.get("Description", ""),
-                        "source": "aur"} for item in aur_search(query)]
+                for item in aur_search(query)[:30]:
+                    aur.append({"name": item["Name"], "title": item["Name"],
+                        "version": item.get("Version", ""), "description": item.get("Description", ""),
+                        "source": "aur", "icon": "application-x-executable"})
             except Exception as exc:
                 error = str(exc)
-            GLib.idle_add(self.show_results, generation, matches[:60], aur, error)
+            GLib.idle_add(self.show_search_results, generation, matches[:45], aur, error)
         threading.Thread(target=worker, daemon=True).start()
 
-    def show_results(self, generation, official, aur, error):
+    def show_search_results(self, generation, official, aur, error):
         if generation != self.generation:
             return GLib.SOURCE_REMOVE
         self.clear()
-        self.heading("Repositórios oficiais")
-        if not official:
-            self.content.pack_start(Gtk.Label(label="Nenhum pacote oficial encontrado.", xalign=0),
-                                    False, False, 2)
-        for item in official:
-            self.add_package(item)
-        self.heading("AUR (comunitário)")
+        self.heading("Resultados da busca", "Aplicativos encontrados nos repositórios.")
         if error:
-            self.content.pack_start(Gtk.Label(label="Não foi possível consultar o AUR: " + error,
-                                              xalign=0, wrap=True), False, False, 2)
-        elif not aur:
-            self.content.pack_start(Gtk.Label(label="Nenhum pacote encontrado no AUR.", xalign=0),
-                                    False, False, 2)
-        for item in aur:
-            self.add_package(item)
+            self.content.pack_start(Gtk.Label(label="Não foi possível consultar o AUR: " + error, xalign=0, wrap=True), False, False, 4)
+        for title, items in (("Arch Linux", official), ("AUR comunitário", aur)):
+            self.heading(title)
+            grid = Gtk.FlowBox()
+            grid.set_selection_mode(Gtk.SelectionMode.NONE)
+            grid.set_homogeneous(True)
+            grid.set_min_children_per_line(2)
+            grid.set_max_children_per_line(3)
+            grid.set_column_spacing(12)
+            grid.set_row_spacing(12)
+            for item in items:
+                grid.add(self.make_card(item))
+            self.content.pack_start(grid, False, False, 4)
         self.content.show_all()
-        self.set_status(f"{len(official)} pacote(s) oficial(is), {len(aur)} do AUR.")
+        self.set_status(str(len(official) + len(aur)) + " resultados.")
         return GLib.SOURCE_REMOVE
-
-    def add_package(self, item):
-        row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        row.set_border_width(7)
-        info = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
-        name = Gtk.Label(label=item["name"], xalign=0)
-        name.set_markup("<b>" + GLib.markup_escape_text(item["name"]) + "</b>")
-        desc = Gtk.Label(label=item.get("description") or "Sem descrição.", xalign=0, wrap=True)
-        desc.set_max_width_chars(75)
-        info.pack_start(name, False, False, 0)
-        info.pack_start(desc, False, False, 0)
-        info.pack_start(Gtk.Label(label=("AUR · " if item["source"] == "aur" else "Repositório oficial · ") +
-                                  item["version"], xalign=0), False, False, 0)
-        row.pack_start(info, True, True, 0)
-        button = Gtk.Button(label="Revisar e compilar" if item["source"] == "aur"
-                            else ("Remover" if item["name"] in self.installed else "Instalar"))
-        button.connect("clicked", self.package_action, item)
-        row.pack_end(button, False, False, 0)
-        self.content.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 0)
-        self.content.pack_start(row, False, False, 0)
-
-    def confirm(self, title, message):
-        dialog = Gtk.MessageDialog(transient_for=self.window, modal=True,
-            message_type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK_CANCEL, text=title)
-        dialog.format_secondary_text(message)
-        response = dialog.run()
-        dialog.destroy()
-        return response == Gtk.ResponseType.OK
 
     def package_action(self, _button, item):
         name = item["name"]
@@ -246,157 +381,79 @@ class Store(Gtk.Application):
             self.set_status("Nome de pacote inválido.")
             return
         if item["source"] == "aur":
-            if not self.confirm("Pacote comunitário do AUR",
-                "O AUR não é revisado oficialmente pelo Arch. O PKGBUILD e os arquivos "
-                "do pacote devem ser examinados antes da compilação. A Forja Store abrirá "
-                "um terminal para você revisar o PKGBUILD e confirmar manualmente."):
-                return
-            if not shutil.which("mate-terminal"):
-                self.set_status("mate-terminal não está disponível para a compilação do AUR.")
-                return
-            subprocess.Popen(["mate-terminal", "--", "bash", "-lc",
-                              "exec /usr/bin/forja-aur-build " + name])
+            dialog = Gtk.MessageDialog(transient_for=self.window, modal=True,
+                message_type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK_CANCEL,
+                text="Pacote comunitário do AUR")
+            dialog.format_secondary_text("O AUR não é revisado oficialmente. A compilação abre um terminal para que você revise o PKGBUILD e confirme a instalação.")
+            response = dialog.run()
+            dialog.destroy()
+            if response == Gtk.ResponseType.OK and shutil.which("mate-terminal"):
+                subprocess.Popen(["mate-terminal", "--", "bash", "-lc", "exec /usr/bin/forja-aur-build " + name])
             return
-        installed = name in self.installed
-        action = "remove" if installed else "install"
-        verb = "remover" if installed else "instalar"
-        if not self.confirm("Confirmar operação", f"Deseja {verb} {name}? O Pacman resolverá dependências."):
+        if not self.confirm("Instalar aplicativo", "Instalar " + name + " usando o Pacman e suas dependências?"):
             return
-        self.run_privileged([action, name], f"Operação: {name}")
+        self.run_privileged(["install", name], "Instalação de " + name)
+
+    def confirm(self, title, message):
+        dialog = Gtk.MessageDialog(transient_for=self.window, modal=True,
+            message_type=Gtk.MessageType.QUESTION, buttons=Gtk.ButtonsType.OK_CANCEL, text=title)
+        dialog.format_secondary_text(message)
+        response = dialog.run()
+        dialog.destroy()
+        return response == Gtk.ResponseType.OK
 
     def run_privileged(self, args, label):
         if self.busy:
             self.set_status("Já existe uma operação em andamento.")
             return
         self.busy = True
-        self.set_status("Aguardando autorização e executando operação…")
+        self.set_status("Aguardando autorização para " + label.lower() + "…")
         def worker():
-            result = command(["pkexec", HELPER, *args], 7200)
+            result = run(["pkexec", HELPER] + args, 7200)
             GLib.idle_add(self.operation_done, result.returncode, result.stdout, label)
         threading.Thread(target=worker, daemon=True).start()
 
     def operation_done(self, code, output, label):
         self.busy = False
-        self.set_status((label + " concluída.") if code == 0 else
-                        (label + " não concluída. " + (output[-350:] if output else "")))
+        self.set_status(label + (" concluída." if code == 0 else " não concluída: " + (output[-250:] if output else "operação cancelada.")))
         self.reload_installed()
+        if code == 0:
+            self.show_category(self.current_page)
         return GLib.SOURCE_REMOVE
 
     def show_updates(self):
         self.clear()
-        self.heading("Atualizações do sistema")
-        self.content.pack_start(Gtk.Label(label="Consultando Pacman e Flatpak…", xalign=0),
-                                False, False, 4)
+        self.heading("Atualizações", "Gerencie as atualizações do sistema em um só lugar.")
+        self.content.pack_start(Gtk.Label(label="Consultando atualizações do Arch Linux…", xalign=0), False, False, 6)
         self.content.show_all()
         def worker():
-            pac, error = checkupdates()
-            flat = []
-            if shutil.which("flatpak"):
-                for scope in ("--system", "--user"):
-                    result = command(["flatpak", "remote-ls", scope, "--updates",
-                                      "--columns=application,name,branch"], 180)
-                    if result.returncode == 0:
-                        flat.extend((scope, line.strip()) for line in result.stdout.splitlines()
-                                    if line.strip())
-            aur_outdated, aur_error = [], None
-            try:
-                foreign = command(["pacman", "-Qm"], 90)
-                installed = {}
-                for line in foreign.stdout.splitlines():
-                    parts = line.split()
-                    if len(parts) >= 2 and PKG_RE.fullmatch(parts[0]):
-                        installed[parts[0]] = parts[1]
-                for item in aur_info(list(installed)):
-                    local = installed.get(item.get("Name"))
-                    remote = item.get("Version")
-                    if local and remote and shutil.which("vercmp"):
-                        compare = command(["vercmp", local, remote], 10)
-                        if compare.returncode == 0 and compare.stdout.strip() == "-1":
-                            aur_outdated.append((item["Name"], local, remote))
-            except Exception as exc:
-                aur_error = str(exc)
-            GLib.idle_add(self.show_update_results, pac, error, flat, aur_outdated, aur_error)
+            result = run(["checkupdates"], 180)
+            rows = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+            error = result.returncode not in (0, 2)
+            GLib.idle_add(self.render_updates, rows, error, result.stdout)
         threading.Thread(target=worker, daemon=True).start()
 
-    def show_update_results(self, pac, error, flat, aur_outdated, aur_error):
+    def render_updates(self, rows, error, output):
         self.clear()
-        self.heading("Atualizações disponíveis")
+        self.heading("Atualizações", "Atualização completa e segura pelo Pacman.")
         if error:
-            self.content.pack_start(Gtk.Label(label="Erro ao consultar Pacman: " + error,
-                                              xalign=0, wrap=True), False, False, 4)
-        else:
-            for line in pac:
-                self.content.pack_start(Gtk.Label(label="Pacman · " + line, xalign=0),
-                                        False, False, 2)
-        for scope, line in flat:
-            self.content.pack_start(Gtk.Label(label=f"Flatpak {scope} · {line}", xalign=0),
-                                    False, False, 2)
-        self.heading("Pacotes do AUR")
-        if aur_error:
-            self.content.pack_start(Gtk.Label(
-                label="Não foi possível verificar versões do AUR: " + aur_error,
-                xalign=0, wrap=True), False, False, 2)
-        elif not aur_outdated:
-            self.content.pack_start(Gtk.Label(
-                label="Nenhuma atualização do AUR identificada.", xalign=0),
-                False, False, 2)
-        for name, local, remote in aur_outdated:
-            row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-            row.pack_start(Gtk.Label(label=f"{name}: {local} → {remote}", xalign=0),
-                           True, True, 0)
-            button = Gtk.Button(label="Revisar e atualizar")
-            button.connect("clicked", self.launch_aur_update, name)
-            row.pack_end(button, False, False, 0)
-            self.content.pack_start(row, False, False, 2)
-        if error is None and pac:
-            button = Gtk.Button(label="Atualizar sistema (Pacman)")
+            self.content.pack_start(Gtk.Label(label="Falha ao consultar atualizações: " + output, xalign=0, wrap=True), False, False, 6)
+        elif rows:
+            for row in rows:
+                self.content.pack_start(Gtk.Label(label=row, xalign=0), False, False, 2)
+            button = Gtk.Button(label="Atualizar sistema")
             button.set_halign(Gtk.Align.START)
-            button.connect("clicked", self.update_pacman)
-            self.content.pack_start(button, False, False, 8)
-        if flat:
-            for scope, label in (("--system", "Atualizar Flatpak do sistema"),
-                                 ("--user", "Atualizar Flatpak do usuário")):
-                if any(s == scope for s, _ in flat):
-                    button = Gtk.Button(label=label)
-                    button.set_halign(Gtk.Align.START)
-                    button.connect("clicked", self.update_flatpak, scope)
-                    self.content.pack_start(button, False, False, 4)
-        if error is None and not pac and not flat and not aur_outdated:
-            self.content.pack_start(Gtk.Label(label="Nenhuma atualização disponível.", xalign=0),
-                                    False, False, 4)
+            button.connect("clicked", self.update_system)
+            self.content.pack_start(button, False, False, 12)
+        else:
+            self.content.pack_start(Gtk.Label(label="Seu sistema está atualizado.", xalign=0), False, False, 8)
         self.content.show_all()
-        self.set_status("Consulta concluída." if error is None else "A consulta de atualizações falhou.")
+        self.set_status("Consulta concluída.")
         return GLib.SOURCE_REMOVE
 
-    def launch_aur_update(self, _button, name):
-        if not self.confirm("Atualização de pacote AUR",
-            "A atualização será compilada como usuário comum. Revise novamente o PKGBUILD "
-            "e os arquivos do pacote antes de confirmar a compilação no terminal."):
-            return
-        subprocess.Popen(["mate-terminal", "--", "bash", "-lc",
-                          "exec /usr/bin/forja-aur-build " + name])
-
-    def update_pacman(self, *_):
-        if self.confirm("Atualizar o sistema",
-            "Será executada uma atualização completa com pacman -Syu. Não feche o sistema "
-            "durante a transação. Atualizações parciais não são suportadas pelo Arch Linux."):
-            self.run_privileged(["upgrade"], "Atualização completa do sistema")
-
-    def update_flatpak(self, _button, scope):
-        if scope == "--system":
-            self.run_privileged(["flatpak-update-system"], "Atualização Flatpak do sistema")
-            return
-        if not self.confirm("Atualizar Flatpak do usuário",
-                            "Executar flatpak update para os aplicativos do usuário?"):
-            return
-        def worker():
-            result = command(["flatpak", "update", "--user", "--noninteractive", "--assumeyes"], 7200)
-            GLib.idle_add(self.operation_done, result.returncode, result.stdout,
-                          "Atualização Flatpak do usuário")
-        if not shutil.which("flatpak"):
-            self.set_status("Flatpak não está instalado.")
-            return
-        threading.Thread(target=worker, daemon=True).start()
+    def update_system(self, *_):
+        if self.confirm("Atualizar Forja OS", "Será executada uma atualização completa com pacman -Syu. Não desligue o computador durante o processo."):
+            self.run_privileged(["upgrade"], "Atualização do sistema")
 
 if __name__ == "__main__":
     raise SystemExit(Store().run(None))
