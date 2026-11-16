@@ -427,6 +427,10 @@ class ForjaMonitor(Gtk.Application):
         self.temp_details = Gtk.Label(label="Consultando sensores…", xalign=0, yalign=0)
         self.temp_details.set_line_wrap(True)
         sensor_panel.pack_start(self.temp_details, True, True, 0)
+        sensor_panel.pack_start(self.section_label("CPU por núcleo"), False, False, 4)
+        self.core_details = Gtk.Label(label="Aguardando leitura…", xalign=0, yalign=0)
+        self.core_details.set_line_wrap(True)
+        sensor_panel.pack_start(self.core_details, False, False, 0)
         self.swap_label = Gtk.Label(label="SWAP: verificando…", xalign=0)
         self.swap_label.get_style_context().add_class("muted")
         sensor_panel.pack_end(self.swap_label, False, False, 0)
@@ -635,10 +639,19 @@ class ForjaMonitor(Gtk.Application):
             return True
         now = time.monotonic()
         current_cpu = cpu_snapshot()
+        previous_cpu = self.prev_cpu
         total, idle = current_cpu.get("cpu", (0, 0))
-        old_total, old_idle = self.prev_cpu.get("cpu", (0, 0))
+        old_total, old_idle = previous_cpu.get("cpu", (0, 0))
         delta_total, delta_idle = total - old_total, idle - old_idle
         cpu_pct = max(0, min(100, (1 - delta_idle / delta_total) * 100)) if delta_total > 0 else 0
+        core_values = []
+        for core_name in sorted((name for name in current_cpu if name.startswith("cpu") and name != "cpu"),
+                                key=lambda name: int(name[3:]) if name[3:].isdigit() else 999999):
+            core_total, core_idle = current_cpu[core_name]
+            prev_total, prev_idle = previous_cpu.get(core_name, (core_total, core_idle))
+            core_delta, idle_delta = core_total - prev_total, core_idle - prev_idle
+            if core_delta > 0:
+                core_values.append((core_name.upper(), max(0, min(100, (1 - idle_delta / core_delta) * 100))))
         self.prev_cpu = current_cpu
         used, total_mem, swap_used, swap_total = memory_snapshot()
         mem_pct = used * 100 / total_mem if total_mem else 0
@@ -686,6 +699,10 @@ class ForjaMonitor(Gtk.Application):
             "\n".join(f"{name}: {value:.0f} °C" for name, value in sensors)
             if sensors else "Nenhum sensor térmico disponível. Isso depende do hardware e dos drivers."
         )
+        self.core_details.set_text(
+            "    ".join(f"{name}: {value:.0f}%" for name, value in core_values)
+            if core_values else "Dados por núcleo indisponíveis."
+        )
         self.header_status.set_text("Atualizado agora")
         return True
 
@@ -717,7 +734,9 @@ class ForjaMonitor(Gtk.Application):
 
 if __name__ == "__main__":
     if "--self-test" in sys.argv:
-        if not Gtk.init_check([]):
+        init_result = Gtk.init_check([])
+        initialized = init_result[0] if isinstance(init_result, tuple) else init_result
+        if not initialized:
             raise SystemExit("GTK não conseguiu inicializar o display de teste.")
         app = ForjaMonitor()
         app.register(None)
