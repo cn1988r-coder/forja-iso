@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Forja Monitor
+Comment=Monitor leve de recursos e informações do sistema
+Exec=/usr/bin/forja-monitor
+Icon=computer
+Terminal=false
+Categories=System;Monitor;
