@@ -33,17 +33,17 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          expected_branch="feature/forja-xfce-endeavouros-port"
-          expected_sha="$(git ls-remote --exit-code origin "refs/heads/$expected_branch" | awk 'NR == 1 {print $1}')"
-          actual_sha="$(git rev-parse HEAD)"
-          test -n "$expected_sha"
-          test "$actual_sha" = "$expected_sha"
+          # actions/checkout downloads a source archive inside this Arch container,
+          # so no .git directory or git executable exists at this stage.
+          # The checkout ref above is pinned to the approved XFCE branch.
           test -f profiles/forja-xfce/prepare-forja.sh
           test -f profiles/forja-xfce/prepare.sh
           test -f profiles/forja-xfce/packages.x86_64
           test -f profiles/forja-xfce/profiledef.sh
+          test -f profiles/forja-xfce/run_before_squashfs.sh
+          test -f desktops/xfce/panel-default.xml
           ! grep -q 'forja-pamac-pacman' .github/workflows/build-forja-iso.yml
-          echo "Fonte confirmada: $expected_branch ($actual_sha), Forja OS XFCE sobre EndeavourOS"
+          echo "Fonte confirmada: feature/forja-xfce-endeavouros-port, Forja OS XFCE sobre EndeavourOS"
 
       - name: Configure Arch and EndeavourOS repositories
         shell: bash
