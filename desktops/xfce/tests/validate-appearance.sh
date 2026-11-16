@@ -213,7 +213,7 @@ grep -q '>community-extra dockbarx' "$ROOT/packages.manjaro"
 grep -q '>community-extra xfce4-dockbarx-plugin' "$ROOT/packages.manjaro"
 grep -q '\[community-extra\]' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'https://repo.communitybig.org/\$repo/\$arch' "$REPO_ROOT/build-manjaro.sh"
-! grep -Rqi 'docklike' "$ROOT"
+! grep -Rqi 'docklike' "$ROOT" --exclude='validate-appearance.sh'
 
 # Plymouth: tema Forja, hook mkinitcpio e parâmetros silenciosos do GRUB.
 grep -q '^custom_boot_args=(quiet splash loglevel=3 rd.udev.log_priority=3 vt.global_cursor_default=0 systemd.show_status=false rd.systemd.show_status=false)$' "$ROOT/profile.conf"
