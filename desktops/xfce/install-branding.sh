@@ -18,7 +18,7 @@ install -Dm644 "$ROOT/forja-xfce-appearance.desktop" "$DEST/etc/xdg/autostart/fo
 install -Dm644 "$ROOT/forja-gtk.css" "$DEST/etc/skel/.config/gtk-3.0/gtk.css"
 install -Dm644 "$ROOT/forja-whiskermenu.rc" "$DEST/etc/skel/.config/xfce4/panel/whiskermenu-1.rc"
 
-# A single system-wide panel: Whisker + Docklike + system tray + clock.
+# A single system-wide panel: Whisker + DockbarX + system tray + clock.
 install -Dm644 "$ROOT/panel-default.xml" "$DEST/etc/xdg/xfce4/panel/default.xml"
 install -Dm644 "$ROOT/docklike.rc" "$DEST/etc/skel/.config/xfce4/panel/docklike.rc"
 install -Dm644 "$ROOT/docklike.rc" "$DEST/etc/xdg/xfce4/panel/docklike.rc"
@@ -33,4 +33,4 @@ install -Dm644 "$ROOT/forja-xfce-desktop.xml" \
 if [[ -z "$DEST" ]] && command -v gtk-update-icon-cache >/dev/null 2>&1; then
   gtk-update-icon-cache -q -f /usr/share/icons/hicolor || true
 fi
-echo "Forja OS XFCE: painel, Docklike, tema visual e Plymouth Forja instalados nos overlays."
+echo "Forja OS XFCE: painel, DockbarX, tema visual e Plymouth Forja instalados nos overlays."
