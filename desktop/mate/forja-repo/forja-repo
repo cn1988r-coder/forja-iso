@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+CONFIG="/etc/forja/pacman.conf"
+if [[ "${1:-}" != "check" || "$#" -ne 1 ]]; then
+  echo "Uso: forja-repo check" >&2
+  exit 2
+fi
+if [[ ! -r "$CONFIG" ]]; then
+  echo "Configuração do repositório Forja não encontrada: $CONFIG" >&2
+  exit 1
+fi
+command -v pacman >/dev/null 2>&1 || { echo "pacman não encontrado." >&2; exit 1; }
+command -v vercmp >/dev/null 2>&1 || { echo "vercmp não encontrado (pacman-contrib)." >&2; exit 1; }
+
+echo "Consultando exclusivamente o repositório de aplicativos Forja..."
+sudo pacman --config "$CONFIG" -Sy
+mapfile -t repo_rows < <(pacman --config "$CONFIG" -Sl forja 2>/dev/null || true)
+updates=0
+for row in "${repo_rows[@]}"; do
+  read -r _repo pkg remote_version _rest <<< "$row"
+  [[ -n "${pkg:-}" && -n "${remote_version:-}" ]] || continue
+  local_line="$(pacman -Q "$pkg" 2>/dev/null || true)"
+  [[ -n "$local_line" ]] || continue
+  local_version="${local_line#* }"
+  if [[ "$(vercmp "$remote_version" "$local_version")" -gt 0 ]]; then
+    printf 'Atualização Forja disponível: %s %s -> %s\n' "$pkg" "$local_version" "$remote_version"
+    updates=$((updates + 1))
+  fi
+done
+if (( updates == 0 )); then
+  echo "Nenhuma atualização instalada encontrada no repositório Forja."
+else
+  printf '\n%d atualização(ões) Forja disponível(is).\n' "$updates"
+fi
+echo "Nenhum pacote do Arch Linux ou EndeavourOS foi atualizado."
