@@ -5,7 +5,7 @@ pkgdesc="Consulta isolada do repositório binário de aplicativos Forja OS"
 arch=('any')
 url="https://github.com/cn1988r-coder/forja-updates"
 license=('GPL-3.0-or-later')
-depends=('pacman' 'pacman-contrib' 'sudo')
+depends=('pacman' 'pacman-contrib' 'polkit')
 source=('forja-repo' 'pacman.conf' 'pacman-install.conf')
 sha256sums=('SKIP' 'SKIP' 'SKIP')
 
