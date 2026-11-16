@@ -25,7 +25,7 @@ jobs:
       - name: Update Arch package databases and install validation tools
         run: |
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm python base-devel shadow
+          pacman -S --needed --noconfirm python base-devel shadow gtk3 python-gobject
 
       - name: Validate package names and dependency resolution
         shell: bash
@@ -64,4 +64,12 @@ jobs:
           useradd --create-home builder
           chown -R builder:builder desktop/mate/forja-store
           runuser -u builder -- bash -lc 'cd desktop/mate/forja-store && makepkg --nodeps --noconfirm'
-          test -n "$(find desktop/mate/forja-store -maxdepth 1 -name 'forja-store-*.pkg.tar.zst' -print -quit)"
+          package="$(find desktop/mate/forja-store -maxdepth 1 -name 'forja-store-*.pkg.tar.zst' -print -quit)"
+          test -n "$package"
+          pacman -U --noconfirm --nodeps "$package"
+          pacman -Qk forja-store
+          python -c "import gi; gi.require_version('Gtk', '3.0'); from gi.repository import Gtk"
+          if /usr/bin/forja-pacman-transaction invalid-action; then
+            echo "The transaction helper accepted an invalid action." >&2
+            exit 1
+          fi
