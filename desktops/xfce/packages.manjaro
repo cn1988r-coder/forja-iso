@@ -49,8 +49,6 @@ pipewire-alsa
 pipewire-pulse
 wireplumber
 gtk3
-gtk4
-libadwaita
 libnotify
 gsettings-desktop-schemas
 python
@@ -60,7 +58,7 @@ appstream
 archlinux-appstream-data
 polkit
 polkit-gnome
-# Forja Store: Pamac CLI (repositórios + AUR) e Flatpak
+# Pamac oficial do Manjaro, com CLI e integração Flatpak
 flatpak
 pamac-cli
 pamac-gtk
