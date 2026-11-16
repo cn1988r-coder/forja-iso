@@ -1,0 +1,92 @@
+{
+  "archinstall_language": "English",
+  "hostname": "forja-os",
+  "kernels": [
+    "linux"
+  ],
+  "locale_config": {
+    "kb_layout": "br",
+    "sys_enc": "UTF-8",
+    "sys_lang": "pt_BR.UTF-8",
+    "console_font": "default8x16"
+  },
+  "network_config": {
+    "type": "iso"
+  },
+  "ntp": true,
+  "timezone": "America/Sao_Paulo",
+  "packages": [
+    "caja",
+    "marco",
+    "mate-control-center",
+    "mate-desktop",
+    "mate-icon-theme",
+    "mate-menus",
+    "mate-notification-daemon",
+    "mate-panel",
+    "mate-polkit",
+    "mate-session-manager",
+    "mate-settings-daemon",
+    "mate-applets",
+    "mate-media",
+    "mate-power-manager",
+    "mate-screensaver",
+    "mate-terminal",
+    "dconf",
+    "atril",
+    "engrampa",
+    "eom",
+    "mozo",
+    "pluma",
+    "libreoffice-still",
+    "libreoffice-still-pt-br",
+    "gnome-calculator",
+    "xfce4-screenshooter",
+    "pacman-contrib",
+    "python-gobject",
+    "python-cairo",
+    "flatpak",
+    "git",
+    "less",
+    "sudo",
+    "base-devel",
+    "xorg-xrandr",
+    "xorg-server",
+    "mesa",
+    "lightdm",
+    "lightdm-gtk-greeter",
+    "networkmanager",
+    "network-manager-applet",
+    "bluez",
+    "blueman",
+    "pipewire",
+    "pipewire-alsa",
+    "pipewire-pulse",
+    "wireplumber",
+    "pavucontrol",
+    "upower",
+    "gvfs",
+    "gvfs-mtp",
+    "udisks2",
+    "xdg-utils",
+    "xdg-user-dirs",
+    "fastfetch",
+    "materia-gtk-theme",
+    "papirus-icon-theme",
+    "ttf-dejavu",
+    "curl"
+  ],
+  "services": [
+    "NetworkManager.service",
+    "bluetooth.service",
+    "lightdm.service"
+  ],
+  "swap": {
+    "enabled": true,
+    "algorithm": "zstd"
+  },
+  "custom_commands": [
+    "git clone --depth 1 --branch feature/forja-arch-mate https://github.com/cn1988r-coder/forja-iso.git /tmp/forja-iso && bash /tmp/forja-iso/desktop/mate/install-target.sh /tmp/forja-iso"
+  ],
+  "version": "3.0.2"
+}
