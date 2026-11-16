@@ -25,7 +25,7 @@ jobs:
       - name: Checkout Forja OS
         uses: actions/checkout@v4
 
-      - name: Build pinned Calamares and Brisk Menu packages from reviewed AUR recipes
+      - name: Build pinned Calamares, Brisk Menu and Bibata cursor packages
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -34,7 +34,7 @@ jobs:
           chmod 0440 /etc/sudoers.d/90-builder
           repo_dir="$RUNNER_TEMP/forja-calamares-repo"
           install -d -o builder -g builder "$repo_dir"
-          for recipe in calamares brisk-menu; do
+          for recipe in calamares brisk-menu bibata-cursor-theme-bin; do
             build_dir="$RUNNER_TEMP/${recipe}-build"
             install -d -o builder -g builder "$build_dir"
             install -m 0644 "build-support/${recipe}/PKGBUILD" "$build_dir/PKGBUILD"
@@ -55,6 +55,7 @@ jobs:
           bash -n bases/archlinux/build-profile.sh
           bash -n build-support/calamares/PKGBUILD
           bash -n build-support/brisk-menu/PKGBUILD
+          bash -n build-support/bibata-cursor-theme-bin/PKGBUILD
           bash -n bases/archlinux/validate-profile.sh
           bash -n desktop/mate/install-target.sh
           bash -n desktop/mate/apply-defaults.sh
@@ -76,6 +77,7 @@ jobs:
           PY
           grep -qx 'calamares' desktop/mate/packages.x86_64
           grep -qx 'brisk-menu' desktop/mate/packages.x86_64
+          grep -qx 'bibata-cursor-theme-bin' desktop/mate/packages.x86_64
           test -s bases/archlinux/airootfs/etc/calamares/settings.conf
           test -s bases/archlinux/airootfs/etc/calamares/modules/bootloader.conf
           test -s bases/archlinux/airootfs/etc/calamares/modules/shellprocess-pacstrap.conf
