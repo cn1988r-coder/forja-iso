@@ -87,7 +87,7 @@ def rollback_snapshot(number: int, confirmed: bool) -> tuple[int, str]:
         return 5, f"Snapshot {number} não existe na configuração root."
     rc, out = run(["snapper", "-c", "root", "rollback", str(number)])
     if rc == 0:
-        out = (out + "\\n" if out else "") + "Rollback preparado. Reinicie o Forja OS para iniciar no estado restaurado."
+        out = (out + "\n" if out else "") + "Rollback preparado. Reinicie o Forja OS para iniciar no estado restaurado."
     return rc, out
 
 def main() -> int:
