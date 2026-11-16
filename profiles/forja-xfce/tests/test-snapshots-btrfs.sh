@@ -76,5 +76,5 @@ grep -q "Forja: antes de transação Pacman" <<<"$list"
 grep -q "Forja: depois de transação Pacman" <<<"$list"
 
 subvolumes="$(btrfs subvolume list "$TOP")"
-grep -q '/.snapshots/' <<<"$subvolumes"
+grep -Eq '/\.snapshots($|/)' <<<"$subvolumes"
 echo "PASS: setup Forja, timers, GRUB hook, snapshot real e par pre/post validados em Btrfs."
