@@ -63,6 +63,12 @@ Terminal=false
 DESKTOP
 install -Dm644 "$ROOT/bases/archlinux/pacman.conf" "$PROFILE/airootfs/etc/pacman.conf"
 
+# Provide a system-wide Xcursor fallback in the live session as well.
+install -Dm644 /dev/stdin "$PROFILE/airootfs/usr/share/icons/default/index.theme" <<'CURSOR'
+[Icon Theme]
+Inherits=Bibata-Modern-Classic
+CURSOR
+
 # Install the native Forja applications directly into the live rootfs.
 bash "$ROOT/desktop/mate/install-forja-store.sh" "$PROFILE/airootfs"
 bash "$ROOT/desktop/mate/install-forja-monitor.sh" "$PROFILE/airootfs"
