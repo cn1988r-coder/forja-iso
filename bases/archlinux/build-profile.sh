@@ -31,9 +31,14 @@ sed -i \
 
 # Overlay the Forja live root filesystem.
 cp -a "$ROOT/bases/archlinux/airootfs/." "$PROFILE/airootfs/"
+chmod 0755 "$PROFILE/airootfs/root/customize_airootfs.sh"
+cp "$ROOT/bases/archlinux/pacman.conf" "$PROFILE/pacman.conf"
 install -d "$PROFILE/airootfs/etc/skel/.config"
 cp -a "$ROOT/desktop/mate/skel/.config/." "$PROFILE/airootfs/etc/skel/.config/"
 install -Dm755 "$ROOT/desktop/mate/apply-defaults.sh" "$PROFILE/airootfs/usr/local/lib/forja/apply-defaults.sh"
+install -Dm755 "$ROOT/desktop/mate/forja-repo/forja-repo" "$PROFILE/airootfs/usr/local/bin/forja-repo"
+install -Dm644 "$ROOT/desktop/mate/forja-repo/pacman.conf" "$PROFILE/airootfs/etc/forja/pacman.conf"
+install -d "$PROFILE/airootfs/var/lib/forja-repo" "$PROFILE/airootfs/var/cache/forja-repo/pkg"
 
 # Install the native Forja applications directly into the live rootfs.
 bash "$ROOT/desktop/mate/install-forja-store.sh" "$PROFILE/airootfs"
