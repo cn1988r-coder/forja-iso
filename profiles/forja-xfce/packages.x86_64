@@ -44,6 +44,7 @@ ntfs-3g
 lvm2
 efibootmgr
 grub
+grub-btrfs
 os-prober
 xorg-server
 gtk3
