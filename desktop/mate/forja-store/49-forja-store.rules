@@ -1,5 +1,5 @@
 polkit.addRule(function(action, subject) {
-    if (action.id === "org.freedesktop.policykit.exec" &&
+    if (action.id === "br.forja.store.manage-packages" &&
         action.lookup("program") === "/usr/bin/forja-pacman-transaction" &&
         subject.isInGroup("wheel")) {
         return polkit.Result.YES;
