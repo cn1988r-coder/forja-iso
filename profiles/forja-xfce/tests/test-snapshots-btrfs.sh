@@ -33,8 +33,8 @@ printf 'modified after snapshot\n' >> "$ROOT/snapshot-test.txt"
 ! grep -Fq 'modified after snapshot' "$TOP/@forja-test-snapshot/snapshot-test.txt"
 
 subvolumes="$(btrfs subvolume list "$TOP")"
-grep -Fq '/@' <<<"$subvolumes"
-grep -Fq '/@forja-test-snapshot' <<<"$subvolumes"
+grep -Eq 'path @($|/)' <<<"$subvolumes"
+grep -Eq 'path @forja-test-snapshot($|/)' <<<"$subvolumes"
 
 bash -n "$SETUP"
 bash -n "$PACMAN_HOOK"
