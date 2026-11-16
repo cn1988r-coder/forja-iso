@@ -1,0 +1,49 @@
+name: Validate Forja MATE packages
+
+on:
+  push:
+    branches:
+      - foundation/dual-base
+    paths:
+      - "desktop/mate/**"
+      - ".github/workflows/validate-mate-packages.yml"
+  pull_request:
+    paths:
+      - "desktop/mate/**"
+      - ".github/workflows/validate-mate-packages.yml"
+  workflow_dispatch:
+
+jobs:
+  package-resolution:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update Arch package databases
+        run: pacman -Syu --noconfirm
+
+      - name: Validate package names and dependency resolution
+        shell: bash
+        run: |
+          set -euo pipefail
+          list="desktop/mate/packages.x86_64"
+          mapfile -t packages < <(grep -Ev '^[[:space:]]*(#|$)' "$list")
+
+          if (("${#packages[@]}" == 0)); then
+            echo "Package list is empty." >&2
+            exit 1
+          fi
+
+          for package in "${packages[@]}"; do
+            pacman -Si "$package" >/dev/null
+            printf 'FOUND %s\n' "$package"
+          done
+
+          # Ask pacman to resolve the complete transaction without installing it.
+          pacman -Sp --needed --print-format '%n %v' -- "${packages[@]}" | tee /tmp/mate-transaction.txt
+
+          bash -n desktop/mate/apply-defaults.sh
+          bash -n desktop/mate/scripts/validate-packages.sh
