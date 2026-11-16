@@ -39,6 +39,9 @@ gnome-calculator
 # This does not install the XFCE desktop, panel, session, or file manager.
 xfce4-screenshooter
 
+# Calamares installer: built from a pinned AUR recipe in the ISO workflow.
+calamares
+
 # Forja Store: graphical GTK3 app store
 python
 gtk3
