@@ -248,7 +248,7 @@ class Store(Gtk.Application):
         self.content.pack_start(Gtk.Label(label="Carregando aplicativos instalados…", xalign=0), False, False, 4)
         self.content.show_all()
         def worker():
-            pac = run(["pacman", "-Q"], 60)
+            pac = run(["pacman", "-Qe"], 60)
             foreign = run(["pacman", "-Qm"], 60)
             names = {line.split()[0] for line in pac.stdout.splitlines() if line.split()}
             aur_names = {line.split()[0] for line in foreign.stdout.splitlines() if line.split()}
