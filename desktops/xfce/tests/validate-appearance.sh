@@ -272,7 +272,6 @@ grep -q '@define-color forja_text #ffffff' "$ROOT/forja-gtk.css"
 
 # Update badge is intentionally white with a gray check; pending updates use a gray X.
 
-grep -q 'libpamac-flatpak-plugin' "$REPO_ROOT/build-manjaro.sh"
 
 # Btrfs: pacote presente no sistema Live/instalado, padrão do Calamares e compressão zstd.
 grep -q 'btrfs-progs' "$REPO_ROOT/build-manjaro.sh"
@@ -281,7 +280,7 @@ grep -q 'TARGET/rootfs/etc/calamares/modules/mount.conf' "$REPO_ROOT/build-manja
 grep -q '^defaultFileSystemType: "btrfs"$' "$ROOT/calamares/partition.conf"
 grep -q 'availableFileSystemTypes: \["btrfs", "ext4", "f2fs"\]' "$ROOT/calamares/partition.conf"
 grep -q 'compress=zstd:1' "$ROOT/calamares/mount.conf"
-echo "Forja XFCE: aparência, painel DockbarX, indicador e interface Pamac da Forja validados."
+echo "Forja XFCE: perfil sem Pamac; receita Shelly 3.3.0 e autostart presentes."
 # Shelly UI must be installed as a system-wide XFCE session autostart entry.
 test -s "$ROOT/shelly-autostart.desktop"
 grep -q '^Exec=/usr/bin/shelly-ui$' "$ROOT/shelly-autostart.desktop"
