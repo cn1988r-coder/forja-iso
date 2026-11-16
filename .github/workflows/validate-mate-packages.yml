@@ -42,9 +42,10 @@ jobs:
             printf 'FOUND %s\n' "$package"
           done
 
-          # Ask pacman to resolve the complete transaction without installing it.
           pacman -Sp --needed --print-format '%n %v' -- "${packages[@]}" | tee /tmp/mate-transaction.txt
 
           bash -n desktop/mate/apply-defaults.sh
           bash -n desktop/mate/install-iptvnator.sh
+          bash -n desktop/mate/install-forja-update-indicator.sh
           bash -n desktop/mate/scripts/validate-packages.sh
+          python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
