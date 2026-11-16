@@ -151,8 +151,10 @@ grep -q '/usr/share/backgrounds/forja-black.svg' "$ROOT/forja-xfce-desktop.xml"
 ! grep -RqiE 'forja-xfce-wallpaper|xfce-wallpaper.svg' "$ROOT"
 
 
-grep -q 'button-icon.*forja' "$ROOT/panel-default.xml"
-grep -q 'show-button-icon.*true' "$ROOT/panel-default.xml"
+grep -q 'button-title.*Forja OS' "$ROOT/panel-default.xml"
+grep -q 'show-button-title.*true' "$ROOT/panel-default.xml"
+grep -q 'show-button-icon.*false' "$ROOT/panel-default.xml"
+! grep -q 'name="button-icon"' "$ROOT/panel-default.xml"
 grep -q 'position-search-alternate.*true' "$ROOT/panel-default.xml"
 grep -q 'position-categories-alternate.*true' "$ROOT/panel-default.xml"
 grep -q 'menu-width.*480' "$ROOT/panel-default.xml"
