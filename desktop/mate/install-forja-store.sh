@@ -8,7 +8,8 @@ fi
 SOURCE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 install -d "$ROOT/usr/bin" "$ROOT/usr/lib/forja" \
   "$ROOT/usr/share/applications" "$ROOT/usr/share/polkit-1/actions" \
-  "$ROOT/usr/share/icons/hicolor/scalable/apps" "$ROOT/etc/polkit-1/rules.d"
+  "$ROOT/usr/share/icons/hicolor/scalable/apps" "$ROOT/etc/polkit-1/rules.d" \
+  "$ROOT/etc/forja"
 install -m 0755 "$SOURCE/forja-store/forja-store.py" "$ROOT/usr/lib/forja/forja-store"
 install -m 0755 "$SOURCE/forja-store/forja-pacman-transaction" "$ROOT/usr/bin/forja-pacman-transaction"
 install -m 0755 "$SOURCE/forja-store/forja-aur-build" "$ROOT/usr/bin/forja-aur-build"
