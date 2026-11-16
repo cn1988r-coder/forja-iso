@@ -13,6 +13,10 @@ fi
 if [[ -s /usr/share/forja/forja-whiskermenu.rc ]]; then
   install -m644 /usr/share/forja/forja-whiskermenu.rc "$FORJA_CONFIG_DIR/xfce4/panel/whiskermenu-1.rc"
 fi
+# Reload the panel so its GTK process reads the new CSS and Whisker settings.
+if command -v xfce4-panel >/dev/null 2>&1; then
+  xfce4-panel -r >/dev/null 2>&1 || true
+fi
 
 # The panel and black background are provisioned before the first login.
 # This login hook applies the Forja menu CSS, desktop theme and decorations.
