@@ -21,7 +21,7 @@ jobs:
     container:
       image: archlinux:base-devel
       options: --privileged
-    timeout-minutes: 120
+    timeout-minutes: 180
     steps:
       - name: Prepare Arch build environment
         shell: bash
@@ -34,26 +34,27 @@ jobs:
       - name: Checkout Forja OS
         uses: actions/checkout@v4
 
-      - name: Build pinned Calamares package from AUR recipe
+      - name: Build pinned Calamares package from reviewed AUR recipe
         shell: bash
         run: |
           set -Eeuo pipefail
           useradd --create-home --shell /bin/bash builder
-          printf '%s\\n' 'builder ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/90-builder
+          printf '%s\n' 'builder ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/90-builder
           chmod 0440 /etc/sudoers.d/90-builder
           build_dir="$RUNNER_TEMP/calamares-build"
           repo_dir="$RUNNER_TEMP/forja-calamares-repo"
           install -d -o builder -g builder "$build_dir" "$repo_dir"
           install -m 0644 build-support/calamares/PKGBUILD "$build_dir/PKGBUILD"
           chown builder:builder "$build_dir/PKGBUILD"
-          runuser -u builder -- makepkg --dir "$build_dir" --syncdeps --noconfirm --cleanbuild
+          cd "$build_dir"
+          runuser -u builder -- makepkg --syncdeps --noconfirm --cleanbuild
           package="$(find "$build_dir" -maxdepth 1 -type f -name 'calamares-*.pkg.tar.zst' -print -quit)"
           test -n "$package"
           install -m 0644 "$package" "$repo_dir/"
           repo-add "$repo_dir/forja-calamares.db.tar.gz" "$repo_dir"/calamares-*.pkg.tar.zst
           echo "FORJA_CALAMARES_REPO=$repo_dir" >> "$GITHUB_ENV"
 
-      - name: Static checks
+      - name: Static checks and Calamares configuration validation
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -76,42 +77,7 @@ jobs:
                   yaml.safe_load(stream)
           print(f"Validated {len(files)} Calamares YAML configuration files")
           PY
-          grep -q '^calamares          python -m py_compile desktop/mate/forja-store/forja-store.py
-          python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
-          python -m py_compile desktop/mate/forja-monitor/forja-monitor.py
-          python -m py_compile bases/archlinux/airootfs/usr/bin/forja-installer
-          grep -q '^Terminal=false$' desktop/mate/forja-store/forja-store.desktop
-          grep -q '^Terminal=false$' bases/archlinux/airootfs/usr/share/applications/forja-installer.desktop
-          ! grep -q '^Exec=.*mate-terminal' bases/archlinux/airootfs/usr/share/applications/forja-installer.desktop
-          store_test_root="$(mktemp -d)"
-          mkdir -p "$store_test_root/root"
-          bash desktop/mate/install-forja-store.sh "$store_test_root/root"
-          test -x "$store_test_root/root/usr/bin/forja-store"
-          test -x "$store_test_root/root/usr/lib/forja/forja-store"
-          test -s "$store_test_root/root/usr/share/applications/forja-store.desktop"
-          test -s "$store_test_root/root/usr/share/icons/hicolor/scalable/apps/forja-store.svg"
-          grep -q '^Terminal=false$' "$store_test_root/root/usr/share/applications/forja-store.desktop"
-          rm -rf "$store_test_root"
-
-      - name: Build bootable ISO with pinned upstream Archiso profile
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          bash bases/archlinux/validate-profile.sh
-          bash bases/archlinux/build-profile.sh "$RUNNER_TEMP/forja-work" "$GITHUB_WORKSPACE/out"
-          find out -maxdepth 1 -type f -name '*.iso' -print -quit | grep -q .
-          sha256sum out/*.iso > out/SHA256SUMS
-
-      - name: Upload ISO and checksums
-        uses: actions/upload-artifact@v4
-        with:
-          name: forja-os-arch-mate-iso-${{ github.run_number }}
-          path: |
-            out/*.iso
-            out/SHA256SUMS
-          if-no-files-found: error
-          retention-days: 14
- bases/archlinux/packages.x86_64
+          grep -qx 'calamares' bases/archlinux/packages.x86_64
           test -s bases/archlinux/airootfs/etc/calamares/settings.conf
           test -s bases/archlinux/airootfs/etc/calamares/modules/unpackfs.conf
           test -s bases/archlinux/airootfs/etc/calamares/modules/bootloader.conf
@@ -132,10 +98,11 @@ jobs:
           grep -q '^Terminal=false$' "$store_test_root/root/usr/share/applications/forja-store.desktop"
           rm -rf "$store_test_root"
 
-      - name: Build bootable ISO with pinned upstream Archiso profile
+      - name: Build bootable ISO with Calamares
         shell: bash
         run: |
           set -Eeuo pipefail
+          test -n "$FORJA_CALAMARES_REPO"
           bash bases/archlinux/validate-profile.sh
           bash bases/archlinux/build-profile.sh "$RUNNER_TEMP/forja-work" "$GITHUB_WORKSPACE/out"
           find out -maxdepth 1 -type f -name '*.iso' -print -quit | grep -q .
@@ -144,7 +111,7 @@ jobs:
       - name: Upload ISO and checksums
         uses: actions/upload-artifact@v4
         with:
-          name: forja-os-arch-mate-iso-${{ github.run_number }}
+          name: forja-os-arch-mate-iso-\${{ github.run_number }}
           path: |
             out/*.iso
             out/SHA256SUMS
