@@ -26,8 +26,11 @@ case "${1:-}" in
     ;;
   search)
     [[ "$#" -eq 2 && -n "$2" ]] || { usage; exit 2; }
-    sync_repo
-    pacman --config "$CONFIG" -Ss "$2" | awk '$1 ~ /^forja\// {print; getline; print}'
+    results="$(pacman --config "$CONFIG" -Ss "$2" 2>&1)" || {
+      sync_repo
+      results="$(pacman --config "$CONFIG" -Ss "$2")"
+    }
+    printf '%s\\n' "$results" | awk '$1 ~ /^forja\\// {print; getline; print}'
     ;;
   updates|check)
     [[ "$#" -eq 1 ]] || { usage; exit 2; }
