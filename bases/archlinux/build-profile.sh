@@ -33,6 +33,17 @@ sed -i \
 cp -a "$ROOT/bases/archlinux/airootfs/." "$PROFILE/airootfs/"
 chmod 0755 "$PROFILE/airootfs/root/customize_airootfs.sh"
 cp "$ROOT/bases/archlinux/pacman.conf" "$PROFILE/pacman.conf"
+if [[ -n "${FORJA_CALAMARES_REPO:-}" ]]; then
+  [[ -f "$FORJA_CALAMARES_REPO/forja-calamares.db" || -f "$FORJA_CALAMARES_REPO/forja-calamares.db.tar.gz" ]] || {
+    echo "Repositório local do Calamares não encontrado: $FORJA_CALAMARES_REPO" >&2
+    exit 1
+  }
+  cat >> "$PROFILE/pacman.conf" <<EOF_REPO
+[forja-calamares]
+SigLevel = Optional TrustAll
+Server = file://$FORJA_CALAMARES_REPO
+EOF_REPO
+fi
 install -d "$PROFILE/airootfs/etc/skel/.config"
 cp -a "$ROOT/desktop/mate/skel/.config/." "$PROFILE/airootfs/etc/skel/.config/"
 install -Dm755 "$ROOT/desktop/mate/apply-defaults.sh" "$PROFILE/airootfs/usr/local/lib/forja/apply-defaults.sh"
