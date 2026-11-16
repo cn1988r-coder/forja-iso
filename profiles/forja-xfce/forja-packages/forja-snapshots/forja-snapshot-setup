@@ -58,7 +58,7 @@ set_config TIMELINE_LIMIT_MONTHLY '"3"'
 set_config TIMELINE_LIMIT_YEARLY '"0"'
 
 if [[ "$ROOT" == "/" ]]; then
-  systemctl enable snapper-timeline.timer snapper-cleanup.timer
+  systemctl enable --now snapper-timeline.timer snapper-cleanup.timer
 else
   systemctl --root="$ROOT" enable snapper-timeline.timer snapper-cleanup.timer
 fi
@@ -71,7 +71,7 @@ grub_service="$ROOT/usr/lib/systemd/system/grub-btrfsd.service"
 [[ -s "$grub_service" ]] || grub_service="$ROOT/lib/systemd/system/grub-btrfsd.service"
 [[ -s "$grub_service" ]] || die "grub-btrfsd.service não foi encontrado no sistema de destino."
 if [[ "$ROOT" == "/" ]]; then
-  systemctl enable grub-btrfsd.service
+  systemctl enable --now grub-btrfsd.service
 else
   systemctl --root="$ROOT" enable grub-btrfsd.service
 fi
