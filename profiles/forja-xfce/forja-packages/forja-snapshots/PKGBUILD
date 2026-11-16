@@ -1,17 +1,20 @@
 pkgname=forja-snapshots
 pkgver=0.1.0
-pkgrel=1
+pkgrel=2
 pkgdesc="Snapshots automaticos Btrfs e integracao GRUB do Forja OS"
 arch=('any')
 url="https://github.com/cn1988r-coder/forja-iso"
 license=('GPL-3.0-or-later')
 depends=('bash' 'btrfs-progs' 'snapper' 'grub' 'grub-btrfs')
-source=('forja-snapshot-setup' 'forja-pacman-snapshot' 'forja-snapshot-pre.hook' 'forja-snapshot-post.hook')
-sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP')
+source=('forja-snapshot-setup' 'forja-pacman-snapshot' 'forja-snapshot-pre.hook' 'forja-snapshot-post.hook' 'forja-snapshot-setup.service')
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
 
 package() {
   install -Dm755 "$srcdir/forja-snapshot-setup" "$pkgdir/usr/bin/forja-snapshot-setup"
   install -Dm755 "$srcdir/forja-pacman-snapshot" "$pkgdir/usr/lib/forja-snapshots/forja-pacman-snapshot"
   install -Dm644 "$srcdir/forja-snapshot-pre.hook" "$pkgdir/usr/share/libalpm/hooks/forja-snapshot-pre.hook"
   install -Dm644 "$srcdir/forja-snapshot-post.hook" "$pkgdir/usr/share/libalpm/hooks/forja-snapshot-post.hook"
+  install -Dm644 "$srcdir/forja-snapshot-setup.service" "$pkgdir/usr/lib/systemd/system/forja-snapshot-setup.service"
+  install -d "$pkgdir/etc/systemd/system/multi-user.target.wants"
+  ln -s /usr/lib/systemd/system/forja-snapshot-setup.service "$pkgdir/etc/systemd/system/multi-user.target.wants/forja-snapshot-setup.service"
 }
