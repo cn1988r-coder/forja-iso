@@ -18,6 +18,9 @@ mate-power-manager
 mate-screensaver
 mate-terminal
 
+# dconf system database for Forja OS desktop defaults
+dconf
+
 # Useful basic applications, not the full mate-extra collection
 atril
 engrampa
