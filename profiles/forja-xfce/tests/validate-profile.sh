@@ -28,7 +28,7 @@ duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$PACKAGES" | awk '{print $1}' | sor
 for package in timeshift inotify-tools gtk3 python-gobject base xorg-server arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils syslinux dracut eos-dracut linux xfce4 lightdm firefox papirus-icon-theme bibata-cursor-theme reflector curl; do
   grep -Fxq "$package" "$PACKAGES" || { echo "FALHA: pacote obrigatório ausente: $package" >&2; exit 1; }
 done
-if grep -Eiq '(^|[[:space:]])snapper([[:space:]]|$)|snapper-' "$PACKAGES" "$SNAPSHOTS" "$RECOVERY"; then
+if grep -R -Eiq '(^|[[:space:]])snapper([[:space:]]|$)|snapper-' "$PACKAGES" "$SNAPSHOTS" "$RECOVERY"; then
   echo "FALHA: dependencia/referencia ativa ao Snapper encontrada." >&2; exit 1
 fi
 grep -Fq 'value="dockbarx"' "$PANEL"
