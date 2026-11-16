@@ -42,6 +42,9 @@ def main(argv=None):
             print("Nome de pacote Forja inválido.", file=sys.stderr)
             return 2
         config = "/etc/forja/pacman-install.conf"
+        synced = call(["/usr/bin/pacman", "--config", config, "-Sy", "--noconfirm"])
+        if synced != 0:
+            return synced
         return call(["/usr/bin/pacman", "--config", config, "-S",
                      "--needed", "--noconfirm", "forja/" + args[0]])
 
