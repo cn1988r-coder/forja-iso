@@ -49,11 +49,18 @@ def aur_info(names):
     query = urllib.parse.urlencode([("arg[]", name) for name in names])
     request = urllib.request.Request("https://aur.archlinux.org/rpc/v5/info?" + query,
                                     headers={"User-Agent": "ForjaStore/1.0"})
-    with urllib.request.urlopen(request, timeout=25) as response:
-        data = json.loads(response.read().decode("utf-8"))
-    if data.get("type") != "multiinfo":
-        raise RuntimeError("Resposta inesperada ao consultar versões do AUR.")
-    return data.get("results", [])
+    results = []
+    for start in range(0, len(names), 100):
+        chunk = names[start:start + 100]
+        query = urllib.parse.urlencode([("arg[]", name) for name in chunk])
+        request = urllib.request.Request("https://aur.archlinux.org/rpc/v5/info?" + query,
+                                        headers={"User-Agent": "ForjaStore/1.0"})
+        with urllib.request.urlopen(request, timeout=25) as response:
+            data = json.loads(response.read().decode("utf-8"))
+        if data.get("type") != "multiinfo":
+            raise RuntimeError("Resposta inesperada ao consultar versões do AUR.")
+        results.extend(data.get("results", []))
+    return results
 
 class Store(Gtk.Application):
     def __init__(self):
