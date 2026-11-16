@@ -12,7 +12,7 @@ for package in \
   adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders \
   bibata-cursor-theme noto-fonts ttf-jetbrains-mono gtk3 gtk4 libadwaita libnotify libpamac-flatpak-plugin \
   gsettings-desktop-schemas appstream archlinux-appstream-data flatpak pamac-cli pamac-gtk libpamac libpamac-flatpak-plugin base-devel git \
-  xfce4-panel xfce4-docklike-plugin xfce4-whiskermenu-plugin \
+  xfce4-panel dockbarx xfce4-dockbarx-plugin xfce4-whiskermenu-plugin \
   xfce4-pulseaudio-plugin xfce4-power-manager xfce4-notifyd plymouth \
   xfce4-clipman-plugin networkmanager network-manager-applet bluez bluez-utils blueman; do
   grep -Fxq "$package" "$ROOT/packages.manjaro" || {
@@ -30,7 +30,7 @@ grep -q 'set_prop xfwm4 /general/use_compositing bool true' "$ROOT/apply-forja-l
 # Panel XML must follow the native Xfconf schema: panels array contains panel-1.
 grep -q '<property name="panels" type="array">' "$ROOT/panel-default.xml"
 grep -q '<property name="panel-1" type="empty">' "$ROOT/panel-default.xml"
-grep -q 'value="docklike"' "$ROOT/panel-default.xml"
+grep -q 'value="dockbarx"' "$ROOT/panel-default.xml"
 ! grep -q 'value="tasklist"' "$ROOT/panel-default.xml"
 ! grep -q 'panel-2' "$ROOT/panel-default.xml"
 grep -q 'value="whiskermenu"' "$ROOT/panel-default.xml"
@@ -60,7 +60,7 @@ panels = root.find("./property[@name='panels']/property[@name='panel-1']")
 assert plugins is not None and panels is not None
 expected = {
     "1": "whiskermenu",
-    "2": "docklike",
+    "2": "dockbarx",
     "3": "xfce4-clipman-plugin",
     "4": "showdesktop",
     "5": "separator",
@@ -87,49 +87,12 @@ grep -q 'name="digital-format" type="string" value="%H:%M  ·  %d %b"' "$ROOT/pa
 grep -q 'name="tooltip-format" type="string" value="%A, %d de %B de %Y"' "$ROOT/panel-default.xml"
 ! grep -q 'value="tasklist"' "$ROOT/panel-default.xml"
 ! grep -q 'value="notification-plugin".*value="clock"' "$ROOT/panel-default.xml"
-grep -q 'pinned=thunar.desktop;firefox.desktop;' "$ROOT/docklike.rc"
-
-# Docklike must use subtle grayscale dots, without previews or window counters.
-python3 - "$ROOT/docklike.rc" "$ROOT/packages.manjaro" "$ROOT/panel-default.xml" <<'PY'
-import sys
-from pathlib import Path
-import xml.etree.ElementTree as ET
-
-dock_path, packages_path, panel_path = map(Path, sys.argv[1:])
-settings = {}
-for raw in dock_path.read_text().splitlines():
-    line = raw.strip()
-    if not line or line.startswith("#") or line.startswith("["):
-        continue
-    key, sep, value = line.partition("=")
-    assert sep, f"Configuração Docklike inválida: {raw}"
-    settings[key.strip()] = value.strip()
-
-expected = {
-    "showPreviews": "false",
-    "pinned": "thunar.desktop;firefox.desktop;",
-    "indicatorStyle": "1",
-    "inactiveIndicatorStyle": "1",
-    "indicatorOrientation": "1",
-    "indicatorColorFromTheme": "false",
-    "indicatorColor": "rgb(232,232,232)",
-    "inactiveColor": "rgb(145,145,145)",
-    "showWindowCount": "false",
-}
-for key, value in expected.items():
-    assert settings.get(key) == value, f"Docklike: {key} esperado {value!r}, recebido {settings.get(key)!r}"
-
-assert "xfce4-docklike-plugin" in packages_path.read_text().splitlines(), "Pacote Docklike ausente do perfil Forja"
-xml = ET.parse(panel_path).getroot()
-plugins = xml.find("./property[@name='plugins']")
-panel = xml.find("./property[@name='panels']/property[@name='panel-1']")
-assert plugins is not None and panel is not None
-dock = plugins.find("./property[@name='plugin-2']")
-assert dock is not None and dock.attrib.get("value") == "docklike", "Docklike não está no segundo espaço do painel"
-plugin_ids = [node.attrib["value"] for node in panel.findall("./property[@name='plugin-ids']/value")]
-assert plugin_ids[1] == "2", f"Docklike não está na segunda posição: {plugin_ids}"
-print("Docklike: pacote, posição no painel, bolinhas ativas/inativas em cinza, prévias e contagem validados.")
-PY
+# DockbarX replaces Docklike and comes from the signed BigCommunity repository.
+grep -q '>community-extra dockbarx' "$ROOT/packages.manjaro"
+grep -q '>community-extra xfce4-dockbarx-plugin' "$ROOT/packages.manjaro"
+grep -q '\[community-extra\]' "$REPO_ROOT/build-manjaro.sh"
+grep -q 'https://repo.communitybig.org/\$repo/\$arch' "$REPO_ROOT/build-manjaro.sh"
+! grep -Rqi 'docklike' "$ROOT"
 
 # Plymouth: tema Forja, hook mkinitcpio e parâmetros silenciosos do GRUB.
 grep -q '^custom_boot_args=(quiet splash loglevel=3 rd.udev.log_priority=3 vt.global_cursor_default=0 systemd.show_status=false rd.systemd.show_status=false)$' "$ROOT/profile.conf"
@@ -160,7 +123,7 @@ grep -q 'rm -rf "$TARGET/live-overlay/etc/skel/.config/xfce4"' "$REPO_ROOT/build
 grep -q 'etc/xdg/xfce4/panel/default.xml' "$ROOT/install-branding.sh"
 grep -q 'etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml' "$ROOT/install-branding.sh"
 grep -q 'etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml' "$ROOT/install-branding.sh"
-grep -q 'etc/skel/.config/xfce4/panel/docklike.rc' "$ROOT/install-branding.sh"
+grep -q 'etc/skel/.config/xfce4/panel/dockbarx.rc' "$ROOT/install-branding.sh"
 grep -q 'etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml' "$ROOT/install-branding.sh"
 grep -q 'forja-black-wallpaper.svg' "$ROOT/install-branding.sh"
 for stock_wallpaper in manjaro-wallpapers-18.0 wallpapers-2018 wallpapers-juhraya illyria-wallpaper manjaro-xfce-settings manjaro-xfce-minimal-settings; do
@@ -243,4 +206,4 @@ grep -q 'TARGET/rootfs/etc/calamares/modules/mount.conf' "$REPO_ROOT/build-manja
 grep -q '^defaultFileSystemType: "btrfs"$' "$ROOT/calamares/partition.conf"
 grep -q 'availableFileSystemTypes: \["btrfs", "ext4", "f2fs"\]' "$ROOT/calamares/partition.conf"
 grep -q 'compress=zstd:1' "$ROOT/calamares/mount.conf"
-echo "Forja XFCE: aparência, painel, Docklike, indicador e interface Pamac da Forja validados."
+echo "Forja XFCE: aparência, painel DockbarX, indicador e interface Pamac da Forja validados."
