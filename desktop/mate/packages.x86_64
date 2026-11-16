@@ -32,6 +32,10 @@ gnome-calculator
 # This does not install the XFCE desktop, panel, session, or file manager.
 xfce4-screenshooter
 
+# Forja Luz Noturna prototype (GTK3 UI + direct XRandR gamma backend)
+python-gobject
+xorg-xrandr
+
 # X11 session and login
 xorg-server
 mesa
