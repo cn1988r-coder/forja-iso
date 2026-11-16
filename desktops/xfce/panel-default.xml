@@ -36,8 +36,8 @@
       <property name="position-search-alternate" type="bool" value="true"/>
       <property name="position-categories-alternate" type="bool" value="true"/>
       <property name="position-commands-alternate" type="bool" value="true"/>
-      <property name="menu-width" type="int" value="480"/>
-      <property name="menu-height" type="int" value="500"/>
+      <property name="menu-width" type="int" value="600"/>
+      <property name="menu-height" type="int" value="560"/>
       <property name="menu-opacity" type="int" value="100"/>
       <property name="display-recent-default" type="bool" value="false"/>
       <property name="load-hierarchy" type="bool" value="true"/>
