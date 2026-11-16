@@ -58,6 +58,8 @@ test -s "$ROOT/boot/grub/grub.cfg"
 test -L "$ROOT/etc/systemd/system/timers.target.wants/snapper-timeline.timer"
 test -L "$ROOT/etc/systemd/system/timers.target.wants/snapper-cleanup.timer"
 test -L "$ROOT/etc/systemd/system/multi-user.target.wants/grub-btrfsd.service"
+list="$(snapper -c root --root "$ROOT" list --columns number,description)"
+grep -q "Forja: instalação inicial" <<<"$list"
 
 printf 'before snapshot\n' > "$ROOT/forja-snapshot-test.txt"
 snapper -c root --root "$ROOT" create --description "Forja CI snapshot"
