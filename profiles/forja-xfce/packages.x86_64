@@ -35,6 +35,7 @@ pavucontrol
 udisks2
 udisks2-btrfs
 btrfs-progs
+snapper
 dosfstools
 e2fsprogs
 xfsprogs
@@ -44,6 +45,8 @@ efibootmgr
 grub
 os-prober
 xorg-server
+gtk3
+python-gobject
 xfce4
 xfce4-goodies
 xfce4-whiskermenu-plugin
