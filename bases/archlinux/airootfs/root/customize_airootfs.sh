@@ -43,6 +43,9 @@ EndSection
 EOF
 systemctl enable NetworkManager.service bluetooth.service lightdm.service
 
+# Compile system-wide Forja MATE theme defaults before the live user session starts.
+dconf update
+
 # Install the Forja splash after Plymouth and librsvg have been installed.
 bash /usr/local/lib/forja/plymouth/install-theme.sh / /usr/share/forja/branding/forja-flame.svg
 mkinitcpio -P
