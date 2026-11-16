@@ -15,6 +15,7 @@ Usar o MATE upstream dos repositórios oficiais do Arch/EndeavourOS como base fu
 - PipeWire/WirePlumber para áudio.
 - Applets MATE essenciais, incluindo relógio/calendário.
 - Calculadora GNOME (`gnome-calculator`) como aplicativo independente, sem instalar o ambiente GNOME.
+- Módulo experimental Forja Luz Noturna: interface GTK3 própria e backend XRandR direto, sem instalar GNOME Shell ou Mutter.
 - Tema Materia-dark e ícones Papirus-Dark como ponto de partida visual.
 - Configuração GTK para tema escuro, fonte legível e animações GTK desligadas.
 - Configurações de baixo consumo: compositor do Marco desligado e efeitos de fundo desnecessários desativados.
@@ -27,6 +28,13 @@ Usar o MATE upstream dos repositórios oficiais do Arch/EndeavourOS como base fu
 - `apply-defaults.sh`: aplica configurações MATE seguras ao usuário da sessão, verificando primeiro se cada schema/chave existe.
 - `services.enabled`: serviços que o perfil de imagem deverá habilitar.
 - `scripts/validate-packages.sh`: verifica nomes de pacotes com o pacman.
+- `forja-luz-noturna/`: protótipo da interface e backend de temperatura de cor; a entrada de autostart está em `skel/.config/autostart/`.
+
+## Forja Luz Noturna (experimental)
+
+O GNOME Night Light não pode ser simplesmente transplantado para o MATE: seu caminho de aplicação de cores está integrado ao Mutter, enquanto a sessão Forja usa Marco. Para não instalar Mutter nem o desktop GNOME, foi criado um protótipo próprio GTK3 que controla a rampa de gama via XRandR. Ele oferece controle manual, temperatura ajustável, faixa horária local e ícone de bandeja. Os pacotes `python-gobject` e `xorg-xrandr` foram acrescentados como dependências.
+
+**Estado:** código inicial registrado, ainda sem teste de execução. O backend depende do suporte do driver gráfico a alterações de gamma por XRandR. O protótipo não é o código original do GNOME e não deve ser anunciado como funcional até passar por teste real. A integração do instalador/construtor para copiar o executável para `/usr/bin/forja-luz-noturna` também precisa ser concluída; a entrada de autostart já está preparada em `skel`.
 
 ## Dependências e limpeza
 
