@@ -14,16 +14,11 @@
       <property name="nrows" type="uint" value="1"/>
       <property name="autohide-behavior" type="uint" value="0"/>
       <property name="plugin-ids" type="array">
-        <value type="int" value="1"/>
-        <value type="int" value="2"/>
-        <value type="int" value="3"/>
-        <value type="int" value="4"/>
-        <value type="int" value="5"/>
-        <value type="int" value="6"/>
-        <value type="int" value="7"/>
-        <value type="int" value="8"/>
-        <value type="int" value="9"/>
-        <value type="int" value="10"/>
+        <value type="int" value="1"/><value type="int" value="2"/>
+        <value type="int" value="3"/><value type="int" value="4"/>
+        <value type="int" value="5"/><value type="int" value="6"/>
+        <value type="int" value="7"/><value type="int" value="8"/>
+        <value type="int" value="9"/><value type="int" value="10"/>
       </property>
     </property>
   </property>
@@ -45,7 +40,7 @@
       <property name="launcher-show-description" type="bool" value="false"/>
       <property name="launcher-show-tooltip" type="bool" value="true"/>
     </property>
-    <property name="plugin-2" type="string" value="docklike"/>
+    <property name="plugin-2" type="string" value="dockbarx"/>
     <property name="plugin-3" type="string" value="xfce4-clipman-plugin"/>
     <property name="plugin-4" type="string" value="showdesktop"/>
     <property name="plugin-5" type="string" value="separator">
@@ -61,11 +56,7 @@
       <property name="icon-size" type="int" value="0"/>
       <property name="hide-new-items" type="bool" value="false"/>
     </property>
-    <property name="plugin-7" type="string" value="pulseaudio">
-      <property name="enable-keyboard-shortcuts" type="bool" value="true"/>
-      <property name="enable-mpris" type="bool" value="true"/>
-      <property name="show-notifications" type="bool" value="true"/>
-    </property>
+    <property name="plugin-7" type="string" value="pulseaudio"/>
     <property name="plugin-8" type="string" value="power-manager-plugin"/>
     <property name="plugin-9" type="string" value="notification-plugin"/>
     <property name="plugin-10" type="string" value="clock">
