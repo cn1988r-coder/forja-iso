@@ -1,6 +1,6 @@
 pkgname=forja-store
 pkgver=0.3.0
-pkgrel=1
+pkgrel=2
 pkgdesc="Central gráfica de aplicativos da Forja OS para Arch Linux"
 arch=('any')
 url="https://github.com/cn1988r-coder/forja-iso"
