@@ -1,16 +1,6 @@
 name: Build Forja OS Arch Linux MATE ISO
 
 on:
-  push:
-    branches:
-      - feature/forja-arch-mate
-      - fix/forja-store-launcher-indicator
-    paths:
-      - "bases/archlinux/**"
-      - "desktop/mate/**"
-      - "build-support/calamares/**"
-      - "build-support/brisk-menu/**"
-      - ".github/workflows/build-forja-arch.yml"
   workflow_dispatch:
 
 permissions:
