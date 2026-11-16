@@ -1,0 +1,12 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Type = Package
+Target = *
+
+[Action]
+Description = Criando snapshot Btrfs antes da transacao Pacman...
+When = PreTransaction
+Exec = /usr/lib/forja-snapshots/forja-pacman-snapshot pre
+AbortOnFail
