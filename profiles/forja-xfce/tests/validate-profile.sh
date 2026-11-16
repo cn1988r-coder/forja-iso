@@ -88,4 +88,4 @@ grep -Fq 'não instalará o sistema pelo Calamares' "$PROFILE/README.md"
 grep -Fq "cn1988r-coder/forja-updates" "$PROFILE/airootfs/usr/local/bin/forja-update"
 grep -Fq "forja-update --rollback" "$PROFILE/airootfs/usr/local/bin/forja-update"
 if grep -Eq "forja-updates.*(pacman.conf|Server =)" "$PROFILE/airootfs/usr/local/bin/forja-update"; then echo "FALHA: Forja Updates não pode ser configurado como repositório pacman." >&2; exit 1; fi
-echo "Validação estática do perfil Forja XFCE/EndeavourOS concluída (DockbarX, Recovery e Forja Updates; sem ISO)."
+echo "Validação estática do perfil Forja XFCE/EndeavourOS concluída (DockbarX, Recovery, Snapshots Btrfs e Forja Updates; sem ISO)."
