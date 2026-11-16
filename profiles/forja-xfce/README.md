@@ -1,39 +1,43 @@
-# Forja OS XFCE on EndeavourOS
+# Perfil Forja OS XFCE para EndeavourOS
 
-This is the first profile layer for building Forja XFCE on top of the official
-EndeavourOS modified Archiso project. It does not replace or modify the Manjaro
-builder or the upstream EndeavourOS checkout.
+Este é o perfil ativo da edição XFCE da Forja OS. A base oficial é EndeavourOS, derivada do Arch Linux, e o framework de imagem é o projeto oficial EndeavourOS-ISO, baseado em Archiso.
 
-## Current scope
+O perfil é mantido separado do checkout upstream. A preparação copia os arquivos necessários para uma pasta de trabalho própria e não modifica os arquivos originais do EndeavourOS.
 
-- EndeavourOS/Archiso profile definition and boot modes.
-- Initial Arch + EndeavourOS package set for XFCE, LightDM and Forja visual assets.
-- Preparation script that creates a separate `forja-xfce-profile` directory from
-  an existing EndeavourOS-ISO checkout.
-- Live-session integration hook for the Forja XFCE defaults.
+## Escopo atual
 
-## Preparation
+- Perfil Archiso com modos de inicialização BIOS e UEFI alinhados ao framework EndeavourOS.
+- Conjunto inicial de pacotes Arch/EndeavourOS para XFCE, LightDM e identidade visual Forja.
+- Integração inicial da sessão Live com as configurações XFCE da Forja.
+- Preparação de pacotes locais necessários ao ambiente Live.
+- Atualizador próprio em estágio inicial, ainda bloqueado até a implantação de assinatura confiável.
 
-1. Clone the official EndeavourOS-ISO repository.
-2. Run `prepare-forja.sh` from this directory, setting
-   `ENDEAVOUROS_ISO_DIR` to the upstream checkout if it is not the current directory.
-3. Enter `forja-xfce-profile` and run `./prepare.sh` to build the live-user skeleton and the two Shelly packages.\n4. Review the generated profile and verify the required Calamares package before any ISO build.
+## Preparação do perfil
 
-The profile wraps the upstream `run_before_squashfs.sh`: it runs the original EndeavourOS
-live-user preparation first, then executes the Forja XFCE live-session hook in the
-prepared airootfs before squashfs creation.
+1. Clone o repositório oficial EndeavourOS-ISO.
+2. Execute este script apontando para o checkout upstream:
+   `ENDEAVOUROS_ISO_DIR=/caminho/EndeavourOS-ISO ./prepare-forja.sh`
+3. Entre no diretório `forja-xfce-profile` criado ao lado do checkout upstream.
+4. Revise os arquivos copiados e execute `./prepare.sh` em um ambiente EndeavourOS/Arch compatível para preparar os pacotes locais.
 
-## Important incomplete items
+A preparação não compila uma ISO. O checkout original do EndeavourOS é preservado.
 
-- The upstream EndeavourOS live-session currently has KDE-oriented assets and
-  package assumptions. They still need to be removed or replaced in the Forja profile.
-- The Calamares package is not currently provided by the upstream package list;
-  use a compatible EndeavourOS Calamares build and test its XFCE branding/configuration.
-- Shelly and other Forja-specific applications need verified Arch/EndeavourOS package
-  builds before being added to the image.
-- Plymouth/dracut integration is not included until the dracut configuration and
-  boot behavior can be validated.
-- Package availability and dependency resolution must be checked on an EndeavourOS
-  build host before any ISO build.
+## Pendências técnicas antes da primeira compilação
 
-No ISO build is started by these scripts.
+- Auditar e adaptar os pressupostos KDE do ambiente Live upstream para a sessão XFCE.
+- Confirmar a disponibilidade e a compatibilidade de todos os pacotes nos repositórios Arch e EndeavourOS.
+- Integrar uma versão compatível do Calamares, incluindo branding, configuração de instalação e suporte Btrfs.
+- Validar o fluxo de inicialização e a geração do initramfs com dracut.
+- Definir e testar a integração do Plymouth com dracut e com os modos de boot suportados.
+- Revisar serviços, usuário Live, rede, áudio, Bluetooth, Flatpak e permissões.
+- Implementar e validar a chave pública e o keyring de assinatura dos pacotes próprios da Forja.
+- Criar uma validação de dependências em ambiente limpo, além das verificações estáticas atuais.
+- Testar inicialização Live e instalação completa em máquina virtual antes de qualquer divulgação.
+
+## Separação das edições
+
+Este perfil é exclusivamente XFCE. i3 poderá receber um perfil próprio no futuro. MATE e Window Maker continuam em avaliação e não devem ser adicionados a este perfil antes de uma decisão explícita.
+
+A base Manjaro permanece apenas como código legado preservado no repositório. Nenhuma ferramenta ou pacote exclusivo do Manjaro deve ser usado nesta edição EndeavourOS.
+
+**Nenhuma ISO é compilada pelos scripts de preparação descritos aqui.**
