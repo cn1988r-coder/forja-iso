@@ -62,6 +62,8 @@ grep -Fq 'cp -a "$UPSTREAM_ROOT/syslinux" "$TARGET/"' "$PROFILE/prepare-forja.sh
 grep -Fq "forja-recovery-*.pkg.tar.zst" "$PROFILE/prepare.sh"
 grep -Fq "forja-snapshots-*.pkg.tar.zst" "$PROFILE/prepare.sh"
 grep -Fq "grub-btrfs" "$PROFILE/prepare.sh"
+grep -Fq "shelly-bin-[0-9]*.pkg.tar.zst" "$PROFILE/prepare.sh"
+grep -Fq "shelly-flatpak-backend-bin-[0-9]*.pkg.tar.zst" "$PROFILE/prepare.sh"
 grep -Fq "forja-snapshot-setup.service" "$SNAPSHOTS/PKGBUILD"
 grep -Fq "snapper-timeline.timer" "$SNAPSHOTS/forja-snapshot-setup"
 grep -Fq "grub-btrfsd.service" "$SNAPSHOTS/forja-snapshot-setup"
