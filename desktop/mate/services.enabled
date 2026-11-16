@@ -1,0 +1,4 @@
+# Services to enable in the image profile
+lightdm.service
+NetworkManager.service
+bluetooth.service
