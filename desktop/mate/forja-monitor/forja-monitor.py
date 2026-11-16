@@ -89,7 +89,7 @@ def temp_reading():
             continue
         base = path.rsplit("/", 1)[0]
         name = read_text(os.path.join(base, "name")).strip() or "Sensor"
-        label_path = path[:-6] + "label"
+        label_path = path[:-6] + "_label"
         label = read_text(label_path).strip()
         candidates.append((f"{name} {label}".strip(), value))
     if not candidates:
