@@ -38,6 +38,8 @@ jobs:
           set -Eeuo pipefail
           bash -n bases/archlinux/build-profile.sh
           bash -n bases/archlinux/airootfs/root/customize_airootfs.sh
+          bash -n desktop/mate/install-target.sh
+          python -m json.tool bases/archlinux/airootfs/etc/archinstall/forja-mate.json >/dev/null
           bash -n desktop/mate/apply-defaults.sh
           bash -n desktop/mate/forja-repo/forja-repo
           bash -n desktop/mate/install-forja-store.sh
