@@ -20,4 +20,5 @@ build() {
 }
 package() {
   DESTDIR="$pkgdir" cmake --install build
+  rm -f "$pkgdir/usr/share/applications/calamares.desktop"
 }
