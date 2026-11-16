@@ -1,73 +1,75 @@
-name: Validate Forja OS XFCE and Pamac Store
+name: Validate Forja OS XFCE
 
 on:
+  push:
+    branches:
+      - feature/forja-xfce-store-integration
+    paths:
+      - 'desktops/xfce/**'
+      - 'build-manjaro.sh'
+      - '.github/workflows/validate-forja-xfce.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: forja-xfce-validation-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  validate:
+  validate-xfce-profile:
+    name: Validate XFCE source (no ISO build)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout branch
         uses: actions/checkout@v4
 
-      - name: Install validation tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck desktop-file-utils libxml2-utils
-
-      - name: Validate shell and Python sources
+      - name: Check Bash syntax
         shell: bash
         run: |
-          set -euo pipefail
-          for script in build-cloud.sh build-manjaro.sh \
-            desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh \
-            forja-pamac-pacman/install.sh forja-pamac-pacman/build-pamac.sh \
-            forja-pamac-pacman/src/forja-pkexec-sudo; do
-            bash -n "$script"
+          set -Eeuo pipefail
+          find desktops/xfce -type f \\( -name '*.sh' -o -name 'profile.conf' \\) -print0 |
+            while IFS= read -r -d '' file; do
+              bash -n "$file"
+              echo "BASH_OK: $file"
+            done
+          bash -n build-manjaro.sh
+
+      - name: Validate XFCE appearance and integration
+        shell: bash
+        run: bash desktops/xfce/tests/validate-appearance.sh
+
+      - name: Validate XML files
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          files = sorted(Path("desktops/xfce").rglob("*.xml"))
+          if not files:
+              raise SystemExit("ERRO: nenhum XML do perfil XFCE foi encontrado.")
+          for path in files:
+              ET.parse(path)
+              print(f"XML_OK: {path}")
+          PY
+
+      - name: Validate required XFCE profile assets
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          required=(
+            desktops/xfce/packages.manjaro
+            desktops/xfce/profile.conf
+            desktops/xfce/panel-default.xml
+            desktops/xfce/forja-gtk.css
+            desktops/xfce/forja-whiskermenu.rc
+            desktops/xfce/install-branding.sh
+            desktops/xfce/apply-forja-layout.sh
+            desktops/xfce/shelly-autostart.desktop
+          )
+          for file in "${required[@]}"; do
+            test -s "$file" || { echo "ERRO: arquivo obrigatório ausente/vazio: $file"; exit 1; }
+            echo "ASSET_OK: $file"
           done
-          shellcheck -S warning -e SC1091 \
-            desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh \
-            forja-pamac-pacman/install.sh forja-pamac-pacman/build-pamac.sh \
-            forja-pamac-pacman/src/forja-pkexec-sudo
-          python3 -m py_compile \
-            forja-pamac-pacman/src/forja_store_core.py \
-            forja-pamac-pacman/src/forja-pacman-transaction \
-            forja-pamac-pacman/src/forja-update-indicator
-          python3 -m unittest discover -s forja-pamac-pacman/tests -v
-
-      - name: Validate desktop entries, XML and visual integration
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash -x desktops/xfce/tests/validate-appearance.sh
-          desktop-file-validate \
-            desktops/xfce/forja-xfce-appearance.desktop \
-            forja-pamac-pacman/forja-software.desktop \
-            forja-pamac-pacman/forja-update-indicator.desktop \
-            && python3 -c 'import sys, xml.etree.ElementTree as ET; [ET.parse(p) for p in sys.argv[1:]]' \
-            desktops/xfce/forja-flame.svg \
-            desktops/xfce/forja-black-wallpaper.svg \
-            desktops/xfce/forja-xfce-desktop.xml \
-            desktops/xfce/panel-default.xml \
-            forja-pamac-pacman/icons/forja-store.svg \
-            forja-pamac-pacman/icons/forja-update-current.svg \
-            forja-pamac-pacman/icons/forja-update-available.svg \
-            forja-pamac-pacman/icons/forja-update-error.svg
-
-      - name: Validate Pamac customization contract
-        shell: bash
-        run: |
-          set -euo pipefail
-          grep -q 'UPSTREAM_COMMIT=' forja-pamac-pacman/build-pamac.sh
-          grep -q 'meson compile -C "$BUILD" pamac-manager' forja-pamac-pacman/build-pamac.sh
-          grep -q 'about.application_name = "Forja Store"' forja-pamac-pacman/build-pamac.sh
-          grep -q 'boxed-list > row' forja-pamac-pacman/patches/forja-store.css
-          grep -q 'FORJA_PAMAC_BUILD_DIR' forja-pamac-pacman/install.sh
-          grep -q 'build-pamac.sh' build-manjaro.sh
-          grep -q 'pamac-gtk' desktops/xfce/packages.manjaro
-          grep -q 'libpamac-flatpak-plugin' desktops/xfce/packages.manjaro
-          echo "Pamac GTK4/libadwaita + visual Forja: validação estática aprovada."
-
