@@ -8,7 +8,7 @@ PACKAGE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9@._+:-]*$")
 FLATPAK_ID = re.compile(r"^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)+$")
 ACTIONS = {
     "install", "remove", "upgrade", "flatpak-install-system",
-    "flatpak-remove-system", "flatpak-update-system",
+    "flatpak-remove-system", "flatpak-update-system", "forja-install",
 }
 
 
@@ -30,6 +30,14 @@ def main(argv=None):
         if action == "install":
             return call(["/usr/bin/pacman", "-S", "--needed", "--noconfirm", "--", *args])
         return call(["/usr/bin/pacman", "-Rns", "--noconfirm", "--", *args])
+
+    if action == "forja-install":
+        if len(args) != 1 or not PACKAGE.fullmatch(args[0]):
+            print("Nome de pacote Forja inválido.", file=sys.stderr)
+            return 2
+        config = "/etc/forja/pacman-install.conf"
+        return call(["/usr/bin/pacman", "--config", config, "-S",
+                     "--needed", "--noconfirm", "forja/" + args[0]])
 
     if action == "upgrade":
         if args:
