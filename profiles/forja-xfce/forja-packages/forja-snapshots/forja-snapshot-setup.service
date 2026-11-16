@@ -1,5 +1,5 @@
 [Unit]
-Description=Configura snapshots automaticos do Forja OS
+Description=Configura snapshots Btrfs do Forja OS com Timeshift
 After=local-fs.target
 ConditionPathExists=/usr/bin/forja-snapshot-setup
 
