@@ -39,7 +39,6 @@ pacman -S --needed --noconfirm "${BUILD_TOOLS[@]}"
 
 # Pacotes locais da Forja: Shelly binária e integração Plymouth do rootfs.
 SHELLY_BUILD_DIR="$WORK/shelly-build"
-FORJA_PLYMOUTH_BUILD_DIR="$WORK/forja-plymouth-build"
 SHELLY_REPO_DIR="$WORK/shelly-repo"
 FORJA_LOCAL_REPO_MARKER="# FORJA-LOCAL-REPO"
 cleanup_shelly_repo() {
@@ -48,16 +47,11 @@ cleanup_shelly_repo() {
   fi
 }
 trap cleanup_shelly_repo EXIT
-rm -rf "$SHELLY_BUILD_DIR" "$FORJA_PLYMOUTH_BUILD_DIR" "$SHELLY_REPO_DIR"
-mkdir -p "$SHELLY_BUILD_DIR" "$FORJA_PLYMOUTH_BUILD_DIR" "$SHELLY_REPO_DIR"
+rm -rf "$SHELLY_BUILD_DIR" "$SHELLY_REPO_DIR"
+mkdir -p "$SHELLY_BUILD_DIR" "$SHELLY_REPO_DIR"
 install -m 0644 /forja-ci/desktops/xfce/shelly/PKGBUILD-bin "$SHELLY_BUILD_DIR/PKGBUILD"
 for source_file in shellybuild.conf com.shellyorg.shelly.desktop com.shellyorg.shelly-notifications.desktop shelly-flatpak-integrate; do
   install -m 0644 "/forja-ci/desktops/xfce/shelly/$source_file" "$SHELLY_BUILD_DIR/$source_file"
-done
-# Pacote próprio: hook e tema precisam entrar no rootfs antes dos hooks mkinitcpio.
-install -m 0644 /forja-ci/desktops/xfce/forja-plymouth/PKGBUILD "$FORJA_PLYMOUTH_BUILD_DIR/PKGBUILD"
-for source_file in forja-mkinitcpio.conf plymouthd.conf forja.plymouth forja.script forja-grub; do
-  install -m 0644 "/forja-ci/desktops/xfce/plymouth/$source_file" "$FORJA_PLYMOUTH_BUILD_DIR/$source_file"
 done
 pacman -S --needed --noconfirm go-md2man binutils
 if [[ "$(uname -m)" != "x86_64" ]]; then
@@ -65,18 +59,12 @@ if [[ "$(uname -m)" != "x86_64" ]]; then
   exit 26
 fi
 id shelly-builder >/dev/null 2>&1 || useradd --system --create-home --home-dir "$WORK/shelly-builder" --shell /usr/bin/nologin shelly-builder
-chown -R shelly-builder:shelly-builder "$SHELLY_BUILD_DIR" "$FORJA_PLYMOUTH_BUILD_DIR"
+chown -R shelly-builder:shelly-builder "$SHELLY_BUILD_DIR"
 runuser -u shelly-builder -- bash -lc "cd '$SHELLY_BUILD_DIR' && makepkg --nodeps --noconfirm --cleanbuild --force"
-runuser -u shelly-builder -- bash -lc "cd '$FORJA_PLYMOUTH_BUILD_DIR' && makepkg --nodeps --noconfirm --cleanbuild --force"
 find "$SHELLY_BUILD_DIR" -maxdepth 1 -type f -name 'shelly-*.pkg.tar.*' -exec cp -f {} "$SHELLY_REPO_DIR/" \;
-find "$FORJA_PLYMOUTH_BUILD_DIR" -maxdepth 1 -type f -name 'forja-plymouth-*.pkg.tar.*' -exec cp -f {} "$SHELLY_REPO_DIR/" \;
 find "$SHELLY_REPO_DIR" -maxdepth 1 -type f -name 'shelly-bin-*.pkg.tar.*' | grep -q . || {
   echo "ERRO: makepkg não gerou o pacote shelly-bin." >&2
   exit 27
-}
-find "$SHELLY_REPO_DIR" -maxdepth 1 -type f -name 'forja-plymouth-*.pkg.tar.*' | grep -q . || {
-  echo "ERRO: makepkg não gerou o pacote forja-plymouth." >&2
-  exit 28
 }
 repo-add "$SHELLY_REPO_DIR/forja-local.db.tar.gz" "$SHELLY_REPO_DIR"/*.pkg.tar.zst
 printf '\n%s\n[forja-local]\nSigLevel = Optional TrustAll\nServer = file://%s\n' "$FORJA_LOCAL_REPO_MARKER" "$SHELLY_REPO_DIR" >> /etc/pacman.conf
@@ -128,9 +116,7 @@ done
 # O sistema instalado precisa do gerador oficial de mirrorlist no primeiro boot.
 grep -Fxq pacman-mirrors "$TARGET/Packages-Root" || printf '%s\n' pacman-mirrors >> "$TARGET/Packages-Root"
 # Plymouth fica no rootfs para o hook entrar no initramfs antes da montagem da ISO.
-for package in plymouth forja-plymouth; do
-  grep -Fxq "$package" "$TARGET/Packages-Root" || printf '%s\n' "$package" >> "$TARGET/Packages-Root"
-done
+grep -Fxq plymouth "$TARGET/Packages-Root" || printf '%s\n' plymouth >> "$TARGET/Packages-Root"
 # Btrfs é o formato padrão da instalação e precisa estar disponível no Live/Calamares.
 grep -Fxq btrfs-progs "$TARGET/Packages-Root" || printf '%s\n' btrfs-progs >> "$TARGET/Packages-Root"
 
@@ -321,7 +307,7 @@ done < <(find "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
-BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio plymouth forja-plymouth calamares btrfs-progs linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
+BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio plymouth calamares btrfs-progs linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
 DESKTOP_CORE_PACKAGES=(libnotify shelly-bin shelly-flatpak-backend-bin xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin dockbarx xfce4-dockbarx-plugin xfce4-panel-profiles xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders bibata-cursor-theme gtk3 gsettings-desktop-schemas python python-gobject pacman-contrib polkit polkit-gnome flatpak yay git base-devel appstream archlinux-appstream-data)
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
@@ -601,24 +587,61 @@ grep -q -- '-Xdict-size' <<< "$XZ_HELP" || {
   exit 41
 }
 # Usar -f para incluir o conjunto completo do perfil próprio Forja XFCE.
-BUILDISO_OK=0
+# Etapa 1: construir as camadas do sistema sem compactar a ISO.
+# O Plymouth é configurado no rootfs real após a instalação dos pacotes e antes
+# da geração final da imagem initramfs.
+BUILD_IMAGES_OK=0
 for attempt in 1 2 3; do
-  echo "Iniciando geração do sistema Live e da ISO (tentativa $attempt/3)..."
-  if PATH="$SQFS_WRAPPER_DIR:$PATH" buildiso -f -d xz -p "forja-$DESKTOP" -b stable -k "$KERNEL_PKG" -r "$CHROOTS" -t "$OUT" -v; then
-    BUILDISO_OK=1
+  echo "Preparando as camadas do sistema (tentativa $attempt/3)..."
+  if buildiso -f -x -d xz -p "forja-$DESKTOP" -b stable -k "$KERNEL_PKG" -r "$CHROOTS" -t "$OUT" -v; then
+    BUILD_IMAGES_OK=1
     break
   fi
-
   if (( attempt < 3 )); then
-    echo "Aviso: buildiso falhou na tentativa $attempt. Atualizando espelhos e preparando nova tentativa..." >&2
+    echo "Aviso: preparação das camadas falhou; atualizando espelhos e tentando novamente." >&2
     pacman-mirrors --fasttrack 10
     pacman -Syy --noconfirm
     sleep $((attempt * 20))
   fi
 done
-if (( BUILDISO_OK != 1 )); then
-  echo "ERRO: geração do sistema Live/ISO falhou após 3 tentativas." >&2
+if (( BUILD_IMAGES_OK != 1 )); then
+  echo "ERRO: preparação das camadas falhou após 3 tentativas." >&2
   exit 43
+fi
+
+ROOTFS_CHROOT="$(find "$CHROOTS" -type d -name rootfs -print -quit)"
+[[ -n "$ROOTFS_CHROOT" && -d "$ROOTFS_CHROOT" ]] || {
+  echo "ERRO: buildiso não deixou o rootfs de trabalho disponível para configurar o Plymouth." >&2
+  exit 44
+}
+install -Dm644 /forja-ci/desktops/xfce/plymouth/forja-mkinitcpio.conf "$ROOTFS_CHROOT/etc/mkinitcpio.conf.d/forja-plymouth.conf"
+install -Dm644 /forja-ci/desktops/xfce/plymouth/forja-grub "$ROOTFS_CHROOT/etc/default/grub"
+install -Dm644 /forja-ci/desktops/xfce/plymouth/plymouthd.conf "$ROOTFS_CHROOT/etc/plymouth/plymouthd.conf"
+install -Dm644 /forja-ci/desktops/xfce/plymouth/forja.plymouth "$ROOTFS_CHROOT/usr/share/plymouth/themes/forja/forja.plymouth"
+install -Dm644 /forja-ci/desktops/xfce/plymouth/forja.script "$ROOTFS_CHROOT/usr/share/plymouth/themes/forja/forja.script"
+command -v manjaro-chroot >/dev/null 2>&1 || {
+  echo "ERRO: manjaro-chroot não está disponível para regenerar o initramfs com Plymouth." >&2
+  exit 45
+}
+echo "Regenerando initramfs com o hook e o tema Plymouth da Forja..."
+manjaro-chroot "$ROOTFS_CHROOT" mkinitcpio -P
+
+# Etapa 2: compactar as camadas já configuradas e gerar a ISO.
+BUILDISO_OK=0
+for attempt in 1 2 3; do
+  echo "Gerando a ISO (tentativa $attempt/3)..."
+  if PATH="$SQFS_WRAPPER_DIR:$PATH" buildiso -f -c -z -d xz -p "forja-$DESKTOP" -b stable -k "$KERNEL_PKG" -r "$CHROOTS" -t "$OUT" -v; then
+    BUILDISO_OK=1
+    break
+  fi
+  if (( attempt < 3 )); then
+    echo "Aviso: compactação/geração da ISO falhou na tentativa $attempt." >&2
+    sleep $((attempt * 20))
+  fi
+done
+if (( BUILDISO_OK != 1 )); then
+  echo "ERRO: geração da ISO falhou após 3 tentativas." >&2
+  exit 46
 fi
 
 ISO="$(find "$OUT" -type f -name '*.iso' -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)"
