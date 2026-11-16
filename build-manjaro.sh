@@ -37,6 +37,40 @@ if (("${#MISSING_BUILD_TOOLS[@]}")); then
 fi
 pacman -S --needed --noconfirm "${BUILD_TOOLS[@]}"
 
+# Shelly (binário oficial pré-compilado): gera pacotes locais antes de buildiso.
+# Isso evita depender de Zig no construtor e entrega os pacotes ao pacman do perfil.
+SHELLY_BUILD_DIR="$WORK/shelly-build"
+SHELLY_REPO_DIR="$WORK/shelly-repo"
+SHELLY_REPO_MARKER="# FORJA-SHELLY-LOCAL-REPO"
+cleanup_shelly_repo() {
+  if grep -qF "$SHELLY_REPO_MARKER" /etc/pacman.conf; then
+    sed -i '/# FORJA-SHELLY-LOCAL-REPO/,+2d' /etc/pacman.conf
+  fi
+}
+trap cleanup_shelly_repo EXIT
+rm -rf "$SHELLY_BUILD_DIR" "$SHELLY_REPO_DIR"
+mkdir -p "$SHELLY_BUILD_DIR" "$SHELLY_REPO_DIR"
+install -m 0644 /forja-ci/desktops/xfce/shelly/PKGBUILD-bin "$SHELLY_BUILD_DIR/PKGBUILD"
+for source_file in shellybuild.conf com.shellyorg.shelly.desktop com.shellyorg.shelly-notifications.desktop shelly-flatpak-integrate; do
+  install -m 0644 "/forja-ci/desktops/xfce/shelly/$source_file" "$SHELLY_BUILD_DIR/$source_file"
+done
+pacman -S --needed --noconfirm go-md2man binutils
+if [[ "$(uname -m)" != "x86_64" ]]; then
+  echo "ERRO: o pacote binário oficial Shelly desta receita é x86_64; arquitetura detectada: $(uname -m)." >&2
+  exit 26
+fi
+id shelly-builder >/dev/null 2>&1 || useradd --system --create-home --home-dir "$WORK/shelly-builder" --shell /usr/bin/nologin shelly-builder
+chown -R shelly-builder:shelly-builder "$SHELLY_BUILD_DIR"
+runuser -u shelly-builder -- bash -lc "cd '$SHELLY_BUILD_DIR' && makepkg --nodeps --noconfirm --cleanbuild --force"
+find "$SHELLY_BUILD_DIR" -maxdepth 1 -type f -name 'shelly-*.pkg.tar.*' -exec cp -f {} "$SHELLY_REPO_DIR/" \;
+find "$SHELLY_REPO_DIR" -maxdepth 1 -type f -name 'shelly-bin-*.pkg.tar.*' | grep -q . || {
+  echo "ERRO: makepkg não gerou o pacote shelly-bin." >&2
+  exit 27
+}
+repo-add "$SHELLY_REPO_DIR/shelly.db.tar.gz" "$SHELLY_REPO_DIR"/*.pkg.tar.zst
+printf '\n%s\n[forja-shelly]\nSigLevel = Optional TrustAll\nServer = file://%s\n' "$SHELLY_REPO_MARKER" "$SHELLY_REPO_DIR" >> /etc/pacman.conf
+pacman -Sy --noconfirm
+
 git clone --depth 1 https://code.manjaro.org/tools/manjaro-tools.git "$WORK/manjaro-tools"
 make -C "$WORK/manjaro-tools" SYSCONFDIR=/etc PREFIX=/usr
 make -C "$WORK/manjaro-tools" SYSCONFDIR=/etc PREFIX=/usr install_base
@@ -273,7 +307,7 @@ done < <(find "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
 BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares btrfs-progs linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
-DESKTOP_CORE_PACKAGES=(plymouth libnotify  xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin dockbarx xfce4-dockbarx-plugin xfce4-panel-profiles xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders bibata-cursor-theme gtk3 gsettings-desktop-schemas python python-gobject pacman-contrib polkit polkit-gnome flatpak yay git base-devel appstream archlinux-appstream-data)
+DESKTOP_CORE_PACKAGES=(plymouth libnotify shelly-bin shelly-flatpak-backend-bin xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin dockbarx xfce4-dockbarx-plugin xfce4-panel-profiles xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders bibata-cursor-theme gtk3 gsettings-desktop-schemas python python-gobject pacman-contrib polkit polkit-gnome flatpak yay git base-devel appstream archlinux-appstream-data)
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
   if ! pacman_info "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" >/dev/null 2>&1; then
