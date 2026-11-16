@@ -52,7 +52,7 @@ if grep -Eiq 'sha256sums=.*SKIP' "$DOCKBARX" "$DOCKBARX_PLUGIN"; then
   exit 1
 fi
 grep -Fq 'dockbarx-*.pkg.tar.zst' "$PROFILE/prepare.sh"
-grep -Fq 'xfce4-dockbarx-plugin-*.pkg.tar.zst' "$PROFILE/prepare.sh"
+grep -Fq 'xfce4-dockbarx-plugin-[0-9]*.pkg.tar.zst' "$PROFILE/prepare.sh"
 grep -Fq 'local_packages=(/root/packages/*.pkg.tar.zst)' "$PROFILE/prepare-forja.sh"
 grep -Fq 'pacman -U --noconfirm --needed -- "${local_packages[@]}"' "$PROFILE/prepare-forja.sh"
 grep -Fq 'for required in profiledef.sh prepare.sh run_before_squashfs.sh pacman.conf' "$PROFILE/prepare-forja.sh"
