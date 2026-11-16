@@ -36,11 +36,18 @@ fi
 duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$PACKAGES" | awk '{print $1}' | sort | uniq -d)"
 [[ -z "$duplicates" ]] || { echo "FALHA: pacotes duplicados: $duplicates" >&2; exit 1; }
 
-for package in base dracut eos-dracut linux xfce4 lightdm firefox papirus-icon-theme bibata-cursor-theme; do
+for package in base arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils syslinux dracut eos-dracut linux xfce4 lightdm firefox papirus-icon-theme bibata-cursor-theme reflector curl; do
   grep -Fxq "$package" "$PACKAGES" || {
     echo "FALHA: pacote obrigatório ausente: $package" >&2
     exit 1
   }
 done
+
+# The preparation script must reject incomplete upstream checkouts instead of
+# silently producing a profile without BIOS/UEFI boot assets or build hooks.
+grep -Fq 'for required in profiledef.sh prepare.sh run_before_squashfs.sh pacman.conf' "$PROFILE/prepare-forja.sh"
+grep -Fq 'for required_dir in airootfs efiboot syslinux' "$PROFILE/prepare-forja.sh"
+grep -Fq 'cp -a "$UPSTREAM_ROOT/efiboot" "$TARGET/"' "$PROFILE/prepare-forja.sh"
+grep -Fq 'cp -a "$UPSTREAM_ROOT/syslinux" "$TARGET/"' "$PROFILE/prepare-forja.sh"
 
 echo "Validação estática do perfil Forja XFCE/EndeavourOS concluída (sem compilar ISO)."
