@@ -7,6 +7,8 @@
 
 O repositório Forja Updates **não é um repositório pacman**. Não adicionar entradas Forja ao `/etc/pacman.conf`. A indisponibilidade do GitHub não pode bloquear as atualizações do sistema-base.
 
+**Kernel:** a Forja OS adota `linux-lts` e `linux-lts-headers` como padrão nas edições. Esses pacotes são atualizados pelos repositórios oficiais via `pacman -Syu`; novas ISOs usam a versão LTS disponível no momento da compilação. Não publicar kernel nem headers no Forja Updates. Consulte `docs/kernel-lts.md`.
+
 ## Manifesto estável
 
 O cliente XFCE consulta:
