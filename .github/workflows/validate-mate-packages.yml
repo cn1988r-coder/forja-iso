@@ -170,8 +170,8 @@ jobs:
               call.assert_not_called()
 
           store = open("desktop/mate/forja-store/forja-store.py", encoding="utf-8").read()
-          assert 'flatpak search' in store
-          assert 'flatpak install' in store
+          assert '"flatpak", "search"' in store
+          assert '"flatpak", "install"' in store
           assert 'flatpak-remove-system' in store
           assert 'forja-aur-build' in store
           print("Forja Store source integration tests passed.")
