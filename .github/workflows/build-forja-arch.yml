@@ -80,10 +80,11 @@ jobs:
           PY
           grep -qx 'calamares' bases/archlinux/packages.x86_64
           test -s bases/archlinux/airootfs/etc/calamares/settings.conf
-          test -s bases/archlinux/airootfs/etc/calamares/modules/unpackfs.conf
           test -s bases/archlinux/airootfs/etc/calamares/modules/bootloader.conf
           test -s bases/archlinux/airootfs/etc/calamares/modules/shellprocess-pacstrap.conf
           test -s bases/archlinux/airootfs/etc/calamares/modules/shellprocess-copy-forja.conf
+          test -s bases/archlinux/airootfs/etc/calamares/modules/shellprocess-apply-forja.conf
+          test -s bases/archlinux/airootfs/etc/calamares/modules/welcome.conf
           grep -q "pacstrap -K" bases/archlinux/airootfs/etc/calamares/modules/shellprocess-pacstrap.conf
           grep -q "pkexec" bases/archlinux/airootfs/usr/bin/forja-installer
           python -m py_compile desktop/mate/forja-store/forja-store.py
