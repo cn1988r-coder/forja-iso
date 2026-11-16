@@ -157,7 +157,6 @@ class ForjaMonitor(Gtk.Application):
         self.win.set_title("Forja Monitor")
         self.win.set_default_size(900, 590)
         self.win.set_size_request(720, 480)
-        self.win.connect("destroy", Gtk.main_quit)
         self.apply_css()
 
         root = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
