@@ -25,7 +25,7 @@ for path in shell_files:
         errors.append(f"Erro de sintaxe em {path.relative_to(REPO)}: {result.stderr.strip()}")
 
 # Parse all XFCE XML defaults instead of relying on grep-only checks.
-for relative in ("panel-default.xml", "forja-xfce-desktop.xml"):
+for relative in ("panel-default.xml", "forja-xfce-desktop.xml", "forja-black-wallpaper.svg"):
     path = ROOT / relative
     try:
         ET.parse(path)
@@ -82,7 +82,7 @@ except (OSError, ET.ParseError):
 
 # Verify required branding/session integration files and exact autostart target.
 required_files = [
-    "profile.conf", "install-branding.sh", "apply-forja-layout.sh",
+    "profile.conf", "install-branding.sh", "apply-forja-layout.sh", "forja-black-wallpaper.svg",
     "panel-default.xml", "forja-whiskermenu.rc", "forja-gtk.css",
     "forja-xfce-desktop.xml", "shelly-autostart.desktop",
     "plymouth/forja.plymouth", "plymouth/forja.script",
@@ -98,6 +98,20 @@ require('set_prop xfwm4 /general/theme string "Adwaita-dark"' in appearance,
         "O tema das decorações das janelas deve ser Adwaita-dark.")
 require('gsettings set org.gnome.desktop.interface gtk-theme "$GTK_THEME"' in appearance,
         "O tema Adwaita Dark não é aplicado via GSettings.")
+
+# Confirm the wallpaper is installed into the exact path referenced by XFCE,
+# including the Live session and the defaults copied to new users.
+branding = (ROOT / "install-branding.sh").read_text(encoding="utf-8")
+require('install -Dm644 "$ROOT/forja-black-wallpaper.svg" "$DEST/usr/share/backgrounds/forja-black.svg"' in branding,
+        "O wallpaper Forja OS não é instalado no caminho esperado.")
+desktop_xml = ET.parse(ROOT / "forja-xfce-desktop.xml").getroot()
+wallpaper_paths = [
+    node.get("value")
+    for node in desktop_xml.iter("property")
+    if node.get("name") in {"image-path", "last-image", "last-single-image"}
+]
+require(wallpaper_paths and all(path == "/usr/share/backgrounds/forja-black.svg" for path in wallpaper_paths),
+        "A configuração XFCE não aponta todos os espaços de trabalho para o wallpaper Forja OS.")
 
 desktop = (ROOT / "shelly-autostart.desktop").read_text(encoding="utf-8")
 require("Exec=/usr/bin/shelly-ui" in desktop, "Autostart da Shelly não aponta para shelly-ui.")
@@ -120,6 +134,7 @@ if errors:
 print("VALIDAÇÃO XFCE: APROVADA")
 print(f"Scripts verificados: {len(shell_files)}")
 print(f"Pacotes obrigatórios conferidos: {len(required_packages)}")
-print("XML do painel e da área de trabalho: válido")
+print("XML do painel, área de trabalho e wallpaper: válido")
+print("Wallpaper Forja OS: instalação e caminho de inicialização conferidos")
 print("Perfil independente, DockbarX, Shelly e arquivos de integração: presentes")
 print("Nenhuma compilação da ISO foi executada.")
