@@ -6,7 +6,7 @@ Type = Package
 Target = *
 
 [Action]
-Description = Criando snapshot Btrfs antes da transacao Pacman...
+Description = Criando snapshot Timeshift antes da transacao do Pacman...
 When = PreTransaction
-Exec = /usr/lib/forja-snapshots/forja-pacman-snapshot pre
-AbortOnFail
+Exec = /usr/bin/forja-pacman-snapshot pre
+AbortOnFail = No
