@@ -36,7 +36,7 @@ dockbarx_packages=("$DOCKBARX_DIR"/dockbarx-*.pkg.tar.zst)
 (( ${#dockbarx_packages[@]} == 1 )) || { echo "Erro: esperado exatamente um pacote DockbarX." >&2; exit 1; }
 sudo pacman -U --noconfirm --asdeps "${dockbarx_packages[0]}"
 (cd "$PLUGIN_DIR" && makepkg --clean --syncdeps --noconfirm -f)
-plugin_packages=("$PLUGIN_DIR"/xfce4-dockbarx-plugin-*.pkg.tar.zst)
+plugin_packages=("$PLUGIN_DIR"/xfce4-dockbarx-plugin-[0-9]*.pkg.tar.zst)
 (( ${#plugin_packages[@]} == 1 )) || { echo "Erro: esperado exatamente um pacote do plugin DockbarX." >&2; exit 1; }
 
 (cd "$RECOVERY_DIR" && makepkg --clean --syncdeps --noconfirm -f)
