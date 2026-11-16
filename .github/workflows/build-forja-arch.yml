@@ -78,7 +78,7 @@ jobs:
                   yaml.safe_load(stream)
           print(f"Validated {len(files)} Calamares YAML configuration files")
           PY
-          grep -qx 'calamares' bases/archlinux/packages.x86_64
+          grep -qx 'calamares' desktop/mate/packages.x86_64
           test -s bases/archlinux/airootfs/etc/calamares/settings.conf
           test -s bases/archlinux/airootfs/etc/calamares/modules/bootloader.conf
           test -s bases/archlinux/airootfs/etc/calamares/modules/shellprocess-pacstrap.conf
