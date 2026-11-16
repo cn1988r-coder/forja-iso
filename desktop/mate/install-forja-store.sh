@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-# Installs Forja Store into a prepared Arch/EndeavourOS root filesystem.
+# Installs Forja Store into a prepared Arch Linux root filesystem.
 ROOT="${1:-}"
 if [[ -z "$ROOT" || ! -d "$ROOT" ]]; then
   echo "Uso: $0 /caminho/para/airootfs" >&2
