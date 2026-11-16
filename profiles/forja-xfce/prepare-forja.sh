@@ -9,10 +9,18 @@ UPSTREAM_ROOT="${ENDEAVOUROS_ISO_DIR:-$PWD}"
   echo "Erro: execute este script na raiz de um clone do EndeavourOS-ISO." >&2
   exit 1
 }
-[[ -f "$UPSTREAM_ROOT/profiledef.sh" && -d "$UPSTREAM_ROOT/airootfs" ]] || {
-  echo "Erro: estrutura upstream incompleta." >&2
-  exit 1
-}
+for required in profiledef.sh prepare.sh run_before_squashfs.sh pacman.conf; do
+  [[ -f "$UPSTREAM_ROOT/$required" ]] || {
+    echo "Erro: arquivo obrigatório do construtor EndeavourOS ausente: $required" >&2
+    exit 1
+  }
+done
+for required_dir in airootfs efiboot syslinux; do
+  [[ -d "$UPSTREAM_ROOT/$required_dir" ]] || {
+    echo "Erro: diretório obrigatório do construtor EndeavourOS ausente: $required_dir" >&2
+    exit 1
+  }
+done
 
 # Do not overwrite the upstream source checkout. Prepare a separate Forja profile
 # directory so upstream files remain available for comparison and recovery.
@@ -29,8 +37,8 @@ cp -a "$REPO_ROOT/desktops/xfce" "$TARGET/forja-desktop-assets"
 # Copy the upstream profile framework files, then replace only the profile-specific
 # package list and profile definition with Forja's versions.
 cp -a "$UPSTREAM_ROOT/airootfs" "$TARGET/"
-cp -a "$UPSTREAM_ROOT/efiboot" "$TARGET/" 2>/dev/null || true
-cp -a "$UPSTREAM_ROOT/syslinux" "$TARGET/" 2>/dev/null || true
+cp -a "$UPSTREAM_ROOT/efiboot" "$TARGET/"
+cp -a "$UPSTREAM_ROOT/syslinux" "$TARGET/"
 cp -a "$UPSTREAM_ROOT/pacman.conf" "$TARGET/"
 cp -a "$UPSTREAM_ROOT/mkarchiso" "$TARGET/"
 cp -a "$UPSTREAM_ROOT/run_before_squashfs.sh" "$TARGET/run_before_squashfs-upstream.sh"
