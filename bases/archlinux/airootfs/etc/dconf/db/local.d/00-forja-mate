@@ -1,7 +1,19 @@
-# Forja OS: default MATE desktop background
+# Forja OS: default dark MATE desktop appearance and wallpaper.
+[org/mate/interface]
+gtk-theme='Materia-dark'
+icon-theme='Papirus-Dark'
+font-name='DejaVu Sans 10'
+
+[org/gnome/desktop/interface]
+gtk-theme='Materia-dark'
+color-scheme='prefer-dark'
+
 [org/mate/desktop/background]
 picture-filename='/usr/share/backgrounds/forja/forja-mate-wallpaper.svg'
 picture-options='zoom'
 color-shading-type='solid'
 primary-color='#858585'
 secondary-color='#858585'
+
+[org/mate/Marco/general]
+compositing-manager=false
