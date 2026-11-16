@@ -31,6 +31,7 @@ sed -i \
 
 # Overlay the Forja live root filesystem.
 cp -a "$ROOT/bases/archlinux/airootfs/." "$PROFILE/airootfs/"
+install -Dm755 "$ROOT/bases/archlinux/airootfs/usr/bin/forja-installer" "$PROFILE/airootfs/usr/bin/forja-installer"
 chmod 0755 "$PROFILE/airootfs/root/customize_airootfs.sh"
 cp "$ROOT/bases/archlinux/pacman.conf" "$PROFILE/pacman.conf"
 if [[ -n "${FORJA_CALAMARES_REPO:-}" ]]; then
