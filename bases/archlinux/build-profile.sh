@@ -48,6 +48,20 @@ fi
 install -d "$PROFILE/airootfs/etc/skel/.config"
 cp -a "$ROOT/desktop/mate/skel/.config/." "$PROFILE/airootfs/etc/skel/.config/"
 install -Dm755 "$ROOT/desktop/mate/apply-defaults.sh" "$PROFILE/airootfs/usr/local/lib/forja/apply-defaults.sh"
+install -Dm755 /dev/stdin "$PROFILE/airootfs/usr/local/bin/forja-apply-defaults" <<'LAUNCHER'
+#!/usr/bin/env sh
+exec /usr/local/lib/forja/apply-defaults.sh
+LAUNCHER
+install -Dm644 /dev/stdin "$PROFILE/airootfs/etc/xdg/autostart/forja-apply-defaults.desktop" <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Forja OS desktop defaults
+Exec=/usr/local/bin/forja-apply-defaults
+OnlyShowIn=MATE;
+NoDisplay=true
+Terminal=false
+DESKTOP
+install -Dm644 "$ROOT/bases/archlinux/pacman.conf" "$PROFILE/airootfs/etc/pacman.conf"
 
 # Install the native Forja applications directly into the live rootfs.
 bash "$ROOT/desktop/mate/install-forja-store.sh" "$PROFILE/airootfs"
