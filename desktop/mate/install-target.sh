@@ -9,7 +9,7 @@ if [[ "$EUID" -ne 0 || -z "$SOURCE_ROOT" || ! -d "$SOURCE_ROOT/desktop/mate" ]];
 fi
 
 MATE="$SOURCE_ROOT/desktop/mate"
-install -d /etc/skel/.config /usr/local/lib/forja
+install -d /etc/skel/.config /usr/local/lib/forja /usr/share/icons/default
 cp -an "$MATE/skel/.config/." /etc/skel/.config/
 install -m 0755 "$MATE/apply-defaults.sh" /usr/local/lib/forja/apply-defaults.sh
 install -Dm0755 /dev/stdin /usr/local/bin/forja-apply-defaults <<'LAUNCHER'
@@ -24,6 +24,12 @@ Exec=/usr/local/bin/forja-apply-defaults
 OnlyShowIn=MATE;
 NoDisplay=true
 DESKTOP
+
+# Set a system-wide Xcursor fallback so applications outside GTK/MATE also use Bibata.
+cat > /usr/share/icons/default/index.theme <<'CURSOR'
+[Icon Theme]
+Inherits=Bibata-Modern-Classic
+CURSOR
 
 bash "$MATE/install-brisk-menu.sh" "$SOURCE_ROOT"
 bash "$MATE/install-forja-store.sh" /
@@ -50,8 +56,9 @@ gtk-theme='Materia-dark'
 icon-theme='Papirus-Dark'
 font-name='DejaVu Sans 10'
 
-[org/mate/Marco/general]
-compositing-manager=false
+[org/gnome/desktop/interface]
+cursor-theme='Bibata-Modern-Classic'
+cursor-size=24
 
 [org/mate/desktop/background]
 picture-filename='/usr/share/backgrounds/forja/forja-mate-wallpaper.svg'
@@ -59,6 +66,9 @@ picture-options='zoom'
 color-shading-type='solid'
 primary-color='#858585'
 secondary-color='#858585'
+
+[org/mate/Marco/general]
+compositing-manager=false
 EOF
 dconf update
 
