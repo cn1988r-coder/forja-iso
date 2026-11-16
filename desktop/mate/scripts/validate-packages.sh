@@ -11,7 +11,7 @@ command -v pacman >/dev/null 2>&1 || {
 
 missing=0
 while IFS= read -r package; do
-    [[ -z "$package" || "$package" == #* ]] && continue
+    [[ -z "$package" || "$package" == \#* ]] && continue
     if pacman -Si "$package" >/dev/null 2>&1; then
         printf 'OK      %s\n' "$package"
     else
