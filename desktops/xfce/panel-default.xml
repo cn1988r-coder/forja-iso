@@ -30,9 +30,8 @@
   <property name="plugins" type="empty">
     <property name="plugin-1" type="string" value="whiskermenu">
       <property name="button-title" type="string" value="Forja OS"/>
-      <property name="button-icon" type="string" value="forja"/>
       <property name="show-button-title" type="bool" value="true"/>
-      <property name="show-button-icon" type="bool" value="true"/>
+      <property name="show-button-icon" type="bool" value="false"/>
       <property name="button-single-row" type="bool" value="true"/>
       <property name="position-search-alternate" type="bool" value="true"/>
       <property name="position-categories-alternate" type="bool" value="true"/>
