@@ -317,7 +317,7 @@ grep -q 'localedef --prefix="$DEST" -i en_US -f UTF-8 en_US.UTF-8' "$ROOT/instal
 grep -q 'Theme=forja' "$ROOT/plymouth/plymouthd.conf"
 grep -q 'splash' "$ROOT/profile.conf"
 grep -q 'quiet splash loglevel=3' "$ROOT/plymouth/forja-grub"
-grep -q 'if [[ "$_forja_plymouth_added" -eq 0 && ( "$_forja_hook" == "udev" || "$_forja_hook" == "systemd" ) ]]' "$ROOT/plymouth/forja-mkinitcpio.conf"
+grep -Fq 'if [[ "$_forja_plymouth_added" -eq 0 && ( "$_forja_hook" == "udev" || "$_forja_hook" == "systemd" ) ]]' "$ROOT/plymouth/forja-mkinitcpio.conf"
 ! grep -q 'append.*plymouth.*fallback' "$ROOT/plymouth/forja-mkinitcpio.conf"
 
 echo "Forja XFCE: locale pt_BR, Plymouth, painel e Shelly configurados."
