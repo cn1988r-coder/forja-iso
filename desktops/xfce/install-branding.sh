@@ -4,6 +4,27 @@ set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 DEST="${DESTDIR:-}"
 
+# Idioma padrão do sistema e da sessão Live: português brasileiro.
+install -Dm644 /dev/stdin "$DEST/etc/locale.conf" <<'LOCALECONF'
+LANG=pt_BR.UTF-8
+LANGUAGE=pt_BR:pt:en
+LOCALECONF
+install -Dm644 /dev/stdin "$DEST/etc/locale.gen" <<'LOCALEGEN'
+pt_BR.UTF-8 UTF-8
+en_US.UTF-8 UTF-8
+LOCALEGEN
+# Gere os dados de locale durante a montagem, não no primeiro boot.
+# O modo sem archive evita substituir o arquivo de locales da base Manjaro.
+if [[ -n "$DEST" ]]; then
+  command -v localedef >/dev/null 2>&1 || {
+    echo "ERRO: localedef é necessário para gerar pt_BR.UTF-8 na imagem." >&2
+    exit 1
+  }
+  install -d "$DEST/usr/lib/locale"
+  localedef --no-archive --prefix="$DEST" -i pt_BR -f UTF-8 pt_BR.UTF-8
+  localedef --no-archive --prefix="$DEST" -i en_US -f UTF-8 en_US.UTF-8
+fi
+
 install -Dm644 "$ROOT/forja-flame.svg" "$DEST/usr/share/icons/hicolor/scalable/apps/forja.svg"
 install -Dm644 "$ROOT/forja-black-wallpaper.svg" "$DEST/usr/share/backgrounds/forja-black.svg"
 
