@@ -23,7 +23,7 @@ package() {
 exec /usr/bin/python3 /usr/lib/forja/forja-store "$@"
 EOF
   install -Dm644 "$startdir/br.forja.store.policy" "$pkgdir/usr/share/polkit-1/actions/br.forja.store.policy"
-  install -Dm644 "$startdir/49-forja-store.rules" "$pkgdir/etc/polkit-1/rules.d/49-forja-store.rules"
+  install -Dm644 "$startdir/49-forja-store.rules" "$pkgdir/usr/share/polkit-1/rules.d/49-forja-store.rules"
   install -Dm644 "$startdir/forja-store.desktop" "$pkgdir/usr/share/applications/forja-store.desktop"
   install -Dm644 "$startdir/forja-store.svg" "$pkgdir/usr/share/icons/hicolor/scalable/apps/forja-store.svg"
 }
