@@ -18,17 +18,25 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Install build dependencies
+        shell: bash
         run: |
+          set -Eeuo pipefail
           pacman -Sy --noconfirm archlinux-keyring
           pacman -Syu --noconfirm
-          pacman -S --noconfirm git python python-gobject gtk3 btrfs-progs snapper pacman grub sudo
+          pacman -S --noconfirm git python python-gobject gtk3 btrfs-progs timeshift pacman grub sudo
+
       - uses: actions/checkout@v4
+
       - name: Build package as unprivileged user
+        shell: bash
         run: |
+          set -Eeuo pipefail
           useradd --create-home builder
           chown -R builder:builder "$GITHUB_WORKSPACE"
-          runuser -u builder -- bash -lc "cd '$GITHUB_WORKSPACE/profiles/forja-xfce/forja-packages/forja-recovery' && makepkg --cleanbuild --syncdeps --noconfirm"
+          runuser -u builder -- bash -lc "cd '$GITHUB_WORKSPACE/profiles/forja-xfce/forja-packages/forja-recovery' && makepkg --cleanbuild --noconfirm"
+
       - name: Verify package archive
+        shell: bash
         run: |
           set -Eeuo pipefail
           shopt -s nullglob
@@ -36,6 +44,7 @@ jobs:
           test "${#packages[@]}" -eq 1
           pacman -Qip "${packages[0]}"
           tar -tf "${packages[0]}" | grep -E 'usr/bin/forja-recovery(-cli)?$'
+
       - name: Upload temporary package artifact
         uses: actions/upload-artifact@v4
         with:
