@@ -2,7 +2,7 @@
 
 ## Decisão atual
 
-A edição gráfica da Forja OS adotará **MATE upstream**, instalado a partir dos pacotes oficiais Arch/EndeavourOS, com personalização própria da Forja OS. Não será uma sessão MATE copiada de outra distribuição.
+A edição gráfica da Forja OS adotará **MATE upstream**, instalado a partir dos pacotes oficiais do Arch Linux, com personalização própria da Forja OS. Não será uma sessão MATE copiada de outra distribuição.
 
 ## Camada MATE
 
@@ -37,17 +37,17 @@ Referências:
 - BigGTKKit: https://github.com/biglinux/big-gtk-kit
 - BigSearch: https://github.com/biglinux/bigsearch
 
-A adoção futura do BigDesktop dependerá da disponibilidade do código-fonte necessário, maturidade, licença, compatibilidade com Arch/EndeavourOS e testes reais de estabilidade e consumo de recursos. Registrar o projeto aqui não significa copiar ou incorporar código dele.
+A adoção futura do BigDesktop dependerá da disponibilidade do código-fonte necessário, maturidade, licença, compatibilidade com Arch Linux e testes reais de estabilidade e consumo de recursos. Registrar o projeto aqui não significa copiar ou incorporar código dele.
 
 ## Separação de camadas
 
-- `bases/archlinux/` e `bases/endeavouros/` continuam sendo fundações técnicas independentes, sem ambiente gráfico.
+- `bases/archlinux/` é a única fundação ativa da Forja OS. `bases/endeavouros/` fica preservada como referência inativa, sem orientar o desenvolvimento.
 - `desktop/mate/` é a camada de desktop da edição MATE, separada das fundações.
 - O registro do BigDesktop é documentação de acompanhamento, não parte de nenhuma das duas fundações.
 
 ## Pendências de validação
 
-1. Executar o validador de pacotes em um ambiente Arch/EndeavourOS atualizado.
+1. Executar o validador de pacotes em um ambiente Arch Linux atualizado.
 2. Resolver qualquer pacote ausente ou renomeado, sem remover dependências necessárias.
 3. Fazer instalação limpa do conjunto e verificar resolução de dependências.
 4. Validar sessão, LightDM, rede, áudio, Bluetooth, notificações, calendário e gerenciamento de energia.
@@ -55,4 +55,4 @@ A adoção futura do BigDesktop dependerá da disponibilidade do código-fonte n
 6. Medir RAM/CPU e testar compatibilidade com Intel HD 5500.
 7. Fazer build e testes de ISO antes de declarar a edição pronta.
 
-**Estado atual:** camada inicial documentada e arquivos adicionados ao repositório. O validador ainda não foi executado em Arch/EndeavourOS, nenhuma instalação ou build foi realizada e a edição não está validada como funcional.
+**Estado atual:** camada inicial documentada e arquivos adicionados ao repositório. O validador ainda não foi executado em Arch Linux, nenhuma instalação ou build foi realizada e a edição não está validada como funcional.
