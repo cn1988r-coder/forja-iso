@@ -16,7 +16,7 @@ work="$(mktemp -d /var/tmp/forja-brisk-menu.XXXXXX)"
 trap 'rm -rf "$work"' EXIT
 install -m 0644 "$SOURCE_ROOT/build-support/brisk-menu/PKGBUILD" "$work/PKGBUILD"
 chown -R "$builder:$builder" "$work"
-pacman -S --needed --noconfirm libnotify glib2-devel meson ninja
+pacman -S --needed --noconfirm libnotify devtools glib2-devel meson ninja
 runuser -u "$builder" -- bash -lc "cd '$work' && makepkg --nodeps --noconfirm --cleanbuild"
 package="$(find "$work" -maxdepth 1 -type f -name 'brisk-menu-*.pkg.tar.zst' -print -quit)"
 [[ -n "$package" ]] || { echo "O pacote Brisk Menu não foi gerado." >&2; exit 1; }
