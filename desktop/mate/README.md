@@ -9,8 +9,8 @@ Usar o MATE upstream dos repositórios oficiais do Arch/EndeavourOS como base fu
 ## Escopo inicial
 
 - Sessão MATE com Marco, mate-panel, Caja e ferramentas essenciais.
-- Atril como visualizador padrão planejado para arquivos PDF.
-- LibreOffice Still com pacote de idioma português do Brasil para documentos, planilhas e apresentações.
+- Atril configurado como aplicativo padrão para abrir arquivos PDF.
+- LibreOffice Still com pacote de idioma português do Brasil, configurado como padrão para documentos, planilhas e apresentações nos formatos comuns.
 - LightDM como gerenciador de login.
 - NetworkManager com applet de rede.
 - Blueman para Bluetooth.
@@ -27,6 +27,7 @@ Usar o MATE upstream dos repositórios oficiais do Arch/EndeavourOS como base fu
 
 - `packages.x86_64`: seleção explícita de pacotes, sem instalar indiscriminadamente o grupo `mate-extra`. Inclui `gnome-calculator` como aplicativo GNOME independente, sem trazer o desktop GNOME; inclui também apenas `xfce4-screenshooter` como exceção pontual para captura de tela e exclui `mate-utils`, que fornece o `mate-screenshot` nativo.
 - `skel/.config/gtk-3.0/settings.ini`: aparência GTK padrão para novos usuários quando o construtor copiar o esqueleto para `/etc/skel`.
+- `skel/.config/mimeapps.list`: associações padrão de arquivos, com PDFs no Atril e documentos/planilhas/apresentações no LibreOffice. O construtor precisa copiar esse arquivo para o perfil do usuário.
 - `apply-defaults.sh`: aplica configurações MATE seguras ao usuário da sessão, verificando primeiro se cada schema/chave existe.
 - `services.enabled`: serviços que o perfil de imagem deverá habilitar.
 - `scripts/validate-packages.sh`: verifica nomes de pacotes com o pacman.
