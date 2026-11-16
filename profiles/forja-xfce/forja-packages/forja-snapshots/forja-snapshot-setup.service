@@ -1,0 +1,12 @@
+[Unit]
+Description=Configura snapshots automaticos do Forja OS
+After=local-fs.target
+ConditionPathExists=/usr/bin/forja-snapshot-setup
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/forja-snapshot-setup --boot
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
