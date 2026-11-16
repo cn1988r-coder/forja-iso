@@ -45,7 +45,7 @@ set_if_available org.mate.Marco.general compositing-manager "false"
 
 # Replace the stock MATE menu applet with Brisk Menu for this user.
 # Do not create a duplicate if Brisk is already present.
-if command -v dconf >/dev/null 2>&1 && [[ -f /usr/share/mate-panel/applets/com.solus_project.brisk.BriskMenu.mate-panel-applet ]]; then
+if command -v dconf >/dev/null 2>&1 && $(find /usr/share/mate-panel -type f -iname "*brisk*.mate-panel-applet" -print -quit 2>/dev/null) != ""; then
     object_ids="$(gsettings get org.mate.panel.general object-id-list 2>/dev/null || true)"
     if [[ -n "$object_ids" ]]; then
         object_ids="${object_ids//\'menu-bar\'/\'brisk-menu\'}"
