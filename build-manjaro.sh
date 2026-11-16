@@ -37,15 +37,14 @@ if (("${#MISSING_BUILD_TOOLS[@]}")); then
 fi
 pacman -S --needed --noconfirm "${BUILD_TOOLS[@]}"
 
-# Shelly (binário oficial pré-compilado): gera pacotes locais antes de buildiso.
-# Isso evita depender de Zig no construtor e entrega os pacotes ao pacman do perfil.
+# Pacotes locais da Forja: Shelly binária e integração Plymouth do rootfs.
 SHELLY_BUILD_DIR="$WORK/shelly-build"
 FORJA_PLYMOUTH_BUILD_DIR="$WORK/forja-plymouth-build"
 SHELLY_REPO_DIR="$WORK/shelly-repo"
-SHELLY_REPO_MARKER="# FORJA-SHELLY-LOCAL-REPO"
+FORJA_LOCAL_REPO_MARKER="# FORJA-LOCAL-REPO"
 cleanup_shelly_repo() {
-  if grep -qF "$SHELLY_REPO_MARKER" /etc/pacman.conf; then
-    sed -i '/# FORJA-SHELLY-LOCAL-REPO/,+3d' /etc/pacman.conf
+  if grep -qF "$FORJA_LOCAL_REPO_MARKER" /etc/pacman.conf; then
+    sed -i '/# FORJA-LOCAL-REPO/,+3d' /etc/pacman.conf
   fi
 }
 trap cleanup_shelly_repo EXIT
@@ -79,8 +78,8 @@ find "$SHELLY_REPO_DIR" -maxdepth 1 -type f -name 'forja-plymouth-*.pkg.tar.*' |
   echo "ERRO: makepkg não gerou o pacote forja-plymouth." >&2
   exit 28
 }
-repo-add "$SHELLY_REPO_DIR/shelly.db.tar.gz" "$SHELLY_REPO_DIR"/*.pkg.tar.zst
-printf '\n%s\n[forja-shelly]\nSigLevel = Optional TrustAll\nServer = file://%s\n' "$SHELLY_REPO_MARKER" "$SHELLY_REPO_DIR" >> /etc/pacman.conf
+repo-add "$SHELLY_REPO_DIR/forja-local.db.tar.gz" "$SHELLY_REPO_DIR"/*.pkg.tar.zst
+printf '\n%s\n[forja-local]\nSigLevel = Optional TrustAll\nServer = file://%s\n' "$FORJA_LOCAL_REPO_MARKER" "$SHELLY_REPO_DIR" >> /etc/pacman.conf
 pacman -Sy --noconfirm
 
 git clone --depth 1 https://code.manjaro.org/tools/manjaro-tools.git "$WORK/manjaro-tools"
