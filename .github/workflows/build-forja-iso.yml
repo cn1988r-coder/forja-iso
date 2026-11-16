@@ -19,8 +19,20 @@ jobs:
       options: --privileged
     timeout-minutes: 360
     steps:
-      - name: Checkout Forja OS
+      - name: Checkout Forja OS EndeavourOS branch
         uses: actions/checkout@v4
+        with:
+          ref: feature/forja-xfce-endeavouros-port
+
+      - name: Confirm active Forja source
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test "$(git branch --show-current)" = "feature/forja-xfce-endeavouros-port"
+          test -f profiles/forja-xfce/prepare-forja.sh
+          test -f profiles/forja-xfce/prepare.sh
+          ! grep -q 'forja-pamac-pacman' .github/workflows/build-forja-iso.yml
+          echo "Fonte confirmada: Forja OS XFCE sobre EndeavourOS"
 
       - name: Configure Arch and EndeavourOS repositories
         shell: bash
