@@ -62,6 +62,8 @@ icon-theme='Papirus-Dark'
 font-name='DejaVu Sans 10'
 
 [org/gnome/desktop/interface]
+gtk-theme='Materia-dark'
+color-scheme='prefer-dark'
 cursor-theme='Bibata-Modern-Classic'
 cursor-size=24
 
