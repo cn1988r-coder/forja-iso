@@ -191,6 +191,16 @@ def format_uptime():
     return f"{days} d, {hours} h, {minutes} min" if days else f"{hours} h, {minutes} min"
 
 
+def last_boot_text():
+    for line in read_text("/proc/stat").splitlines():
+        if line.startswith("btime "):
+            try:
+                return datetime.fromtimestamp(int(line.split()[1])).astimezone().strftime("%d/%m/%Y %H:%M:%S %Z")
+            except (ValueError, IndexError, OSError, OverflowError):
+                break
+    return "Não disponível"
+
+
 class MiniGraph(Gtk.DrawingArea):
     def __init__(self):
         super().__init__()
@@ -622,6 +632,7 @@ class ForjaMonitor(Gtk.Application):
             ("Armazenamento /", f"{format_bytes(disk.total)} total"),
             ("Resolução", resolution),
             ("Tempo ligado", format_uptime()),
+            ("Última inicialização", last_boot_text()),
             ("Instalada em", self.installation_date()),
         ]
 
@@ -769,6 +780,11 @@ if __name__ == "__main__":
         assert isinstance(cpu_snapshot(), dict)
         assert isinstance(network_snapshot(), dict)
         assert isinstance(memory_snapshot(), tuple)
+        assert disk_snapshot(), "Nenhum volume real foi detectado no ambiente de teste."
+        assert isinstance(temperature_snapshot(), list)
+        assert format_bytes(1024) == "1.0 KB"
+        assert format_uptime() != "Não disponível"
+        assert last_boot_text() != "Não disponível"
         app.win.destroy()
         app.quit()
         print("Forja Monitor GTK smoke test: OK")
