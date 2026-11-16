@@ -6,9 +6,15 @@ command -v xfconf-query >/dev/null 2>&1 || exit 0
 # Apply the same Forja menu styling to the actual logged-in account.
 # /etc/skel alone is insufficient when the Live user already exists.
 FORJA_CONFIG_DIR="$HOME/.config"
-install -d "$FORJA_CONFIG_DIR/gtk-3.0" "$FORJA_CONFIG_DIR/xfce4/panel"
+install -d "$FORJA_CONFIG_DIR/gtk-3.0" "$FORJA_CONFIG_DIR/xfce4/panel" "$FORJA_CONFIG_DIR/xfce4/xfconf/xfce-perchannel-xml"
 if [[ -s /usr/share/forja/forja-gtk.css ]]; then
   install -m644 /usr/share/forja/forja-gtk.css "$FORJA_CONFIG_DIR/gtk-3.0/gtk.css"
+fi
+if [[ -s /etc/xdg/xfce4/panel/default.xml ]]; then
+  install -m644 /etc/xdg/xfce4/panel/default.xml "$FORJA_CONFIG_DIR/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml"
+fi
+if [[ -s /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml ]]; then
+  install -m644 /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml "$FORJA_CONFIG_DIR/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml"
 fi
 if [[ -s /usr/share/forja/forja-whiskermenu.rc ]]; then
   install -m644 /usr/share/forja/forja-whiskermenu.rc "$FORJA_CONFIG_DIR/xfce4/panel/whiskermenu-1.rc"
