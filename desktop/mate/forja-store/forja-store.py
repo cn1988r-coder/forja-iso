@@ -106,12 +106,12 @@ class Store(Gtk.Application):
         self.self_test = "--self-test" in arguments
         self.activate()
         if self.self_test:
-            GLib.idle_add(self.finish_self_test)
+            GLib.timeout_add(500, self.finish_self_test)
         return 0
 
     def finish_self_test(self):
         if self.window is None:
-            raise RuntimeError("Forja Store window was not created.")
+            return GLib.SOURCE_CONTINUE
         self.window.destroy()
         self.quit()
         return GLib.SOURCE_REMOVE
