@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+STATE_DIR=/var/lib/forja-snapshots
+STATE_FILE="$STATE_DIR/pre-transaction"
+mkdir -p "$STATE_DIR"
+chmod 0700 "$STATE_DIR"
+
+action="${1:-}"
+[[ "$action" == pre || "$action" == post ]] || exit 2
+[[ "$(findmnt -n -o FSTYPE / 2>/dev/null || true)" == btrfs ]] || exit 0
+snapper -c root get-config >/dev/null 2>&1 || exit 0
+
+case "$action" in
+  pre)
+    number="$(snapper -c root create --type pre --print-number --description "Forja: antes de transação Pacman")"
+    [[ "$number" =~ ^[0-9]+$ ]] || exit 1
+    printf '%s\\n' "$number" > "$STATE_FILE"
+    chmod 0600 "$STATE_FILE"
+    ;;
+  post)
+    [[ -s "$STATE_FILE" ]] || exit 0
+    number="$(cat "$STATE_FILE")"
+    [[ "$number" =~ ^[0-9]+$ ]] || { rm -f "$STATE_FILE"; exit 1; }
+    snapper -c root create --type post --pre-number "$number" --description "Forja: depois de transação Pacman"
+    rm -f "$STATE_FILE"
+    ;;
+esac
