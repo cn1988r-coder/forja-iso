@@ -4,6 +4,10 @@ set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd)"
 PROFILE="$ROOT/profiles/forja-xfce"
 PACKAGES="$PROFILE/packages.x86_64"
+DOCKBARX="$PROFILE/forja-packages/dockbarx/PKGBUILD"
+DOCKBARX_INSTALL="$PROFILE/forja-packages/dockbarx/dockbarx.install"
+DOCKBARX_PLUGIN="$PROFILE/forja-packages/xfce4-dockbarx-plugin/PKGBUILD"
+PANEL="$ROOT/desktops/xfce/panel-default.xml"
 
 required=(
   "$PROFILE/profiledef.sh"
@@ -12,9 +16,12 @@ required=(
   "$PROFILE/run_before_squashfs.sh"
   "$PROFILE/apply-forja-live.sh"
   "$PROFILE/README.md"
+  "$DOCKBARX"
+  "$DOCKBARX_INSTALL"
+  "$DOCKBARX_PLUGIN"
   "$ROOT/desktops/xfce/install-branding.sh"
   "$ROOT/desktops/xfce/apply-forja-layout.sh"
-  "$ROOT/desktops/xfce/panel-default.xml"
+  "$PANEL"
 )
 for file in "${required[@]}"; do
   [[ -f "$file" ]] || { echo "FALHA: arquivo ausente: $file" >&2; exit 1; }
@@ -43,6 +50,26 @@ for package in base arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils
   }
 done
 
+# DockbarX must be the only taskbar applet in the active XFCE profile.
+grep -Fq 'value="dockbarx"' "$PANEL"
+if grep -Eiq 'docklike|xfce4-docklike-plugin' "$PANEL" "$PACKAGES" "$ROOT/desktops/xfce/packages.arch"; then
+  echo "FALHA: referência ativa a Docklike encontrada." >&2
+  exit 1
+fi
+grep -Fq "depends=('dockbarx' 'xfce4-panel')" "$DOCKBARX_PLUGIN"
+grep -Fq "sha256sums=('8df37a367d4454c590d29cbaea9f7a3ec09ddf13905943b3becc717241c275da')" "$DOCKBARX"
+grep -Fq "sha256sums=('68d106b2446b89b90423cec00f24f999223fd289ad712bb807eb918670b91eec')" "$DOCKBARX_PLUGIN"
+if grep -Eiq 'sha256sums=.*SKIP' "$DOCKBARX" "$DOCKBARX_PLUGIN"; then
+  echo "FALHA: checksum SKIP não é permitido nas receitas DockbarX." >&2
+  exit 1
+fi
+
+# Preparation must stage local packages; the adapted upstream hook installs them.
+grep -Fq 'dockbarx-*.pkg.tar.zst' "$PROFILE/prepare.sh"
+grep -Fq 'xfce4-dockbarx-plugin-*.pkg.tar.zst' "$PROFILE/prepare.sh"
+grep -Fq 'local_packages=(/root/packages/*.pkg.tar.zst)' "$PROFILE/prepare-forja.sh"
+grep -Fq 'pacman -U --noconfirm --needed -- "${local_packages[@]}"' "$PROFILE/prepare-forja.sh"
+
 # The preparation script must reject incomplete upstream checkouts instead of
 # silently producing a profile without BIOS/UEFI boot assets or build hooks.
 grep -Fq 'for required in profiledef.sh prepare.sh run_before_squashfs.sh pacman.conf' "$PROFILE/prepare-forja.sh"
@@ -50,4 +77,4 @@ grep -Fq 'for required_dir in airootfs efiboot syslinux' "$PROFILE/prepare-forja
 grep -Fq 'cp -a "$UPSTREAM_ROOT/efiboot" "$TARGET/"' "$PROFILE/prepare-forja.sh"
 grep -Fq 'cp -a "$UPSTREAM_ROOT/syslinux" "$TARGET/"' "$PROFILE/prepare-forja.sh"
 
-echo "Validação estática do perfil Forja XFCE/EndeavourOS concluída (sem compilar ISO)."
+echo "Validação estática do perfil Forja XFCE/EndeavourOS concluída (DockbarX; sem ISO)."
