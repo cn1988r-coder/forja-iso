@@ -61,6 +61,7 @@ lightdm-gtk-greeter
 lightdm-gtk-greeter-settings
 network-manager-applet
 firefox
+flatpak
 thunar-archive-plugin
 file-roller
 blueman
