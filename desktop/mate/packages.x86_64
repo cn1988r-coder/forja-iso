@@ -25,6 +25,10 @@ eom
 mozo
 pluma
 
+# Office suite (stable maintenance branch) and Brazilian Portuguese UI
+libreoffice-still
+libreoffice-still-pt-br
+
 # Standalone GNOME calculator; does not install the GNOME desktop
 gnome-calculator
 
