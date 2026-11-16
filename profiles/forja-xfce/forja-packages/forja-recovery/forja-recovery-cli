@@ -30,6 +30,10 @@ def diagnose() -> list[dict]:
     configured = rc == 0
     results.append(check("Snapper (configuração root)", configured,
                          out if configured else (out or "Configuração root do Snapper não encontrada.")))
+    for unit in ("snapper-timeline.timer", "snapper-cleanup.timer", "grub-btrfsd.service"):
+        unit_rc, unit_out = run(["systemctl", "is-enabled", unit])
+        results.append(check(unit, unit_rc == 0,
+                             unit_out or "Unidade não habilitada."))
     rc, out = run(["pacman", "-D", "k"])
     results.append(check("Base de dados do Pacman", rc == 0,
                          out or ("Verificação concluída." if rc == 0 else "Pacman retornou erro.")))
@@ -44,6 +48,8 @@ def diagnose() -> list[dict]:
                          ", ".join(p.name for p in initramfs) if initramfs else "Nenhum initramfs-*.img encontrado em /boot."))
     results.append(check("Ferramentas Btrfs", shutil.which("btrfs") is not None,
                          shutil.which("btrfs") or "Comando btrfs não encontrado."))
+    results.append(check("Integração GRUB-Btrfs", shutil.which("grub-btrfsd") is not None,
+                         shutil.which("grub-btrfsd") or "grub-btrfsd não encontrado."))
     return results
 
 def snapshots() -> tuple[int, str]:
