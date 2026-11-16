@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-log() { printf '[forja-snapshot-setup] %s\\n' "$*"; }
+log() { printf '[forja-snapshot-setup] %s\n' "$*"; }
 die() { log "ERRO: $*" >&2; exit 1; }
 
 [[ "$EUID" -eq 0 ]] || die "execute como root."
@@ -33,7 +33,7 @@ set_config() {
   if grep -qE "^#?[[:space:]]*${key}=" "$config"; then
     sed -i -E "s|^#?[[:space:]]*${key}=.*|${key}=${value}|" "$config"
   else
-    printf '%s=%s\\n' "$key" "$value" >> "$config"
+    printf '%s=%s\n' "$key" "$value" >> "$config"
   fi
 }
 set_config SUBVOLUME '"/"'
