@@ -233,7 +233,9 @@ class Store(Gtk.Application):
 
     def navigate(self, _button, category):
         self.current_page = category
-        self.search.set_text("")
+        if self.search.get_text().strip():
+            self.search.set_text("")
+            return
         if category == "Instalados":
             self.show_installed()
         else:
