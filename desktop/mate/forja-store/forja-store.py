@@ -51,7 +51,6 @@ CATALOG = {
         ("htop", "htop", "utilities-system-monitor", "Monitore processos e recursos do sistema."),
         ("timeshift", "Timeshift", "preferences-system-backup", "Crie e restaure snapshots do sistema."),
         ("bleachbit", "BleachBit", "edit-clear", "Limpeza de arquivos temporários."),
-        (" gufw", "Firewall", " security-high", "Interface gráfica para gerenciamento do firewall."),
     ],
     "Desenvolvimento": [
         ("code", "Visual Studio Code", "com.visualstudio.code", "Editor de código (AUR)."),
@@ -292,8 +291,7 @@ class Store(Gtk.Application):
         details.connect("clicked", self.show_details, item)
         actions.pack_start(details, False, False, 0)
         installed = item["name"] in self.installed
-        action = Gtk.Button(label="Instalado" if installed else "Instalar")
-        action.set_sensitive(not installed)
+        action = Gtk.Button(label="Remover" if installed else "Instalar")
         action.connect("clicked", self.package_action, item)
         actions.pack_end(action, False, False, 0)
         card.pack_start(actions, False, False, 0)
@@ -390,9 +388,12 @@ class Store(Gtk.Application):
             if response == Gtk.ResponseType.OK and shutil.which("mate-terminal"):
                 subprocess.Popen(["mate-terminal", "--", "bash", "-lc", "exec /usr/bin/forja-aur-build " + name])
             return
-        if not self.confirm("Instalar aplicativo", "Instalar " + name + " usando o Pacman e suas dependências?"):
+        installed = name in self.installed
+        verb = "remover" if installed else "instalar"
+        if not self.confirm("Gerenciar aplicativo", verb.capitalize() + " " + name + " usando o Pacman?"):
             return
-        self.run_privileged(["install", name], "Instalação de " + name)
+        action = "remove" if installed else "install"
+        self.run_privileged([action, name], ("Remoção de " if installed else "Instalação de ") + name)
 
     def confirm(self, title, message):
         dialog = Gtk.MessageDialog(transient_for=self.window, modal=True,
