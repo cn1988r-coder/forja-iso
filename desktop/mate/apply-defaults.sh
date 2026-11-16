@@ -19,6 +19,18 @@ set_if_available() {
     printf 'SET %s.%s\n' "$schema" "$key"
 }
 
+# Copy Forja defaults into the current user's profile without overwriting
+# existing personal configuration files. The skel directory must remain
+# alongside this script in the source tree/package.
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$SCRIPT_DIR/skel/.config" && -n "${HOME:-}" ]]; then
+    install -d "$HOME/.config"
+    cp -an "$SCRIPT_DIR/skel/.config/." "$HOME/.config/"
+    printf 'COPIED default user configuration from %s/skel/.config\n' "$SCRIPT_DIR"
+else
+    printf 'SKIP user config copy: skel/.config or HOME unavailable\n'
+fi
+
 command -v gsettings >/dev/null 2>&1 || {
     echo "gsettings is unavailable; install the MATE schemas before applying defaults." >&2
     exit 1
