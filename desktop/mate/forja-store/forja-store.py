@@ -60,7 +60,7 @@ CATALOG = {
         ("geany", "Geany", "geany", "Editor de código leve."),
     ],
 }
-CATEGORIES = list(CATALOG.keys())
+CATEGORIES = list(CATALOG.keys()) + ["Forja"]
 
 def run(args, timeout=120):
     try:
@@ -299,6 +299,9 @@ class Store(Gtk.Application):
         self.show_category("Destaques")
 
     def show_category(self, category):
+        if category == "Forja":
+            self.show_forja_catalog()
+            return
         self.clear()
         self.heading(category, "Aplicativos selecionados para começar. Use a busca para encontrar outros pacotes dos repositórios Arch e do AUR.")
         grid = Gtk.FlowBox()
@@ -333,6 +336,49 @@ class Store(Gtk.Application):
                                     "source": "official"})
             GLib.idle_add(self.render_catalog, category, results)
         threading.Thread(target=worker, daemon=True).start()
+
+    def show_forja_catalog(self):
+        self.current_page = "Forja"
+        self.clear()
+        self.heading("Repositório Forja", "Aplicativos publicados no canal próprio da Forja OS. Este catálogo é independente das atualizações do Arch Linux.")
+        self.content.pack_start(Gtk.Label(label="Consultando o repositório Forja…", xalign=0), False, False, 4)
+        self.content.show_all()
+        def worker():
+            result = run(["forja-repo", "list"], 240)
+            items = []
+            if result.returncode == 0:
+                for line in result.stdout.splitlines():
+                    fields = line.split()
+                    if len(fields) >= 3 and fields[0] == "forja":
+                        name, version = fields[1], fields[2]
+                        if PKG_RE.fullmatch(name):
+                            items.append({"name": name, "title": name, "version": version,
+                                "description": "Aplicativo distribuído pelo repositório oficial da Forja OS.",
+                                "source": "forja", "icon": "application-x-executable"})
+            GLib.idle_add(self.render_forja_catalog, items, result.returncode, result.stdout)
+        threading.Thread(target=worker, daemon=True).start()
+
+    def render_forja_catalog(self, items, code, output):
+        self.clear()
+        self.heading("Repositório Forja", "Pacotes próprios da Forja OS. A instalação e atualização usam somente o pacote selecionado.")
+        if code != 0:
+            self.content.pack_start(Gtk.Label(label="Não foi possível consultar o repositório Forja: " + (output[-500:] or "erro desconhecido"), xalign=0, wrap=True), False, False, 6)
+        elif not items:
+            self.content.pack_start(Gtk.Label(label="Nenhum aplicativo publicado no repositório Forja no momento.", xalign=0), False, False, 6)
+        else:
+            grid = Gtk.FlowBox()
+            grid.set_selection_mode(Gtk.SelectionMode.NONE)
+            grid.set_homogeneous(True)
+            grid.set_min_children_per_line(2)
+            grid.set_max_children_per_line(3)
+            grid.set_column_spacing(12)
+            grid.set_row_spacing(12)
+            for item in items:
+                grid.add(self.make_card(item))
+            self.content.pack_start(grid, False, False, 4)
+        self.content.show_all()
+        self.set_status(str(len(items)) + " pacote(s) no repositório Forja.")
+        return GLib.SOURCE_REMOVE
 
     def render_catalog(self, category, results):
         if self.current_page != category:
@@ -370,7 +416,7 @@ class Store(Gtk.Application):
         desc.set_line_wrap(True)
         desc.set_max_width_chars(38)
         card.pack_start(desc, True, True, 0)
-        source_label = {"aur": "AUR comunitário", "flatpak": "Flathub", "official": "Repositório oficial"}[item["source"]]
+        source_label = {"aur": "AUR comunitário", "flatpak": "Flathub", "official": "Repositório oficial", "forja": "Repositório Forja"}[item["source"]]
         meta = Gtk.Label(label=source_label +
                          (" · " + item.get("version", "") if item.get("version") else ""), xalign=0)
         card.pack_start(meta, False, False, 0)
@@ -378,10 +424,10 @@ class Store(Gtk.Application):
         details = Gtk.Button(label="Detalhes")
         details.connect("clicked", self.show_details, item)
         actions.pack_start(details, False, False, 0)
-        installed = (item["name"] in self.installed if item["source"] == "official"
-                     else item["name"] in self.installed_flatpak if item["source"] == "flatpak"
+        installed = (item["name"] in self.installed_flatpak if item["source"] == "flatpak"
                      else item["name"] in self.installed)
-        action = Gtk.Button(label="Remover" if installed else "Instalar")
+        action_label = "Atualizar" if item["source"] == "forja" and installed else "Remover" if installed else "Instalar"
+        action = Gtk.Button(label=action_label)
         action.connect("clicked", self.package_action, item)
         actions.pack_end(action, False, False, 0)
         card.pack_start(actions, False, False, 0)
@@ -420,7 +466,7 @@ class Store(Gtk.Application):
         self.generation += 1
         generation = self.generation
         self.clear()
-        self.heading("Resultados da busca", "Pesquisa nos repositórios oficiais do Arch e no AUR.")
+        self.heading("Resultados da busca", "Pesquisa nos repositórios oficiais do Arch, AUR, Flathub e Forja.")
         self.content.show_all()
         def worker():
             official = run(["pacman", "-Ss", query], 90)
@@ -444,6 +490,21 @@ class Store(Gtk.Application):
                         "source": "aur", "icon": "application-x-executable"})
             except Exception as exc:
                 error = "AUR: " + str(exc)
+            forja_items = []
+            forja_result = run(["forja-repo", "search", query], 240)
+            current_forja = None
+            if forja_result.returncode == 0:
+                for line in forja_result.stdout.splitlines():
+                    if line and not line[0].isspace():
+                        match = re.match(r"^forja/([^ ]+) ([^ ]+)", line)
+                        if match:
+                            current_forja = {"name": match.group(1), "title": match.group(1),
+                                "version": match.group(2), "description": "",
+                                "source": "forja", "icon": "application-x-executable"}
+                            forja_items.append(current_forja)
+                    elif current_forja and line.strip():
+                        current_forja["description"] = line.strip()
+                        current_forja = None
             flatpak_items = []
             if shutil.which("flatpak"):
                 remotes = run(["flatpak", "remotes", "--user", "--columns=name"], 60)
@@ -459,17 +520,17 @@ class Store(Gtk.Application):
                         flatpak_items.append({"name": fields[0], "title": fields[1],
                             "version": "Flathub", "description": fields[2] if len(fields) > 2 else "",
                             "source": "flatpak", "icon": "application-x-executable"})
-            GLib.idle_add(self.show_search_results, generation, matches[:45], aur, flatpak_items, error)
+            GLib.idle_add(self.show_search_results, generation, matches[:45], aur, flatpak_items, forja_items, error)
         threading.Thread(target=worker, daemon=True).start()
 
-    def show_search_results(self, generation, official, aur, flatpak_items, error):
+    def show_search_results(self, generation, official, aur, flatpak_items, forja_items, error):
         if generation != self.generation:
             return GLib.SOURCE_REMOVE
         self.clear()
         self.heading("Resultados da busca", "Aplicativos encontrados nos repositórios oficiais, AUR e Flathub.")
         if error:
             self.content.pack_start(Gtk.Label(label="Aviso de pesquisa: " + error, xalign=0, wrap=True), False, False, 4)
-        for title, items in (("Arch Linux", official), ("AUR comunitário", aur), ("Flathub", flatpak_items)):
+        for title, items in (("Arch Linux", official), ("AUR comunitário", aur), ("Flathub", flatpak_items), ("Repositório Forja", forja_items)):
             self.heading(title)
             grid = Gtk.FlowBox()
             grid.set_selection_mode(Gtk.SelectionMode.NONE)
@@ -490,6 +551,13 @@ class Store(Gtk.Application):
         if not PKG_RE.fullmatch(name):
             self.set_status("Nome de pacote inválido.")
             return
+        if item["source"] == "forja":
+            if self.confirm("Aplicativo do repositório Forja",
+                "Instalar ou atualizar " + name + " usando somente o repositório Forja? "
+                "As atualizações gerais do Arch não serão executadas."):
+                self.run_privileged(["forja-install", name], "Instalação/atualização Forja de " + name)
+            return
+
         if item["source"] == "aur":
             if name in self.installed:
                 if self.confirm("Remover pacote AUR", "Remover " + name + " usando o Pacman?"):
@@ -593,15 +661,16 @@ class Store(Gtk.Application):
     def show_updates(self):
         self.current_page = "updates"
         self.clear()
-        self.heading("Atualizações", "Gerencie atualizações do Arch Linux, pacotes AUR e aplicativos Flatpak.")
+        self.heading("Atualizações", "Gerencie separadamente atualizações do Arch Linux, AUR, Flathub e repositório Forja.")
         self.content.pack_start(Gtk.Label(label="Consultando atualizações disponíveis…", xalign=0), False, False, 6)
         self.content.show_all()
         def worker():
             result = run(["checkupdates"], 180)
             rows = [line.strip() for line in result.stdout.splitlines() if line.strip()]
             error = result.returncode not in (0, 2)
-            flat_system, flat_user, aur_outdated = [], [], []
+            flat_system, flat_user, aur_outdated, forja_updates = [], [], [], []
             flat_error = None
+            forja_error = None
             foreign = run(["pacman", "-Qm"], 60)
             installed_foreign = {}
             for line in foreign.stdout.splitlines():
@@ -628,10 +697,18 @@ class Store(Gtk.Application):
                                       if line.strip() and "." in line)
                     elif "No remote refs found" not in fp.stdout + fp.stderr:
                         flat_error = (fp.stderr or fp.stdout).strip() or "Falha ao consultar Flatpak."
-            GLib.idle_add(self.render_updates, rows, error, result.stdout, flat_system, flat_user, flat_error, aur_outdated)
+            forja_result = run(["forja-repo", "updates"], 240)
+            if forja_result.returncode == 0:
+                for line in forja_result.stdout.splitlines():
+                    match = re.search(r"Atualização Forja disponível: ([A-Za-z0-9][A-Za-z0-9@._+:-]*) (\S+) -> (\S+)", line)
+                    if match:
+                        forja_updates.append(match.groups())
+            else:
+                forja_error = forja_result.stdout.strip() or "Cliente do repositório Forja indisponível."
+            GLib.idle_add(self.render_updates, rows, error, result.stdout, flat_system, flat_user, flat_error, aur_outdated, forja_updates, forja_error)
         threading.Thread(target=worker, daemon=True).start()
 
-    def render_updates(self, rows, error, output, flat_system=None, flat_user=None, flat_error=None, aur_outdated=None):
+    def render_updates(self, rows, error, output, flat_system=None, flat_user=None, flat_error=None, aur_outdated=None, forja_updates=None, forja_error=None):
         self.clear()
         self.heading("Atualizações", "Atualizações do Arch, revisão manual do AUR e atualizações independentes do Flatpak.")
         if error:
@@ -669,9 +746,29 @@ class Store(Gtk.Application):
             user_button.set_halign(Gtk.Align.START)
             user_button.connect("clicked", self.update_flatpak, "--user")
             self.content.pack_start(user_button, False, False, 4)
+        self.content.pack_start(Gtk.Label(label="Repositório Forja:", xalign=0), False, False, 8)
+        if forja_error:
+            self.content.pack_start(Gtk.Label(label="Não foi possível consultar o canal Forja: " + forja_error[-350:], xalign=0, wrap=True), False, False, 4)
+        elif forja_updates:
+            for name, local, remote in forja_updates:
+                row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+                row.pack_start(Gtk.Label(label=f"{name}: {local} → {remote}", xalign=0), True, True, 0)
+                button = Gtk.Button(label="Atualizar Forja")
+                button.connect("clicked", self.update_forja_package, name)
+                row.pack_end(button, False, False, 0)
+                self.content.pack_start(row, False, False, 3)
+        else:
+            self.content.pack_start(Gtk.Label(label="Nenhuma atualização de aplicativos Forja disponível.", xalign=0), False, False, 4)
         self.content.show_all()
         self.set_status("Consulta concluída.")
         return GLib.SOURCE_REMOVE
+
+    def update_forja_package(self, _button, name):
+        if not PKG_RE.fullmatch(name):
+            self.set_status("Nome de pacote Forja inválido.")
+            return
+        if self.confirm("Atualizar aplicativo Forja", "Atualizar " + name + " pelo repositório Forja?"):
+            self.run_privileged(["forja-install", name], "Atualização Forja de " + name)
 
     def launch_aur_update(self, _button, name):
         if not shutil.which("mate-terminal"):
