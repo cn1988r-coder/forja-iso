@@ -45,6 +45,7 @@ python-gobject
 flatpak
 git
 less
+sudo
 base-devel
 
 # Forja MATE update indicator
