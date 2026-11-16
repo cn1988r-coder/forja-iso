@@ -1,4 +1,4 @@
-# Forja OS XFCE package set. DockbarX is built locally by prepare.sh.
+# Forja OS XFCE package set. DockbarX and Bibata are built locally by prepare.sh.
 base
 base-devel
 arch-install-scripts
