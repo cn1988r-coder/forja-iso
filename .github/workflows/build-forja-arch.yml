@@ -30,7 +30,7 @@ jobs:
           set -Eeuo pipefail
           pacman -Sy --noconfirm archlinux-keyring
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm archiso git squashfs-tools dosfstools e2fsprogs pacman-contrib sudo python-yaml
+          pacman -S --needed --noconfirm archiso devtools git squashfs-tools dosfstools e2fsprogs pacman-contrib sudo python-yaml
 
       - name: Checkout Forja OS
         uses: actions/checkout@v4
@@ -68,6 +68,7 @@ jobs:
           bash -n bases/archlinux/validate-profile.sh
           bash -n desktop/mate/install-target.sh
           bash -n desktop/mate/apply-defaults.sh
+          bash -n desktop/mate/install-brisk-menu.sh
           bash -n desktop/mate/install-forja-store.sh
           bash -n desktop/mate/install-forja-monitor.sh
           bash -n desktop/mate/install-forja-update-indicator.sh
