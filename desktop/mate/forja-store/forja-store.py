@@ -362,9 +362,15 @@ class Store(Gtk.Application):
                 error = "AUR: " + str(exc)
             flatpak_items = []
             if shutil.which("flatpak"):
+                remotes = run(["flatpak", "remotes", "--user", "--columns=name"], 60)
+                if "flathub" not in remotes.stdout.splitlines():
+                    run(["flatpak", "remote-add", "--user", "--if-not-exists", "flathub",
+                         "https://flathub.org/repo/flathub.flatpakrepo"], 120)
                 fp = run(["flatpak", "search", "--columns=application,name,description", query], 90)
                 for line in fp.stdout.splitlines():
                     fields = [part.strip() for part in line.split("\\t")]
+                    if len(fields) < 2:
+                        fields = line.split(None, 2)
                     if len(fields) >= 2 and "." in fields[0] and fields[0].lower() not in {"application", "application id"}:
                         flatpak_items.append({"name": fields[0], "title": fields[1],
                             "version": "Flathub", "description": fields[2] if len(fields) > 2 else "",
@@ -483,38 +489,76 @@ class Store(Gtk.Application):
         self.set_status(label + (" concluída." if code == 0 else " não concluída: " + (output[-250:] if output else "operação cancelada.")))
         self.reload_installed()
         if code == 0:
-            self.show_category(self.current_page)
+            if self.current_page == "updates":
+                self.show_updates()
+            else:
+                self.show_category(self.current_page)
         return GLib.SOURCE_REMOVE
 
     def show_updates(self):
+        self.current_page = "updates"
         self.clear()
-        self.heading("Atualizações", "Gerencie as atualizações do sistema em um só lugar.")
-        self.content.pack_start(Gtk.Label(label="Consultando atualizações do Arch Linux…", xalign=0), False, False, 6)
+        self.heading("Atualizações", "Gerencie separadamente o Arch Linux e os aplicativos Flatpak.")
+        self.content.pack_start(Gtk.Label(label="Consultando atualizações disponíveis…", xalign=0), False, False, 6)
         self.content.show_all()
         def worker():
             result = run(["checkupdates"], 180)
             rows = [line.strip() for line in result.stdout.splitlines() if line.strip()]
             error = result.returncode not in (0, 2)
-            GLib.idle_add(self.render_updates, rows, error, result.stdout)
+            flat_system, flat_user = [], []
+            flat_error = None
+            if shutil.which("flatpak"):
+                for scope, target in (("--system", flat_system), ("--user", flat_user)):
+                    fp = run(["flatpak", "remote-ls", scope, "--updates", "--columns=application"], 180)
+                    if fp.returncode == 0:
+                        target.extend(line.strip() for line in fp.stdout.splitlines()
+                                      if line.strip() and "." in line)
+                    elif "No remote refs found" not in fp.stdout + fp.stderr:
+                        flat_error = (fp.stderr or fp.stdout).strip() or "Falha ao consultar Flatpak."
+            GLib.idle_add(self.render_updates, rows, error, result.stdout, flat_system, flat_user, flat_error)
         threading.Thread(target=worker, daemon=True).start()
 
-    def render_updates(self, rows, error, output):
+    def render_updates(self, rows, error, output, flat_system=None, flat_user=None, flat_error=None):
         self.clear()
-        self.heading("Atualizações", "Atualização completa e segura pelo Pacman.")
+        self.heading("Atualizações", "Atualização completa do Arch e atualizações independentes do Flatpak.")
         if error:
-            self.content.pack_start(Gtk.Label(label="Falha ao consultar atualizações: " + output, xalign=0, wrap=True), False, False, 6)
+            self.content.pack_start(Gtk.Label(label="Falha ao consultar Pacman: " + output, xalign=0, wrap=True), False, False, 6)
         elif rows:
             for row in rows:
                 self.content.pack_start(Gtk.Label(label=row, xalign=0), False, False, 2)
-            button = Gtk.Button(label="Atualizar sistema")
+            button = Gtk.Button(label="Atualizar sistema Arch")
             button.set_halign(Gtk.Align.START)
             button.connect("clicked", self.update_system)
             self.content.pack_start(button, False, False, 12)
         else:
-            self.content.pack_start(Gtk.Label(label="Seu sistema está atualizado.", xalign=0), False, False, 8)
+            self.content.pack_start(Gtk.Label(label="Arch Linux: nenhuma atualização disponível.", xalign=0), False, False, 8)
+        if shutil.which("flatpak"):
+            if flat_error:
+                self.content.pack_start(Gtk.Label(label="Aviso Flatpak: " + flat_error, xalign=0, wrap=True), False, False, 6)
+            system_count = len(flat_system or [])
+            user_count = len(flat_user or [])
+            self.content.pack_start(Gtk.Label(label=f"Flatpak do sistema: {system_count} atualização(ões).", xalign=0), False, False, 4)
+            system_button = Gtk.Button(label="Atualizar Flatpak do sistema")
+            system_button.set_halign(Gtk.Align.START)
+            system_button.connect("clicked", self.update_flatpak, "--system")
+            self.content.pack_start(system_button, False, False, 4)
+            self.content.pack_start(Gtk.Label(label=f"Flatpak do usuário: {user_count} atualização(ões).", xalign=0), False, False, 4)
+            user_button = Gtk.Button(label="Atualizar Flatpak do usuário")
+            user_button.set_halign(Gtk.Align.START)
+            user_button.connect("clicked", self.update_flatpak, "--user")
+            self.content.pack_start(user_button, False, False, 4)
         self.content.show_all()
         self.set_status("Consulta concluída.")
         return GLib.SOURCE_REMOVE
+
+    def update_flatpak(self, _button, scope):
+        label = "Atualização Flatpak do sistema" if scope == "--system" else "Atualização Flatpak do usuário"
+        if not self.confirm(label, "Instalar as atualizações disponíveis para esta instalação Flatpak?"):
+            return
+        if scope == "--system":
+            self.run_privileged(["flatpak-update-system"], label)
+        else:
+            self.run_unprivileged(["flatpak", "update", "--user", "--noninteractive", "--assumeyes"], label)
 
     def update_system(self, *_):
         if self.confirm("Atualizar Forja OS", "Será executada uma atualização completa com pacman -Syu. Não desligue o computador durante o processo."):
