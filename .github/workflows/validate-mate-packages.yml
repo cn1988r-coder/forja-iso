@@ -102,6 +102,9 @@ jobs:
           bash -n desktop/mate/forja-repo/forja-repo
           bash -n desktop/mate/forja-store/forja-aur-build
           bash -n desktop/mate/forja-store/PKGBUILD
+          bash -n desktop/mate/forja-repo/forja-repo
+          bash -n desktop/mate/forja-repo/PKGBUILD
+          bash -n desktop/mate/forja-store/forja-pacman-transaction
           bash -n desktop/mate/forja-repo/PKGBUILD
           bash -n desktop/mate/scripts/validate-packages.sh
           python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
@@ -152,6 +155,11 @@ jobs:
           store_root="$(mktemp -d)"
           bash desktop/mate/install-forja-store.sh "$store_root"
           test -x "$store_root/usr/bin/forja-store"
+          test -x "$store_root/usr/bin/forja-repo"
+          test -s "$store_root/etc/forja/pacman.conf"
+          test -s "$store_root/etc/forja/pacman-install.conf"
+          grep -q 'DBPath = /var/lib/forja-repo/' "$store_root/etc/forja/pacman.conf"
+          grep -q 'Include = /etc/pacman.conf' "$store_root/etc/forja/pacman-install.conf"
           test -s "$store_root/etc/polkit-1/rules.d/49-forja-store.rules"
           rm -rf "$store_root"
           python -c "import gi; gi.require_version('Gtk', '3.0'); from gi.repository import Gtk"
@@ -177,6 +185,13 @@ jobs:
               assert main(["upgrade"]) == 0
               assert call.call_args.args[0] == [
                   "/usr/bin/pacman", "-Syu", "--noconfirm"
+              ]
+
+          with patch.object(helper["subprocess"], "call", return_value=0) as call:
+              assert main(["forja-install", "forja-store"]) == 0
+              assert call.call_args.args[0] == [
+                  "/usr/bin/pacman", "--config", "/etc/forja/pacman-install.conf",
+                  "-S", "--needed", "--noconfirm", "forja/forja-store"
               ]
 
           with patch.object(helper["subprocess"], "call", return_value=0) as call:
@@ -212,5 +227,12 @@ jobs:
           assert '"flatpak", "install"' in store
           assert 'flatpak-remove-system' in store
           assert 'forja-aur-build' in store
+          assert 'forja-repo' in store
+          assert 'forja-install' in store
+          assert '"Forja"' in store
+          repo_client = open("desktop/mate/forja-repo/forja-repo", encoding="utf-8").read()
+          assert 'DBPath = /var/lib/forja-repo/' in open("desktop/mate/forja-repo/pacman.conf", encoding="utf-8").read()
+          assert 'Include = /etc/pacman.conf' in open("desktop/mate/forja-repo/pacman-install.conf", encoding="utf-8").read()
+          assert 'pacman -Syu' not in repo_client
           print("Forja Store source integration tests passed.")
           PY
