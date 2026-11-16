@@ -1,0 +1,7 @@
+# Forja OS: default MATE desktop background
+[org/mate/desktop/background]
+picture-filename='/usr/share/backgrounds/forja/forja-mate-wallpaper.svg'
+picture-options='zoom'
+color-shading-type='solid'
+primary-color='#858585'
+secondary-color='#858585'
