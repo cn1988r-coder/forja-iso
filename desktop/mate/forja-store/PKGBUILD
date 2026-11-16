@@ -5,7 +5,7 @@ pkgdesc="Central gráfica de aplicativos da Forja OS para Arch Linux"
 arch=('any')
 url="https://github.com/cn1988r-coder/forja-iso"
 license=('GPL-3.0-or-later')
-depends=('python' 'pacman' 'pacman-contrib' 'gtk3' 'python-gobject' 'polkit')
+depends=('python' 'pacman' 'pacman-contrib' 'gtk3' 'python-gobject' 'polkit' 'forja-repo-client')
 optdepends=('flatpak: pesquisar, instalar e atualizar aplicativos Flathub'
             'git: baixar fontes do AUR'
             'base-devel: compilar pacotes do AUR'
