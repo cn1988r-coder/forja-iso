@@ -1,14 +1,12 @@
-# XFCE desktop module for Arch Linux, with BigCommunity-style panel plugins.
+# XFCE desktop module for Forja OS.
+# DockbarX and its panel plugin are built from local PKGBUILDs in profiles/forja-xfce.
 xfce4
 xfce4-whiskermenu-plugin
-xfce4-docklike-plugin
 xfce4-genmon-plugin
 xfce4-clipman-plugin
 xfce4-power-manager
 xfce4-pulseaudio-plugin
 xfce4-notifyd
-
-# Login, network, browser and visual identity.
 lightdm
 lightdm-gtk-greeter
 networkmanager
@@ -18,8 +16,6 @@ adw-gtk-theme
 papirus-icon-theme
 papirus-folders
 bibata-cursor-theme
-
-# Forja indicator and package/update integration.
 gtk3
 gtk4
 python
