@@ -39,9 +39,10 @@ gnome-calculator
 # This does not install the XFCE desktop, panel, session, or file manager.
 xfce4-screenshooter
 
-# Calamares installer and Brisk Menu: built from pinned AUR recipes in the ISO workflow.
+# Calamares, Brisk Menu and Bibata cursor are built into the local Forja repository.
 calamares
 brisk-menu
+bibata-cursor-theme-bin
 
 # Forja Store: graphical GTK3 app store
 python
