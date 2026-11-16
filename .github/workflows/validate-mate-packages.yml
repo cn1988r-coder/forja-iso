@@ -155,6 +155,18 @@ jobs:
           helper = runpy.run_path("desktop/mate/forja-store/forja-pacman-transaction")
           main = helper["main"]
 
+          with patch.object(helper["subprocess"], "call", return_value=0) as call:
+              assert main(["install", "firefox"]) == 0
+              assert call.call_args.args[0] == [
+                  "/usr/bin/pacman", "-S", "--needed", "--noconfirm", "--", "firefox"
+              ]
+
+          with patch.object(helper["subprocess"], "call", return_value=0) as call:
+              assert main(["upgrade"]) == 0
+              assert call.call_args.args[0] == [
+                  "/usr/bin/pacman", "-Syu", "--noconfirm"
+              ]
+
           with patch.object(helper["subprocess"], "call", side_effect=[0, 0]) as call:
               assert main(["flatpak-install-system", "org.mozilla.firefox"]) == 0
               assert call.call_args_list[0].args[0] == [
