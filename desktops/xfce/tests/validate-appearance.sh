@@ -4,7 +4,7 @@ set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO_ROOT="$(cd -- "$ROOT/../.." && pwd)"
 
-for script in "$ROOT/apply-forja-layout.sh" "$ROOT/install-branding.sh" "$ROOT/plymouth/forja-mkinitcpio.conf" "$REPO_ROOT/build-manjaro.sh"; do
+for script in "$ROOT/apply-forja-layout.sh" "$ROOT/install-branding.sh" "$ROOT/plymouth/forja-mkinitcpio.conf" "$ROOT/plymouth/apply-mkinitcpio.sh" "$REPO_ROOT/build-manjaro.sh"; do
   bash -n "$script"
 done
 
@@ -114,6 +114,8 @@ grep -q 'BASE_CORE_PACKAGES=.*mkinitcpio plymouth calamares' "$REPO_ROOT/build-m
 grep -q 'buildiso -f -x' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'ROOTFS_CHROOT=' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'manjaro-chroot "$ROOTFS_CHROOT" mkinitcpio -P' "$REPO_ROOT/build-manjaro.sh"
+grep -q 'apply-mkinitcpio.sh' "$REPO_ROOT/build-manjaro.sh"
+grep -q 'manjaro-chroot "$ROOTFS_CHROOT" bash /tmp/forja-apply-mkinitcpio.sh' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'buildiso -f -c -z' "$REPO_ROOT/build-manjaro.sh"
 
 # Tray applets are supplied by their packages and autostart through XDG.
