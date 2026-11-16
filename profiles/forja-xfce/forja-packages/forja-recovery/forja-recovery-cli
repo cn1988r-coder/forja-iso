@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+"""Forja Recovery: diagnóstico seguro e operações Snapper explicitamente solicitadas."""
+from __future__ import annotations
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+def run(args: list[str]) -> tuple[int, str]:
+    try:
+        p = subprocess.run(args, text=True, stdout=subprocess.PIPE,
+                           stderr=subprocess.STDOUT, check=False, timeout=30)
+        return p.returncode, p.stdout.strip()
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return 127, str(exc)
+
+def check(label: str, ok: bool, detail: str) -> dict:
+    return {"item": label, "status": "ok" if ok else "attention", "detail": detail}
+
+def diagnose() -> list[dict]:
+    results = []
+    rc, out = run(["findmnt", "-n", "-o", "FSTYPE", "/"])
+    is_btrfs = rc == 0 and out.strip() == "btrfs"
+    results.append(check("Sistema de arquivos raiz", is_btrfs,
+                         out or "Não foi possível identificar o sistema de arquivos."))
+    rc, out = run(["snapper", "-c", "root", "list", "--columns", "number,date,description"])
+    configured = rc == 0
+    results.append(check("Snapper (configuração root)", configured,
+                         out if configured else (out or "Configuração root do Snapper não encontrada.")))
+    rc, out = run(["pacman", "-D", "k"])
+    results.append(check("Base de dados do Pacman", rc == 0,
+                         out or ("Verificação concluída." if rc == 0 else "Pacman retornou erro.")))
+    grub_cfg = Path("/boot/grub/grub.cfg")
+    results.append(check("Configuração do GRUB", grub_cfg.is_file(),
+                         str(grub_cfg) if grub_cfg.is_file() else "Arquivo /boot/grub/grub.cfg não encontrado."))
+    kernels = sorted(Path("/boot").glob("vmlinuz-*")) if Path("/boot").exists() else []
+    results.append(check("Kernel instalado", bool(kernels),
+                         ", ".join(p.name for p in kernels) if kernels else "Nenhum vmlinuz-* encontrado em /boot."))
+    initramfs = sorted(Path("/boot").glob("initramfs-*.img")) if Path("/boot").exists() else []
+    results.append(check("Initramfs", bool(initramfs),
+                         ", ".join(p.name for p in initramfs) if initramfs else "Nenhum initramfs-*.img encontrado em /boot."))
+    results.append(check("Ferramentas Btrfs", shutil.which("btrfs") is not None,
+                         shutil.which("btrfs") or "Comando btrfs não encontrado."))
+    return results
+
+def snapshots() -> tuple[int, str]:
+    return run(["snapper", "-c", "root", "list", "--columns", "number,date,description"])
+
+def create_snapshot(description: str) -> tuple[int, str]:
+    if os.geteuid() != 0:
+        return 1, "Esta operação exige privilégios administrativos."
+    if not description.strip() or len(description) > 120:
+        return 2, "Descrição inválida (1 a 120 caracteres)."
+    rc, fs = run(["findmnt", "-n", "-o", "FSTYPE", "/"])
+    if rc or fs.strip() != "btrfs":
+        return 3, "A raiz não está em Btrfs. Nenhum snapshot foi criado."
+    rc, _ = run(["snapper", "-c", "root", "list"])
+    if rc:
+        return 4, "Snapper não está configurado para a raiz. Nenhuma alteração foi feita."
+    return run(["snapper", "-c", "root", "create", "--description", description])
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Diagnóstico e recuperação segura do Forja OS")
+    sub = parser.add_subparsers(dest="command", required=True)
+    sub.add_parser("diagnose", help="Executa verificações somente de leitura")
+    sub.add_parser("snapshots", help="Lista snapshots da configuração root do Snapper")
+    create = sub.add_parser("create-snapshot", help="Cria snapshot manual da raiz")
+    create.add_argument("--description", required=True)
+    args = parser.parse_args()
+    if args.command == "diagnose":
+        data = diagnose()
+        print(json.dumps(data, ensure_ascii=False, indent=2))
+        return 0 if all(x["status"] == "ok" for x in data) else 1
+    if args.command == "snapshots":
+        rc, out = snapshots()
+    else:
+        rc, out = create_snapshot(args.description)
+    print(out or ("Operação concluída." if rc == 0 else "A operação falhou."))
+    return rc
+
+if __name__ == "__main__":
+    sys.exit(main())
