@@ -41,16 +41,30 @@ jobs:
             exit 1
           fi
 
+          official_packages=()
           for package in "${packages[@]}"; do
-            if pacman -Si "$package" >/dev/null 2>&1 || pacman -Sgq "$package" >/dev/null 2>&1; then
-              printf 'FOUND %s\n' "$package"
-            else
-              echo "MISSING $package" >&2
-              exit 1
-            fi
+            case "$package" in
+              calamares|brisk-menu|bibata-cursor-theme-bin)
+                recipe="build-support/$package/PKGBUILD"
+                test -s "$recipe" || { echo "Missing local recipe: $recipe" >&2; exit 1; }
+                bash -n "$recipe"
+                printf 'FOUND local Forja package recipe %s\\n' "$package"
+                ;;
+              *)
+                if pacman -Si "$package" >/dev/null 2>&1 || pacman -Sgq "$package" >/dev/null 2>&1; then
+                  printf 'FOUND %s\\n' "$package"
+                  official_packages+=("$package")
+                else
+                  echo "MISSING $package" >&2
+                  exit 1
+                fi
+                ;;
+            esac
           done
 
-          pacman -Sp --needed --print-format '%n %v' -- "${packages[@]}" | tee /tmp/mate-transaction.txt
+          if (("${#official_packages[@]}" > 0)); then
+            pacman -Sp --needed --print-format '%n %v' -- "${official_packages[@]}" | tee /tmp/mate-transaction.txt
+          fi
 
           base_list="bases/archlinux/packages.x86_64"
           mapfile -t base_packages < <(grep -Ev '^[[:space:]]*(#|$)' "$base_list")
