@@ -12,7 +12,7 @@ systemctl --root=/ enable lightdm.service
 ln -sfn /usr/lib/systemd/system/graphical.target /etc/systemd/system/default.target
 
 # Install the Forja defaults into the live image and future user skeleton.
-DESTDIR="" "$ASSETS/install-branding.sh"
+DESTDIR="" bash "$ASSETS/install-branding.sh"
 
 # Keep the XFCE layout hook available for the live account. The upstream
 # EndeavourOS live-user is created before this hook is executed.
