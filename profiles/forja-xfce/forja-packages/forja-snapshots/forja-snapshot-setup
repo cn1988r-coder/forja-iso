@@ -10,11 +10,13 @@ command -v snapper >/dev/null || die "snapper não encontrado."
 command -v btrfs >/dev/null || die "btrfs-progs não encontrado."
 
 root_fs="$(findmnt -n -o FSTYPE /)"
-[[ "$root_fs" == "btrfs" ]] || die "a raiz não usa Btrfs; nenhuma alteração foi feita."
+if [[ "$root_fs" != "btrfs" ]]; then
+  log "Raiz não é Btrfs (tipo: ${root_fs:-desconhecido}); ignorando ambiente Live."
+  exit 0
+fi
 root_source="$(findmnt -n -o SOURCE /)"
 log "Raiz Btrfs detectada: $root_source"
 
-# Snapper cria e mantém o subvolume /.snapshots dentro do subvolume raiz.
 if ! snapper -c root get-config >/dev/null 2>&1; then
   [[ ! -e /.snapshots || -d /.snapshots ]] || die "/.snapshots existe e não é um diretório."
   if mountpoint -q /.snapshots; then
@@ -28,8 +30,8 @@ config="/etc/snapper/configs/root"
 [[ -s "$config" ]] || die "configuração Snapper root não foi criada."
 set_config() {
   local key="$1" value="$2"
-  if grep -qE "^#?\\s*${key}=" "$config"; then
-    sed -i -E "s|^#?\\s*${key}=.*|${key}=${value}|" "$config"
+  if grep -qE "^#?[[:space:]]*${key}=" "$config"; then
+    sed -i -E "s|^#?[[:space:]]*${key}=.*|${key}=${value}|" "$config"
   else
     printf '%s=%s\\n' "$key" "$value" >> "$config"
   fi
@@ -55,12 +57,7 @@ else
   die "grub-btrfs/grub-btrfsd não está instalado; snapshots serão criados, mas o menu GRUB não será integrado."
 fi
 
-if [[ -x /usr/bin/grub-mkconfig && -d /boot/grub ]]; then
-  /usr/bin/grub-mkconfig -o /boot/grub/grub.cfg
-else
-  die "GRUB não está instalado ou /boot/grub não existe."
-fi
-
+[[ -x /usr/bin/grub-mkconfig && -d /boot/grub ]] || die "GRUB não está instalado ou /boot/grub não existe."
+/usr/bin/grub-mkconfig -o /boot/grub/grub.cfg
 snapper -c root list >/dev/null
 log "Snapper configurado, timers ativados e menu GRUB atualizado."
-log "Crie um snapshot de teste com: snapper -c root create --description 'Teste Forja'"
