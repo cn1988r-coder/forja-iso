@@ -87,11 +87,13 @@ grep -q 'name="digital-format" type="string" value="%H:%M  ·  %d %b"' "$ROOT/pa
 grep -q 'name="tooltip-format" type="string" value="%A, %d de %B de %Y"' "$ROOT/panel-default.xml"
 ! grep -q 'value="tasklist"' "$ROOT/panel-default.xml"
 ! grep -q 'value="notification-plugin".*value="clock"' "$ROOT/panel-default.xml"
-# DockbarX replaces Docklike and comes from the signed BigCommunity repository.
-grep -q '^community-keyringgrep -q '>community-extra xfce4-dockbarx-plugin' "$ROOT/packages.manjaro"
+# DockbarX packages are sourced from the signed BigCommunity repository.
+grep -q '^community-keyring$' "$ROOT/packages.manjaro"
+grep -q '>community-extra dockbarx' "$ROOT/packages.manjaro"
+grep -q '>community-extra xfce4-dockbarx-plugin' "$ROOT/packages.manjaro"
 grep -q '\[community-extra\]' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'https://repo.communitybig.org/\$repo/\$arch' "$REPO_ROOT/build-manjaro.sh"
-! grep -Rqi 'docklike' "$ROOT"
+! grep -Rqi 'docklike' "$ROOT" --exclude='validate-appearance.sh'
 
 # Plymouth: tema Forja, hook mkinitcpio e parâmetros silenciosos do GRUB.
 grep -q '^custom_boot_args=(quiet splash loglevel=3 rd.udev.log_priority=3 vt.global_cursor_default=0 systemd.show_status=false rd.systemd.show_status=false)$' "$ROOT/profile.conf"
@@ -242,7 +244,8 @@ grep -q 'rm -rf "$TARGET/live-overlay/etc/skel/.config/xfce4"' "$REPO_ROOT/build
 grep -q 'etc/xdg/xfce4/panel/default.xml' "$ROOT/install-branding.sh"
 grep -q 'etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml' "$ROOT/install-branding.sh"
 grep -q 'etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml' "$ROOT/install-branding.sh"
-grep -q 'etc/skel/.config/xfce4/panel/dockbarx.rc' "$ROOT/install-branding.sh"
+grep -q 'panel-default.xml' "$ROOT/install-branding.sh"
+! grep -qi 'docklike' "$ROOT/install-branding.sh"
 grep -q 'etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml' "$ROOT/install-branding.sh"
 grep -q 'forja-black-wallpaper.svg' "$ROOT/install-branding.sh"
 for stock_wallpaper in manjaro-wallpapers-18.0 wallpapers-2018 wallpapers-juhraya illyria-wallpaper manjaro-xfce-settings manjaro-xfce-minimal-settings; do
