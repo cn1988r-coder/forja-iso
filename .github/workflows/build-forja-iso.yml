@@ -1,57 +1,111 @@
-name: Forja OS EndeavourOS XFCE profile checks
+name: Build Forja OS XFCE ISO
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/forja-xfce-endeavouros-port
-    paths:
-      - 'profiles/forja-xfce/**'
-      - 'desktops/xfce/**'
-      - 'build-cloud.sh'
-      - '.github/workflows/build-forja-iso.yml'
 
 permissions:
   contents: read
 
 concurrency:
-  group: forja-endeavour-xfce-checks-${{ github.ref }}
-  cancel-in-progress: true
+  group: forja-xfce-iso-build
+  cancel-in-progress: false
 
 jobs:
-  validate-profile:
-    name: Validate EndeavourOS XFCE preparation (no ISO build)
+  build-iso:
+    name: Build real ISO with EndeavourOS mkarchiso
     runs-on: ubuntu-24.04
+    container:
+      image: archlinux:base-devel
+      options: --privileged
+    timeout-minutes: 360
     steps:
-      - name: Checkout Forja OS source
+      - name: Checkout Forja OS
         uses: actions/checkout@v4
 
-      - name: Install validation tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libxml2-utils
-
-      - name: Validate EndeavourOS XFCE profile
+      - name: Configure Arch and EndeavourOS repositories
         shell: bash
         run: |
           set -Eeuo pipefail
-          bash profiles/forja-xfce/tests/validate-profile.sh
-          xmllint --noout desktops/xfce/panel-default.xml
-          xmllint --noout desktops/xfce/forja-xfce-desktop.xml
+          pacman-key --init
+          pacman -Syu --noconfirm --needed ca-certificates curl git sudo wget
+          install -d /etc/pacman.d
+          curl -fsSL https://raw.githubusercontent.com/endeavouros-team/EndeavourOS-ISO/main/pacman.conf -o /etc/pacman.conf
+          printf '%s\n' 'Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch' > /etc/pacman.d/mirrorlist
+          curl -fsSL https://raw.githubusercontent.com/endeavouros-team/PKGBUILDS/master/endeavouros-mirrorlist/endeavouros-mirrorlist -o /etc/pacman.d/endeavouros-mirrorlist
+          pacman-key --populate archlinux
+          pacman-key --recv-key 0F20FADC599D1C46EB556455AED8858E4B9813F1 --keyserver keyserver.ubuntu.com
+          pacman-key --lsign-key 0F20FADC599D1C46EB556455AED8858E4B9813F1
+          pacman-key --recv-key 497AF50C92AD2384C56E1ACA003DB8B0CB23504F --keyserver keyserver.ubuntu.com
+          pacman-key --lsign-key 497AF50C92AD2384C56E1ACA003DB8B0CB23504F
+          pacman -Sy --noconfirm endeavouros-keyring endeavouros-mirrorlist
+          pacman -Syu --noconfirm --needed \
+            archiso arch-install-scripts squashfs-tools libisoburn dosfstools mtools \
+            syslinux edk2-ovmf erofs-utils git wget curl sudo base-devel reflector jq
 
-      - name: Confirm legacy Manjaro builder is disabled
+      - name: Create unprivileged package builder
         shell: bash
         run: |
           set -Eeuo pipefail
-          bash -n build-cloud.sh
-          if bash build-cloud.sh; then
-            echo "ERRO: o wrapper legado não deveria iniciar um build." >&2
+          useradd --create-home --groups wheel builder
+          printf 'builder ALL=(ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/builder
+          chmod 0440 /etc/sudoers.d/builder
+          chown -R builder:builder "$GITHUB_WORKSPACE"
+
+      - name: Fetch official EndeavourOS ISO framework and prepare Forja profile
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          su builder -c 'git clone --depth 1 https://github.com/endeavouros-team/EndeavourOS-ISO.git /tmp/EndeavourOS-ISO'
+          su builder -c "ENDEAVOUROS_ISO_DIR=/tmp/EndeavourOS-ISO bash '$GITHUB_WORKSPACE/profiles/forja-xfce/prepare-forja.sh'"
+          test -x /tmp/EndeavourOS-ISO/forja-xfce-profile/mkarchiso
+          test -f /tmp/EndeavourOS-ISO/forja-xfce-profile/profiledef.sh
+          test -f /tmp/EndeavourOS-ISO/forja-xfce-profile/packages.x86_64
+          test -f /tmp/EndeavourOS-ISO/forja-xfce-profile/run_before_squashfs.sh
+
+      - name: Build Forja local packages
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          su builder -c 'cd /tmp/EndeavourOS-ISO/forja-xfce-profile && ./prepare.sh'
+
+      - name: Compile the ISO with mkarchiso
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          cd /tmp/EndeavourOS-ISO/forja-xfce-profile
+          ./mkarchiso -v .
+
+      - name: Verify ISO and create SHA256
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          shopt -s nullglob
+          images=(/tmp/EndeavourOS-ISO/forja-xfce-profile/out/*.iso)
+          (( ${#images[@]} == 1 )) || {
+            echo "Esperada exatamente uma ISO; encontradas: ${#images[@]}" >&2
             exit 1
-          else
-            status=$?
-            test "$status" -eq 2
-          fi
+          }
+          iso="${images[0]}"
+          test -s "$iso"
+          file "$iso" | grep -qi 'ISO 9660'
+          xorriso -indev "$iso" -report_el_torito as_mkisofs
+          sha256sum "$iso" > "$iso.sha256"
+          stat --printf='ISO: %n%nTamanho: %s bytes\n' "$iso"
+          cat "$iso.sha256"
 
-      - name: Confirm no ISO build was requested
+      - name: Upload temporary ISO download (expires automatically)
+        uses: actions/upload-artifact@v4
+        with:
+          name: forja-os-xfce-iso-${{ github.run_number }}
+          path: |
+            /tmp/EndeavourOS-ISO/forja-xfce-profile/out/*.iso
+            /tmp/EndeavourOS-ISO/forja-xfce-profile/out/*.iso.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+
+      - name: Remove local ISO and temporary build files
+        if: always()
+        shell: bash
         run: |
-          echo "Validação estática concluída. Nenhuma ISO foi compilada."
+          rm -rf /tmp/EndeavourOS-ISO
