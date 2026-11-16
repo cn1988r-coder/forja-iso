@@ -13,19 +13,29 @@ Usar o MATE upstream dos repositórios oficiais do Arch/EndeavourOS como base fu
 - NetworkManager com applet de rede.
 - Blueman para Bluetooth.
 - PipeWire/WirePlumber para áudio.
+- Applets MATE essenciais, incluindo relógio/calendário.
 - Tema Materia-dark e ícones Papirus-Dark como ponto de partida visual.
+- Configuração GTK para tema escuro, fonte legível e animações GTK desligadas.
 - Configurações de baixo consumo: compositor do Marco desligado e efeitos de fundo desnecessários desativados.
 
-## Pacotes
+## Arquivos
 
-`packages.x86_64` contém uma seleção explícita, em vez de instalar indiscriminadamente o grupo `mate-extra`. O objetivo é evitar utilitários redundantes e dependências opcionais sem função na edição.
+- `packages.x86_64`: seleção explícita de pacotes, sem instalar indiscriminadamente o grupo `mate-extra`.
+- `skel/.config/gtk-3.0/settings.ini`: aparência GTK padrão para novos usuários quando o construtor copiar o esqueleto para `/etc/skel`.
+- `apply-defaults.sh`: aplica configurações MATE seguras ao usuário da sessão, verificando primeiro se cada schema/chave existe.
+- `services.enabled`: serviços que o perfil de imagem deverá habilitar.
+- `scripts/validate-packages.sh`: verifica nomes de pacotes com o pacman.
 
-As bibliotecas exigidas pelos pacotes escolhidos devem permanecer: não remover dependências runtime para tentar reduzir a lista. O pacman resolve dependências transitivas durante a instalação. O que deve ser removido são aplicações opcionais sem uso, não bibliotecas necessárias.
+## Dependências e limpeza
+
+As bibliotecas exigidas pelos pacotes escolhidos devem permanecer. Não remover dependências runtime para tentar reduzir a lista: o pacman resolve dependências transitivas durante a instalação. A limpeza deve retirar aplicações opcionais sem uso, não bibliotecas necessárias.
+
+A lista evita instalar o grupo completo `mate-extra`, mas mantém os componentes funcionais necessários para sessão, calendário, energia, rede, Bluetooth, áudio e dispositivos removíveis.
 
 ## Validação
 
-Execute `scripts/validate-packages.sh` em um ambiente Arch/EndeavourOS atualizado para consultar cada pacote no repositório configurado. Isso verifica a existência dos nomes de pacote, não substitui uma instalação, resolução completa de dependências ou build de ISO.
+Execute `bash desktop/mate/scripts/validate-packages.sh` em um ambiente Arch/EndeavourOS atualizado, com as bases de pacotes sincronizadas. Isso verifica a existência dos nomes nos repositórios configurados; não substitui instalação, resolução integral de dependências, testes de sessão ou build de ISO.
 
 ## Estado
 
-Esta é uma camada inicial de definição. Ainda não foi instalada em uma máquina, não passou por build de ISO e não deve ser descrita como desktop completo ou funcional até os testes.
+Esta é uma camada inicial de definição. Ainda não foi instalada em uma máquina, o validador não foi executado em Arch/EndeavourOS e não houve build de ISO. Não declarar o desktop completo ou funcional até concluir os testes.
