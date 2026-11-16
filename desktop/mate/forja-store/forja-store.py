@@ -15,6 +15,7 @@ from gi.repository import Gtk, GLib, Gio, Gdk
 HELPER = "/usr/bin/forja-pacman-transaction"
 PKG_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9@._+:-]*$")
 AUR_API = "https://aur.archlinux.org/rpc/v5/search/"
+AUR_INFO_API = "https://aur.archlinux.org/rpc/v5/info?"
 
 # Curated entry points make the home screen useful before the first search.
 CATALOG = {
@@ -74,6 +75,14 @@ def aur_search(query):
     with urllib.request.urlopen(request, timeout=20) as response:
         data = json.loads(response.read().decode("utf-8"))
     return data.get("results", []) if data.get("type") == "search" else []
+
+def aur_info(package_names):
+    query = urllib.parse.urlencode([("arg[]", name) for name in package_names])
+    request = urllib.request.Request(AUR_INFO_API + query,
+        headers={"User-Agent": "ForjaStore/2.0"})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        data = json.loads(response.read().decode("utf-8"))
+    return data.get("results", []) if data.get("type") == "multiinfo" else []
 
 class Store(Gtk.Application):
     def __init__(self):
@@ -589,8 +598,26 @@ class Store(Gtk.Application):
             result = run(["checkupdates"], 180)
             rows = [line.strip() for line in result.stdout.splitlines() if line.strip()]
             error = result.returncode not in (0, 2)
-            flat_system, flat_user = [], []
+            flat_system, flat_user, aur_outdated = [], [], []
             flat_error = None
+            foreign = run(["pacman", "-Qm"], 60)
+            installed_foreign = {}
+            for line in foreign.stdout.splitlines():
+                fields = line.split()
+                if len(fields) >= 2:
+                    installed_foreign[fields[0]] = fields[1]
+            if installed_foreign:
+                try:
+                    for item in aur_info(list(installed_foreign)):
+                        name = item.get("Name", "")
+                        local = installed_foreign.get(name, "")
+                        remote = item.get("Version", "")
+                        if local and remote and shutil.which("vercmp"):
+                            comparison = run(["vercmp", local, remote], 5)
+                            if comparison.stdout.strip() == "-1":
+                                aur_outdated.append((name, local, remote))
+                except Exception as exc:
+                    flat_error = "AUR: " + str(exc)
             if shutil.which("flatpak"):
                 for scope, target in (("--system", flat_system), ("--user", flat_user)):
                     fp = run(["flatpak", "remote-ls", scope, "--updates", "--columns=application"], 180)
@@ -599,10 +626,10 @@ class Store(Gtk.Application):
                                       if line.strip() and "." in line)
                     elif "No remote refs found" not in fp.stdout + fp.stderr:
                         flat_error = (fp.stderr or fp.stdout).strip() or "Falha ao consultar Flatpak."
-            GLib.idle_add(self.render_updates, rows, error, result.stdout, flat_system, flat_user, flat_error)
+            GLib.idle_add(self.render_updates, rows, error, result.stdout, flat_system, flat_user, flat_error, aur_outdated)
         threading.Thread(target=worker, daemon=True).start()
 
-    def render_updates(self, rows, error, output, flat_system=None, flat_user=None, flat_error=None):
+    def render_updates(self, rows, error, output, flat_system=None, flat_user=None, flat_error=None, aur_outdated=None):
         self.clear()
         self.heading("Atualizações", "Atualização completa do Arch e atualizações independentes do Flatpak.")
         if error:
@@ -616,9 +643,18 @@ class Store(Gtk.Application):
             self.content.pack_start(button, False, False, 12)
         else:
             self.content.pack_start(Gtk.Label(label="Arch Linux: nenhuma atualização disponível.", xalign=0), False, False, 8)
+        if aur_outdated:
+            self.content.pack_start(Gtk.Label(label="Atualizações do AUR (revisão manual obrigatória):", xalign=0), False, False, 8)
+            for name, local, remote in aur_outdated:
+                row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+                row.pack_start(Gtk.Label(label=f"{name}: {local} → {remote}", xalign=0), True, True, 0)
+                button = Gtk.Button(label="Revisar e atualizar")
+                button.connect("clicked", self.launch_aur_update, name)
+                row.pack_end(button, False, False, 0)
+                self.content.pack_start(row, False, False, 2)
         if shutil.which("flatpak"):
             if flat_error:
-                self.content.pack_start(Gtk.Label(label="Aviso Flatpak: " + flat_error, xalign=0, wrap=True), False, False, 6)
+                self.content.pack_start(Gtk.Label(label="Aviso de fonte externa: " + flat_error, xalign=0, wrap=True), False, False, 6)
             system_count = len(flat_system or [])
             user_count = len(flat_user or [])
             self.content.pack_start(Gtk.Label(label=f"Flatpak do sistema: {system_count} atualização(ões).", xalign=0), False, False, 4)
@@ -634,6 +670,14 @@ class Store(Gtk.Application):
         self.content.show_all()
         self.set_status("Consulta concluída.")
         return GLib.SOURCE_REMOVE
+
+    def launch_aur_update(self, _button, name):
+        if not shutil.which("mate-terminal"):
+            self.set_status("O terminal MATE não está disponível para revisar o pacote AUR.")
+            return
+        if self.confirm("Atualização AUR", "Revisar novamente o PKGBUILD de " + name + " antes de compilar a nova versão?"):
+            subprocess.Popen(["mate-terminal", "--title=Forja Store · Atualização AUR",
+                              "--", "/usr/bin/forja-aur-build", name])
 
     def update_flatpak(self, _button, scope):
         label = "Atualização Flatpak do sistema" if scope == "--system" else "Atualização Flatpak do usuário"
