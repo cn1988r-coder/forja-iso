@@ -1,0 +1,10 @@
+[Unit]
+Description=Agendamento diario de snapshots Timeshift do Forja OS
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=20m
+
+[Install]
+WantedBy=timers.target
