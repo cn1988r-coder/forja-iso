@@ -30,7 +30,7 @@ Usar o MATE upstream dos repositórios oficiais do Arch/EndeavourOS como base fu
 - `skel/.config/gtk-3.0/settings.ini`: aparência GTK padrão para novos usuários quando o construtor copiar o esqueleto para `/etc/skel`.
 - `skel/.config/mimeapps.list`: associações padrão de arquivos, com PDFs no Atril e documentos/planilhas/apresentações no LibreOffice. O construtor precisa copiar esse arquivo para o perfil do usuário.
 - `skel/.config/fastfetch/`: configuração padrão do Fastfetch e brasão ASCII da Forja OS; o construtor precisa copiar a pasta para o esqueleto dos usuários.
-- `apply-defaults.sh`: aplica configurações MATE seguras ao usuário da sessão, verificando primeiro se cada schema/chave existe.
+- `apply-defaults.sh`: copia os arquivos de `skel/.config` para o perfil do usuário atual sem sobrescrever configurações pessoais existentes e aplica os padrões MATE seguros (Materia-dark, Papirus-Dark, fonte DejaVu Sans e compositor Marco desligado), verificando primeiro se cada schema/chave existe. O script precisa ser chamado durante a preparação da sessão; ainda não está conectado a um construtor de ISO.
 - `services.enabled`: serviços que o perfil de imagem deverá habilitar.
 - `scripts/validate-packages.sh`: verifica nomes de pacotes com o pacman.
 - `forja-luz-noturna/`: protótipo da interface e backend de temperatura de cor; a entrada de autostart está em `skel/.config/autostart/`.
@@ -55,4 +55,4 @@ Execute `bash desktop/mate/scripts/validate-packages.sh` em um ambiente Arch/End
 
 ## Estado
 
-Esta é uma camada inicial de definição. O Fastfetch já está listado como pacote e sua configuração/brasão estão preparados em `skel`; porém, assim como os demais arquivos do esqueleto, ainda dependem da integração do construtor para serem copiados aos perfis dos usuários. Ainda não foi instalada em uma máquina, o validador não foi executado em Arch/EndeavourOS e não houve build de ISO. Não declarar o desktop completo ou funcional até concluir os testes.
+Esta é uma camada inicial de definição. O Fastfetch está listado como pacote e sua configuração/brasão estão preparados em `skel`. O `apply-defaults.sh` agora consegue copiar os padrões para o usuário atual quando executado, mas ainda não está conectado ao fluxo de criação da sessão nem a um construtor de ISO. Ainda não foi instalada em uma máquina, o validador não foi executado em Arch/EndeavourOS e não houve build de ISO. Não declarar o desktop completo ou funcional até concluir os testes.
