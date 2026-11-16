@@ -1,15 +1,15 @@
 pkgname=forja-store
-pkgver=0.2.0
+pkgver=0.3.0
 pkgrel=1
 pkgdesc="Central gráfica de aplicativos da Forja OS para Arch Linux"
 arch=('any')
 url="https://github.com/cn1988r-coder/forja-iso"
 license=('GPL-3.0-or-later')
 depends=('python' 'pacman' 'pacman-contrib' 'gtk3' 'python-gobject' 'polkit')
-optdepends=('flatpak: consultar e atualizar aplicativos Flatpak'
+optdepends=('flatpak: pesquisar, instalar e atualizar aplicativos Flathub'
             'git: baixar fontes do AUR'
             'base-devel: compilar pacotes do AUR'
-            'less: visualizar arquivos de compilação')
+            'less: visualizar arquivos de compilação'\n            'mate-terminal: revisar e compilar pacotes AUR em uma janela dedicada')
 backup=()
 source=()
 sha256sums=()
