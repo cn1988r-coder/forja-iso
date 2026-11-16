@@ -16,6 +16,7 @@ for file in "${required[@]}"; do
   [[ -f "$file" ]] || { echo "FALHA: arquivo ausente: $file" >&2; exit 1; }
 done
 bash -n "$PROFILE/profiledef.sh" "$PROFILE/prepare.sh" "$PROFILE/prepare-forja.sh" "$PROFILE/run_before_squashfs.sh" "$PROFILE/apply-forja-live.sh"
+grep -Fq 'DESTDIR="" bash "$ASSETS/install-branding.sh"' "$PROFILE/apply-forja-live.sh" || { echo "FALHA: instalador de identidade visual deve ser chamado via Bash, sem depender do bit executável." >&2; exit 1; }
 bash -n "$SNAPSHOTS/PKGBUILD" "$SNAPSHOTS/forja-snapshot-setup" "$SNAPSHOTS/forja-pacman-snapshot"
 bash -n "$PROFILE/tests/test-snapshots-btrfs.sh"
 python3 -m py_compile "$RECOVERY/forja-recovery-cli" "$RECOVERY/forja-recovery-gui" "$PROFILE/airootfs/usr/local/bin/forja-update"
