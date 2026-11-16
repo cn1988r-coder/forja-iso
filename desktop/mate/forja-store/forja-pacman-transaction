@@ -1,38 +1,77 @@
 #!/usr/bin/python3
-"""Narrow privileged transaction helper for Forja Store on Arch/EndeavourOS."""
+"""Narrow privileged transaction helper for Forja Store on Arch Linux."""
+import os
 import re
-import shutil
 import subprocess
 import sys
 
 PACKAGE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9@._+:-]*$")
-ACTIONS = {"install", "remove", "upgrade", "flatpak-update-system"}
+FLATPAK_ID = re.compile(r"^[A-Za-z0-9_-]+(?:\\.[A-Za-z0-9_-]+)+$")
+ACTIONS = {
+    "install", "remove", "upgrade", "flatpak-install-system",
+    "flatpak-remove-system", "flatpak-update-system", "install-file",
+}
 
-def main():
-    if len(sys.argv) < 2 or sys.argv[1] not in ACTIONS:
+
+def call(args):
+    return subprocess.call(args)
+
+
+def main(argv=None):
+    argv = sys.argv[1:] if argv is None else argv
+    if not argv or argv[0] not in ACTIONS:
         print("Ação inválida.", file=sys.stderr)
         return 2
-    action, packages = sys.argv[1], sys.argv[2:]
+
+    action, args = argv[0], argv[1:]
     if action in {"install", "remove"}:
-        if not packages or any(not PACKAGE.fullmatch(name) for name in packages):
+        if not args or any(not PACKAGE.fullmatch(name) for name in args):
             print("Nome de pacote inválido.", file=sys.stderr)
             return 2
-    elif packages:
-        print("Esta ação não aceita argumentos.", file=sys.stderr)
-        return 2
-    if action == "install":
-        return subprocess.call(["/usr/bin/pacman", "-S", "--needed", "--", *packages])
-    if action == "remove":
-        return subprocess.call(["/usr/bin/pacman", "-Rns", "--", *packages])
+        if action == "install":
+            return call(["/usr/bin/pacman", "-S", "--needed", "--", *args])
+        return call(["/usr/bin/pacman", "-Rns", "--", *args])
+
     if action == "upgrade":
-        return subprocess.call(["/usr/bin/pacman", "-Syu"])
-    if action == "flatpak-update-system":
-        if not shutil.which("flatpak"):
-            print("Flatpak não está instalado.", file=sys.stderr)
-            return 1
-        return subprocess.call(["/usr/bin/flatpak", "update", "--system",
-                                "--noninteractive", "--assumeyes"])
+        if args:
+            print("A atualização não aceita argumentos.", file=sys.stderr)
+            return 2
+        return call(["/usr/bin/pacman", "-Syu"])
+
+    if action == "install-file":
+        if len(args) != 1:
+            print("Informe um pacote local.", file=sys.stderr)
+            return 2
+        path = os.path.realpath(args[0])
+        if not path.startswith("/tmp/forja-store-") or not path.endswith(".pkg.tar.zst") or not os.path.isfile(path):
+            print("Arquivo de pacote local inválido.", file=sys.stderr)
+            return 2
+        return call(["/usr/bin/pacman", "-U", "--", path])
+
+    if action.startswith("flatpak-"):
+        if action == "flatpak-update-system":
+            if args:
+                return 2
+            return call(["/usr/bin/flatpak", "update", "--system",
+                         "--noninteractive", "--assumeyes"])
+        if len(args) != 1 or not FLATPAK_ID.fullmatch(args[0]):
+            print("ID Flatpak inválido.", file=sys.stderr)
+            return 2
+        app_id = args[0]
+        if action == "flatpak-install-system":
+            remote = call(["/usr/bin/flatpak", "remote-add", "--if-not-exists",
+                           "--system", "flathub",
+                           "https://flathub.org/repo/flathub.flatpakrepo"])
+            if remote != 0:
+                return remote
+            return call(["/usr/bin/flatpak", "install", "--system",
+                         "--noninteractive", "--assumeyes", "flathub", app_id])
+        if action == "flatpak-remove-system":
+            return call(["/usr/bin/flatpak", "uninstall", "--system",
+                         "--noninteractive", "--assumeyes", app_id])
+
     return 2
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
