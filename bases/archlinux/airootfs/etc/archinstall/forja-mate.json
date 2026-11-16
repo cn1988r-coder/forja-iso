@@ -74,7 +74,9 @@
     "materia-gtk-theme",
     "papirus-icon-theme",
     "ttf-dejavu",
-    "curl"
+    "curl",
+    "python",
+    "gtk3"
   ],
   "services": [
     "NetworkManager.service",
@@ -86,7 +88,7 @@
     "algorithm": "zstd"
   },
   "custom_commands": [
-    "git clone --branch feature/forja-arch-mate https://github.com/cn1988r-coder/forja-iso.git /tmp/forja-iso && git -C /tmp/forja-iso checkout ce37bf7be95aedb69e268ffb3cbf51de4d555204 && bash /tmp/forja-iso/desktop/mate/install-target.sh /tmp/forja-iso"
+    "git clone --depth 1 --branch fix/forja-store-launcher-indicator https://github.com/cn1988r-coder/forja-iso.git /tmp/forja-iso && bash /tmp/forja-iso/desktop/mate/install-target.sh /tmp/forja-iso"
   ],
   "version": "3.0.2",
   "profile_config": {
