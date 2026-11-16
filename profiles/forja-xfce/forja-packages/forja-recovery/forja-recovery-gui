@@ -23,7 +23,8 @@ class RecoveryWindow(Gtk.Window):
         root.pack_start(actions, False, False, 0)
         for label, callback in (("Executar diagnóstico", self.diagnose),
                                 ("Listar snapshots", self.list_snapshots),
-                                ("Criar snapshot", self.create_snapshot)):
+                                ("Criar snapshot", self.create_snapshot),
+                                ("Restaurar snapshot", self.rollback_snapshot)):
             button = Gtk.Button(label=label)
             button.connect("clicked", callback)
             actions.pack_start(button, False, False, 0)
@@ -63,6 +64,75 @@ class RecoveryWindow(Gtk.Window):
 
     def list_snapshots(self, *_):
         self.execute([CLI, "snapshots"])
+
+    def rollback_snapshot(self, *_):
+        warning = Gtk.MessageDialog(transient_for=self, flags=0,
+                                    message_type=Gtk.MessageType.WARNING,
+                                    buttons=Gtk.ButtonsType.OK_CANCEL,
+                                    text="Restaurar o sistema a partir de um snapshot?")
+        warning.format_secondary_text(
+            "O Forja Recovery criará uma nova raiz gravável baseada no snapshot escolhido "
+            "e alterará o subvolume padrão do Btrfs. A operação exige reinicialização. "
+            "Arquivos pessoais em /home não são revertidos por este snapshot."
+        )
+        response = warning.run()
+        warning.destroy()
+        if response != Gtk.ResponseType.OK:
+            return
+
+        try:
+            p = subprocess.run(["snapper", "-c", "root", "list", "--columns",
+                                "number,date,description"], text=True,
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                               timeout=30, check=False)
+        except Exception as exc:
+            self.show_text(f"Não foi possível consultar os snapshots: {exc}")
+            return
+        if p.returncode != 0:
+            self.show_text(p.stdout or "Snapper não conseguiu listar os snapshots.")
+            return
+
+        choices = []
+        for line in p.stdout.splitlines():
+            fields = [part.strip() for part in line.split("|")]
+            if not fields or not fields[0].isdigit():
+                continue
+            number = int(fields[0])
+            if number == 0:
+                continue
+            label = " | ".join(fields)
+            choices.append((str(number), label))
+        if not choices:
+            self.show_text("Não há snapshots numerados disponíveis para restauração.")
+            return
+
+        dialog = Gtk.Dialog(title="Escolher snapshot", transient_for=self, flags=0)
+        dialog.add_button("Cancelar", Gtk.ResponseType.CANCEL)
+        dialog.add_button("Continuar", Gtk.ResponseType.OK)
+        combo = Gtk.ComboBoxText()
+        for number, label in choices:
+            combo.append(number, label)
+        combo.set_active(0)
+        dialog.get_content_area().pack_start(combo, True, True, 12)
+        dialog.show_all()
+        response = dialog.run()
+        selected = combo.get_active_id()
+        dialog.destroy()
+        if response != Gtk.ResponseType.OK or not selected:
+            return
+
+        confirm = Gtk.MessageDialog(transient_for=self, flags=0,
+                                    message_type=Gtk.MessageType.ERROR,
+                                    buttons=Gtk.ButtonsType.OK_CANCEL,
+                                    text=f"Confirmar restauração do snapshot {selected}?")
+        confirm.format_secondary_text(
+            "Isso muda o subvolume padrão de inicialização. Não desligue o computador "
+            "durante a operação. Após a conclusão, reinicie o Forja OS."
+        )
+        response = confirm.run()
+        confirm.destroy()
+        if response == Gtk.ResponseType.OK:
+            self.execute(["pkexec", CLI, "rollback", "--snapshot", selected, "--confirm"])
 
     def create_snapshot(self, *_):
         dialog = Gtk.MessageDialog(transient_for=self, flags=0, message_type=Gtk.MessageType.WARNING,
