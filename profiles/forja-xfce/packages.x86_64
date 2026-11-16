@@ -4,6 +4,10 @@
 # Base system and EndeavourOS live environment
 base
 base-devel
+arch-install-scripts
+mkinitcpio-archiso
+mkinitcpio-nfs-utils
+syslinux
 archlinux-keyring
 endeavouros-keyring
 endeavouros-mirrorlist
@@ -18,6 +22,8 @@ sudo
 nano
 git
 networkmanager
+reflector
+curl
 wireless-regdb
 wpa_supplicant
 bluez
