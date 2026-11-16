@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+name="${1:-}"
+[[ "$name" =~ ^[A-Za-z0-9][A-Za-z0-9@._+:-]*$ ]] || {
+  echo "Nome de pacote AUR inválido."; read -r -p "Enter para sair."; exit 2;
+}
+command -v git >/dev/null || { echo "Instale git para usar o AUR."; exit 1; }
+command -v makepkg >/dev/null || { echo "Instale base-devel para compilar pacotes AUR."; exit 1; }
+work="$(mktemp -d "${TMPDIR:-/tmp}/forja-aur-${name}.XXXXXX")"
+trap 'rm -rf "$work"' EXIT
+cd "$work"
+echo "Obtendo receita do AUR: $name"
+git clone --depth=1 "https://aur.archlinux.org/$name.git" "$name"
+cd "$name"
+echo
+echo "===== REVISE O PKGBUILD E OS ARQUIVOS DO PACOTE ====="
+less PKGBUILD
+if [[ -f .install ]]; then less .install; fi
+echo
+echo "A compilação executará código fornecido pelo mantenedor do pacote."
+read -r -p "Você revisou os arquivos e deseja continuar? Digite COMPILAR: " answer
+[[ "$answer" == "COMPILAR" ]] || { echo "Operação cancelada."; exit 1; }
+echo "Compilando como usuário comum. makepkg poderá solicitar sudo para dependências."
+makepkg --syncdeps --install
+echo "Processo AUR concluído."
+read -r -p "Enter para fechar."
