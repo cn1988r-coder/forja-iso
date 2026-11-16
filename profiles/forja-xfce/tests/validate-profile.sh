@@ -7,8 +7,9 @@ DOCKBARX="$PROFILE/forja-packages/dockbarx/PKGBUILD"
 DOCKBARX_INSTALL="$PROFILE/forja-packages/dockbarx/dockbarx.install"
 DOCKBARX_PLUGIN="$PROFILE/forja-packages/xfce4-dockbarx-plugin/PKGBUILD"
 RECOVERY="$PROFILE/forja-packages/forja-recovery"
+SNAPSHOTS="$PROFILE/forja-packages/forja-snapshots"
 PANEL="$ROOT/desktops/xfce/panel-default.xml"
-required=("$PROFILE/profiledef.sh" "$PROFILE/prepare.sh" "$PROFILE/prepare-forja.sh" "$PROFILE/run_before_squashfs.sh" "$PROFILE/apply-forja-live.sh" "$PROFILE/README.md" "$DOCKBARX" "$DOCKBARX_INSTALL" "$DOCKBARX_PLUGIN" "$RECOVERY/PKGBUILD" "$RECOVERY/forja-recovery-cli" "$RECOVERY/forja-recovery-gui" "$RECOVERY/forja-recovery.desktop" "$RECOVERY/README.md" "$ROOT/desktops/xfce/install-branding.sh" "$ROOT/desktops/xfce/apply-forja-layout.sh" "$PANEL" "$PROFILE/airootfs/usr/local/bin/forja-update" "$PROFILE/airootfs/usr/share/applications/forja-update.desktop")
+required=("$PROFILE/profiledef.sh" "$PROFILE/prepare.sh" "$PROFILE/prepare-forja.sh" "$PROFILE/run_before_squashfs.sh" "$PROFILE/apply-forja-live.sh" "$PROFILE/README.md" "$DOCKBARX" "$DOCKBARX_INSTALL" "$DOCKBARX_PLUGIN" "$RECOVERY/PKGBUILD" "$RECOVERY/forja-recovery-cli" "$RECOVERY/forja-recovery-gui" "$RECOVERY/forja-recovery.desktop" "$RECOVERY/README.md" "$SNAPSHOTS/PKGBUILD" "$SNAPSHOTS/forja-snapshot-setup" "$SNAPSHOTS/forja-pacman-snapshot" "$SNAPSHOTS/forja-snapshot-pre.hook" "$SNAPSHOTS/forja-snapshot-post.hook" "$SNAPSHOTS/forja-snapshot-setup.service" "$PROFILE/tests/test-snapshots-btrfs.sh" "$ROOT/desktops/xfce/calamares/mount.conf" "$ROOT/desktops/xfce/calamares/partition.conf" "$ROOT/desktops/xfce/install-branding.sh" "$ROOT/desktops/xfce/apply-forja-layout.sh" "$PANEL" "$PROFILE/airootfs/usr/local/bin/forja-update" "$PROFILE/airootfs/usr/share/applications/forja-update.desktop")
 for file in "${required[@]}"; do
   [[ -f "$file" ]] || { echo "FALHA: arquivo ausente: $file" >&2; exit 1; }
 done
@@ -20,6 +21,10 @@ bash -n "$PROFILE/apply-forja-live.sh"
 python3 -m py_compile "$PROFILE/airootfs/usr/local/bin/forja-update"
 rm -rf "$PROFILE/airootfs/usr/local/bin/__pycache__"
 bash -n "$RECOVERY/PKGBUILD"
+bash -n "$SNAPSHOTS/PKGBUILD"
+bash -n "$SNAPSHOTS/forja-snapshot-setup"
+bash -n "$SNAPSHOTS/forja-pacman-snapshot"
+bash -n "$PROFILE/tests/test-snapshots-btrfs.sh"
 python3 -m py_compile "$RECOVERY/forja-recovery-cli" "$RECOVERY/forja-recovery-gui"
 rm -rf "$RECOVERY/__pycache__"
 bash -n "$ROOT/desktops/xfce/profile.conf"
@@ -55,6 +60,16 @@ grep -Fq 'for required_dir in airootfs efiboot syslinux' "$PROFILE/prepare-forja
 grep -Fq 'cp -a "$UPSTREAM_ROOT/efiboot" "$TARGET/"' "$PROFILE/prepare-forja.sh"
 grep -Fq 'cp -a "$UPSTREAM_ROOT/syslinux" "$TARGET/"' "$PROFILE/prepare-forja.sh"
 grep -Fq "forja-recovery-*.pkg.tar.zst" "$PROFILE/prepare.sh"
+grep -Fq "forja-snapshots-*.pkg.tar.zst" "$PROFILE/prepare.sh"
+grep -Fq "grub-btrfs" "$PROFILE/prepare.sh"
+grep -Fq "forja-snapshot-setup.service" "$SNAPSHOTS/PKGBUILD"
+grep -Fq "snapper-timeline.timer" "$SNAPSHOTS/forja-snapshot-setup"
+grep -Fq "grub-btrfsd.service" "$SNAPSHOTS/forja-snapshot-setup"
+grep -Fq "When = PreTransaction" "$SNAPSHOTS/forja-snapshot-pre.hook"
+grep -Fq "When = PostTransaction" "$SNAPSHOTS/forja-snapshot-post.hook"
+grep -Fq "subvolume: /@" "$ROOT/desktops/xfce/calamares/mount.conf"
+grep -Fq "subvolume: /@home" "$ROOT/desktops/xfce/calamares/mount.conf"
+grep -Fq "availableFileSystemTypes: [\"btrfs\"]" "$ROOT/desktops/xfce/calamares/partition.conf"
 grep -Fq "forja-recovery-cli diagnose" "$RECOVERY/README.md"
 if grep -Eiq "rm[[:space:]]+-rf|mkfs\\.|dd[[:space:]]+if=" "$RECOVERY/forja-recovery-cli" "$RECOVERY/forja-recovery-gui"; then
   echo "FALHA: operação destrutiva não permitida no núcleo inicial do Recovery." >&2
@@ -62,7 +77,7 @@ if grep -Eiq "rm[[:space:]]+-rf|mkfs\\.|dd[[:space:]]+if=" "$RECOVERY/forja-reco
 fi
 grep -Fq 'cp -a "$PROFILE_DIR/airootfs/." "$TARGET/airootfs/"' "$PROFILE/prepare-forja.sh"
 grep -Fq '"$TARGET/airootfs/root/liveuser.png"' "$PROFILE/prepare-forja.sh"
-grep -Fq '(( ${#local_packages[@]} == 5 ))' "$PROFILE/prepare.sh"
+grep -Fq '(( ${#local_packages[@]} == 7 ))' "$PROFILE/prepare.sh"
 grep -Fq '0bbb1280ccd373262561453d85201f2707483990' "$ROOT/.github/workflows/build-forja-iso.yml"
 grep -Fq '0bbb1280ccd373262561453d85201f2707483990' "$ROOT/.github/workflows/preflight-forja-xfce.yml"
 if grep -Fxq 'calamares' "$PACKAGES"; then
