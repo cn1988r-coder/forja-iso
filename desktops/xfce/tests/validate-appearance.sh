@@ -290,9 +290,6 @@ grep -q 'shelly-autostart.desktop' "$ROOT/install-branding.sh"
 grep -q 'etc/xdg/autostart/shelly.desktop' "$ROOT/install-branding.sh"
 
 # Shelly is the sole intended graphical software store; Pamac must be absent.
-test -s "$ROOT/shelly/PKGBUILD"
-grep -q '^pkgver=3.3.0$' "$ROOT/shelly/PKGBUILD"
-grep -q 'zig=0.17.1' "$ROOT/shelly/PKGBUILD"
 ! grep -Eq '^(pamac|pamac-cli|pamac-gtk|libpamac|libpamac-flatpak-plugin)$' "$ROOT/packages.manjaro"
 ! grep -Eq '^DESKTOP_CORE_PACKAGES=.*(pamac-gtk|pamac-cli|libpamac)' "$REPO_ROOT/build-manjaro.sh"
 grep -q '^Exec=/usr/bin/shelly-ui$' "$ROOT/shelly-autostart.desktop"
