@@ -102,7 +102,31 @@ jobs:
           test -x "$store_test_root/root/usr/lib/forja/forja-store"
           test -s "$store_test_root/root/usr/share/applications/forja-store.desktop"
           test -s "$store_test_root/root/usr/share/icons/hicolor/scalable/apps/forja-store.svg"
-          grep -q '^Terminal=false$' "$store_test_root/root/usr/share/applications/forja-store.desktop"
+          test -s "$store_test_root/root/etc/polkit-1/rules.d/49-forja-store.rules"
+          grep -q 'forja-pacman-transaction' "$store_test_root/root/etc/polkit-1/rules.d/49-forja-store.rules"
+          grep -q '^Terminal=false
+          rm -rf "$store_test_root"
+
+      - name: Build bootable ISO with Calamares
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -n "$FORJA_CALAMARES_REPO"
+          bash bases/archlinux/validate-profile.sh
+          bash bases/archlinux/build-profile.sh "$RUNNER_TEMP/forja-work" "$GITHUB_WORKSPACE/out"
+          find out -maxdepth 1 -type f -name '*.iso' -print -quit | grep -q .
+          sha256sum out/*.iso > out/SHA256SUMS
+
+      - name: Upload ISO and checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: forja-os-arch-mate-iso-${{ github.run_number }}
+          path: |
+            out/*.iso
+            out/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 14
+ "$store_test_root/root/usr/share/applications/forja-store.desktop"
           rm -rf "$store_test_root"
 
       - name: Build bootable ISO with Calamares
