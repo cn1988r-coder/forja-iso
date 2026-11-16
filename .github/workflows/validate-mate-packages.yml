@@ -6,6 +6,8 @@ on:
       - feature/forja-arch-mate
     paths:
       - "desktop/mate/**"
+      - "bases/archlinux/**"
+      - "DESKTOP-STRATEGY.md"
       - ".github/workflows/validate-mate-packages.yml"
   pull_request:
     paths:
@@ -49,6 +51,24 @@ jobs:
           done
 
           pacman -Sp --needed --print-format '%n %v' -- "${packages[@]}" | tee /tmp/mate-transaction.txt
+
+          base_list="bases/archlinux/packages.x86_64"
+          mapfile -t base_packages < <(grep -Ev '^[[:space:]]*(#|$)' "$base_list")
+          if (("${#base_packages[@]}" == 0)); then
+            echo "Arch base package list is empty." >&2
+            exit 1
+          fi
+          for package in "${base_packages[@]}"; do
+            if pacman -Si "$package" >/dev/null 2>&1 || pacman -Sgq "$package" >/dev/null 2>&1; then
+              printf 'FOUND Arch base package %s\\n' "$package"
+            else
+              echo "MISSING Arch base package $package" >&2
+              exit 1
+            fi
+          done
+          pacman -Sp --needed --print-format '%n %v' -- "${base_packages[@]}" | tee /tmp/arch-base-transaction.txt
+          bash -n bases/archlinux/profiledef.sh
+          pacman-conf --config bases/archlinux/pacman.conf --repo-list
 
           bash -n desktop/mate/apply-defaults.sh
           bash -n desktop/mate/install-iptvnator.sh
