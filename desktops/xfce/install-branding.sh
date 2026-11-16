@@ -15,6 +15,8 @@ install -Dm644 "$ROOT/plymouth/forja-mkinitcpio.conf" "$DEST/etc/mkinitcpio.conf
 install -Dm644 "$ROOT/plymouth/forja-grub" "$DEST/etc/default/grub"
 install -Dm755 "$ROOT/apply-forja-layout.sh" "$DEST/usr/lib/forja/apply-xfce-layout.sh"
 install -Dm644 "$ROOT/forja-xfce-appearance.desktop" "$DEST/etc/xdg/autostart/forja-xfce-appearance.desktop"
+# Shelly opens with the user's XFCE session; its UI starts its notification service.
+install -Dm644 "$ROOT/shelly-autostart.desktop" "$DEST/etc/xdg/autostart/shelly.desktop"
 install -Dm644 "$ROOT/forja-gtk.css" "$DEST/etc/skel/.config/gtk-3.0/gtk.css"
 install -Dm644 "$ROOT/forja-whiskermenu.rc" "$DEST/etc/skel/.config/xfce4/panel/whiskermenu-1.rc"
 
@@ -31,4 +33,4 @@ install -Dm644 "$ROOT/forja-xfce-desktop.xml" \
 if [[ -z "$DEST" ]] && command -v gtk-update-icon-cache >/dev/null 2>&1; then
   gtk-update-icon-cache -q -f /usr/share/icons/hicolor || true
 fi
-echo "Forja OS XFCE: painel, DockbarX, tema visual e Plymouth Forja instalados nos overlays."
+echo "Forja OS XFCE: painel, DockbarX, autostart Shelly, tema visual e Plymouth instalados nos overlays."
