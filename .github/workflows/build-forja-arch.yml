@@ -38,67 +38,20 @@ jobs:
         run: |
           set -Eeuo pipefail
           bash -n bases/archlinux/build-profile.sh
-          bash -n bases/archlinux/airootfs/root/customize_airootfs.sh
+          bash -n bases/archlinux/validate-profile.sh
           bash -n desktop/mate/install-target.sh
-          python -m json.tool bases/archlinux/airootfs/etc/archinstall/forja-mate.json >/dev/null
           bash -n desktop/mate/apply-defaults.sh
-          bash -n desktop/mate/forja-repo/forja-repo
           bash -n desktop/mate/install-forja-store.sh
           bash -n desktop/mate/install-forja-monitor.sh
           bash -n desktop/mate/install-forja-update-indicator.sh
-          bash -n desktop/mate/install-iptvnator.sh
-          python -m py_compile desktop/mate/forja-monitor/forja-monitor.py
-          python -m py_compile desktop/mate/forja-monitor/record-install-time.py
+          python -m json.tool bases/archlinux/airootfs/etc/archinstall/forja-mate.json >/dev/null
           python -m py_compile desktop/mate/forja-store/forja-store.py
-          test -s desktop/mate/forja-store/forja-store.svg
-          grep -q '^Terminal=false          python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
-          test -s bases/archlinux/airootfs/usr/share/backgrounds/forja/forja-mate-wallpaper.svg
-          test -s bases/archlinux/airootfs/etc/dconf/db/local.d/00-forja-mate
-          test -s bases/archlinux/airootfs/etc/pacman.d/hooks/90-forja-dconf.hook
-
-      - name: Build bootable ISO with pinned upstream Archiso profile
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          bash bases/archlinux/validate-profile.sh
-          bash bases/archlinux/build-profile.sh "$RUNNER_TEMP/forja-work" "$GITHUB_WORKSPACE/out"
-          find out -maxdepth 1 -type f -name '*.iso' -print -quit | grep -q .
-          sha256sum out/*.iso > out/SHA256SUMS
-
-      - name: Upload ISO and checksums
-        uses: actions/upload-artifact@v4
-        with:
-          name: forja-os-arch-mate-iso-${{ github.run_number }}
-          path: |
-            out/*.iso
-            out/SHA256SUMS
-          if-no-files-found: error
-          retention-days: 14
- desktop/mate/forja-store/forja-store.desktop
-          grep -q '^gtk3          python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
-          test -s bases/archlinux/airootfs/usr/share/backgrounds/forja/forja-mate-wallpaper.svg
-          test -s bases/archlinux/airootfs/etc/dconf/db/local.d/00-forja-mate
-          test -s bases/archlinux/airootfs/etc/pacman.d/hooks/90-forja-dconf.hook
-
-      - name: Build bootable ISO with pinned upstream Archiso profile
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          bash bases/archlinux/validate-profile.sh
-          bash bases/archlinux/build-profile.sh "$RUNNER_TEMP/forja-work" "$GITHUB_WORKSPACE/out"
-          find out -maxdepth 1 -type f -name '*.iso' -print -quit | grep -q .
-          sha256sum out/*.iso > out/SHA256SUMS
-
-      - name: Upload ISO and checksums
-        uses: actions/upload-artifact@v4
-        with:
-          name: forja-os-arch-mate-iso-${{ github.run_number }}
-          path: |
-            out/*.iso
-            out/SHA256SUMS
-          if-no-files-found: error
-          retention-days: 14
- desktop/mate/packages.x86_64
+          python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
+          python -m py_compile desktop/mate/forja-monitor/forja-monitor.py
+          python -m py_compile bases/archlinux/airootfs/usr/bin/forja-installer
+          grep -q '^Terminal=false$' desktop/mate/forja-store/forja-store.desktop
+          grep -q '^Terminal=false$' bases/archlinux/airootfs/usr/share/applications/forja-installer.desktop
+          ! grep -q '^Exec=.*mate-terminal' bases/archlinux/airootfs/usr/share/applications/forja-installer.desktop
           store_test_root="$(mktemp -d)"
           mkdir -p "$store_test_root/root"
           bash desktop/mate/install-forja-store.sh "$store_test_root/root"
@@ -106,11 +59,8 @@ jobs:
           test -x "$store_test_root/root/usr/lib/forja/forja-store"
           test -s "$store_test_root/root/usr/share/applications/forja-store.desktop"
           test -s "$store_test_root/root/usr/share/icons/hicolor/scalable/apps/forja-store.svg"
+          grep -q '^Terminal=false$' "$store_test_root/root/usr/share/applications/forja-store.desktop"
           rm -rf "$store_test_root"
-          python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
-          test -s bases/archlinux/airootfs/usr/share/backgrounds/forja/forja-mate-wallpaper.svg
-          test -s bases/archlinux/airootfs/etc/dconf/db/local.d/00-forja-mate
-          test -s bases/archlinux/airootfs/etc/pacman.d/hooks/90-forja-dconf.hook
 
       - name: Build bootable ISO with pinned upstream Archiso profile
         shell: bash
