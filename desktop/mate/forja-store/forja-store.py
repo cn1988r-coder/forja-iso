@@ -434,13 +434,22 @@ class Store(Gtk.Application):
                     self.run_unprivileged(["flatpak", "uninstall", "--user", "--noninteractive", "--assumeyes", name],
                                           "Remoção Flatpak de " + name)
             else:
-                if not self.confirm("Instalar aplicativo Flatpak",
-                    "Instalar " + name + " do Flathub para este usuário?"):
-                    return
-                self.run_unprivileged(["flatpak", "remote-add", "--user", "--if-not-exists",
-                                       "flathub", "https://flathub.org/repo/flathub.flatpakrepo"],
-                                      "Configuração do Flathub", follow_up=[
-                    "flatpak", "install", "--user", "--noninteractive", "--assumeyes", "flathub", name])
+                dialog = Gtk.MessageDialog(transient_for=self.window, modal=True,
+                    message_type=Gtk.MessageType.QUESTION, buttons=Gtk.ButtonsType.NONE,
+                    text="Onde deseja instalar o aplicativo?")
+                dialog.format_secondary_text(name + " será instalado a partir do Flathub.")
+                dialog.add_button("Cancelar", Gtk.ResponseType.CANCEL)
+                dialog.add_button("Só este usuário", Gtk.ResponseType.ACCEPT)
+                dialog.add_button("Todos os usuários", Gtk.ResponseType.YES)
+                response = dialog.run()
+                dialog.destroy()
+                if response == Gtk.ResponseType.ACCEPT:
+                    self.run_unprivileged(["flatpak", "remote-add", "--user", "--if-not-exists",
+                                           "flathub", "https://flathub.org/repo/flathub.flatpakrepo"],
+                                          "Instalação Flatpak de " + name, follow_up=[
+                        "flatpak", "install", "--user", "--noninteractive", "--assumeyes", "flathub", name])
+                elif response == Gtk.ResponseType.YES:
+                    self.run_privileged(["flatpak-install-system", name], "Instalação Flatpak de " + name)
             return
 
         installed = name in self.installed
