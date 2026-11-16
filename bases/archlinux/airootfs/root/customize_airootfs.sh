@@ -10,6 +10,10 @@ autologin-user-timeout=0
 user-session=mate
 EOF
 
+for group in wheel audio video storage power; do
+  getent group "$group" >/dev/null 2>&1 || groupadd --system "$group"
+done
+
 if ! id forja >/dev/null 2>&1; then
   useradd --create-home --groups wheel,audio,video,storage,power --shell /bin/bash forja
   passwd --delete forja
