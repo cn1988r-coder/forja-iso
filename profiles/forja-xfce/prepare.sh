@@ -14,7 +14,8 @@ DOCKBARX_DIR="$PROFILE_DIR/forja-packages/dockbarx"
 PLUGIN_DIR="$PROFILE_DIR/forja-packages/xfce4-dockbarx-plugin"
 RECOVERY_DIR="$PROFILE_DIR/forja-packages/forja-recovery"
 SNAPSHOTS_DIR="$PROFILE_DIR/forja-packages/forja-snapshots"
-for required in "$DOCKBARX_DIR/PKGBUILD" "$DOCKBARX_DIR/dockbarx.install" "$PLUGIN_DIR/PKGBUILD" "$RECOVERY_DIR/PKGBUILD" "$SNAPSHOTS_DIR/PKGBUILD"; do
+BIBATA_DIR="$PROFILE_DIR/forja-packages/bibata-cursor-theme"
+for required in "$DOCKBARX_DIR/PKGBUILD" "$DOCKBARX_DIR/dockbarx.install" "$PLUGIN_DIR/PKGBUILD" "$RECOVERY_DIR/PKGBUILD" "$SNAPSHOTS_DIR/PKGBUILD" "$BIBATA_DIR/PKGBUILD"; do
   [[ -s "$required" ]] || { echo "Erro: receita local ausente: $required" >&2; exit 1; }
 done
 
@@ -33,6 +34,9 @@ recovery_packages=("$RECOVERY_DIR"/forja-recovery-*.pkg.tar.zst)
 (cd "$SNAPSHOTS_DIR" && makepkg --clean --syncdeps --noconfirm -f)
 snapshot_packages=("$SNAPSHOTS_DIR"/forja-snapshots-*.pkg.tar.zst)
 (( ${#snapshot_packages[@]} == 1 )) || { echo "Erro: Forja Snapshots não foi gerado." >&2; exit 1; }
+(cd "$BIBATA_DIR" && makepkg --clean --syncdeps --noconfirm -f)
+bibata_packages=("$BIBATA_DIR"/bibata-cursor-theme-*.pkg.tar.zst)
+(( ${#bibata_packages[@]} == 1 )) || { echo "Erro: tema Bibata não foi gerado." >&2; exit 1; }
 command -v grub-btrfsd >/dev/null 2>&1 || { echo "Erro: grub-btrfsd do pacote oficial não encontrado." >&2; exit 1; }
 
 SHELLY_DIR="$PROFILE_DIR/forja-desktop-assets/shelly"
@@ -42,12 +46,12 @@ shelly_packages=("$SHELLY_DIR"/shelly-bin-[0-9]*.pkg.tar.zst "$SHELLY_DIR"/shell
 (( ${#shelly_packages[@]} == 2 )) || { echo "Erro: esperado dois pacotes Shelly." >&2; exit 1; }
 
 install -d "$PROFILE_DIR/airootfs/root/packages"
-cp -f "${dockbarx_packages[@]}" "${plugin_packages[@]}" "${recovery_packages[@]}" "${snapshot_packages[@]}" "${shelly_packages[@]}" "$PROFILE_DIR/airootfs/root/packages/"
+cp -f "${dockbarx_packages[@]}" "${plugin_packages[@]}" "${recovery_packages[@]}" "${snapshot_packages[@]}" "${shelly_packages[@]}" "${bibata_packages[@]}" "$PROFILE_DIR/airootfs/root/packages/"
 local_packages=("$PROFILE_DIR"/airootfs/root/packages/*.pkg.tar.zst)
-(( ${#local_packages[@]} == 6 )) || { echo "Erro: esperados 6 pacotes locais; encontrados ${#local_packages[@]}." >&2; exit 1; }
+(( ${#local_packages[@]} == 7 )) || { echo "Erro: esperados 7 pacotes locais; encontrados ${#local_packages[@]}." >&2; exit 1; }
 for package in "${local_packages[@]}"; do
   pacman -Qp "$package" >/dev/null || { echo "Erro: pacote local inválido: $package" >&2; exit 1; }
 done
 shopt -u nullglob
-echo "Preparação Forja concluída: GRUB-Btrfs oficial, DockbarX, plugin XFCE, Recovery, Snapshots e Shelly preparados."
+echo "Preparação Forja concluída: GRUB-Btrfs oficial, DockbarX, plugin XFCE, Recovery, Snapshots, Bibata e Shelly preparados."
 echo "Nenhuma ISO foi compilada."
