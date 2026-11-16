@@ -85,6 +85,7 @@ class Store(Gtk.Application):
         self.search = None
         self.status = None
         self.installed = set()
+        self.installed_flatpak = {}
         self.busy = False
         self.generation = 0
         self.current_page = "Destaques"
@@ -195,11 +196,19 @@ class Store(Gtk.Application):
         def worker():
             result = run(["pacman", "-Q"], 60)
             names = {line.split()[0] for line in result.stdout.splitlines() if line.split()}
-            GLib.idle_add(self.set_installed, names)
+            flatpak_apps = {}
+            if shutil.which("flatpak"):
+                listing = run(["flatpak", "list", "--app", "--columns=application,installation"], 60)
+                for line in listing.stdout.splitlines():
+                    fields = line.split()
+                    if len(fields) >= 2 and "." in fields[0]:
+                        flatpak_apps[fields[0]] = fields[1].lower()
+            GLib.idle_add(self.set_installed, names, flatpak_apps)
         threading.Thread(target=worker, daemon=True).start()
 
-    def set_installed(self, names):
+    def set_installed(self, names, flatpak_apps=None):
         self.installed = names
+        self.installed_flatpak = flatpak_apps or {}
         return GLib.SOURCE_REMOVE
 
     def navigate(self, _button, category):
@@ -290,7 +299,9 @@ class Store(Gtk.Application):
         details = Gtk.Button(label="Detalhes")
         details.connect("clicked", self.show_details, item)
         actions.pack_start(details, False, False, 0)
-        installed = item["name"] in self.installed
+        installed = (item["name"] in self.installed if item["source"] == "official"
+                     else item["name"] in self.installed_flatpak if item["source"] == "flatpak"
+                     else item["name"] in self.installed)
         action = Gtk.Button(label="Remover" if installed else "Instalar")
         action.connect("clicked", self.package_action, item)
         actions.pack_end(action, False, False, 0)
@@ -308,7 +319,9 @@ class Store(Gtk.Application):
         box.pack_start(icon, False, False, 0)
         label = Gtk.Label(label=item.get("description", ""), xalign=0, wrap=True)
         box.pack_start(label, False, False, 0)
-        source = "AUR comunitário: revise o PKGBUILD antes de instalar." if item["source"] == "aur" else "Pacote dos repositórios oficiais do Arch Linux."
+        source = {"aur": "AUR comunitário: o PKGBUILD será exibido para revisão antes da compilação.",
+                  "flatpak": "Aplicativo distribuído pelo Flathub usando Flatpak.",
+                  "official": "Pacote dos repositórios oficiais do Arch Linux."}.get(item["source"], "Aplicativo")
         box.pack_start(Gtk.Label(label=source, xalign=0, wrap=True), False, False, 0)
         dialog.show_all()
         dialog.run()
@@ -346,18 +359,27 @@ class Store(Gtk.Application):
                         "version": item.get("Version", ""), "description": item.get("Description", ""),
                         "source": "aur", "icon": "application-x-executable"})
             except Exception as exc:
-                error = str(exc)
-            GLib.idle_add(self.show_search_results, generation, matches[:45], aur, error)
+                error = "AUR: " + str(exc)
+            flatpak_items = []
+            if shutil.which("flatpak"):
+                fp = run(["flatpak", "search", "--columns=application,name,description", query], 90)
+                for line in fp.stdout.splitlines():
+                    fields = [part.strip() for part in line.split("\\t")]
+                    if len(fields) >= 2 and "." in fields[0] and fields[0].lower() not in {"application", "application id"}:
+                        flatpak_items.append({"name": fields[0], "title": fields[1],
+                            "version": "Flathub", "description": fields[2] if len(fields) > 2 else "",
+                            "source": "flatpak", "icon": "application-x-executable"})
+            GLib.idle_add(self.show_search_results, generation, matches[:45], aur, flatpak_items, error)
         threading.Thread(target=worker, daemon=True).start()
 
-    def show_search_results(self, generation, official, aur, error):
+    def show_search_results(self, generation, official, aur, flatpak_items, error):
         if generation != self.generation:
             return GLib.SOURCE_REMOVE
         self.clear()
-        self.heading("Resultados da busca", "Aplicativos encontrados nos repositórios.")
+        self.heading("Resultados da busca", "Aplicativos encontrados nos repositórios oficiais, AUR e Flathub.")
         if error:
-            self.content.pack_start(Gtk.Label(label="Não foi possível consultar o AUR: " + error, xalign=0, wrap=True), False, False, 4)
-        for title, items in (("Arch Linux", official), ("AUR comunitário", aur)):
+            self.content.pack_start(Gtk.Label(label="Aviso de pesquisa: " + error, xalign=0, wrap=True), False, False, 4)
+        for title, items in (("Arch Linux", official), ("AUR comunitário", aur), ("Flathub", flatpak_items)):
             self.heading(title)
             grid = Gtk.FlowBox()
             grid.set_selection_mode(Gtk.SelectionMode.NONE)
@@ -378,26 +400,42 @@ class Store(Gtk.Application):
         if not PKG_RE.fullmatch(name):
             self.set_status("Nome de pacote inválido.")
             return
-        if item["source"] == "aur" and name in self.installed:
-            if self.confirm("Remover aplicativo", "Remover " + name + " do sistema?"):
-                self.run_privileged(["remove", name], "Remoção de " + name)
-            return
         if item["source"] == "aur":
-            dialog = Gtk.MessageDialog(
-                transient_for=self.window, modal=True,
-                message_type=Gtk.MessageType.INFO,
-                buttons=Gtk.ButtonsType.CLOSE,
-                text="Instalação gráfica do AUR ainda não disponível",
-            )
-            dialog.format_secondary_text(
-                "A Forja Store permite pesquisar pacotes do AUR, mas não inicia "
-                "terminais nem executa receitas comunitárias nesta versão. "
-                "Use os repositórios oficiais do Arch para instalar aplicativos "
-                "diretamente pela loja."
-            )
-            dialog.run()
-            dialog.destroy()
+            if name in self.installed:
+                if self.confirm("Remover pacote AUR", "Remover " + name + " usando o Pacman?"):
+                    self.run_privileged(["remove", name], "Remoção de " + name)
+                return
+            if not shutil.which("mate-terminal"):
+                self.set_status("O terminal MATE não está disponível para a revisão e compilação segura do AUR.")
+                return
+            if self.confirm("Revisão do AUR",
+                "A loja abrirá uma janela de terminal para mostrar os arquivos do pacote. "
+                "Revise o PKGBUILD e só digite COMPILAR se confiar no mantenedor. "
+                "A compilação será executada como usuário comum."):
+                subprocess.Popen(["mate-terminal", "--title=Forja Store · Revisão AUR",
+                                  "--", "/usr/bin/forja-aur-build", name])
             return
+
+        if item["source"] == "flatpak":
+            installed_scope = self.installed_flatpak.get(name)
+            if installed_scope:
+                if not self.confirm("Remover aplicativo Flatpak", "Remover " + name + " (" + installed_scope + ")?"):
+                    return
+                if installed_scope == "system":
+                    self.run_privileged(["flatpak-remove-system", name], "Remoção Flatpak de " + name)
+                else:
+                    self.run_unprivileged(["flatpak", "uninstall", "--user", "--noninteractive", "--assumeyes", name],
+                                          "Remoção Flatpak de " + name)
+            else:
+                if not self.confirm("Instalar aplicativo Flatpak",
+                    "Instalar " + name + " do Flathub para este usuário?"):
+                    return
+                self.run_unprivileged(["flatpak", "remote-add", "--user", "--if-not-exists",
+                                       "flathub", "https://flathub.org/repo/flathub.flatpakrepo"],
+                                      "Configuração do Flathub", follow_up=[
+                    "flatpak", "install", "--user", "--noninteractive", "--assumeyes", "flathub", name])
+            return
+
         installed = name in self.installed
         verb = "remover" if installed else "instalar"
         if not self.confirm("Gerenciar aplicativo", verb.capitalize() + " " + name + " usando o Pacman?"):
@@ -412,6 +450,22 @@ class Store(Gtk.Application):
         response = dialog.run()
         dialog.destroy()
         return response == Gtk.ResponseType.OK
+
+    def run_unprivileged(self, args, label, follow_up=None):
+        if self.busy:
+            self.set_status("Já existe uma operação em andamento.")
+            return
+        if not shutil.which(args[0]):
+            self.set_status("Ferramenta necessária não está instalada: " + args[0])
+            return
+        self.busy = True
+        self.set_status(label + "…")
+        def worker():
+            result = run(args, 7200)
+            if result.returncode == 0 and follow_up:
+                result = run(follow_up, 7200)
+            GLib.idle_add(self.operation_done, result.returncode, result.stdout, label)
+        threading.Thread(target=worker, daemon=True).start()
 
     def run_privileged(self, args, label):
         if self.busy:
