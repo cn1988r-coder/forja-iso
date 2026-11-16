@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Apply safe MATE defaults for the current user.
+# Every setting is checked against the installed schema before writing,
+# so absent optional schemas/keys do not break image construction.
+
+set_if_available() {
+    local schema="$1" key="$2" value="$3"
+    if ! gsettings list-schemas | grep -Fxq "$schema"; then
+        printf 'SKIP schema unavailable: %s\n' "$schema"
+        return 0
+    fi
+    if ! gsettings list-keys "$schema" | grep -Fxq "$key"; then
+        printf 'SKIP key unavailable: %s.%s\n' "$schema" "$key"
+        return 0
+    fi
+    gsettings set "$schema" "$key" "$value"
+    printf 'SET %s.%s\n' "$schema" "$key"
+}
+
+command -v gsettings >/dev/null 2>&1 || {
+    echo "gsettings is unavailable; install the MATE schemas before applying defaults." >&2
+    exit 1
+}
+
+set_if_available org.mate.interface gtk-theme "'Materia-dark'"
+set_if_available org.mate.interface icon-theme "'Papirus-Dark'"
+set_if_available org.mate.interface font-name "'DejaVu Sans 10'"
+set_if_available org.mate.background show-desktop-icons "false"
+set_if_available org.mate.background background-fade "false"
+set_if_available org.mate.Marco.general compositing-manager "false"
