@@ -12,7 +12,6 @@ openssh
 sudo
 nano
 less
-vi
 man-db
 man-pages
 git
