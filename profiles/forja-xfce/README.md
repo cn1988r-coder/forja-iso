@@ -18,7 +18,7 @@ O perfil é mantido separado do checkout upstream. A preparação cria uma pasta
 
 A edição XFCE fixa Btrfs como sistema de arquivos, com subvolumes `@`, `@home`, `@cache` e `@log`. O pacote Forja Snapshots configura o Snapper no primeiro boot do sistema instalado, habilita criação/limpeza por linha do tempo e hooks antes/depois de transações Pacman. O pacote oficial `grub-btrfs` integra os snapshots ao menu do GRUB e monitora novas criações com `grub-btrfsd`. O Forja Recovery permite diagnosticar e criar snapshots manuais. A raiz é protegida; `/home` permanece em subvolume separado e não é incluído nos snapshots root.
 
-O workflow de pré-build executa um teste Btrfs real em imagem de loop: cria subvolume, configura Snapper, cria snapshot numerado e valida o par pre/post usado pelos hooks. Isso não substitui um teste de inicialização/rollback em máquina virtual, que continua obrigatório antes de distribuir a ISO.
+O workflow de pré-build executa um teste Btrfs real em imagem de loop: cria subvolume, configura Snapper, cria snapshot numerado e valida o par pre/post usado pelos hooks. O GRUB-Btrfs oferece entradas para iniciar snapshots. O rollback permanente pelo Forja Recovery verifica `/etc/fstab` e `rootflags`: se a raiz estiver presa a `subvol=@`, ele bloqueia a operação para não alterar o subvolume errado. O layout final do instalador precisa ser ajustado e o ciclo completo de inicialização/rollback deve ser testado em máquina virtual antes de distribuir a ISO.
 
 ## Preparação do perfil
 
