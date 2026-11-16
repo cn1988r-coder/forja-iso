@@ -43,6 +43,7 @@ lvm2
 efibootmgr
 grub
 os-prober
+xorg-server
 xfce4
 xfce4-goodies
 xfce4-whiskermenu-plugin
