@@ -68,7 +68,7 @@ file-roller
 blueman
 adw-gtk-theme
 papirus-icon-theme
-bibata-cursor-theme
+# Bibata is built as a pinned local package by prepare.sh.
 noto-fonts
 noto-fonts-emoji
 noto-fonts-cjk
