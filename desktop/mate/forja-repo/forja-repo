@@ -14,8 +14,8 @@ usage() {
 }
 
 sync_repo() {
-  command -v sudo >/dev/null 2>&1 || { echo "sudo não encontrado." >&2; return 1; }
-  sudo pacman --config "$CONFIG" -Sy --noconfirm
+  command -v pkexec >/dev/null 2>&1 || { echo "pkexec não encontrado." >&2; return 1; }
+  pkexec /usr/bin/forja-pacman-transaction forja-sync
 }
 
 case "${1:-}" in
