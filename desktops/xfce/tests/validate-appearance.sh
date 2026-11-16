@@ -116,6 +116,9 @@ grep -q 'ROOTFS_CHROOT=' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'manjaro-chroot "$ROOTFS_CHROOT" mkinitcpio -P' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'apply-mkinitcpio.sh' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'manjaro-chroot "$ROOTFS_CHROOT" bash /tmp/forja-apply-mkinitcpio.sh' "$REPO_ROOT/build-manjaro.sh"
+grep -q 'GRUB_DEFAULT_FILE="$ROOTFS_CHROOT/etc/default/grub"' "$REPO_ROOT/build-manjaro.sh"
+grep -q 'GRUB_EXISTING_ARGS=' "$REPO_ROOT/build-manjaro.sh"
+! grep -q 'forja-grub.*ROOTFS_CHROOT/etc/default/grub' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'buildiso -f -c -z' "$REPO_ROOT/build-manjaro.sh"
 
 # Tray applets are supplied by their packages and autostart through XDG.
