@@ -8,6 +8,7 @@ done
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SETUP="$SCRIPT_DIR/../forja-packages/forja-snapshots/forja-snapshot-setup"
+PACMAN_HOOK="$SCRIPT_DIR/../forja-packages/forja-snapshots/forja-pacman-snapshot"
 WORK="$(mktemp -d /tmp/forja-btrfs-snapshot-test.XXXXXX)"
 IMAGE="$WORK/btrfs.img"
 TOP="$WORK/top"
@@ -63,13 +64,14 @@ snapper -c root --root "$ROOT" create --description "Forja CI snapshot"
 list="$(snapper -c root --root "$ROOT" list --columns number,description)"
 grep -q "Forja CI snapshot" <<<"$list"
 
-pre="$(snapper -c root --root "$ROOT" create --type pre --print-number --description "Forja CI pre")"
-[[ "$pre" =~ ^[0-9]+$ ]]
+FORJA_SNAPSHOT_ROOT="$ROOT" FORJA_SNAPSHOT_STATE_DIR="$WORK/state" bash "$PACMAN_HOOK" pre
+test -s "$WORK/state/pre-transaction"
 printf 'after pre snapshot\n' >> "$ROOT/forja-snapshot-test.txt"
-snapper -c root --root "$ROOT" create --type post --pre-number "$pre" --description "Forja CI post"
+FORJA_SNAPSHOT_ROOT="$ROOT" FORJA_SNAPSHOT_STATE_DIR="$WORK/state" bash "$PACMAN_HOOK" post
+test ! -e "$WORK/state/pre-transaction"
 list="$(snapper -c root --root "$ROOT" list --columns number,type,description)"
-grep -q "Forja CI pre" <<<"$list"
-grep -q "Forja CI post" <<<"$list"
+grep -q "Forja: antes de transação Pacman" <<<"$list"
+grep -q "Forja: depois de transação Pacman" <<<"$list"
 
 btrfs subvolume list "$TOP" | grep -q '/.snapshots/'
 echo "PASS: setup Forja, timers, GRUB hook, snapshot real e par pre/post validados em Btrfs."
