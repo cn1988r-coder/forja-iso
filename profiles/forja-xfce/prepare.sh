@@ -18,18 +18,7 @@ for required in "$DOCKBARX_DIR/PKGBUILD" "$DOCKBARX_DIR/dockbarx.install" "$PLUG
   [[ -s "$required" ]] || { echo "Erro: receita local ausente: $required" >&2; exit 1; }
 done
 
-AUR_DIR="${AUR_DIR:-$HOME/.cache/forja-aur}"
-mkdir -p "$AUR_DIR"
-if [[ ! -d "$AUR_DIR/grub-btrfs/.git" ]]; then
-  git clone https://aur.archlinux.org/grub-btrfs.git "$AUR_DIR/grub-btrfs"
-else
-  git -C "$AUR_DIR/grub-btrfs" pull --ff-only
-fi
-(cd "$AUR_DIR/grub-btrfs" && makepkg --clean --syncdeps --noconfirm -f)
-grub_btrfs_packages=("$AUR_DIR/grub-btrfs"/grub-btrfs-*.pkg.tar.zst)
-(( ${#grub_btrfs_packages[@]} == 1 )) || { echo "Erro: grub-btrfs não foi gerado de forma única." >&2; exit 1; }
-sudo pacman -U --noconfirm --asdeps "${grub_btrfs_packages[0]}"
-
+command -v grub-btrfsd >/dev/null 2>&1 || { echo "Erro: grub-btrfsd do pacote oficial não encontrado." >&2; exit 1; }
 (cd "$DOCKBARX_DIR" && makepkg --clean --syncdeps --noconfirm -f)
 shopt -s nullglob
 dockbarx_packages=("$DOCKBARX_DIR"/dockbarx-*.pkg.tar.zst)
@@ -53,12 +42,12 @@ shelly_packages=("$SHELLY_DIR"/shelly-bin-[0-9]*.pkg.tar.zst "$SHELLY_DIR"/shell
 (( ${#shelly_packages[@]} == 2 )) || { echo "Erro: esperado dois pacotes Shelly." >&2; exit 1; }
 
 install -d "$PROFILE_DIR/airootfs/root/packages"
-cp -f "${grub_btrfs_packages[@]}" "${dockbarx_packages[@]}" "${plugin_packages[@]}" "${recovery_packages[@]}" "${snapshot_packages[@]}" "${shelly_packages[@]}" "$PROFILE_DIR/airootfs/root/packages/"
+cp -f "${dockbarx_packages[@]}" "${plugin_packages[@]}" "${recovery_packages[@]}" "${snapshot_packages[@]}" "${shelly_packages[@]}" "$PROFILE_DIR/airootfs/root/packages/"
 local_packages=("$PROFILE_DIR"/airootfs/root/packages/*.pkg.tar.zst)
-(( ${#local_packages[@]} == 7 )) || { echo "Erro: esperados 7 pacotes locais; encontrados ${#local_packages[@]}." >&2; exit 1; }
+(( ${#local_packages[@]} == 6 )) || { echo "Erro: esperados 6 pacotes locais; encontrados ${#local_packages[@]}." >&2; exit 1; }
 for package in "${local_packages[@]}"; do
   pacman -Qp "$package" >/dev/null || { echo "Erro: pacote local inválido: $package" >&2; exit 1; }
 done
 shopt -u nullglob
-echo "Preparação Forja concluída: GRUB-Btrfs, DockbarX, plugin XFCE, Recovery, Snapshots e Shelly preparados."
+echo "Preparação Forja concluída: GRUB-Btrfs oficial, DockbarX, plugin XFCE, Recovery, Snapshots e Shelly preparados."
 echo "Nenhuma ISO foi compilada."
