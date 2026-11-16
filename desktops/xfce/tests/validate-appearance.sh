@@ -13,7 +13,7 @@ for package in \
   bibata-cursor-theme noto-fonts ttf-jetbrains-mono gtk3 libnotify \
   gsettings-desktop-schemas appstream archlinux-appstream-data flatpak base-devel git \
   xfce4-panel dockbarx xfce4-dockbarx-plugin xfce4-whiskermenu-plugin \
-  xfce4-pulseaudio-plugin xfce4-power-manager xfce4-notifyd plymouth \
+  xfce4-pulseaudio-plugin xfce4-power-manager xfce4-notifyd \
   xfce4-clipman-plugin networkmanager network-manager-applet bluez bluez-utils blueman; do
   grep -Fxq "$package" "$ROOT/packages.manjaro" || {
     printf 'Pacote obrigatório ausente no perfil XFCE da Forja: %s\n' "$package" >&2
@@ -105,9 +105,11 @@ grep -q 'Image.Text("FORJA OS"' "$ROOT/plymouth/forja.script"
 grep -q 'Plymouth.SetRefreshFunction' "$ROOT/plymouth/forja.script"
 grep -q 'HOOKS+=( "plymouth" )' "$ROOT/plymouth/forja-mkinitcpio.conf" || grep -q 'plymouth' "$ROOT/plymouth/forja-mkinitcpio.conf"
 grep -q 'quiet splash loglevel=3' "$ROOT/plymouth/forja-grub"
+test -s "$ROOT/forja-plymouth/PKGBUILD"
+grep -q 'forja-plymouth' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'forja-mkinitcpio.conf' "$REPO_ROOT/build-manjaro.sh"
-grep -q 'TARGET/rootfs/etc/default/grub' "$REPO_ROOT/build-manjaro.sh"
-grep -q 'usr/share/plymouth/themes/forja' "$ROOT/install-branding.sh"
+grep -q 'plymouth forja-plymouth' "$REPO_ROOT/build-manjaro.sh"
+grep -q 'forja-plymouth' "$REPO_ROOT/build-manjaro.sh"
 
 # Tray applets are supplied by their packages and autostart through XDG.
 grep -q 'network-manager-applet' "$ROOT/packages.manjaro"
