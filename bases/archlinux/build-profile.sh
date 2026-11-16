@@ -18,6 +18,16 @@ git clone --filter=blob:none https://github.com/archlinux/archiso.git "$UPSTREAM
 git -C "$UPSTREAM" checkout "$ARCHISO_REF"
 cp -a "$UPSTREAM/configs/releng" "$PROFILE"
 
+# Replace Arch Linux branding in the ISO boot menus and request Plymouth.
+for boot_config in "$PROFILE/grub/grub.cfg" "$PROFILE/syslinux/archiso_sys-linux.cfg" "$PROFILE/efiboot/loader/entries/01-archiso-linux.conf"; do
+  [[ -f "$boot_config" ]] || continue
+  sed -i \
+    -e 's/Arch Linux install medium/Forja OS Live/g' \
+    -e 's/--class arch/--class forja/g' \
+    -e 's/%KERNEL_PARAMS%/%KERNEL_PARAMS% quiet splash/g' \
+    "$boot_config"
+done
+
 # Use official Archiso boot assets and live-system support, with Forja package set.
 cat "$ROOT/bases/archlinux/packages.x86_64" "$ROOT/desktop/mate/packages.x86_64" >> "$PROFILE/packages.x86_64"
 sort -u "$PROFILE/packages.x86_64" -o "$PROFILE/packages.x86_64"
@@ -31,6 +41,11 @@ sed -i \
 
 # Overlay the Forja live root filesystem.
 cp -a "$ROOT/bases/archlinux/airootfs/." "$PROFILE/airootfs/"
+
+# Add the Forja Plymouth theme builder and its original flame mark to the live root.
+install -Dm755 "$ROOT/desktop/mate/plymouth/install-theme.sh" "$PROFILE/airootfs/usr/local/lib/forja/plymouth/install-theme.sh"
+install -Dm644 "$ROOT/desktop/mate/plymouth/forja.plymouth" "$PROFILE/airootfs/usr/local/lib/forja/plymouth/forja.plymouth"
+install -Dm644 "$ROOT/desktop/mate/forja-monitor/forja-flame.svg" "$PROFILE/airootfs/usr/share/forja/branding/forja-flame.svg"
 install -Dm755 "$ROOT/bases/archlinux/airootfs/usr/bin/forja-installer" "$PROFILE/airootfs/usr/bin/forja-installer"
 chmod 0755 "$PROFILE/airootfs/root/customize_airootfs.sh"
 cp "$ROOT/bases/archlinux/pacman.conf" "$PROFILE/pacman.conf"
