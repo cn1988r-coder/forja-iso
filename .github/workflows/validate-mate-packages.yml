@@ -3,7 +3,7 @@ name: Validate Forja MATE packages
 on:
   push:
     branches:
-      - foundation/dual-base
+      - feature/forja-arch-mate
     paths:
       - "desktop/mate/**"
       - ".github/workflows/validate-mate-packages.yml"
