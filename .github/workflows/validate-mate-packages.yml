@@ -22,8 +22,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Update Arch package databases
-        run: pacman -Syu --noconfirm
+      - name: Update Arch package databases and install validation tools
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm python
 
       - name: Validate package names and dependency resolution
         shell: bash
