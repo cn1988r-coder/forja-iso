@@ -1,34 +1,10 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-ROOT="${FORJA_SNAPSHOT_ROOT:-/}"
-STATE_DIR="${FORJA_SNAPSHOT_STATE_DIR:-/var/lib/forja-snapshots}"
-STATE_FILE="$STATE_DIR/pre-transaction"
-mkdir -p "$STATE_DIR"
-chmod 0700 "$STATE_DIR"
+action="${1:-pre}"
+[[ "$action" == "pre" ]] || exit 2
+[[ "$(findmnt -n -o FSTYPE / 2>/dev/null || true)" == "btrfs" ]] || exit 0
+[[ -s /etc/timeshift/timeshift.json ]] || exit 0
+command -v timeshift >/dev/null 2>&1 || exit 0
 
-action="${1:-}"
-[[ "$action" == pre || "$action" == post ]] || exit 2
-[[ "$(findmnt -n -o FSTYPE "$ROOT" 2>/dev/null || true)" == btrfs ]] || exit 0
-
-SNAPPER=(snapper -c root)
-if [[ "$ROOT" != "/" ]]; then
-  SNAPPER+=(--root "$ROOT")
-fi
-"${SNAPPER[@]}" get-config >/dev/null 2>&1 || exit 0
-
-case "$action" in
-  pre)
-    number="$("${SNAPPER[@]}" create --type pre --cleanup-algorithm number --print-number --description "Forja: antes de transação Pacman")"
-    [[ "$number" =~ ^[0-9]+$ ]] || exit 1
-    printf '%s\n' "$number" > "$STATE_FILE"
-    chmod 0600 "$STATE_FILE"
-    ;;
-  post)
-    [[ -s "$STATE_FILE" ]] || exit 0
-    number="$(cat "$STATE_FILE")"
-    [[ "$number" =~ ^[0-9]+$ ]] || { rm -f "$STATE_FILE"; exit 1; }
-    "${SNAPPER[@]}" create --type post --cleanup-algorithm number --pre-number "$number" --description "Forja: depois de transação Pacman"
-    rm -f "$STATE_FILE"
-    ;;
-esac
+exec /usr/bin/timeshift --create --comments "Forja OS: antes de atualizar pacotes" --tags O --scripted
