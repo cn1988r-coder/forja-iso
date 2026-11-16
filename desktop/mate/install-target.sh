@@ -25,6 +25,7 @@ OnlyShowIn=MATE;
 NoDisplay=true
 DESKTOP
 
+bash "$MATE/install-brisk-menu.sh" "$SOURCE_ROOT"
 bash "$MATE/install-forja-store.sh" /
 bash "$MATE/install-forja-monitor.sh" /
 bash "$MATE/install-forja-update-indicator.sh" /
