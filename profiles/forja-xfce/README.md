@@ -10,13 +10,13 @@ O perfil é mantido separado do checkout upstream. A preparação cria uma pasta
 - XFCE com LightDM e personalização própria da Forja OS.
 - Painel inferior da Forja com Whisker Menu e **DockbarX** como barra de tarefas.
 - DockbarX e o plugin xfce4-dockbarx-plugin são construídos como pacotes locais a partir de PKGBUILDs revisados e versionados no repositório. Não são tratados como pacotes oficiais Arch/EndeavourOS e não dependem de repositórios Manjaro ou BigCommunity.
-- Preparação e validação de sete pacotes locais: GRUB-Btrfs, DockbarX, plugin XFCE, Forja Recovery, Forja Snapshots e dois componentes Shelly.
+- Preparação e validação de seis pacotes locais Forja: DockbarX, plugin XFCE, Forja Recovery, Forja Snapshots e dois componentes Shelly. GRUB-Btrfs vem do repositório oficial Arch.
 - Pré-build automatizado dos pacotes locais, sem executar o mkarchiso.
 - Cliente Forja Updates integrado ao XFCE por manifesto estável independente; instala somente arquivos próprios em destinos permitidos, após validar SHA-256, criar backup e pedir confirmação. O canal permanece sem atualizações enquanto não houver artefatos publicados.
 
 ## Proteção por snapshots Btrfs
 
-A edição XFCE fixa Btrfs como sistema de arquivos, com subvolumes `@`, `@home`, `@cache` e `@log`. O pacote Forja Snapshots configura o Snapper no primeiro boot do sistema instalado, habilita criação/limpeza por linha do tempo e hooks antes/depois de transações Pacman. O grub-btrfs é compilado a partir do AUR e integra os snapshots ao menu do GRUB. O Forja Recovery permite diagnosticar e criar snapshots manuais. A raiz é protegida; `/home` permanece em subvolume separado e não é incluído nos snapshots root.
+A edição XFCE fixa Btrfs como sistema de arquivos, com subvolumes `@`, `@home`, `@cache` e `@log`. O pacote Forja Snapshots configura o Snapper no primeiro boot do sistema instalado, habilita criação/limpeza por linha do tempo e hooks antes/depois de transações Pacman. O pacote oficial `grub-btrfs` integra os snapshots ao menu do GRUB e monitora novas criações com `grub-btrfsd`. O Forja Recovery permite diagnosticar e criar snapshots manuais. A raiz é protegida; `/home` permanece em subvolume separado e não é incluído nos snapshots root.
 
 O workflow de pré-build executa um teste Btrfs real em imagem de loop: cria subvolume, configura Snapper, cria snapshot numerado e valida o par pre/post usado pelos hooks. Isso não substitui um teste de inicialização/rollback em máquina virtual, que continua obrigatório antes de distribuir a ISO.
 
@@ -45,7 +45,7 @@ O Calamares ainda não está incluído. O pacote oficial do EndeavourOS foi desc
 - Definir e testar a integração do Plymouth com dracut e com os modos de boot suportados.
 - Revisar serviços, usuário Live, rede, áudio, Bluetooth, Flatpak e permissões.
 - Implementar e validar a chave pública e o keyring de assinatura dos pacotes próprios da Forja.
-- Executar e aprovar o pré-build em ambiente Arch limpo, que compila GRUB-Btrfs, DockbarX, o plugin XFCE, Forja Recovery, Forja Snapshots e os dois pacotes Shelly sem criar ISO.
+- Executar e aprovar o pré-build em ambiente Arch limpo, que compila os seis pacotes locais Forja e valida a dependência oficial GRUB-Btrfs sem criar ISO.
 - Testar a inicialização Live e a instalação completa em máquina virtual antes de qualquer divulgação.
 
 ## Separação das edições
