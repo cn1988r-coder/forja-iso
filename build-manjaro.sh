@@ -614,7 +614,8 @@ ROOTFS_CHROOT="$(find "$CHROOTS" -type d -name rootfs -print -quit)"
   echo "ERRO: buildiso não deixou o rootfs de trabalho disponível para configurar o Plymouth." >&2
   exit 44
 }
-install -Dm644 /forja-ci/desktops/xfce/plymouth/forja-mkinitcpio.conf "$ROOTFS_CHROOT/etc/mkinitcpio.conf.d/forja-plymouth.conf"
+install -Dm644 /forja-ci/desktops/xfce/plymouth/forja-mkinitcpio.conf "$ROOTFS_CHROOT/tmp/forja-mkinitcpio.conf"
+install -Dm755 /forja-ci/desktops/xfce/plymouth/apply-mkinitcpio.sh "$ROOTFS_CHROOT/tmp/forja-apply-mkinitcpio.sh"
 install -Dm644 /forja-ci/desktops/xfce/plymouth/forja-grub "$ROOTFS_CHROOT/etc/default/grub"
 install -Dm644 /forja-ci/desktops/xfce/plymouth/plymouthd.conf "$ROOTFS_CHROOT/etc/plymouth/plymouthd.conf"
 install -Dm644 /forja-ci/desktops/xfce/plymouth/forja.plymouth "$ROOTFS_CHROOT/usr/share/plymouth/themes/forja/forja.plymouth"
@@ -623,8 +624,11 @@ command -v manjaro-chroot >/dev/null 2>&1 || {
   echo "ERRO: manjaro-chroot não está disponível para regenerar o initramfs com Plymouth." >&2
   exit 45
 }
+echo "Aplicando o hook Plymouth à configuração nativa do mkinitcpio..."
+manjaro-chroot "$ROOTFS_CHROOT" bash /tmp/forja-apply-mkinitcpio.sh
 echo "Regenerando initramfs com o hook e o tema Plymouth da Forja..."
 manjaro-chroot "$ROOTFS_CHROOT" mkinitcpio -P
+rm -f "$ROOTFS_CHROOT/tmp/forja-apply-mkinitcpio.sh"
 
 # Etapa 2: compactar as camadas já configuradas e gerar a ISO.
 BUILDISO_OK=0
