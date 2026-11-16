@@ -16,6 +16,7 @@ bash -n "$PROFILE/prepare.sh"
 bash -n "$PROFILE/prepare-forja.sh"
 bash -n "$PROFILE/run_before_squashfs.sh"
 bash -n "$PROFILE/apply-forja-live.sh"
+bash -n "$ROOT/desktops/xfce/profile.conf"
 bash -n "$ROOT/desktops/xfce/install-branding.sh"
 bash -n "$ROOT/desktops/xfce/apply-forja-layout.sh"
 if grep -Eiq 'manjaro|mhwd|pacman-mirrors' "$PACKAGES"; then
@@ -24,7 +25,7 @@ if grep -Eiq 'manjaro|mhwd|pacman-mirrors' "$PACKAGES"; then
 fi
 duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$PACKAGES" | awk '{print $1}' | sort | uniq -d)"
 [[ -z "$duplicates" ]] || { echo "FALHA: pacotes duplicados: $duplicates" >&2; exit 1; }
-for package in base arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils syslinux dracut eos-dracut linux xfce4 lightdm firefox papirus-icon-theme bibata-cursor-theme reflector curl; do
+for package in base xorg-server arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils syslinux dracut eos-dracut linux xfce4 lightdm firefox papirus-icon-theme bibata-cursor-theme reflector curl; do
   grep -Fxq "$package" "$PACKAGES" || { echo "FALHA: pacote obrigatório ausente: $package" >&2; exit 1; }
 done
 grep -Fq 'value="dockbarx"' "$PANEL"
