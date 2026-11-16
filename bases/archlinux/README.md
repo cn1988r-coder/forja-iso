@@ -1,20 +1,24 @@
-# Fundação Arch Linux
+# Fundação oficial Arch Linux
 
-Fundação independente baseada no projeto oficial Arch Linux e no perfil baseline do Archiso.
+Esta é a **base oficial escolhida para a Forja OS**. A distribuição será derivada diretamente do Arch Linux, usando seus repositórios e espelhos oficiais para o sistema-base.
 
-## Objetivo
+## Responsabilidade
 
-Oferecer uma base técnica mínima para construir a Forja OS sobre Arch Linux, sem ambiente gráfico ou personalizações de interface.
+O Arch Linux fornece kernel, firmware, drivers, bibliotecas, ferramentas essenciais e os pacotes oficiais do sistema. A Forja não substituirá esses componentes por versões próprias.
 
-## Conteúdo
+O repositório binário Forja será uma fonte adicional e separada, restrita a aplicativos e componentes desenvolvidos ou mantidos pelo projeto. Não terá prioridade sobre os repositórios oficiais e não será usado para atualizar o sistema-base.
 
-- `packages.x86_64`: seleção inicial e enxuta de pacotes para uma base em modo texto e ferramentas fundamentais de preparação.
-- `profiledef.sh`: parâmetros iniciais do perfil Archiso.
-- `pacman.conf`: configuração inicial dos repositórios oficiais Arch.
+## Conteúdo atual
 
-## Limites atuais
+- `packages.x86_64`: seleção inicial de pacotes para uma base mínima em modo texto.
+- `profiledef.sh`: parâmetros iniciais de perfil Archiso.
+- `pacman.conf`: configuração inicial dos repositórios oficiais Arch (`core` e `extra`).
 
-Isto ainda não é uma ISO compilável validada. O perfil precisa receber os arquivos de sistema necessários, boot, permissões, serviços e scripts de construção, e depois passar por validação em ambiente Arch Linux. Nenhum build foi executado.
+## Estado e próximos passos
+
+Esta fundação **ainda não é uma ISO compilável validada**. Antes do primeiro build instalável, precisamos completar e auditar o perfil Archiso: estrutura `airootfs`, bootloader, initramfs, serviços, permissões, mirrorlist, usuário live, instalador, integração MATE e inclusão dos aplicativos Forja. Também será necessário validar a instalação em máquina virtual e testar o sistema instalado.
+
+Nenhum build de ISO ou instalação funcional foi realizado nesta etapa.
 
 ## Origem
 
