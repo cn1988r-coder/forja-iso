@@ -1,0 +1,23 @@
+# Maintainer: Forja OS
+# Based on the reviewed Arch User Repository recipe for brisk-menu 0.6.2-1.
+pkgname=brisk-menu
+pkgver=0.6.2
+pkgrel=1
+pkgdesc="Modern, efficient menu applet for the MATE desktop"
+arch=('x86_64')
+url="https://github.com/getsolus/brisk-menu"
+license=('GPL-2.0-or-later')
+depends=('libnotify' 'mate-panel')
+makedepends=('glib2-devel' 'meson' 'ninja')
+source=("brisk-menu-${pkgver}.tar.xz::https://github.com/getsolus/brisk-menu/releases/download/v${pkgver}/brisk-menu-v${pkgver}.tar.xz")
+sha256sums=('5a87f4dcf7365e81a571128bf0b8199eb06a6fcd7e15ec7739be0ccff1326488')
+
+build() {
+  CFLAGS="${CFLAGS/_FORTIFY_SOURCE=?/_FORTIFY_SOURCE=2}"
+  arch-meson brisk-menu-${pkgver} build
+  meson compile -C build
+}
+
+package() {
+  meson install -C build --destdir "$pkgdir"
+}
