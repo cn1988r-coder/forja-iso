@@ -321,7 +321,6 @@ grep -q 'if [[ "$_forja_plymouth_added" -eq 0 && ( "$_forja_hook" == "udev" || "
 ! grep -q 'append.*plymouth.*fallback' "$ROOT/plymouth/forja-mkinitcpio.conf"
 
 echo "Forja XFCE: locale pt_BR, Plymouth, painel e Shelly configurados."
- "$ROOT/forja-whiskermenu.rc"
 grep -q 'min-height: 42px' "$ROOT/forja-gtk.css"
 grep -q 'border-radius: 16px' "$ROOT/forja-gtk.css"
 grep -q 'usr/share/forja/forja-gtk.css' "$ROOT/install-branding.sh"
