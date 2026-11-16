@@ -42,6 +42,7 @@ xfce4-screenshooter
 # Forja Store: native Arch/EndeavourOS package management
 pacman-contrib
 python-gobject
+python-cairo
 flatpak
 git
 less
