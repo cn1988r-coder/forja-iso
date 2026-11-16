@@ -39,9 +39,16 @@ gnome-calculator
 # This does not install the XFCE desktop, panel, session, or file manager.
 xfce4-screenshooter
 
-# Forja MATE update indicator
+# Forja Store: native Arch/EndeavourOS package management
 pacman-contrib
 python-gobject
+flatpak
+git
+less
+base-devel
+
+# Forja MATE update indicator
+# pacman-contrib and python-gobject above are also its dependencies.
 
 # Forja Luz Noturna prototype (GTK3 UI + direct XRandR gamma backend)
 xorg-xrandr
