@@ -1,4 +1,4 @@
-name: Build Forja OS XFCE ISO
+name: Forja OS X XFCE
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build-iso:
-    name: Build real ISO with EndeavourOS mkarchiso
+    name: Build Forja OS X XFCE ISO
     runs-on: ubuntu-24.04
     container:
       image: archlinux:base-devel
@@ -68,7 +68,7 @@ jobs:
           set -Eeuo pipefail
           su builder -c 'cd /tmp/EndeavourOS-ISO/forja-xfce-profile && ./prepare.sh'
 
-      - name: Compile the ISO with mkarchiso
+      - name: Compile Forja OS X XFCE with mkarchiso
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -93,10 +93,10 @@ jobs:
           stat --printf='ISO: %n%nTamanho: %s bytes\n' "$iso"
           cat "$iso.sha256"
 
-      - name: Upload temporary ISO download (expires automatically)
+      - name: Upload temporary Forja OS X XFCE ISO
         uses: actions/upload-artifact@v4
         with:
-          name: forja-os-xfce-iso-${{ github.run_number }}
+          name: forja-os-x-xfce-iso-${{ github.run_number }}
           path: |
             /tmp/EndeavourOS-ISO/forja-xfce-profile/out/*.iso
             /tmp/EndeavourOS-ISO/forja-xfce-profile/out/*.iso.sha256
