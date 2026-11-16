@@ -529,6 +529,15 @@ class ForjaMonitor(Gtk.Application):
         if response != Gtk.ResponseType.OK:
             return
         try:
+            current_name = read_text(f"/proc/{pid}/comm").strip()
+            if not current_name:
+                raise ProcessLookupError
+            if current_name != name:
+                self.header_status.set_text("O processo mudou desde a seleção. Atualize a lista e tente novamente.")
+                return
+            if pid in (1, os.getpid()):
+                self.header_status.set_text("Este processo é protegido pelo Forja Monitor.")
+                return
             os.kill(pid, sig)
             self.header_status.set_text(f"Sinal enviado ao PID {pid}")
         except ProcessLookupError:
@@ -729,6 +738,15 @@ class ForjaMonitor(Gtk.Application):
         self.process_count.set_text(f"{len(updated)} processos visíveis em /proc  •  CPU por núcleo, pode ultrapassar 100%")
         self.process_data = {item[0]: item for item in updated}
         self.process_filter.refilter()
+        if selected:
+            for index in range(len(self.process_store)):
+                child_iter = self.process_store.iter_nth_child(None, index)
+                if self.process_store.get_value(child_iter, 1) == selected[0]:
+                    child_path = self.process_store.get_path(child_iter)
+                    visible_path = self.process_filter.convert_child_path_to_path(child_path)
+                    if visible_path is not None:
+                        self.process_view.get_selection().select_path(visible_path)
+                    break
         return True
 
 
