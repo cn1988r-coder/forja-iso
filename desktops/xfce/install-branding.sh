@@ -54,4 +54,4 @@ install -Dm644 "$ROOT/forja-xfce-desktop.xml" \
 if [[ -z "$DEST" ]] && command -v gtk-update-icon-cache >/dev/null 2>&1; then
   gtk-update-icon-cache -q -f /usr/share/icons/hicolor || true
 fi
-echo "Forja OS XFCE: painel, DockbarX, autostart Shelly, tema visual e Plymouth instalados nos overlays."
+echo "Forja OS XFCE: painel, DockbarX, autostart Shelly e identidade visual instalados."
