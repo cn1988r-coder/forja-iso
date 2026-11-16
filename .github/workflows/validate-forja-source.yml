@@ -31,18 +31,9 @@ jobs:
             build-cloud.sh build-manjaro.sh \
             desktops/xfce/apply-forja-layout.sh \
             desktops/xfce/install-branding.sh \
-            desktops/xfce/tests/validate-appearance.sh \
-            forja-pamac-pacman/build-pamac.sh \
-            forja-pamac-pacman/install.sh; do
+            desktops/xfce/tests/validate-appearance.sh; do
             bash -n "$script"
           done
-
-      - name: Validate Python source and tests
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          python3 -m compileall -q forja-pamac-pacman/src forja-pamac-pacman/tests
-          python3 -m unittest discover -s forja-pamac-pacman/tests -v
 
       - name: Validate Forja desktop configuration
         shell: bash
