@@ -9,7 +9,7 @@ O perfil é mantido separado do checkout upstream. A preparação cria uma pasta
 - Perfil Archiso com modos BIOS e UEFI alinhados ao framework EndeavourOS.
 - XFCE com LightDM e personalização própria da Forja OS.
 - Painel inferior com Whisker Menu e **DockbarX**.
-- DockbarX e plugin XFCE compilados como pacotes locais.
+- DockbarX, plugin XFCE e tema Bibata compilados como pacotes locais com fontes e checksum fixados.
 - Forja Recovery e Forja Snapshots compilados localmente; GRUB-Btrfs e Timeshift são dependências do conjunto de pacotes.
 - Pré-build automatizado dos pacotes locais, sem executar o mkarchiso.
 - Cliente Forja Updates independente do pacman.conf.
