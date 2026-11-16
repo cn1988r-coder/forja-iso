@@ -20,7 +20,7 @@ fi
 
 # The panel and black background are provisioned before the first login.
 # This login hook applies the Forja menu CSS, desktop theme and decorations.
-GTK_THEME="adw-gtk3-dark"
+GTK_THEME="Adwaita-dark"
 ICON_THEME="Papirus-Dark"
 CURSOR_THEME="Bibata-Modern-Classic"
 
@@ -39,7 +39,7 @@ set_prop xsettings /Net/IconThemeName string "$ICON_THEME"
 set_prop xsettings /Gtk/CursorThemeName string "$CURSOR_THEME"
 set_prop xsettings /Gtk/CursorThemeSize int 24
 set_prop xsettings /Gtk/FontName string "Noto Sans 10"
-set_prop xfwm4 /general/theme string "Materia-dark"
+set_prop xfwm4 /general/theme string "Adwaita-dark"
 set_prop xfwm4 /general/use_compositing bool true
 
 if command -v gsettings >/dev/null 2>&1; then
