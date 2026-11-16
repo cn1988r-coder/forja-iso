@@ -2,7 +2,7 @@
 
 Este é o perfil ativo da edição XFCE da Forja OS. EndeavourOS, derivado do Arch Linux, fornece a infraestrutura técnica de construção e o ambiente Live. A experiência visual, o painel e a seleção de componentes da sessão são definidos pela Forja OS.
 
-O perfil é mantido separado do checkout upstream. A preparação cria uma pasta de trabalho própria e preserva os arquivos originais do EndeavourOS.
+O perfil é mantido separado do checkout upstream. A preparação cria uma pasta de trabalho própria e preserva os arquivos originais do EndeavourOS. O framework de construção está fixado no commit `0bbb1280ccd373262561453d85201f2707483990` para evitar mudanças inesperadas entre compilações.
 
 ## Escopo atual
 
