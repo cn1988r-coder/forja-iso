@@ -103,7 +103,7 @@ test -s "$ROOT/plymouth/forja.script"
 grep -q 'Name=Forja OS' "$ROOT/plymouth/forja.plymouth"
 grep -q 'Image.Text("FORJA OS"' "$ROOT/plymouth/forja.script"
 grep -q 'Plymouth.SetRefreshFunction' "$ROOT/plymouth/forja.script"
-grep -q 'HOOKS+=( "plymouth" )' "$ROOT/plymouth/forja-mkinitcpio.conf" || grep -q 'plymouth' "$ROOT/plymouth/forja-mkinitcpio.conf"
+grep -q 'plymouth' "$ROOT/plymouth/forja-mkinitcpio.conf"
 grep -q 'quiet splash loglevel=3' "$ROOT/plymouth/forja-grub"
 test -s "$ROOT/forja-plymouth/PKGBUILD"
 grep -q 'forja-plymouth' "$REPO_ROOT/build-manjaro.sh"
@@ -207,7 +207,7 @@ grep -q 'HOOKS+=( "plymouth" )' "$ROOT/plymouth/forja-mkinitcpio.conf" || grep -
 grep -q 'quiet splash loglevel=3' "$ROOT/plymouth/forja-grub"
 grep -q 'forja-mkinitcpio.conf' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'TARGET/rootfs/etc/default/grub' "$REPO_ROOT/build-manjaro.sh"
-grep -q 'usr/share/plymouth/themes/forja' "$ROOT/install-branding.sh"
+grep -q 'usr/share/plymouth/themes/forja' "$ROOT/forja-plymouth/PKGBUILD"
 
 # Tray applets are supplied by their packages and autostart through XDG.
 grep -q 'network-manager-applet' "$ROOT/packages.manjaro"
