@@ -1,154 +1,57 @@
-name: Build Forja OS XFCE ISO
+name: Forja OS EndeavourOS XFCE profile checks
 
 on:
   workflow_dispatch:
-    inputs:
-      kernel:
-        description: "Kernel da ISO"
-        required: true
-        type: choice
-        options:
-          - lts
-          - latest
-        default: lts
+  push:
+    branches:
+      - feature/forja-xfce-endeavouros-port
+    paths:
+      - 'profiles/forja-xfce/**'
+      - 'desktops/xfce/**'
+      - 'build-cloud.sh'
+      - '.github/workflows/build-forja-iso.yml'
 
 permissions:
   contents: read
 
 concurrency:
-  group: forja-iso-build-${{ github.ref }}
-  cancel-in-progress: false
+  group: forja-endeavour-xfce-checks-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-iso:
-    name: Build Forja XFCE ISO
+  validate-profile:
+    name: Validate EndeavourOS XFCE preparation (no ISO build)
     runs-on: ubuntu-24.04
-    timeout-minutes: 360
     steps:
       - name: Checkout Forja OS source
         uses: actions/checkout@v4
 
-      - name: Run Forja source and package-manager checks
-        shell: bash
+      - name: Install validation tools
         run: |
-          set -Eeuo pipefail
-          for script in \
-            build-cloud.sh build-manjaro.sh \
-            desktops/xfce/apply-forja-layout.sh \
-            desktops/xfce/install-branding.sh \
-            desktops/xfce/tests/validate-appearance.sh \
-            forja-pamac-pacman/build-pamac.sh \
-            forja-pamac-pacman/install.sh; do
-            bash -n "$script"
-          done
-          python3 -m compileall -q forja-pamac-pacman/src forja-pamac-pacman/tests
-          python3 -m unittest discover -s forja-pamac-pacman/tests -v
-          bash desktops/xfce/tests/validate-appearance.sh
+          sudo apt-get update
+          sudo apt-get install -y libxml2-utils
 
-      - name: Prepare dedicated ext4 filesystem for Manjaro OverlayFS
+      - name: Validate EndeavourOS XFCE profile
         shell: bash
         run: |
           set -Eeuo pipefail
-          mkdir -p "$RUNNER_TEMP/forja-iso-output"
-          mkdir -p "$RUNNER_TEMP/forja-manjaro-ext4"
-          image="$RUNNER_TEMP/forja-manjaro-work.ext4"
-          mountpoint="$RUNNER_TEMP/forja-manjaro-ext4"
-          if mountpoint -q "$mountpoint"; then
-            sudo umount "$mountpoint"
+          bash profiles/forja-xfce/tests/validate-profile.sh
+          xmllint --noout desktops/xfce/panel-default.xml
+          xmllint --noout desktops/xfce/forja-xfce-desktop.xml
+
+      - name: Confirm legacy Manjaro builder is disabled
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash -n build-cloud.sh
+          if bash build-cloud.sh; then
+            echo "ERRO: o wrapper legado não deveria iniciar um build." >&2
+            exit 1
+          else
+            status=$?
+            test "$status" -eq 2
           fi
-          rm -f "$image"
-          # OverlayFS requires a supported upper filesystem. A bind-mounted
-          # directory can still inherit the runner/Docker backing filesystem.
-          # Put the complete Manjaro chroot tree on a real ext4 loop filesystem.
-          truncate -s 10G "$image"
-          sudo mkfs.ext4 -F -m 0 "$image"
-          sudo mount -o loop "$image" "$mountpoint"
-          sudo chmod 0777 "$mountpoint"
-          df -hT "$mountpoint"
-          test "$(stat -f -c %T "$mountpoint")" = ext2/ext3
-          mkdir -p "$mountpoint/overlay-test/lower" "$mountpoint/overlay-test/upper" \
-                   "$mountpoint/overlay-test/work" "$mountpoint/overlay-test/merged"
-          printf 'overlay-test-ok\n' > "$mountpoint/overlay-test/lower/probe"
-          sudo mount -t overlay forja-preflight \
-            -o "lowerdir=$mountpoint/overlay-test/lower,upperdir=$mountpoint/overlay-test/upper,workdir=$mountpoint/overlay-test/work" \
-            "$mountpoint/overlay-test/merged"
-          grep -Fxq 'overlay-test-ok' "$mountpoint/overlay-test/merged/probe"
-          sudo umount "$mountpoint/overlay-test/merged"
-          rm -rf "$mountpoint/overlay-test"
-          echo "OVERLAYFS_HOST_PREFLIGHT_OK: upperdir/workdir em ext4."
 
-      - name: Build ISO from the independent Forja XFCE profile
-        shell: bash
-        env:
-          FORJA_KERNEL: ${{ inputs.kernel }}
+      - name: Confirm no ISO build was requested
         run: |
-          set -Eeuo pipefail
-          docker pull manjarolinux/base:latest
-          docker run --rm \
-            --privileged \
-            --security-opt seccomp=unconfined \
-            -v "$GITHUB_WORKSPACE:/forja-ci:ro" \
-            -v "$RUNNER_TEMP/forja-manjaro-ext4:/tmp/forja-manjaro" \
-            -v "$RUNNER_TEMP/forja-iso-output:/forja-output" \
-            -e FORJA_DISTRIBUTION=manjaro \
-            -e FORJA_DESKTOP=xfce \
-            -e FORJA_KERNEL="$FORJA_KERNEL" \
-            -e FORJA_PREFLIGHT_ONLY=0 \
-            -e FORJA_OUTPUT=/forja-output \
-            manjarolinux/base:latest \
-            bash -lc '
-              set -Eeuo pipefail
-              mountpoint -q /tmp/forja-manjaro
-              test "$(stat -f -c %T /tmp/forja-manjaro)" = ext2/ext3
-              mkdir -p /tmp/forja-manjaro/overlay-test/{lower,upper,work,merged}
-              printf "overlay-test-ok\\n" > /tmp/forja-manjaro/overlay-test/lower/probe
-              mount -t overlay forja-container-preflight \
-                -o lowerdir=/tmp/forja-manjaro/overlay-test/lower,upperdir=/tmp/forja-manjaro/overlay-test/upper,workdir=/tmp/forja-manjaro/overlay-test/work \
-                /tmp/forja-manjaro/overlay-test/merged
-              grep -Fxq "overlay-test-ok" /tmp/forja-manjaro/overlay-test/merged/probe
-              umount /tmp/forja-manjaro/overlay-test/merged
-              rm -rf /tmp/forja-manjaro/overlay-test
-              echo "OVERLAYFS_CONTAINER_PREFLIGHT_OK: ext4 bind mount aceita upperdir."
-              bash /forja-ci/build-cloud.sh
-            '
-
-      - name: Verify ISO and checksum exist
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          find "$RUNNER_TEMP/forja-iso-output" -maxdepth 2 -type f -printf '%p %s bytes\n'
-          iso="$(find "$RUNNER_TEMP/forja-iso-output" -type f -name '*.iso' -print -quit)"
-          test -n "$iso"
-          test -s "$iso"
-          checksum="$iso.sha256"
-          test -s "$checksum"
-          (cd "$(dirname "$iso")" && sha256sum -c "$(basename "$checksum")")
-          test -s "$RUNNER_TEMP/forja-iso-output/build-info.txt"
-
-      - name: Publish temporary ISO download (24 hours)
-        uses: actions/upload-artifact@v4
-        with:
-          name: forja-os-xfce-iso-${{ inputs.kernel }}
-          path: |
-            ${{ runner.temp }}/forja-iso-output/*.iso
-            ${{ runner.temp }}/forja-iso-output/*.iso.sha256
-            ${{ runner.temp }}/forja-iso-output/build-info.txt
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: Clean dedicated ext4 build filesystem
-        if: always()
-        shell: bash
-        run: |
-          set +e
-          mountpoint="$RUNNER_TEMP/forja-manjaro-ext4"
-          if mountpoint -q "$mountpoint"; then
-            sudo umount "$mountpoint"
-          fi
-          rm -f "$RUNNER_TEMP/forja-manjaro-work.ext4"
-
-      - name: Show temporary download instructions
-        if: success()
-        run: |
-          echo "ISO publicada como artefato temporário por 24 horas."
-          echo "Abra esta execução em Actions > Artifacts para baixar a ISO e o SHA256."
+          echo "Validação estática concluída. Nenhuma ISO foi compilada."
