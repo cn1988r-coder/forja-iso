@@ -25,6 +25,9 @@ eom
 mozo
 pluma
 
+# Standalone GNOME calculator; does not install the GNOME desktop
+gnome-calculator
+
 # Screenshot utility: use only the XFCE screenshot application
 # This does not install the XFCE desktop, panel, session, or file manager.
 xfce4-screenshooter
