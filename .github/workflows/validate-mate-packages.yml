@@ -167,6 +167,12 @@ jobs:
                   "/usr/bin/pacman", "-Syu", "--noconfirm"
               ]
 
+          with patch.object(helper["subprocess"], "call", return_value=0) as call:
+              assert main(["remove", "firefox"]) == 0
+              assert call.call_args.args[0] == [
+                  "/usr/bin/pacman", "-Rns", "--noconfirm", "--", "firefox"
+              ]
+
           with patch.object(helper["subprocess"], "call", side_effect=[0, 0]) as call:
               assert main(["flatpak-install-system", "org.mozilla.firefox"]) == 0
               assert call.call_args_list[0].args[0] == [
