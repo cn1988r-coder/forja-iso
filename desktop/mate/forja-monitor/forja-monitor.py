@@ -7,6 +7,7 @@ import shutil
 import socket
 import platform
 import subprocess
+import sys
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -75,16 +76,28 @@ def network_total():
     return total
 
 
-def temp_celsius():
+def temp_reading():
+    """Prefer an explicitly named CPU sensor; never label a random sensor as CPU."""
+    candidates = []
     for path in glob.glob("/sys/class/hwmon/hwmon*/temp*_input"):
         raw = read_text(path).strip()
         try:
             value = int(raw) / 1000
-            if -10 < value < 150:
-                return value
         except ValueError:
-            pass
-    return None
+            continue
+        if not -10 < value < 150:
+            continue
+        base = path.rsplit("/", 1)[0]
+        name = read_text(os.path.join(base, "name")).strip() or "Sensor"
+        label_path = path[:-6] + "label"
+        label = read_text(label_path).strip()
+        candidates.append((f"{name} {label}".strip(), value))
+    if not candidates:
+        return None, None
+    for name, value in candidates:
+        if any(token in name.lower() for token in ("coretemp", "k10temp", "cpu", "package")):
+            return name, value
+    return candidates[0]
 
 
 class MiniGraph(Gtk.DrawingArea):
@@ -112,7 +125,7 @@ class MiniGraph(Gtk.DrawingArea):
             return False
         cr.set_source_rgb(.78, .78, .78)
         cr.set_line_width(2)
-        step = width / max(47, len(self.values) - 1)
+        step = width / max(1, len(self.values) - 1)
         for i, value in enumerate(self.values):
             x = i * step
             y = height - (value / 100.0 * (height - 5)) - 2
@@ -298,7 +311,16 @@ class ForjaMonitor(Gtk.Application):
             break
         root = shutil.disk_usage("/")
         disk = f"{root.total // (1024**3)} GB"
-        resolution = self.command(["sh", "-c", "xrandr 2>/dev/null | awk '/\*/ {print $1; exit}'"])
+        resolution = ""
+        try:
+            output = subprocess.check_output(["xrandr", "--current"], stderr=subprocess.DEVNULL,
+                                             text=True, timeout=1)
+            for line in output.splitlines():
+                if "*" in line:
+                    resolution = line.split()[0]
+                    break
+        except (OSError, subprocess.SubprocessError):
+            pass
         install_date = "Data de instalação indisponível"
         try:
             import json
@@ -320,8 +342,8 @@ class ForjaMonitor(Gtk.Application):
             ("Memória RAM", ram),
             ("Armazenamento total", disk),
             ("Resolução", resolution),
-            ("Placa-mãe", self.command(["sh", "-c", "cat /sys/devices/virtual/dmi/id/board_name 2>/dev/null"])),
-            ("BIOS / UEFI", self.command(["sh", "-c", "cat /sys/devices/virtual/dmi/id/bios_version 2>/dev/null"])),
+            ("Placa-mãe", read_text("/sys/devices/virtual/dmi/id/board_name").strip()),
+            ("BIOS / UEFI", read_text("/sys/devices/virtual/dmi/id/bios_version").strip()),
             ("Instalação", install_date),
         ]
         for i, (key, value) in enumerate(rows):
@@ -376,11 +398,28 @@ class ForjaMonitor(Gtk.Application):
         self.net.value.set_text(f"{rate / 1024:.0f} KB/s")
         self.net.detail.set_text("Recebimento + envio")
         self.net.graph.push(min(100, rate / (1024 * 1024) * 100))
-        temp = temp_celsius()
-        self.temp_label.set_text(f"Temperatura: {temp:.0f} °C" if temp is not None
-                                 else "Temperatura: não disponível pelo driver/sensor")
+        temp_name, temp = temp_reading()
+        if temp is None:
+            self.temp_label.set_text("Temperatura: não disponível pelo driver/sensor")
+        else:
+            self.temp_label.set_text(f"Temperatura ({temp_name}): {temp:.0f} °C")
         return True
 
 
 if __name__ == "__main__":
-    ForjaMonitor().run(None)
+    if "--self-test" in sys.argv:
+        if not Gtk.init_check([]):
+            raise SystemExit("GTK não conseguiu inicializar o display de teste.")
+        app = ForjaMonitor()
+        app.register(None)
+        app.do_activate()
+        app.refresh_metrics()
+        assert app.cpu.value.get_text() != "--"
+        assert app.memory.value.get_text() != "--"
+        assert app.disk.value.get_text() != "--"
+        assert app.net.value.get_text() != "--"
+        app.win.destroy()
+        app.quit()
+        print("Forja Monitor GTK smoke test: OK")
+    else:
+        ForjaMonitor().run(None)
