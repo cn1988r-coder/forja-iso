@@ -191,7 +191,7 @@ grep -q 'fill="#dededb"' "$ROOT/forja-flame.svg"
 ! grep -q 'linearGradient\|stop-color=' "$ROOT/forja-flame.svg"
 grep -Fq "@define-color forja_bg #202020" "$ROOT/forja-gtk.css"
 grep -Fq "@define-color forja_surface #292929" "$ROOT/forja-gtk.css"
-grep -Fq "@define-color forja_text #ffffff" "$ROOT/forja-gtk.css"
+grep -Fq "@define-color forja_text #f4f4f4" "$ROOT/forja-gtk.css"
 ! grep -qiE '#[0-9a-f]*(00a|08f|f80|f00)' "$ROOT/forja-gtk.css"
 
 # Update badge is intentionally white with a gray check; pending updates use a gray X.
