@@ -39,6 +39,10 @@ gnome-calculator
 # This does not install the XFCE desktop, panel, session, or file manager.
 xfce4-screenshooter
 
+# Plymouth boot splash and SVG-to-PNG renderer for the Forja branding.
+plymouth
+librsvg
+
 # Calamares, Brisk Menu and Bibata cursor are built into the local Forja repository.
 calamares
 brisk-menu
