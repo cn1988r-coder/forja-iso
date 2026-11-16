@@ -16,7 +16,7 @@ firefox
 adw-gtk-theme
 papirus-icon-theme
 papirus-folders
-bibata-cursor-theme
+# Bibata is supplied by the pinned local package in profiles/forja-xfce.
 gtk3
 gtk4
 python
