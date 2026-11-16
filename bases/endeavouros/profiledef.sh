@@ -16,4 +16,5 @@ airootfs_image_type="squashfs"
 airootfs_image_tool_options=('-comp' 'zstd' '-b' '1M')
 file_permissions=(
   ["/etc/shadow"]="0:0:400"
+  ["/root/customize_airootfs.sh"]="0:0:755"
 )
