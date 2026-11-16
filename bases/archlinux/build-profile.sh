@@ -25,6 +25,8 @@ for boot_config in "$PROFILE/grub/grub.cfg" "$PROFILE/syslinux/archiso_sys-linux
     -e 's/Arch Linux install medium/Forja OS Live/g' \
     -e 's/--class arch/--class forja/g' \
     -e 's/%KERNEL_PARAMS%/%KERNEL_PARAMS% quiet splash/g' \
+    -e 's/^MENU TITLE Arch Linux/MENU TITLE Forja OS/' \
+    -e '/^MENU BACKGROUND splash.png/d' \
     "$boot_config"
 done
 
