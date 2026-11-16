@@ -42,3 +42,6 @@ Section "InputClass"
 EndSection
 EOF
 systemctl enable NetworkManager.service bluetooth.service lightdm.service
+
+# Install the Forja splash after Plymouth and librsvg have been installed.
+bash /usr/local/lib/forja/plymouth/install-theme.sh / /usr/share/forja/branding/forja-flame.svg
