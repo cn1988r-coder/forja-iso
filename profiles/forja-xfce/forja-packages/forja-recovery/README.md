@@ -6,7 +6,8 @@ Primeiro componente funcional da ferramenta oficial de recuperação do Forja OS
 
 - Diagnóstico somente de leitura: sistema de arquivos raiz, Snapper, integridade da base local do Pacman, GRUB, kernel, initramfs e ferramentas Btrfs.
 - Listagem de snapshots da configuração Snapper chamada `root`.
-- Criação manual de snapshot da raiz, somente quando a raiz é Btrfs e Snapper já está configurado.\n- Preparação de rollback via Snapper com número do snapshot e confirmação explícita no terminal.
+- Criação manual de snapshot da raiz, somente quando a raiz é Btrfs e Snapper já está configurado.
+- Preparação de rollback via Snapper com número do snapshot e confirmação explícita no terminal.
 - Interface GTK3 e comando de terminal.
 
 ## Limites explícitos
@@ -20,4 +21,5 @@ A criação de snapshots não inclui automaticamente /home. A política real de 
 - `forja-recovery`: abre a interface.
 - `forja-recovery-cli diagnose`: diagnóstico JSON.
 - `forja-recovery-cli snapshots`: lista snapshots.
-- `sudo forja-recovery-cli create-snapshot --description "Antes de atualizar"`: cria snapshot manual.\n- `sudo forja-recovery-cli rollback --snapshot 12 --confirm`: prepara rollback para o snapshot 12; confira o número antes de confirmar.
+- `sudo forja-recovery-cli create-snapshot --description "Antes de atualizar"`: cria snapshot manual.
+- `sudo forja-recovery-cli rollback --snapshot 12 --confirm`: prepara rollback para o snapshot 12; confira o número antes de confirmar.
