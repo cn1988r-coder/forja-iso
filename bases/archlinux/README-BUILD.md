@@ -15,7 +15,7 @@ build no Dell Inspiron com SSD de 128 GB.
 ```bash
 sudo pacman -Syu
 sudo pacman -S --needed archiso git
-sudo bases/archlinux/build-profile.sh
+sudo bash bases/archlinux/build-profile.sh
 ```
 
 A ISO será gravada em `out/`. O script baixa o Archiso upstream fixado,
