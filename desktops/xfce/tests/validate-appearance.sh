@@ -43,7 +43,7 @@ grep -q 'value="notification-plugin"' "$ROOT/panel-default.xml"
 grep -q 'value="xfce4-clipman-plugin"' "$ROOT/panel-default.xml"
 grep -q 'name="size-max" type="uint" value="20"' "$ROOT/panel-default.xml"
 grep -q 'name="symbolic-icons" type="bool" value="true"' "$ROOT/panel-default.xml"
-grep -q 'name="digital-format" type="string" value="%A, %d de %B de %Y  ·  %H:%M"' "$ROOT/panel-default.xml"
+grep -q 'name="digital-format" type="string" value="%H:%M&#10;%d/%m/%Y"' "$ROOT/panel-default.xml"
 grep -q 'name="tooltip-format" type="string" value="%A, %d de %B de %Y"' "$ROOT/panel-default.xml"
 grep -q '#XfcePanelWindow button' "$ROOT/forja-gtk.css"
 grep -q 'margin: 3px 3px' "$ROOT/forja-gtk.css"
@@ -78,12 +78,12 @@ assert ids == list(expected), ids
 separator = plugins.find("./property[@name='plugin-5']")
 assert separator.find("./property[@name='expand']").attrib["value"] == "true"
 clock = plugins.find("./property[@name='plugin-10']")
-assert "%H:%M" in clock.find("./property[@name='digital-format']").attrib["value"]
+assert clock.find("./property[@name='digital-format']").attrib["value"] == "%H:%M\n%d/%m/%Y"
 PY
 grep -q 'value="showdesktop"' "$ROOT/panel-default.xml"
 grep -q 'name="size-max" type="uint" value="20"' "$ROOT/panel-default.xml"
 grep -q 'name="symbolic-icons" type="bool" value="true"' "$ROOT/panel-default.xml"
-grep -q 'name="digital-format" type="string" value="%A, %d de %B de %Y  ·  %H:%M"' "$ROOT/panel-default.xml"
+grep -q 'name="digital-format" type="string" value="%H:%M&#10;%d/%m/%Y"' "$ROOT/panel-default.xml"
 grep -q 'name="tooltip-format" type="string" value="%A, %d de %B de %Y"' "$ROOT/panel-default.xml"
 ! grep -q 'value="tasklist"' "$ROOT/panel-default.xml"
 ! grep -q 'value="notification-plugin".*value="clock"' "$ROOT/panel-default.xml"
