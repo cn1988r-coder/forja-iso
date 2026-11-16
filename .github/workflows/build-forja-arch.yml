@@ -61,6 +61,7 @@ jobs:
           bash bases/archlinux/validate-profile.sh
           bash bases/archlinux/build-profile.sh "$RUNNER_TEMP/forja-work" "$GITHUB_WORKSPACE/out"
           find out -maxdepth 1 -type f -name '*.iso' -print -quit | grep -q .
+          sha256sum out/*.iso > out/SHA256SUMS
 
       - name: Upload ISO and checksums
         uses: actions/upload-artifact@v4
@@ -68,6 +69,6 @@ jobs:
           name: forja-os-arch-mate-iso-${{ github.run_number }}
           path: |
             out/*.iso
-            out/*.iso.sha256
+            out/SHA256SUMS
           if-no-files-found: error
           retention-days: 14
