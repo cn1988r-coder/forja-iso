@@ -27,7 +27,7 @@ fi
 
 # Build Shelly from the maintained local PKGBUILD and stage both packages for
 # EndeavourOS' local-package installation hook.
-SHELLY_DIR="$PROFILE_DIR/../../desktops/xfce/shelly"
+SHELLY_DIR="$PROFILE_DIR/forja-desktop-assets/shelly"
 if [[ -f "$SHELLY_DIR/PKGBUILD-bin" ]]; then
   command -v makepkg >/dev/null 2>&1 || {
     echo "Erro: makepkg não encontrado para preparar Shelly." >&2
