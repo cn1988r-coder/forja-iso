@@ -36,6 +36,7 @@ udisks2
 udisks2-btrfs
 btrfs-progs
 snapper
+inotify-tools
 dosfstools
 e2fsprogs
 xfsprogs
