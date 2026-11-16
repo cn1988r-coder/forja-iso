@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+log() { printf '[forja-snapshot-setup] %s\\n' "$*"; }
+die() { log "ERRO: $*" >&2; exit 1; }
+
+[[ "$EUID" -eq 0 ]] || die "execute como root."
+command -v findmnt >/dev/null || die "findmnt não encontrado."
+command -v snapper >/dev/null || die "snapper não encontrado."
+command -v btrfs >/dev/null || die "btrfs-progs não encontrado."
+
+root_fs="$(findmnt -n -o FSTYPE /)"
+[[ "$root_fs" == "btrfs" ]] || die "a raiz não usa Btrfs; nenhuma alteração foi feita."
+root_source="$(findmnt -n -o SOURCE /)"
+log "Raiz Btrfs detectada: $root_source"
+
+# Snapper cria e mantém o subvolume /.snapshots dentro do subvolume raiz.
+if ! snapper -c root get-config >/dev/null 2>&1; then
+  [[ ! -e /.snapshots || -d /.snapshots ]] || die "/.snapshots existe e não é um diretório."
+  if mountpoint -q /.snapshots; then
+    die "/.snapshots já é um ponto de montagem. Verifique o layout antes de continuar."
+  fi
+  rmdir /.snapshots 2>/dev/null || true
+  snapper -c root create-config /
+fi
+
+config="/etc/snapper/configs/root"
+[[ -s "$config" ]] || die "configuração Snapper root não foi criada."
+set_config() {
+  local key="$1" value="$2"
+  if grep -qE "^#?\\s*${key}=" "$config"; then
+    sed -i -E "s|^#?\\s*${key}=.*|${key}=${value}|" "$config"
+  else
+    printf '%s=%s\\n' "$key" "$value" >> "$config"
+  fi
+}
+set_config SUBVOLUME '"/"'
+set_config FSTYPE '"btrfs"'
+set_config TIMELINE_CREATE '"yes"'
+set_config TIMELINE_CLEANUP '"yes"'
+set_config NUMBER_CLEANUP '"yes"'
+set_config NUMBER_LIMIT '"10"'
+set_config NUMBER_LIMIT_IMPORTANT '"5"'
+set_config TIMELINE_LIMIT_HOURLY '"5"'
+set_config TIMELINE_LIMIT_DAILY '"7"'
+set_config TIMELINE_LIMIT_WEEKLY '"4"'
+set_config TIMELINE_LIMIT_MONTHLY '"3"'
+set_config TIMELINE_LIMIT_YEARLY '"0"'
+
+systemctl enable snapper-timeline.timer snapper-cleanup.timer
+
+if command -v grub-btrfsd >/dev/null 2>&1 && systemctl cat grub-btrfsd.service >/dev/null 2>&1; then
+  systemctl enable grub-btrfsd.service
+else
+  die "grub-btrfs/grub-btrfsd não está instalado; snapshots serão criados, mas o menu GRUB não será integrado."
+fi
+
+if [[ -x /usr/bin/grub-mkconfig && -d /boot/grub ]]; then
+  /usr/bin/grub-mkconfig -o /boot/grub/grub.cfg
+else
+  die "GRUB não está instalado ou /boot/grub não existe."
+fi
+
+snapper -c root list >/dev/null
+log "Snapper configurado, timers ativados e menu GRUB atualizado."
+log "Crie um snapshot de teste com: snapper -c root create --description 'Teste Forja'"
