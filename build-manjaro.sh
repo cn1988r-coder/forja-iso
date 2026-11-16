@@ -75,6 +75,10 @@ find "$SHELLY_REPO_DIR" -maxdepth 1 -type f -name 'shelly-bin-*.pkg.tar.*' | gre
   echo "ERRO: makepkg não gerou o pacote shelly-bin." >&2
   exit 27
 }
+find "$SHELLY_REPO_DIR" -maxdepth 1 -type f -name 'forja-plymouth-*.pkg.tar.*' | grep -q . || {
+  echo "ERRO: makepkg não gerou o pacote forja-plymouth." >&2
+  exit 28
+}
 repo-add "$SHELLY_REPO_DIR/shelly.db.tar.gz" "$SHELLY_REPO_DIR"/*.pkg.tar.zst
 printf '\n%s\n[forja-shelly]\nSigLevel = Optional TrustAll\nServer = file://%s\n' "$SHELLY_REPO_MARKER" "$SHELLY_REPO_DIR" >> /etc/pacman.conf
 pacman -Sy --noconfirm
