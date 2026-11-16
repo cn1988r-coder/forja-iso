@@ -1,7 +1,7 @@
 pkgname=forja-store
 pkgver=0.1.0
 pkgrel=1
-pkgdesc="Loja de aplicativos nativa da Forja OS para Arch Linux e EndeavourOS"
+pkgdesc="Loja de aplicativos nativa da Forja OS para Arch Linux"
 arch=('any')
 url="https://github.com/cn1988r-coder/forja-iso"
 license=('GPL-3.0-or-later')
