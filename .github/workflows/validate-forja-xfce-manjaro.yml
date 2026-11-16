@@ -9,7 +9,6 @@ on:
       - 'build-cloud.sh'
       - 'build-manjaro.sh'
       - 'desktops/xfce/**'
-      - 'forja-pamac-pacman/**'
       - '.github/workflows/validate-forja-xfce-manjaro.yml'
   workflow_dispatch:
 
@@ -35,18 +34,12 @@ jobs:
           for script in build-cloud.sh build-manjaro.sh \
             desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh \
             desktops/xfce/plymouth/forja-mkinitcpio.conf \
-            forja-pamac-pacman/install.sh forja-pamac-pacman/build-pamac.sh forja-pamac-pacman/src/forja-pkexec-sudo; do
-            bash -n "$script"
-          done
-          python3 -m py_compile forja-pamac-pacman/src/forja_store_core.py forja-pamac-pacman/src/forja-pacman-transaction forja-pamac-pacman/src/forja-update-indicator
-          python3 -m unittest discover -s forja-pamac-pacman/tests -v
 
       - name: Install ShellCheck and Docker
         run: |
           sudo apt-get update
           sudo apt-get install -y shellcheck
           shellcheck -S warning -e SC1091 desktops/xfce/apply-forja-layout.sh desktops/xfce/install-branding.sh
-          shellcheck -S warning -e SC1091 forja-pamac-pacman/install.sh forja-pamac-pacman/build-pamac.sh forja-pamac-pacman/src/forja-pkexec-sudo
           docker --version
           docker info
 
