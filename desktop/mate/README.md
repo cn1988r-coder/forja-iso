@@ -18,6 +18,7 @@ Usar o MATE upstream dos repositórios oficiais do Arch/EndeavourOS como base fu
 - Applets MATE essenciais, incluindo relógio/calendário.
 - Calculadora GNOME (`gnome-calculator`) como aplicativo independente, sem instalar o ambiente GNOME.
 - Módulo experimental Forja Luz Noturna: interface GTK3 própria e backend XRandR direto, sem instalar GNOME Shell ou Mutter.
+- Fastfetch como ferramenta padrão de informações do sistema, com brasão ASCII próprio da Forja OS e paleta azul/cinza.
 - Tema Materia-dark e ícones Papirus-Dark como ponto de partida visual.
 - Configuração GTK para tema escuro, fonte legível e animações GTK desligadas.
 - Configurações de baixo consumo: compositor do Marco desligado e efeitos de fundo desnecessários desativados.
@@ -25,9 +26,10 @@ Usar o MATE upstream dos repositórios oficiais do Arch/EndeavourOS como base fu
 
 ## Arquivos
 
-- `packages.x86_64`: seleção explícita de pacotes, sem instalar indiscriminadamente o grupo `mate-extra`. Inclui `gnome-calculator` como aplicativo GNOME independente, sem trazer o desktop GNOME; inclui também apenas `xfce4-screenshooter` como exceção pontual para captura de tela e exclui `mate-utils`, que fornece o `mate-screenshot` nativo.
+- `packages.x86_64`: seleção explícita de pacotes, sem instalar indiscriminadamente o grupo `mate-extra`. Inclui Fastfetch como ferramenta de informações do sistema, `gnome-calculator` como aplicativo GNOME independente, sem trazer o desktop GNOME; inclui também apenas `xfce4-screenshooter` como exceção pontual para captura de tela e exclui `mate-utils`, que fornece o `mate-screenshot` nativo.
 - `skel/.config/gtk-3.0/settings.ini`: aparência GTK padrão para novos usuários quando o construtor copiar o esqueleto para `/etc/skel`.
 - `skel/.config/mimeapps.list`: associações padrão de arquivos, com PDFs no Atril e documentos/planilhas/apresentações no LibreOffice. O construtor precisa copiar esse arquivo para o perfil do usuário.
+- `skel/.config/fastfetch/`: configuração padrão do Fastfetch e brasão ASCII da Forja OS; o construtor precisa copiar a pasta para o esqueleto dos usuários.
 - `apply-defaults.sh`: aplica configurações MATE seguras ao usuário da sessão, verificando primeiro se cada schema/chave existe.
 - `services.enabled`: serviços que o perfil de imagem deverá habilitar.
 - `scripts/validate-packages.sh`: verifica nomes de pacotes com o pacman.
@@ -53,4 +55,4 @@ Execute `bash desktop/mate/scripts/validate-packages.sh` em um ambiente Arch/End
 
 ## Estado
 
-Esta é uma camada inicial de definição. Ainda não foi instalada em uma máquina, o validador não foi executado em Arch/EndeavourOS e não houve build de ISO. Não declarar o desktop completo ou funcional até concluir os testes.
+Esta é uma camada inicial de definição. O Fastfetch já está listado como pacote e sua configuração/brasão estão preparados em `skel`; porém, assim como os demais arquivos do esqueleto, ainda dependem da integração do construtor para serem copiados aos perfis dos usuários. Ainda não foi instalada em uma máquina, o validador não foi executado em Arch/EndeavourOS e não houve build de ISO. Não declarar o desktop completo ou funcional até concluir os testes.
