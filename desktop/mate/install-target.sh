@@ -9,6 +9,10 @@ if [[ "$EUID" -ne 0 || -z "$SOURCE_ROOT" || ! -d "$SOURCE_ROOT/desktop/mate" ]];
 fi
 
 MATE="$SOURCE_ROOT/desktop/mate"
+
+# Ensure the boot splash renderer is present in the installed system.
+pacman -S --needed --noconfirm plymouth librsvg
+bash "$MATE/plymouth/install-theme.sh" / "$MATE/forja-monitor/forja-flame.svg"
 install -d /etc/skel/.config /usr/local/lib/forja /usr/share/icons/default
 cp -an "$MATE/skel/.config/." /etc/skel/.config/
 install -m 0755 "$MATE/apply-defaults.sh" /usr/local/lib/forja/apply-defaults.sh
@@ -86,4 +90,10 @@ EndSection
 EOF
 
 systemctl enable NetworkManager.service bluetooth.service lightdm.service
+
+# Rebuild the initramfs with the Plymouth hook and refresh the Forja GRUB menu.
+mkinitcpio -P
+if command -v grub-mkconfig >/dev/null 2>&1 && [[ -d /boot/grub ]]; then
+  grub-mkconfig -o /boot/grub/grub.cfg
+fi
 echo "Personalizações e aplicativos MATE da Forja instalados no sistema de destino."
