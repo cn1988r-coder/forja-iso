@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-"""Graphical entry point for the Forja OS installer."""
+"""Graphical, polkit-authenticated entry point for the Forja OS installer."""
+import os
 import shutil
 import subprocess
 import gi
@@ -7,17 +8,17 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
 def main():
-    if shutil.which("calamares"):
-        return subprocess.call(["/usr/bin/calamares"])
+    if shutil.which("calamares") and shutil.which("pkexec"):
+        command = ["/usr/bin/calamares"] if os.geteuid() == 0 else ["/usr/bin/pkexec", "/usr/bin/calamares"]
+        return subprocess.call(command)
     dialog = Gtk.MessageDialog(
         message_type=Gtk.MessageType.ERROR,
         buttons=Gtk.ButtonsType.CLOSE,
         text="O instalador gráfico da Forja OS não está disponível.",
     )
     dialog.format_secondary_text(
-        "Esta imagem ainda não contém o Calamares configurado. "
-        "Nenhum terminal será aberto e nenhuma instalação será iniciada. "
-        "A ISO não deve ser usada para instalar o sistema até essa integração ser concluída."
+        "O Calamares ou o serviço de autenticação Polkit não foi encontrado nesta ISO. "
+        "Nenhum terminal será aberto e nenhuma instalação será iniciada."
     )
     dialog.run()
     dialog.destroy()
