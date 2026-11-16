@@ -33,11 +33,15 @@ cp -a "$UPSTREAM_ROOT/efiboot" "$TARGET/" 2>/dev/null || true
 cp -a "$UPSTREAM_ROOT/syslinux" "$TARGET/" 2>/dev/null || true
 cp -a "$UPSTREAM_ROOT/pacman.conf" "$TARGET/"
 cp -a "$UPSTREAM_ROOT/mkarchiso" "$TARGET/"
-cp -a "$UPSTREAM_ROOT/run_before_squashfs.sh" "$TARGET/"
+cp -a "$UPSTREAM_ROOT/run_before_squashfs.sh" "$TARGET/run_before_squashfs-upstream.sh"
+cp -a "$PROFILE_DIR/run_before_squashfs.sh" "$TARGET/run_before_squashfs.sh"
+cp -a "$PROFILE_DIR/prepare.sh" "$TARGET/prepare.sh"
+cp -a "$PROFILE_DIR/apply-forja-live.sh" "$TARGET/airootfs/root/apply-forja-live.sh"
+cp -a "$REPO_ROOT/desktops/xfce" "$TARGET/airootfs/root/forja-desktop-assets"
 cp -a "$UPSTREAM_ROOT/prepare.sh" "$TARGET/upstream-prepare.sh"
 cp -a "$UPSTREAM_ROOT/profiledef.sh" "$TARGET/upstream-profiledef.sh"
 
-chmod +x "$TARGET/prepare-forja.sh" "$TARGET/apply-forja-live.sh"
+chmod +x "$TARGET/prepare-forja.sh" "$TARGET/prepare.sh" "$TARGET/run_before_squashfs.sh" "$TARGET/airootfs/root/apply-forja-live.sh"
 echo "Perfil Forja XFCE preparado em: $TARGET"
 echo "A estrutura upstream original não foi alterada."
 echo "Próxima etapa: integrar o hook Forja ao fluxo de preparação e validar os pacotes/serviços."
