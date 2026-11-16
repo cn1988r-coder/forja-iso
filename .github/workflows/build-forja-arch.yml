@@ -1,0 +1,70 @@
+name: Build Forja OS Arch Linux MATE ISO
+
+on:
+  push:
+    branches:
+      - feature/forja-arch-mate
+    paths:
+      - "bases/archlinux/**"
+      - "desktop/mate/**"
+      - ".github/workflows/build-forja-arch.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-24.04
+    container:
+      image: archlinux:base-devel
+      options: --privileged
+    timeout-minutes: 120
+    steps:
+      - name: Prepare Arch build environment
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          pacman -Sy --noconfirm archlinux-keyring
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm archiso git squashfs-tools dosfstools e2fsprogs
+
+      - name: Checkout Forja OS
+        uses: actions/checkout@v4
+
+      - name: Static checks
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash -n bases/archlinux/build-profile.sh
+          bash -n bases/archlinux/airootfs/root/customize_airootfs.sh
+          bash -n desktop/mate/apply-defaults.sh
+          bash -n desktop/mate/forja-repo/forja-repo
+          bash -n desktop/mate/install-forja-store.sh
+          bash -n desktop/mate/install-forja-monitor.sh
+          bash -n desktop/mate/install-forja-update-indicator.sh
+          bash -n desktop/mate/install-iptvnator.sh
+          python -m py_compile desktop/mate/forja-monitor/forja-monitor.py
+          python -m py_compile desktop/mate/forja-monitor/record-install-time.py
+          python -m py_compile desktop/mate/forja-store/forja-store.py
+          python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
+          test -s bases/archlinux/airootfs/usr/share/backgrounds/forja/forja-mate-wallpaper.svg
+          test -s bases/archlinux/airootfs/etc/dconf/db/local.d/00-forja-mate
+          test -s bases/archlinux/airootfs/etc/pacman.d/hooks/90-forja-dconf.hook
+
+      - name: Build bootable ISO with pinned upstream Archiso profile
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bases/archlinux/build-profile.sh "$RUNNER_TEMP/forja-work" "$GITHUB_WORKSPACE/out"
+          find out -maxdepth 1 -type f -name '*.iso' -print -quit | grep -q .
+
+      - name: Upload ISO and checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: forja-os-arch-mate-iso-${{ github.run_number }}
+          path: |
+            out/*.iso
+            out/*.iso.sha256
+          if-no-files-found: error
+          retention-days: 14
