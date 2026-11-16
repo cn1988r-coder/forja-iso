@@ -46,7 +46,7 @@
       <property name="launcher-show-description" type="bool" value="false"/>
       <property name="launcher-show-tooltip" type="bool" value="true"/>
     </property>
-    <property name="plugin-2" type="string" value="docklike"/>
+    <property name="plugin-2" type="string" value="dockbarx"/>
     <property name="plugin-3" type="string" value="xfce4-clipman-plugin"/>
     <property name="plugin-4" type="string" value="showdesktop"/>
     <property name="plugin-5" type="string" value="separator">
