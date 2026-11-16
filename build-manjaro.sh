@@ -24,7 +24,7 @@ if ! grep -q "^\[community-extra\]" /etc/pacman.conf; then
   printf '\n[community-extra]\nSigLevel = PackageRequired\nServer = https://repo.communitybig.org/$repo/$arch\n\n[community-stable]\nSigLevel = PackageRequired\nServer = https://repo.communitybig.org/$repo/$arch\n' >> /etc/pacman.conf
 fi
 pacman -Sy --noconfirm
-BUILD_TOOLS=(git base-devel make python python-yaml python-jinja python-requests curl jq libxslt docbook2x docbook-xsl squashfs-tools dosfstools libisoburn mtools grub efibootmgr cdrtools rsync wget gawk mhwd meson ninja vala gtk3 gtk4 libadwaita libnotify libpamac pkgconf libxml2)
+BUILD_TOOLS=(git base-devel make python python-yaml python-jinja python-requests curl jq libxslt docbook2x docbook-xsl squashfs-tools dosfstools libisoburn mtools grub efibootmgr cdrtools rsync wget gawk mhwd pkgconf libxml2)
 MISSING_BUILD_TOOLS=()
 for package in "${BUILD_TOOLS[@]}"; do
   if ! pacman -Si "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" >/dev/null 2>&1; then
@@ -206,18 +206,7 @@ FASTFETCH
 done
 
 # Papirus é fornecido pelo pacote oficial papirus-icon-theme.
-# Compila a interface do Pamac com o visual Forja uma única vez no ambiente Manjaro.
-# O backend libpamac e o motor de transações permanecem os do Pamac upstream.
-if [[ "${FORJA_SKIP_STORE_INSTALL:-0}" != "1" ]]; then
-  FORJA_PAMAC_OUTPUT="$WORK/forja-pamac-output" \
-    bash /forja-ci/forja-pamac-pacman/build-pamac.sh
-  for overlay_name in desktop-overlay live-overlay; do
-    store_overlay="$TARGET/$overlay_name"
-    [[ -d "$store_overlay" ]] || continue
-    FORJA_PAMAC_BUILD_DIR="$WORK/forja-pamac-output" \
-      DESTDIR="$store_overlay" bash /forja-ci/forja-pamac-pacman/install.sh
-  done
-fi
+# Pamac permanece integralmente na versão oficial fornecida pelo Manjaro.
 
 # Materialize every package-list symlink before editing. Never rewrite
 # shared Manjaro profile files through a symlink from the Forja profile.
@@ -285,7 +274,7 @@ done < <(find "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
 BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares btrfs-progs linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
-DESKTOP_CORE_PACKAGES=(plymouth gtk4 libadwaita libnotify pamac-gtk libpamac-flatpak-plugin xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin dockbarx xfce4-dockbarx-plugin xfce4-panel-profiles xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders bibata-cursor-theme gtk3 gsettings-desktop-schemas python python-gobject pacman-contrib polkit polkit-gnome flatpak yay git base-devel appstream archlinux-appstream-data)
+DESKTOP_CORE_PACKAGES=(plymouth libnotify pamac-gtk libpamac-flatpak-plugin xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin dockbarx xfce4-dockbarx-plugin xfce4-panel-profiles xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders bibata-cursor-theme gtk3 gsettings-desktop-schemas python python-gobject pacman-contrib polkit polkit-gnome flatpak yay git base-devel appstream archlinux-appstream-data)
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
   if ! pacman_info "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" >/dev/null 2>&1; then
