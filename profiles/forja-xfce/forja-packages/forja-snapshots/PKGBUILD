@@ -16,7 +16,7 @@ package() {
   install -Dm644 "$srcdir/forja-snapshot-setup.service" "$pkgdir/usr/lib/systemd/system/forja-snapshot-setup.service"
   install -Dm644 "$srcdir/forja-timeshift-check.service" "$pkgdir/usr/lib/systemd/system/forja-timeshift-check.service"
   install -Dm644 "$srcdir/forja-timeshift-check.timer" "$pkgdir/usr/lib/systemd/system/forja-timeshift-check.timer"
-  install -d "$pkgdir/etc/systemd/system/multi-user.target.wants"
+  install -d "$pkgdir/etc/systemd/system/multi-user.target.wants" "$pkgdir/etc/systemd/system/timers.target.wants"
   ln -s /usr/lib/systemd/system/forja-snapshot-setup.service "$pkgdir/etc/systemd/system/multi-user.target.wants/forja-snapshot-setup.service"
   ln -s /usr/lib/systemd/system/forja-timeshift-check.timer "$pkgdir/etc/systemd/system/timers.target.wants/forja-timeshift-check.timer"
 }
