@@ -29,7 +29,7 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          find desktops/xfce -type f \\( -name '*.sh' -o -name 'profile.conf' \\) -print0 |
+          find desktops/xfce -type f \( -name '*.sh' -o -name 'profile.conf' \) -print0 |
             while IFS= read -r -d '' file; do
               bash -n "$file"
               echo "BASH_OK: $file"
