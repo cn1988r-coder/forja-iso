@@ -1,7 +1,0 @@
-[Unit]
-Description=Verifica se ha snapshots Timeshift agendados para o Forja OS
-After=local-fs.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/timeshift --check --scripted

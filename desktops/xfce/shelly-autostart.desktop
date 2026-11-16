@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Shelly
-Comment=Gerenciador de programas da Forja OS
-Exec=/usr/bin/shelly-ui
-Icon=shelly
-Terminal=false
-X-GNOME-Autostart-enabled=true

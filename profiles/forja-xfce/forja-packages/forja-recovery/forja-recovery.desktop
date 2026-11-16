@@ -1,9 +1,0 @@
-[Desktop Entry]
-Name=Forja Recovery
-Comment=Diagnosticar e recuperar o Forja OS
-Exec=forja-recovery
-Icon=system-recovery
-Terminal=false
-Type=Application
-Categories=System;Settings;
-StartupNotify=true
