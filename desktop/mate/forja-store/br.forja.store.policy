@@ -5,7 +5,7 @@
 <policyconfig>
   <vendor>Forja OS</vendor>
   <vendor_url>https://github.com/cn1988r-coder/forja-iso</vendor_url>
-  <action id="org.freedesktop.policykit.exec">
+  <action id="br.forja.store.manage-packages">
     <description>Gerenciar pacotes do sistema com a Forja Store</description>
     <message>Autentique-se para instalar, remover ou atualizar programas.</message>
     <defaults>
