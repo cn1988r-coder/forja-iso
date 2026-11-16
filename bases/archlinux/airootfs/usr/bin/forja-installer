@@ -1,0 +1,27 @@
+#!/usr/bin/python3
+"""Graphical entry point for the Forja OS installer."""
+import shutil
+import subprocess
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
+
+def main():
+    if shutil.which("calamares"):
+        return subprocess.call(["/usr/bin/calamares"])
+    dialog = Gtk.MessageDialog(
+        message_type=Gtk.MessageType.ERROR,
+        buttons=Gtk.ButtonsType.CLOSE,
+        text="O instalador gráfico da Forja OS não está disponível.",
+    )
+    dialog.format_secondary_text(
+        "Esta imagem ainda não contém o Calamares configurado. "
+        "Nenhum terminal será aberto e nenhuma instalação será iniciada. "
+        "A ISO não deve ser usada para instalar o sistema até essa integração ser concluída."
+    )
+    dialog.run()
+    dialog.destroy()
+    return 1
+
+if __name__ == "__main__":
+    raise SystemExit(main())
