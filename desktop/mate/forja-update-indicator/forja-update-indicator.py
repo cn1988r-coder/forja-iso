@@ -60,8 +60,8 @@ class ForjaUpdateIndicator:
         self.menu.show_all()
 
         # Primeira consulta após o painel carregar; depois, a cada 30 minutos.
-        GLib.timeout_add_seconds(45, self.check)
-        GLib.timeout_add_seconds(CHECK_INTERVAL, self.check)
+        GLib.timeout_add_seconds(45, self._initial_check)
+        GLib.timeout_add_seconds(CHECK_INTERVAL, self._periodic_check)
 
     def _add_item(self, label, callback):
         item = Gtk.MenuItem(label=label)
@@ -69,8 +69,7 @@ class ForjaUpdateIndicator:
         self.menu.append(item)
 
     def popup(self, _icon, button, activate_time):
-        self.menu.popup(None, None, Gtk.StatusIcon.position_menu,
-                        self.icon, button, activate_time)
+        self.menu.popup_at_pointer(None)
 
     def _set_state(self, count, error):
         if error:
@@ -87,6 +86,14 @@ class ForjaUpdateIndicator:
             self.status_item.set_label("O sistema está atualizado")
         self.checking = False
         return GLib.SOURCE_REMOVE
+
+    def _initial_check(self):
+        self.check()
+        return GLib.SOURCE_REMOVE
+
+    def _periodic_check(self):
+        self.check()
+        return GLib.SOURCE_CONTINUE
 
     def check(self, *_args):
         if self.checking:
