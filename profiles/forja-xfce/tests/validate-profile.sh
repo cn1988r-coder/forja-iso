@@ -8,7 +8,7 @@ DOCKBARX_INSTALL="$PROFILE/forja-packages/dockbarx/dockbarx.install"
 DOCKBARX_PLUGIN="$PROFILE/forja-packages/xfce4-dockbarx-plugin/PKGBUILD"
 RECOVERY="$PROFILE/forja-packages/forja-recovery"
 PANEL="$ROOT/desktops/xfce/panel-default.xml"
-required=("$PROFILE/profiledef.sh" "$PROFILE/prepare.sh" "$PROFILE/prepare-forja.sh" "$PROFILE/run_before_squashfs.sh" "$PROFILE/apply-forja-live.sh" "$PROFILE/README.md" "$DOCKBARX" "$DOCKBARX_INSTALL" "$DOCKBARX_PLUGIN" "$RECOVERY/PKGBUILD" "$RECOVERY/forja-recovery-cli" "$RECOVERY/forja-recovery-gui" "$RECOVERY/forja-recovery.desktop" "$RECOVERY/README.md" "$ROOT/desktops/xfce/install-branding.sh" "$ROOT/desktops/xfce/apply-forja-layout.sh" "$PANEL")
+required=("$PROFILE/profiledef.sh" "$PROFILE/prepare.sh" "$PROFILE/prepare-forja.sh" "$PROFILE/run_before_squashfs.sh" "$PROFILE/apply-forja-live.sh" "$PROFILE/README.md" "$DOCKBARX" "$DOCKBARX_INSTALL" "$DOCKBARX_PLUGIN" "$RECOVERY/PKGBUILD" "$RECOVERY/forja-recovery-cli" "$RECOVERY/forja-recovery-gui" "$RECOVERY/forja-recovery.desktop" "$RECOVERY/README.md" "$ROOT/desktops/xfce/install-branding.sh" "$ROOT/desktops/xfce/apply-forja-layout.sh" "$PANEL" "$PROFILE/airootfs/usr/local/bin/forja-update" "$PROFILE/airootfs/usr/share/applications/forja-update.desktop")
 for file in "${required[@]}"; do
   [[ -f "$file" ]] || { echo "FALHA: arquivo ausente: $file" >&2; exit 1; }
 done
@@ -17,6 +17,8 @@ bash -n "$PROFILE/prepare.sh"
 bash -n "$PROFILE/prepare-forja.sh"
 bash -n "$PROFILE/run_before_squashfs.sh"
 bash -n "$PROFILE/apply-forja-live.sh"
+python3 -m py_compile "$PROFILE/airootfs/usr/local/bin/forja-update"
+rm -rf "$PROFILE/airootfs/usr/local/bin/__pycache__"
 bash -n "$RECOVERY/PKGBUILD"
 python3 -m py_compile "$RECOVERY/forja-recovery-cli" "$RECOVERY/forja-recovery-gui"
 rm -rf "$RECOVERY/__pycache__"
@@ -58,4 +60,7 @@ if grep -Eiq "rm[[:space:]]+-rf|mkfs\\.|dd[[:space:]]+if=" "$RECOVERY/forja-reco
   echo "FALHA: operação destrutiva não permitida no núcleo inicial do Recovery." >&2
   exit 1
 fi
-echo "Validação estática do perfil Forja XFCE/EndeavourOS concluída (DockbarX e Forja Recovery; sem ISO)."
+grep -Fq "cn1988r-coder/forja-updates" "$PROFILE/airootfs/usr/local/bin/forja-update"
+grep -Fq "forja-update --rollback" "$PROFILE/airootfs/usr/local/bin/forja-update"
+if grep -Eq "forja-updates.*(pacman.conf|Server =)" "$PROFILE/airootfs/usr/local/bin/forja-update"; then echo "FALHA: Forja Updates não pode ser configurado como repositório pacman." >&2; exit 1; fi
+echo "Validação estática do perfil Forja XFCE/EndeavourOS concluída (DockbarX, Recovery e Forja Updates; sem ISO)."
