@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -Eeuo pipefail
+set -Eeuxo pipefail
 
 [[ "$EUID" -eq 0 ]] || { echo "Execute como root." >&2; exit 1; }
 for cmd in truncate mkfs.btrfs mount umount btrfs snapper systemctl; do
