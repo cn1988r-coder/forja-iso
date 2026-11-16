@@ -292,7 +292,8 @@ class Store(Gtk.Application):
         desc.set_line_wrap(True)
         desc.set_max_width_chars(38)
         card.pack_start(desc, True, True, 0)
-        meta = Gtk.Label(label=("AUR comunitário" if item["source"] == "aur" else "Repositório oficial") +
+        source_label = {"aur": "AUR comunitário", "flatpak": "Flathub", "official": "Repositório oficial"}[item["source"]]
+        meta = Gtk.Label(label=source_label +
                          (" · " + item.get("version", "") if item.get("version") else ""), xalign=0)
         card.pack_start(meta, False, False, 0)
         actions = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
@@ -398,7 +399,7 @@ class Store(Gtk.Application):
                 grid.add(self.make_card(item))
             self.content.pack_start(grid, False, False, 4)
         self.content.show_all()
-        self.set_status(str(len(official) + len(aur)) + " resultados.")
+        self.set_status(str(len(official) + len(aur) + len(flatpak_items)) + " resultados.")
         return GLib.SOURCE_REMOVE
 
     def package_action(self, _button, item):
