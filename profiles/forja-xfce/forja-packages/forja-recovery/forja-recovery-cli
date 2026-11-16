@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Forja Recovery: diagnóstico seguro e operações Snapper explicitamente solicitadas."""
+"""Forja Recovery: diagnostico do sistema e integracao com Timeshift."""
 from __future__ import annotations
 import argparse
 import json
-import os
 import shutil
 import subprocess
 import sys
@@ -12,7 +11,7 @@ from pathlib import Path
 def run(args: list[str]) -> tuple[int, str]:
     try:
         p = subprocess.run(args, text=True, stdout=subprocess.PIPE,
-                           stderr=subprocess.STDOUT, check=False, timeout=30)
+                           stderr=subprocess.STDOUT, check=False, timeout=45)
         return p.returncode, p.stdout.strip()
     except (OSError, subprocess.TimeoutExpired) as exc:
         return 127, str(exc)
@@ -26,14 +25,12 @@ def diagnose() -> list[dict]:
     is_btrfs = rc == 0 and out.strip() == "btrfs"
     results.append(check("Sistema de arquivos raiz", is_btrfs,
                          out or "Não foi possível identificar o sistema de arquivos."))
-    rc, out = run(["snapper", "-c", "root", "list", "--columns", "number,date,description"])
-    configured = rc == 0
-    results.append(check("Snapper (configuração root)", configured,
-                         out if configured else (out or "Configuração root do Snapper não encontrada.")))
-    for unit in ("snapper-timeline.timer", "snapper-cleanup.timer", "grub-btrfsd.service"):
+    rc, out = run(["timeshift", "--list"])
+    results.append(check("Timeshift", rc == 0,
+                         out if rc == 0 else (out or "Timeshift não está configurado ou não reconheceu o volume.")))
+    for unit in ("forja-timeshift-check.timer", "grub-btrfsd.service"):
         unit_rc, unit_out = run(["systemctl", "is-enabled", unit])
-        results.append(check(unit, unit_rc == 0,
-                             unit_out or "Unidade não habilitada."))
+        results.append(check(unit, unit_rc == 0, unit_out or "Unidade não habilitada."))
     rc, out = run(["pacman", "-D", "k"])
     results.append(check("Base de dados do Pacman", rc == 0,
                          out or ("Verificação concluída." if rc == 0 else "Pacman retornou erro.")))
@@ -42,94 +39,46 @@ def diagnose() -> list[dict]:
                          str(grub_cfg) if grub_cfg.is_file() else "Arquivo /boot/grub/grub.cfg não encontrado."))
     kernels = sorted(Path("/boot").glob("vmlinuz-*")) if Path("/boot").exists() else []
     results.append(check("Kernel instalado", bool(kernels),
-                         ", ".join(p.name for p in kernels) if kernels else "Nenhum vmlinuz-* encontrado em /boot."))
-    initramfs = sorted(Path("/boot").glob("initramfs-*.img")) if Path("/boot").exists() else []
-    results.append(check("Initramfs", bool(initramfs),
-                         ", ".join(p.name for p in initramfs) if initramfs else "Nenhum initramfs-*.img encontrado em /boot."))
+                         ", ".join(p.name for p in kernels) if kernels else "Nenhum kernel encontrado em /boot."))
     results.append(check("Ferramentas Btrfs", shutil.which("btrfs") is not None,
                          shutil.which("btrfs") or "Comando btrfs não encontrado."))
     results.append(check("Integração GRUB-Btrfs", shutil.which("grub-btrfsd") is not None,
                          shutil.which("grub-btrfsd") or "grub-btrfsd não encontrado."))
-    explicit, detail = root_uses_explicit_btrfs_subvolume()
-    rollback_ready = not explicit
-    results.append(check("Layout de rollback Snapper", rollback_ready, detail))
+    config = Path("/etc/timeshift/timeshift.json")
+    results.append(check("Configuração Timeshift", config.is_file(),
+                         str(config) if config.is_file() else "Configuração Timeshift ausente."))
     return results
 
 def snapshots() -> tuple[int, str]:
-    return run(["snapper", "-c", "root", "list", "--columns", "number,date,description"])
+    return run(["timeshift", "--list"])
 
 def create_snapshot(description: str) -> tuple[int, str]:
-    if os.geteuid() != 0:
-        return 1, "Esta operação exige privilégios administrativos."
     if not description.strip() or len(description) > 120:
         return 2, "Descrição inválida (1 a 120 caracteres)."
     rc, fs = run(["findmnt", "-n", "-o", "FSTYPE", "/"])
     if rc or fs.strip() != "btrfs":
         return 3, "A raiz não está em Btrfs. Nenhum snapshot foi criado."
-    rc, _ = run(["snapper", "-c", "root", "list"])
-    if rc:
-        return 4, "Snapper não está configurado para a raiz. Nenhuma alteração foi feita."
-    return run(["snapper", "-c", "root", "create", "--description", description])
+    return run(["pkexec", "timeshift", "--create", "--comments", description,
+                "--tags", "O", "--scripted"])
 
-def root_uses_explicit_btrfs_subvolume() -> tuple[bool, str]:
-    fstab = Path("/etc/fstab")
-    found = False
-    if not fstab.is_file():
-        return True, "/etc/fstab não está disponível; rollback bloqueado."
-    for raw in fstab.read_text(encoding="utf-8", errors="replace").splitlines():
-        line = raw.split("#", 1)[0].strip()
-        if not line:
-            continue
-        fields = line.split()
-        if len(fields) >= 4 and fields[1] == "/":
-            found = True
-            options = fields[3].split(",")
-            if any(option.startswith(("subvol=", "subvolid=")) for option in options):
-                return True, "A raiz está presa a um subvolume explícito no /etc/fstab."
-    cmdline = Path("/proc/cmdline")
-    if cmdline.is_file():
-        for token in cmdline.read_text(encoding="utf-8", errors="replace").split():
-            if token.startswith("rootflags=") and ("subvol=" in token or "subvolid=" in token):
-                return True, "A linha de comando do kernel fixa o subvolume raiz por rootflags."
-    if not found:
-        return True, "Não foi encontrada uma entrada verificável para / em /etc/fstab; rollback bloqueado."
-    return False, "A raiz usa o subvolume padrão do Btrfs."
-
-def rollback_snapshot(number: int, confirmed: bool) -> tuple[int, str]:
-    if os.geteuid() != 0:
-        return 1, "A restauração exige privilégios administrativos."
-    if not confirmed:
-        return 2, "Restauração não executada. Use --confirm após conferir o número do snapshot."
-    if number < 1:
-        return 2, "Número de snapshot inválido."
-    rc, fs = run(["findmnt", "-n", "-o", "FSTYPE", "/"])
-    if rc or fs.strip() != "btrfs":
-        return 3, "A raiz não está em Btrfs. Nenhuma alteração foi feita."
-    explicit, detail = root_uses_explicit_btrfs_subvolume()
-    if explicit:
-        return 6, detail + " Rollback automático bloqueado para evitar alterar o subvolume errado."
-    rc, out = run(["snapper", "-c", "root", "list", "--columns", "number"])
-    if rc:
-        return 4, out or "Não foi possível consultar os snapshots."
-    numbers = {int(line.split()[0]) for line in out.splitlines()
-               if line.split() and line.split()[0].isdigit()}
-    if number not in numbers:
-        return 5, f"Snapshot {number} não existe na configuração root."
-    rc, out = run(["snapper", "-c", "root", "rollback", str(number)])
-    if rc == 0:
-        out = (out + "\n" if out else "") + "Rollback preparado. Reinicie o Forja OS para iniciar no estado restaurado."
-    return rc, out
+def open_timeshift() -> tuple[int, str]:
+    executable = shutil.which("timeshift-gtk")
+    if not executable:
+        return 127, "Interface gráfica do Timeshift não encontrada."
+    try:
+        subprocess.Popen([executable], start_new_session=True)
+        return 0, "Timeshift aberto. Escolha o snapshot e use Restaurar; confira cuidadosamente o dispositivo e a raiz."
+    except OSError as exc:
+        return 127, str(exc)
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Diagnóstico e recuperação segura do Forja OS")
+    parser = argparse.ArgumentParser(description="Diagnóstico e recuperação do Forja OS")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("diagnose", help="Executa verificações somente de leitura")
-    sub.add_parser("snapshots", help="Lista snapshots da configuração root do Snapper")
-    create = sub.add_parser("create-snapshot", help="Cria snapshot manual da raiz")
+    sub.add_parser("snapshots", help="Lista snapshots do Timeshift")
+    create = sub.add_parser("create-snapshot", help="Cria snapshot manual com Timeshift")
     create.add_argument("--description", required=True)
-    rollback = sub.add_parser("rollback", help="Prepara a restauração da raiz a partir de um snapshot")
-    rollback.add_argument("--snapshot", required=True, type=int)
-    rollback.add_argument("--confirm", action="store_true", help="Confirma a alteração do subvolume raiz")
+    sub.add_parser("open-timeshift", help="Abre a interface oficial de restauração do Timeshift")
     args = parser.parse_args()
     if args.command == "diagnose":
         data = diagnose()
@@ -140,7 +89,7 @@ def main() -> int:
     elif args.command == "create-snapshot":
         rc, out = create_snapshot(args.description)
     else:
-        rc, out = rollback_snapshot(args.snapshot, args.confirm)
+        rc, out = open_timeshift()
     print(out or ("Operação concluída." if rc == 0 else "A operação falhou."))
     return rc
 
