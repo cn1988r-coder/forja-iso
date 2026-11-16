@@ -42,3 +42,22 @@ set_if_available org.mate.interface font-name "'DejaVu Sans 10'"
 set_if_available org.mate.background show-desktop-icons "false"
 set_if_available org.mate.background background-fade "false"
 set_if_available org.mate.Marco.general compositing-manager "false"
+
+# Replace the stock MATE menu applet with Brisk Menu for this user.
+# Do not create a duplicate if Brisk is already present.
+if command -v dconf >/dev/null 2>&1 && [[ -f /usr/share/mate-panel/applets/com.solus_project.brisk.BriskMenu.mate-panel-applet ]]; then
+    object_ids="$(gsettings get org.mate.panel.general object-id-list 2>/dev/null || true)"
+    if [[ -n "$object_ids" ]]; then
+        object_ids="${object_ids//\'menu-bar\'/\'brisk-menu\'}"
+        if [[ "$object_ids" != *"'brisk-menu'"* ]]; then
+            object_ids="${object_ids%]}, 'brisk-menu']"
+        fi
+        gsettings set org.mate.panel.general object-id-list "$object_ids"
+        dconf write /org/mate/panel/objects/brisk-menu/object-type "'applet'"
+        dconf write /org/mate/panel/objects/brisk-menu/applet-iid "'BriskMenuFactory::BriskMenu'"
+        dconf write /org/mate/panel/objects/brisk-menu/toplevel-id "'top'"
+        dconf write /org/mate/panel/objects/brisk-menu/position "0"
+        dconf write /org/mate/panel/objects/brisk-menu/locked "true"
+        printf 'SET Brisk Menu as the MATE panel menu applet\n'
+    fi
+fi
