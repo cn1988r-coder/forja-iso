@@ -90,6 +90,7 @@ jobs:
           set -Eeuo pipefail
           docker pull manjarolinux/base:latest
           docker run --rm \
+            --network host \
             --privileged \
             --security-opt seccomp=unconfined \
             -v "$GITHUB_WORKSPACE:/forja-ci:ro" \
@@ -160,15 +161,28 @@ jobs:
           EXPECTED_NAME: ${{ steps.iso.outputs.iso_name }}
         run: |
           set -Eeuo pipefail
-          mapfile -t files < <(find "$RUNNER_TEMP/forja-artifact-check" -type f -printf '%p\\n')
-          test "${#files[@]}" -eq 1
+          mapfile -d '' -t files < <(find "$RUNNER_TEMP/forja-artifact-check" -type f -print0)
+          if (( ${#files[@]} != 1 )); then
+            printf 'ERRO: esperado exatamente 1 arquivo no artefato; encontrados %s.\\n' "${#files[@]}" >&2
+            printf 'Arquivo: %s\\n' "${files[@]}" >&2
+            exit 1
+          fi
           iso="${files[0]}"
-          test "$(basename "$iso")" = "$EXPECTED_NAME"
-          test -s "$iso"
+          if [[ "$(basename "$iso")" != "$EXPECTED_NAME" ]]; then
+            echo "ERRO: nome inesperado no artefato: $(basename "$iso")" >&2
+            exit 1
+          fi
+          test -s "$iso" || { echo "ERRO: ISO baixada está vazia." >&2; exit 1; }
           size="$(stat -c %s "$iso")"
-          test "$size" = "$EXPECTED_SIZE"
+          if [[ "$size" != "$EXPECTED_SIZE" ]]; then
+            echo "ERRO: tamanho divergente. Esperado=$EXPECTED_SIZE; recebido=$size" >&2
+            exit 1
+          fi
           actual_sha="$(sha256sum "$iso" | awk '{print $1}')"
-          test "$actual_sha" = "$EXPECTED_SHA256"
+          if [[ "$actual_sha" != "$EXPECTED_SHA256" ]]; then
+            echo "ERRO: SHA256 divergente. Esperado=$EXPECTED_SHA256; recebido=$actual_sha" >&2
+            exit 1
+          fi
           echo "DOWNLOADABLE_ISO_OK: $iso ($size bytes, SHA256 verified)"
 
       - name: Clean dedicated ext4 build filesystem
