@@ -9,7 +9,7 @@ O cliente `forja-repo` é integrado à Forja Store e mantém o canal de aplicati
 - `forja-repo updates`: compara as versões publicadas com os pacotes Forja instalados.
 - `forja-repo check`: alias de `updates`.
 
-A consulta usa um `pacman.conf` com DBPath e cache exclusivos em `/var/lib/forja-repo` e `/var/cache/forja-repo`. Assim, a atualização do catálogo Forja não sincroniza as bases do Arch e não inicia uma atualização parcial do sistema.
+A consulta usa um `pacman.conf` com DBPath e cache exclusivos em `/var/lib/forja-repo` e `/var/cache/forja-repo`. A sincronização é autorizada pelo helper Polkit restrito da Forja Store, sem prompt de senha em terminal. Assim, a atualização do catálogo Forja não sincroniza as bases do Arch e não inicia uma atualização parcial do sistema.
 
 A instalação/atualização de um pacote selecionado usa outro arquivo de configuração, que inclui `/etc/pacman.conf` e acrescenta apenas o repositório Forja. O helper Polkit executa `pacman -S forja/NOME` para o pacote escolhido. Ele não executa `pacman -Syu` nem atualiza pacotes Arch sem relação com essa operação.
 
