@@ -12,7 +12,7 @@ Primeiro componente funcional da ferramenta oficial de recuperação do Forja OS
 
 ## Limites explícitos
 
-O rollback está disponível apenas no CLI e exige `--confirm`, além do número de um snapshot existente. O Snapper prepara o retorno ao estado selecionado e o sistema precisa ser reiniciado. A interface GTK ainda não oferece esse botão. O fluxo completo de rollback, boot e retorno ao sistema deve ser testado em VM antes de distribuir a ISO. Esta ferramenta não reinstala pacotes automaticamente nem repara initramfs.
+O rollback exige `--confirm`, o número de um snapshot existente e uma raiz Btrfs montada pelo subvolume padrão. O Forja Recovery verifica `/etc/fstab` e `rootflags` e bloqueia a operação quando encontra um subvolume raiz fixado, evitando um rollback que não seria aplicado no próximo boot. O fluxo completo de rollback, boot e retorno ao sistema deve ser testado em VM antes de distribuir a ISO. Esta ferramenta não reinstala pacotes automaticamente nem repara initramfs.
 
 A criação de snapshots não inclui automaticamente /home. A política real de subvolumes depende da configuração de instalação; não se deve presumir que /home esteja separado.
 
