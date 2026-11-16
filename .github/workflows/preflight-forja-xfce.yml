@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-24.04
     container:
       image: archlinux:base-devel
+      options: --privileged
     timeout-minutes: 180
     steps:
       - name: Checkout Forja OS XFCE
@@ -79,6 +80,11 @@ jobs:
           for package in "${packages[@]}"; do
             pacman -Qp "$package"
           done
+          grub_package="$(find /tmp/EndeavourOS-ISO/forja-xfce-profile/airootfs/root/packages -name "grub-btrfs-*.pkg.tar.zst" -print -quit)"
+          test -n "$grub_package"
+          tar -tf "$grub_package" | grep -q "usr/bin/grub-btrfsd"
+          tar -tf "$grub_package" | grep -q "grub-btrfsd.service"
+          bash "$GITHUB_WORKSPACE/profiles/forja-xfce/tests/test-snapshots-btrfs.sh"
           bash -n /tmp/EndeavourOS-ISO/forja-xfce-profile/run_before_squashfs.sh
           bash -n /tmp/EndeavourOS-ISO/forja-xfce-profile/run_before_squashfs-upstream.sh
           echo "Pré-build concluído. Nenhum mkarchiso foi executado."
