@@ -58,11 +58,7 @@ appstream
 archlinux-appstream-data
 polkit
 polkit-gnome
-# Pamac oficial do Manjaro, com CLI e integração Flatpak
+# Shelly será a única loja gráfica; Flatpak é mantido como backend opcional.
 flatpak
-pamac-cli
-pamac-gtk
-libpamac
-libpamac-flatpak-plugin
 base-devel
 git
