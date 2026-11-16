@@ -63,7 +63,7 @@ jobs:
           set -Eeuo pipefail
           su builder -c 'git clone https://github.com/endeavouros-team/EndeavourOS-ISO.git /tmp/EndeavourOS-ISO'
           su builder -c 'git -C /tmp/EndeavourOS-ISO checkout --detach 0bbb1280ccd373262561453d85201f2707483990'
-          test "$(git -C /tmp/EndeavourOS-ISO rev-parse HEAD)" = "0bbb1280ccd373262561453d85201f2707483990"
+          test "$(su builder -c 'git -C /tmp/EndeavourOS-ISO rev-parse HEAD')" = "0bbb1280ccd373262561453d85201f2707483990"
           su builder -c "ENDEAVOUROS_ISO_DIR=/tmp/EndeavourOS-ISO bash '$GITHUB_WORKSPACE/profiles/forja-xfce/prepare-forja.sh'"
 
       - name: Build Forja local packages only
