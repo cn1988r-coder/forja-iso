@@ -62,7 +62,7 @@ EOF
 chmod 600 /etc/timeshift/timeshift.json
 
 timeshift --list >/dev/null 2>&1 || die "Timeshift não reconheceu a configuração Btrfs; não foi criado snapshot."
-if ! timeshift --list 2>/dev/null | grep -q 'timeshift-btrfs'; then
+if ! timeshift --list 2>/dev/null | grep -Fq 'Forja OS: snapshot inicial'; then
   timeshift --create --comments "Forja OS: snapshot inicial" --tags B --scripted || die "Falha ao criar o snapshot inicial."
 fi
 
