@@ -135,6 +135,13 @@ jobs:
           test -n "$package"
           pacman -U --noconfirm --nodeps "$package"
           pacman -Qk forja-store
+          test -s /etc/polkit-1/rules.d/49-forja-store.rules
+          grep -q 'forja-pacman-transaction' /etc/polkit-1/rules.d/49-forja-store.rules
+          store_root="$(mktemp -d)"
+          bash desktop/mate/install-forja-store.sh "$store_root"
+          test -x "$store_root/usr/bin/forja-store"
+          test -s "$store_root/etc/polkit-1/rules.d/49-forja-store.rules"
+          rm -rf "$store_root"
           python -c "import gi; gi.require_version('Gtk', '3.0'); from gi.repository import Gtk"
           if /usr/bin/forja-pacman-transaction invalid-action; then
             echo "The transaction helper accepted an invalid action." >&2
