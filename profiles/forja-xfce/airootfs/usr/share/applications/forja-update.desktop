@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Atualizações da Forja
+Comment=Verificar atualizações dos componentes próprios da Forja OS
+Exec=pkexec /usr/local/bin/forja-update
+Icon=system-software-update
+Terminal=true
+Categories=System;Settings;
