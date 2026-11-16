@@ -1,19 +1,21 @@
 # Forja OS
 
-A Forja OS é uma distribuição em desenvolvimento, derivada diretamente do **Arch Linux**. A base ativa escolhida para a edição principal é `bases/archlinux/`; o sistema utilizará os repositórios e espelhos oficiais do Arch Linux.
+A Forja OS é uma distribuição em desenvolvimento, derivada diretamente do **Arch Linux**. A base ativa está em `bases/archlinux/` e utiliza os repositórios e espelhos oficiais do Arch Linux para o sistema-base.
 
-## Responsabilidade dos repositórios
+## Repositórios e atualizações
 
-- **Arch Linux:** sistema-base, kernel, firmware, drivers, bibliotecas e pacotes oficiais.
-- **EndeavourOS:** não faz parte da base ativa escolhida. A antiga fundação permanece preservada em `bases/endeavouros/` somente como referência técnica, sem orientar builds ou decisões da edição principal.
-- **Forja OS:** repositório binário adicional e separado, planejado exclusivamente para aplicativos, ferramentas e componentes próprios. Não substituirá pacotes oficiais nem atualizará o sistema-base.
+- **Arch Linux:** kernel, firmware, drivers, bibliotecas e pacotes oficiais do sistema, atualizados pelo Pacman.
+- **EndeavourOS:** não integra a base ativa. A fundação antiga permanece preservada em `bases/endeavouros/` apenas como referência inativa.
+- **Forja OS:** repositório binário adicional, separado, reservado exclusivamente a aplicativos e componentes próprios. Não substitui pacotes oficiais e não atualiza o sistema-base.
 
-O Pacman continuará sendo o gerenciador de pacotes. As atualizações normais do sistema serão feitas pelos repositórios oficiais do Arch Linux. O repositório Forja será consultado separadamente para atualizar somente pacotes próprios da Forja.
+O Pacman continua sendo o gerenciador. O comando planejado `forja-repo check` consulta somente o catálogo binário Forja, usando uma base de dados isolada. Não executa `pacman -Syu` nem altera `/etc/pacman.conf`. O cliente e o fluxo de publicação estão em preparação; o repositório remoto ainda não contém pacotes.
 
 ## Ambiente gráfico
 
-A edição gráfica escolhida é **MATE upstream personalizado**, instalado a partir dos repositórios oficiais do Arch Linux, com identidade e aplicações próprias da Forja OS. Consulte `DESKTOP-STRATEGY.md` e `desktop/mate/README.md`.
+A edição gráfica oficial é **MATE upstream personalizado**, com identidade e aplicativos próprios da Forja OS. Consulte `DESKTOP-STRATEGY.md` e `desktop/mate/README.md`.
 
-## Estado de desenvolvimento
+## Construção e instalação
 
-A fundação Arch e a camada MATE ainda são estruturas iniciais. O perfil precisa ser completado, integrado a um fluxo real de construção Archiso, validado e compilado em ambiente Arch antes de qualquer ISO ser considerada instalável. Nenhum build bem-sucedido ou instalação funcional é declarado neste momento.
+O projeto agora possui um perfil de build que utiliza o perfil oficial `releng` do Archiso, fixado em um commit upstream, e sobrepõe os pacotes, configurações e aplicativos MATE da Forja. O workflow GitHub Actions tenta compilar a ISO e publicar um artefato; a primeira compilação ainda precisa concluir com sucesso e ser testada em máquina virtual.
+
+O ambiente live está preparado para iniciar MATE pelo LightDM e oferece o Archinstall oficial como instalador em terminal. O instalador ainda precisa de testes de instalação completa e integração pós-instalação das configurações Forja. Não declarar a ISO pronta para instalação até esses testes.
