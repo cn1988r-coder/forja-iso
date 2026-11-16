@@ -88,10 +88,11 @@ grep -q 'name="tooltip-format" type="string" value="%A, %d de %B de %Y"' "$ROOT/
 ! grep -q 'value="tasklist"' "$ROOT/panel-default.xml"
 ! grep -q 'value="notification-plugin".*value="clock"' "$ROOT/panel-default.xml"
 # DockbarX packages are sourced from the signed BigCommunity repository.
-grep -q '^community-keyring$' "$ROOT/packages.manjaro"
+grep -q '>community-stable community-keyring' "$ROOT/packages.manjaro"
 grep -q '>community-extra dockbarx' "$ROOT/packages.manjaro"
 grep -q '>community-extra xfce4-dockbarx-plugin' "$ROOT/packages.manjaro"
 grep -q '\[community-extra\]' "$REPO_ROOT/build-manjaro.sh"
+grep -q '\[community-stable\]' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'https://repo.communitybig.org/\$repo/\$arch' "$REPO_ROOT/build-manjaro.sh"
 ! grep -Rqi 'docklike' "$ROOT" --exclude='validate-appearance.sh'
 
