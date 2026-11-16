@@ -43,6 +43,18 @@ def aur_search(query):
         raise RuntimeError("Resposta inesperada da API do AUR.")
     return data.get("results", [])[:60]
 
+def aur_info(names):
+    if not names:
+        return []
+    query = urllib.parse.urlencode([("arg[]", name) for name in names])
+    request = urllib.request.Request("https://aur.archlinux.org/rpc/v5/info?" + query,
+                                    headers={"User-Agent": "ForjaStore/1.0"})
+    with urllib.request.urlopen(request, timeout=25) as response:
+        data = json.loads(response.read().decode("utf-8"))
+    if data.get("type") != "multiinfo":
+        raise RuntimeError("Resposta inesperada ao consultar versões do AUR.")
+    return data.get("results", [])
+
 class Store(Gtk.Application):
     def __init__(self):
         super().__init__(application_id="br.forja.Store",
@@ -279,10 +291,27 @@ class Store(Gtk.Application):
                     if result.returncode == 0:
                         flat.extend((scope, line.strip()) for line in result.stdout.splitlines()
                                     if line.strip())
-            GLib.idle_add(self.show_update_results, pac, error, flat)
+            aur_outdated, aur_error = [], None
+            try:
+                foreign = command(["pacman", "-Qm"], 90)
+                installed = {}
+                for line in foreign.stdout.splitlines():
+                    parts = line.split()
+                    if len(parts) >= 2 and PKG_RE.fullmatch(parts[0]):
+                        installed[parts[0]] = parts[1]
+                for item in aur_info(list(installed)):
+                    local = installed.get(item.get("Name"))
+                    remote = item.get("Version")
+                    if local and remote and shutil.which("vercmp"):
+                        compare = command(["vercmp", local, remote], 10)
+                        if compare.returncode == 0 and compare.stdout.strip() == "-1":
+                            aur_outdated.append((item["Name"], local, remote))
+            except Exception as exc:
+                aur_error = str(exc)
+            GLib.idle_add(self.show_update_results, pac, error, flat, aur_outdated, aur_error)
         threading.Thread(target=worker, daemon=True).start()
 
-    def show_update_results(self, pac, error, flat):
+    def show_update_results(self, pac, error, flat, aur_outdated, aur_error):
         self.clear()
         self.heading("Atualizações disponíveis")
         if error:
@@ -295,6 +324,23 @@ class Store(Gtk.Application):
         for scope, line in flat:
             self.content.pack_start(Gtk.Label(label=f"Flatpak {scope} · {line}", xalign=0),
                                     False, False, 2)
+        self.heading("Pacotes do AUR")
+        if aur_error:
+            self.content.pack_start(Gtk.Label(
+                label="Não foi possível verificar versões do AUR: " + aur_error,
+                xalign=0, wrap=True), False, False, 2)
+        elif not aur_outdated:
+            self.content.pack_start(Gtk.Label(
+                label="Nenhuma atualização do AUR identificada.", xalign=0),
+                False, False, 2)
+        for name, local, remote in aur_outdated:
+            row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+            row.pack_start(Gtk.Label(label=f"{name}: {local} → {remote}", xalign=0),
+                           True, True, 0)
+            button = Gtk.Button(label="Revisar e atualizar")
+            button.connect("clicked", self.launch_aur_update, name)
+            row.pack_end(button, False, False, 0)
+            self.content.pack_start(row, False, False, 2)
         if error is None and pac:
             button = Gtk.Button(label="Atualizar sistema (Pacman)")
             button.set_halign(Gtk.Align.START)
@@ -308,12 +354,20 @@ class Store(Gtk.Application):
                     button.set_halign(Gtk.Align.START)
                     button.connect("clicked", self.update_flatpak, scope)
                     self.content.pack_start(button, False, False, 4)
-        if error is None and not pac and not flat:
+        if error is None and not pac and not flat and not aur_outdated:
             self.content.pack_start(Gtk.Label(label="Nenhuma atualização disponível.", xalign=0),
                                     False, False, 4)
         self.content.show_all()
         self.set_status("Consulta concluída." if error is None else "A consulta de atualizações falhou.")
         return GLib.SOURCE_REMOVE
+
+    def launch_aur_update(self, _button, name):
+        if not self.confirm("Atualização de pacote AUR",
+            "A atualização será compilada como usuário comum. Revise novamente o PKGBUILD "
+            "e os arquivos do pacote antes de confirmar a compilação no terminal."):
+            return
+        subprocess.Popen(["mate-terminal", "--", "bash", "-lc",
+                          "exec /usr/bin/forja-aur-build " + name])
 
     def update_pacman(self, *_):
         if self.confirm("Atualizar o sistema",
