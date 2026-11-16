@@ -53,7 +53,12 @@ jobs:
           bash -n desktop/mate/install-forja-update-indicator.sh
           bash -n desktop/mate/install-forja-store.sh
           bash -n desktop/mate/forja-store/forja-aur-build
+          bash -n desktop/mate/forja-store/PKGBUILD
           bash -n desktop/mate/scripts/validate-packages.sh
           python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
           python -m py_compile desktop/mate/forja-store/forja-store.py
           python -m py_compile desktop/mate/forja-store/forja-pacman-transaction
+          python -c "import xml.etree.ElementTree as ET; ET.parse('desktop/mate/forja-store/br.forja.store.policy')"
+          useradd --create-home builder
+          chown -R builder:builder desktop/mate/forja-store
+          runuser -u builder -- makepkg --printsrcinfo --directory desktop/mate/forja-store >/tmp/forja-store.SRCINFO
