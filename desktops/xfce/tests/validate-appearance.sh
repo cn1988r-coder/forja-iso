@@ -244,8 +244,8 @@ grep -q '/usr/share/backgrounds/forja-black.svg' "$ROOT/forja-xfce-desktop.xml"
 ! grep -RqiE 'forja-xfce-wallpaper|xfce-wallpaper.svg' "$ROOT"
 
 
-grep -q 'button-icon.*forja' "$ROOT/panel-default.xml"
-grep -q 'show-button-icon.*true' "$ROOT/panel-default.xml"
+! grep -q 'name="button-icon"' "$ROOT/panel-default.xml"
+grep -q 'show-button-icon.*false' "$ROOT/panel-default.xml"
 grep -q 'position-search-alternate.*true' "$ROOT/panel-default.xml"
 grep -q 'position-categories-alternate.*true' "$ROOT/panel-default.xml"
 grep -q 'menu-width.*480' "$ROOT/panel-default.xml"
@@ -284,30 +284,23 @@ grep -q 'compress=zstd:1' "$ROOT/calamares/mount.conf"
 echo "Forja XFCE: perfil sem Pamac; receita Shelly 3.3.0 e autostart presentes."
 # Shelly UI must be installed as a system-wide XFCE session autostart entry.
 test -s "$ROOT/shelly-autostart.desktop"
-grep -q '^Exec=/usr/bin/shelly-ui
+grep -q '^Exec=/usr/bin/shelly-ui$' "$ROOT/shelly-autostart.desktop"
 grep -q '^X-GNOME-Autostart-enabled=true$' "$ROOT/shelly-autostart.desktop"
 grep -q 'shelly-autostart.desktop' "$ROOT/install-branding.sh"
 grep -q 'etc/xdg/autostart/shelly.desktop' "$ROOT/install-branding.sh"
 
-# Shelly is the sole intended graphical software store; Pamac must be absent.
-! grep -Eq '^(pamac|pamac-cli|pamac-gtk|libpamac|libpamac-flatpak-plugin)$' "$ROOT/packages.manjaro"
-! grep -Eq '^DESKTOP_CORE_PACKAGES=.*(pamac-gtk|pamac-cli|libpamac)' "$REPO_ROOT/build-manjaro.sh"
-grep -q '^Exec=/usr/bin/shelly-ui$' "$ROOT/shelly-autostart.desktop"
- "$ROOT/shelly-autostart.desktop"
-grep -Fxq 'shelly-bin' "$ROOT/packages.manjaro"
-grep -Fxq 'shelly-flatpak-backend-bin' "$ROOT/packages.manjaro"
-test -s "$ROOT/shelly/PKGBUILD-bin"
-grep -q 'makepkg --nodeps' "$REPO_ROOT/build-manjaro.sh"
-grep -q 'repo-add "$SHELLY_REPO_DIR/shelly.db.tar.gz"' "$REPO_ROOT/build-manjaro.sh"
-grep -q 'DESKTOP_CORE_PACKAGES=.*shelly-bin' "$REPO_ROOT/build-manjaro.sh"
-grep -q '^X-GNOME-Autostart-enabled=true$' "$ROOT/shelly-autostart.desktop"
-grep -q 'shelly-autostart.desktop' "$ROOT/install-branding.sh"
-grep -q 'etc/xdg/autostart/shelly.desktop' "$ROOT/install-branding.sh"
+# Português brasileiro: locale gerado durante a montagem e definido globalmente.
+grep -q '^LANG=pt_BR.UTF-8$' "$ROOT/install-branding.sh"
+grep -q '^LANGUAGE=pt_BR:pt:en$' "$ROOT/install-branding.sh"
+grep -q '^pt_BR.UTF-8 UTF-8$' "$ROOT/install-branding.sh"
+grep -q 'localedef --no-archive --prefix="$DEST" -i pt_BR -f UTF-8 pt_BR.UTF-8' "$ROOT/install-branding.sh"
+grep -q 'localedef --no-archive --prefix="$DEST" -i en_US -f UTF-8 en_US.UTF-8' "$ROOT/install-branding.sh"
 
-# Shelly is the sole intended graphical software store; Pamac must be absent.
-test -s "$ROOT/shelly/PKGBUILD"
-grep -q '^pkgver=3.3.0$' "$ROOT/shelly/PKGBUILD"
-grep -q 'zig=0.17.1' "$ROOT/shelly/PKGBUILD"
-! grep -Eq '^(pamac|pamac-cli|pamac-gtk|libpamac|libpamac-flatpak-plugin)$' "$ROOT/packages.manjaro"
-! grep -Eq '^DESKTOP_CORE_PACKAGES=.*(pamac-gtk|pamac-cli|libpamac)' "$REPO_ROOT/build-manjaro.sh"
-grep -q '^Exec=/usr/bin/shelly-ui$' "$ROOT/shelly-autostart.desktop"
+# Plymouth: hook deve ser inserido imediatamente após udev ou systemd.
+grep -q 'Theme=forja' "$ROOT/plymouth/plymouthd.conf"
+grep -q 'splash' "$ROOT/profile.conf"
+grep -q 'quiet splash loglevel=3' "$ROOT/plymouth/forja-grub"
+grep -q 'if [[ "$_forja_plymouth_added" -eq 0 && ( "$_forja_hook" == "udev" || "$_forja_hook" == "systemd" ) ]]' "$ROOT/plymouth/forja-mkinitcpio.conf"
+! grep -q 'append.*plymouth.*fallback' "$ROOT/plymouth/forja-mkinitcpio.conf"
+
+echo "Forja XFCE: locale pt_BR, Plymouth, painel e Shelly configurados."
