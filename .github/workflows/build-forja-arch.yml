@@ -50,6 +50,63 @@ jobs:
           python -m py_compile desktop/mate/forja-monitor/forja-monitor.py
           python -m py_compile desktop/mate/forja-monitor/record-install-time.py
           python -m py_compile desktop/mate/forja-store/forja-store.py
+          test -s desktop/mate/forja-store/forja-store.svg
+          grep -q '^Terminal=false          python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
+          test -s bases/archlinux/airootfs/usr/share/backgrounds/forja/forja-mate-wallpaper.svg
+          test -s bases/archlinux/airootfs/etc/dconf/db/local.d/00-forja-mate
+          test -s bases/archlinux/airootfs/etc/pacman.d/hooks/90-forja-dconf.hook
+
+      - name: Build bootable ISO with pinned upstream Archiso profile
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash bases/archlinux/validate-profile.sh
+          bash bases/archlinux/build-profile.sh "$RUNNER_TEMP/forja-work" "$GITHUB_WORKSPACE/out"
+          find out -maxdepth 1 -type f -name '*.iso' -print -quit | grep -q .
+          sha256sum out/*.iso > out/SHA256SUMS
+
+      - name: Upload ISO and checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: forja-os-arch-mate-iso-${{ github.run_number }}
+          path: |
+            out/*.iso
+            out/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 14
+ desktop/mate/forja-store/forja-store.desktop
+          grep -q '^gtk3          python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
+          test -s bases/archlinux/airootfs/usr/share/backgrounds/forja/forja-mate-wallpaper.svg
+          test -s bases/archlinux/airootfs/etc/dconf/db/local.d/00-forja-mate
+          test -s bases/archlinux/airootfs/etc/pacman.d/hooks/90-forja-dconf.hook
+
+      - name: Build bootable ISO with pinned upstream Archiso profile
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash bases/archlinux/validate-profile.sh
+          bash bases/archlinux/build-profile.sh "$RUNNER_TEMP/forja-work" "$GITHUB_WORKSPACE/out"
+          find out -maxdepth 1 -type f -name '*.iso' -print -quit | grep -q .
+          sha256sum out/*.iso > out/SHA256SUMS
+
+      - name: Upload ISO and checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: forja-os-arch-mate-iso-${{ github.run_number }}
+          path: |
+            out/*.iso
+            out/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 14
+ desktop/mate/packages.x86_64
+          store_test_root="$(mktemp -d)"
+          mkdir -p "$store_test_root/root"
+          bash desktop/mate/install-forja-store.sh "$store_test_root/root"
+          test -x "$store_test_root/root/usr/bin/forja-store"
+          test -x "$store_test_root/root/usr/lib/forja/forja-store"
+          test -s "$store_test_root/root/usr/share/applications/forja-store.desktop"
+          test -s "$store_test_root/root/usr/share/icons/hicolor/scalable/apps/forja-store.svg"
+          rm -rf "$store_test_root"
           python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
           test -s bases/archlinux/airootfs/usr/share/backgrounds/forja/forja-mate-wallpaper.svg
           test -s bases/archlinux/airootfs/etc/dconf/db/local.d/00-forja-mate
