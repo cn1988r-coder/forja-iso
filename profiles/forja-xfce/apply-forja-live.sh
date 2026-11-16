@@ -8,8 +8,8 @@ ASSETS="/root/forja-desktop-assets"
 [[ -d "$ASSETS" ]] || { echo "Assets Forja não encontrados em $ASSETS." >&2; exit 1; }
 
 # Ensure the XFCE session starts through LightDM in the live environment.
-systemctl enable lightdm.service
-systemctl set-default graphical.target
+systemctl --root=/ enable lightdm.service
+ln -sfn /usr/lib/systemd/system/graphical.target /etc/systemd/system/default.target
 
 # Install the Forja defaults into the live image and future user skeleton.
 DESTDIR="" "$ASSETS/install-branding.sh"
