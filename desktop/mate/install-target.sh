@@ -11,7 +11,8 @@ fi
 MATE="$SOURCE_ROOT/desktop/mate"
 
 # Ensure the boot splash renderer is present in the installed system.
-pacman -S --needed --noconfirm plymouth librsvg
+pacman -Q plymouth >/dev/null 2>&1 || { echo "Plymouth não foi instalado pelo perfil de pacotes da Forja." >&2; exit 1; }
+pacman -Q librsvg >/dev/null 2>&1 || { echo "librsvg não foi instalado pelo perfil de pacotes da Forja." >&2; exit 1; }
 bash "$MATE/plymouth/install-theme.sh" / "$MATE/forja-monitor/forja-flame.svg"
 install -d /etc/skel/.config /usr/local/lib/forja /usr/share/icons/default
 cp -an "$MATE/skel/.config/." /etc/skel/.config/
