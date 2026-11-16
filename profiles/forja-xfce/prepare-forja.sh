@@ -32,7 +32,29 @@ fi
 
 mkdir -p "$TARGET"
 cp -a "$PROFILE_DIR/." "$TARGET/"
-cp -a "$REPO_ROOT/desktops/xfce" "$TARGET/forja-desktop-assets"
+# Copy only assets consumed by the EndeavourOS XFCE profile. Legacy package
+# lists, old builders, tests and unused Plymouth files must not enter the image.
+ASSET_SOURCE="$REPO_ROOT/desktops/xfce"
+ASSET_TARGET="$TARGET/forja-desktop-assets"
+mkdir -p "$ASSET_TARGET/shelly"
+for asset in \
+  apply-forja-layout.sh \
+  forja-black-wallpaper.svg \
+  forja-flame.svg \
+  forja-gtk.css \
+  forja-whiskermenu.rc \
+  forja-xfce-appearance.desktop \
+  forja-xfce-desktop.xml \
+  install-branding.sh \
+  panel-default.xml \
+  shelly-autostart.desktop; do
+  [[ -s "$ASSET_SOURCE/$asset" ]] || {
+    echo "Erro: asset XFCE obrigatório ausente: $asset" >&2
+    exit 1
+  }
+  cp -a "$ASSET_SOURCE/$asset" "$ASSET_TARGET/"
+done
+cp -a "$ASSET_SOURCE/shelly/." "$ASSET_TARGET/shelly/"
 
 # Copy the upstream profile framework files, then replace only the profile-specific
 # package list and profile definition with Forja's versions.
@@ -83,7 +105,7 @@ for old, new in ((old_wallpaper, new_wallpaper), (old_livewall, new_livewall), (
 path.write_text(text, encoding="utf-8")
 PY
 cp -a "$PROFILE_DIR/apply-forja-live.sh" "$TARGET/airootfs/root/apply-forja-live.sh"
-cp -a "$REPO_ROOT/desktops/xfce" "$TARGET/airootfs/root/forja-desktop-assets"
+cp -a "$ASSET_TARGET" "$TARGET/airootfs/root/forja-desktop-assets"
 cp -a "$UPSTREAM_ROOT/prepare.sh" "$TARGET/upstream-prepare.sh"
 cp -a "$UPSTREAM_ROOT/profiledef.sh" "$TARGET/upstream-profiledef.sh"
 

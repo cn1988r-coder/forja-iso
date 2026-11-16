@@ -29,7 +29,7 @@ if grep -Eiq 'manjaro|mhwd|pacman-mirrors' "$PACKAGES"; then
 fi
 duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$PACKAGES" | awk '{print $1}' | sort | uniq -d)"
 [[ -z "$duplicates" ]] || { echo "FALHA: pacotes duplicados: $duplicates" >&2; exit 1; }
-for package in timeshift inotify-tools gtk3 python-gobject base xorg-server arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils syslinux dracut eos-dracut linux xfce4 lightdm firefox papirus-icon-theme reflector curl; do
+for package in timeshift inotify-tools gtk3 python-gobject base xorg-server arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils syslinux dracut eos-dracut linux-lts xfce4 lightdm firefox papirus-icon-theme reflector curl; do
   grep -Fxq "$package" "$PACKAGES" || { echo "FALHA: pacote obrigatório ausente: $package" >&2; exit 1; }
 done
 if grep -Fxq "kernel-install-for-dracut" "$PACKAGES"; then
@@ -40,7 +40,7 @@ if grep -R -Eiq '(^|[[:space:]])snapper([[:space:]]|$)|snapper-' "$PACKAGES" "$S
 fi
 grep -Fq 'value="dockbarx"' "$PANEL"
 grep -Fq 'value="p=11;x=0;y=0"' "$PANEL" || { echo "FALHA: painel XFCE não está centralizado na borda inferior." >&2; exit 1; }
-if grep -Eiq 'docklike|xfce4-docklike-plugin' "$PANEL" "$PACKAGES" "$ROOT/desktops/xfce/packages.arch"; then
+if grep -Eiq 'docklike|xfce4-docklike-plugin' "$PANEL" "$PACKAGES"; then
   echo "FALHA: referência ativa a Docklike encontrada." >&2; exit 1
 fi
 grep -Fq "depends=('dockbarx' 'xfce4-panel')" "$DOCKBARX_PLUGIN"

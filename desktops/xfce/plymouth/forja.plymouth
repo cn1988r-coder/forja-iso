@@ -1,8 +1,0 @@
-[Plymouth Theme]
-Name=Forja OS
-Description=Inicialização gráfica da Forja OS
-ModuleName=script
-
-[script]
-ImageDir=/usr/share/plymouth/themes/forja
-ScriptFile=/usr/share/plymouth/themes/forja/forja.script
