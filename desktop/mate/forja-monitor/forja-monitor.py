@@ -324,11 +324,14 @@ class ForjaMonitor(Gtk.Application):
         install_date = "Data de instalação indisponível"
         try:
             import json
+            from datetime import datetime
             data = json.loads(read_text(INSTALL_INFO, "{}"))
             stamp = data.get("installed_at")
             if stamp:
-                from datetime import datetime
-                install_date = datetime.fromisoformat(stamp.replace("Z", "+00:00")).astimezone().strftime("%d/%m/%Y")
+                installed = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+                if installed.tzinfo is None:
+                    raise ValueError("Timestamp sem fuso horário")
+                install_date = installed.astimezone().strftime("%d/%m/%Y às %H:%M:%S")
         except (ValueError, TypeError, OSError):
             pass
         rows = [
