@@ -10,7 +10,8 @@ O perfil é mantido separado do checkout upstream. A preparação cria uma pasta
 - XFCE com LightDM e personalização própria da Forja OS.
 - Painel inferior da Forja com Whisker Menu e **DockbarX** como barra de tarefas.
 - DockbarX e o plugin xfce4-dockbarx-plugin são construídos como pacotes locais a partir de PKGBUILDs revisados e versionados no repositório. Não são tratados como pacotes oficiais Arch/EndeavourOS e não dependem de repositórios Manjaro ou BigCommunity.
-- Preparação de pacotes locais necessários ao ambiente Live.
+- Preparação e validação de cinco pacotes locais necessários ao ambiente Live.
+- Pré-build automatizado dos pacotes locais, sem executar o mkarchiso.
 - Cliente Forja Updates integrado ao XFCE por manifesto estável independente; instala somente arquivos próprios em destinos permitidos, após validar SHA-256, criar backup e pedir confirmação. O canal permanece sem atualizações enquanto não houver artefatos publicados.
 
 ## Preparação do perfil
@@ -25,16 +26,20 @@ A preparação compila os pacotes locais, instala temporariamente DockbarX no am
 
 **A preparação não compila uma ISO.** O checkout original do EndeavourOS é preservado. A construção da ISO é uma etapa separada e exige autorização explícita.
 
-## Pendências técnicas antes da primeira compilação
+## Limitação importante do instalador
+
+O Calamares ainda não está incluído. O pacote oficial do EndeavourOS foi descontinuado do repositório e a receita atual depende da configuração e da marca EndeavourOS. O perfil já contém apenas configurações iniciais de montagem e particionamento, não um instalador Forja completo. Portanto, a primeira ISO poderá ser usada para testar o ambiente Live XFCE, mas ainda não instalará o sistema pelo Calamares.
+
+## Pendências técnicas antes de uma ISO de instalação completa
 
 - Auditar e adaptar os pressupostos KDE do ambiente Live upstream para a sessão XFCE.
 - Confirmar a disponibilidade e a compatibilidade de todos os pacotes nos repositórios Arch e EndeavourOS.
-- Integrar uma versão compatível do Calamares, incluindo branding, configuração de instalação e suporte Btrfs.
+- Integrar uma versão compatível do Calamares, incluindo branding Forja, módulos de instalação, configuração de bootloader e suporte Btrfs.
 - Validar o fluxo de inicialização e a geração do initramfs com dracut.
 - Definir e testar a integração do Plymouth com dracut e com os modos de boot suportados.
 - Revisar serviços, usuário Live, rede, áudio, Bluetooth, Flatpak e permissões.
 - Implementar e validar a chave pública e o keyring de assinatura dos pacotes próprios da Forja.
-- Criar uma validação de dependências em ambiente limpo, além das verificações estáticas atuais.
+- Executar e aprovar o pré-build em ambiente Arch limpo, que compila DockbarX, o plugin XFCE, Forja Recovery e os dois pacotes Shelly sem criar ISO.
 - Testar a inicialização Live e a instalação completa em máquina virtual antes de qualquer divulgação.
 
 ## Separação das edições
