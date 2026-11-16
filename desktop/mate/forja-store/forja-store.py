@@ -528,7 +528,7 @@ class Store(Gtk.Application):
         if generation != self.generation:
             return GLib.SOURCE_REMOVE
         self.clear()
-        self.heading("Resultados da busca", "Aplicativos encontrados nos repositórios oficiais, AUR e Flathub.")
+        self.heading("Resultados da busca", "Aplicativos encontrados nos repositórios oficiais, AUR, Flathub e Forja.")
         if error:
             self.content.pack_start(Gtk.Label(label="Aviso de pesquisa: " + error, xalign=0, wrap=True), False, False, 4)
         for title, items in (("Arch Linux", official), ("AUR comunitário", aur), ("Flathub", flatpak_items), ("Repositório Forja", forja_items)):
