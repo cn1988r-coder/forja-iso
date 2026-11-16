@@ -2,15 +2,24 @@
 
 ## Decisão atual
 
-O ambiente gráfico adotado para a próxima edição da Forja OS será **MATE**, sobre a fundação EndeavourOS/Arch.
+A edição gráfica da Forja OS adotará **MATE upstream**, instalado a partir dos pacotes oficiais Arch/EndeavourOS, com personalização própria da Forja OS. Não será uma sessão MATE copiada de outra distribuição.
 
-O MATE será usado como estrutura funcional, mas não deverá manter a aparência padrão da distribuição. A Forja OS terá identidade visual própria, construída em uma camada separada da fundação do sistema.
+## Camada MATE
+
+A definição inicial está em [desktop/mate/](desktop/mate/):
+
+- `packages.x86_64`: seleção explícita de pacotes MATE e integrações necessárias, sem instalar indiscriminadamente `mate-extra`.
+- `gtk-3.0-settings.ini`: tema escuro e ícones Papirus.
+- `apply-defaults.sh`: aplica apenas chaves GSettings existentes, ignorando com aviso esquemas ou chaves opcionais ausentes.
+- `scripts/validate-packages.sh`: consulta os nomes de pacote nos repositórios configurados usando pacman.
+
+A lista preserva as bibliotecas runtime exigidas pelos componentes escolhidos. Não se deve remover uma biblioteca necessária apenas para reduzir o tamanho da lista: dependências transitivas são resolvidas pelo pacman. A limpeza deve remover aplicativos opcionais sem função, não dependências obrigatórias.
 
 ## Direção visual da edição MATE
 
-- Tema escuro consistente em toda a sessão.
+- Tema escuro consistente, inicialmente Materia-dark.
 - Paleta principal em preto, grafite e cinza-chumbo, com azul discreto apenas como destaque.
-- Ícones Papirus em variante cinza/neutra.
+- Ícones Papirus-Dark como ponto de partida.
 - Interface organizada, limpa e compacta, com blocos retangulares.
 - Prioridade para desempenho e abertura rápida.
 - Sem animações, transparências, blur, sombras pesadas, transições ou compositor desnecessário.
@@ -33,16 +42,17 @@ A adoção futura do BigDesktop dependerá da disponibilidade do código-fonte n
 ## Separação de camadas
 
 - `bases/archlinux/` e `bases/endeavouros/` continuam sendo fundações técnicas independentes, sem ambiente gráfico.
-- A edição MATE será desenvolvida acima da fundação EndeavourOS/Arch, em camada própria.
+- `desktop/mate/` é a camada de desktop da edição MATE, separada das fundações.
 - O registro do BigDesktop é documentação de acompanhamento, não parte de nenhuma das duas fundações.
 
-## Critérios antes de considerar a edição pronta
+## Pendências de validação
 
-1. Instalação reproduzível do MATE e dos componentes escolhidos.
-2. Sessão, login, rede, áudio, Bluetooth, notificações e calendário funcionando.
-3. Tema e ícones aplicados de forma consistente.
-4. Ausência de serviços e efeitos desnecessários.
-5. Testes de uso real, consumo de RAM/CPU e compatibilidade com hardware Intel HD 5500.
-6. Build e validação de ISO antes de declarar a edição funcional.
+1. Executar o validador de pacotes em um ambiente Arch/EndeavourOS atualizado.
+2. Resolver qualquer pacote ausente ou renomeado, sem remover dependências necessárias.
+3. Fazer instalação limpa do conjunto e verificar resolução de dependências.
+4. Validar sessão, LightDM, rede, áudio, Bluetooth, notificações, calendário e gerenciamento de energia.
+5. Confirmar visualmente todos os componentes com o tema aplicado.
+6. Medir RAM/CPU e testar compatibilidade com Intel HD 5500.
+7. Fazer build e testes de ISO antes de declarar a edição pronta.
 
-Nenhum desses critérios deve ser considerado concluído apenas pela existência deste documento.
+**Estado atual:** camada inicial documentada e arquivos adicionados ao repositório. O validador ainda não foi executado em Arch/EndeavourOS, nenhuma instalação ou build foi realizada e a edição não está validada como funcional.
