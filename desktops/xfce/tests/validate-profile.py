@@ -48,8 +48,7 @@ required_packages = {
     "thunar", "xfce4-whiskermenu-plugin", "dockbarx", "xfce4-dockbarx-plugin",
     "lightdm", "lightdm-gtk-greeter", "firefox", "shelly-bin",
     "shelly-flatpak-backend-bin", "flatpak", "papirus-icon-theme",
-    "papirus-folders", "bibata-cursor-theme", "adw-gtk-theme",
-    "materia-gtk-theme", "networkmanager", "network-manager-applet",
+    "papirus-folders", "bibata-cursor-theme", "adwaita-gtk-theme", "networkmanager", "network-manager-applet",
     "bluez", "bluez-utils", "blueman"
 }
 missing = sorted(required_packages - packages)
@@ -92,6 +91,13 @@ required_files = [
 ]
 for relative in required_files:
     require((ROOT / relative).is_file(), f"Arquivo de integração ausente: {relative}")
+
+appearance = (ROOT / "apply-forja-layout.sh").read_text(encoding="utf-8")
+require('GTK_THEME="Adwaita-dark"' in appearance, "O tema GTK padrão deve ser Adwaita-dark.")
+require('set_prop xfwm4 /general/theme string "Adwaita-dark"' in appearance,
+        "O tema das decorações das janelas deve ser Adwaita-dark.")
+require('gsettings set org.gnome.desktop.interface gtk-theme "$GTK_THEME"' in appearance,
+        "O tema Adwaita Dark não é aplicado via GSettings.")
 
 desktop = (ROOT / "shelly-autostart.desktop").read_text(encoding="utf-8")
 require("Exec=/usr/bin/shelly-ui" in desktop, "Autostart da Shelly não aponta para shelly-ui.")
