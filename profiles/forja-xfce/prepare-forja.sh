@@ -42,6 +42,44 @@ cp -a "$UPSTREAM_ROOT/syslinux" "$TARGET/"
 cp -a "$UPSTREAM_ROOT/pacman.conf" "$TARGET/"
 cp -a "$UPSTREAM_ROOT/mkarchiso" "$TARGET/"
 cp -a "$UPSTREAM_ROOT/run_before_squashfs.sh" "$TARGET/run_before_squashfs-upstream.sh"
+
+# The upstream hook assumes EndeavourOS wallpaper/Calamares assets that the
+# KDE-oriented prepare.sh normally downloads or installs. Forja supplies its
+# own desktop branding, so make those optional upstream assets non-fatal while
+# preserving the live-user, keyring, mirror and offline-package stages.
+python3 - "$TARGET/run_before_squashfs-upstream.sh" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+old_wallpaper = 'mv "/root/endeavouros-wallpaper.png" "/etc/calamares/files/endeavouros-wallpaper.png"'
+new_wallpaper = '''if [[ -f "/root/endeavouros-wallpaper.png" ]]; then
+  install -d "/etc/calamares/files"
+  mv "/root/endeavouros-wallpaper.png" "/etc/calamares/files/endeavouros-wallpaper.png"
+else
+  echo "Forja: wallpaper padrão do EndeavourOS ausente; usando identidade visual Forja."
+fi'''
+old_livewall = 'mv "/root/livewall.png" "/usr/share/endeavouros/backgrounds/endeavouros-wallpaper.png"'
+new_livewall = '''if [[ -f "/root/livewall.png" ]]; then
+  install -d "/usr/share/endeavouros/backgrounds"
+  mv "/root/livewall.png" "/usr/share/endeavouros/backgrounds/endeavouros-wallpaper.png"
+fi'''
+old_packages = 'pacman -U --noconfirm --needed -- "/root/packages/"*".pkg.tar.zst"'
+new_packages = '''shopt -s nullglob
+local_packages=(/root/packages/*.pkg.tar.zst)
+if (( ${#local_packages[@]} )); then
+  pacman -U --noconfirm --needed -- "${local_packages[@]}"
+else
+  echo "Forja: nenhum pacote local adicional foi preparado."
+fi
+shopt -u nullglob'''
+for old, new in ((old_wallpaper, new_wallpaper), (old_livewall, new_livewall), (old_packages, new_packages)):
+    if old not in text:
+        raise SystemExit(f"Trecho upstream esperado não encontrado: {old}")
+    text = text.replace(old, new, 1)
+path.write_text(text, encoding="utf-8")
+PY
 cp -a "$PROFILE_DIR/apply-forja-live.sh" "$TARGET/airootfs/root/apply-forja-live.sh"
 cp -a "$REPO_ROOT/desktops/xfce" "$TARGET/airootfs/root/forja-desktop-assets"
 cp -a "$UPSTREAM_ROOT/prepare.sh" "$TARGET/upstream-prepare.sh"
