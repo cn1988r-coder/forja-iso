@@ -110,6 +110,7 @@ grep -q 'repo-add "$SHELLY_REPO_DIR/forja-local.db.tar.gz"' "$REPO_ROOT/build-ma
 grep -q 'flatpak remote-add --system --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'flatpak install --system --noninteractive --assumeyes flathub org.ferdium.Ferdium' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'flatpak info --system org.ferdium.Ferdium' "$REPO_ROOT/build-manjaro.sh"
+grep -q 'var/lib/flatpak/exports/share/applications/org.ferdium.Ferdium.desktop' "$REPO_ROOT/build-manjaro.sh"
 grep -q '\[forja-local\]' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'FORJA-LOCAL-REPO/,+3d' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'forja-mkinitcpio.conf' "$REPO_ROOT/build-manjaro.sh"
