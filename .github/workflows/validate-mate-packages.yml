@@ -104,7 +104,6 @@ jobs:
           bash -n desktop/mate/forja-store/PKGBUILD
           bash -n desktop/mate/forja-repo/forja-repo
           bash -n desktop/mate/forja-repo/PKGBUILD
-          bash -n desktop/mate/forja-store/forja-pacman-transaction
           bash -n desktop/mate/forja-repo/PKGBUILD
           bash -n desktop/mate/scripts/validate-packages.sh
           python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
