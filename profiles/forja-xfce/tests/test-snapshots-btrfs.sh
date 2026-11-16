@@ -2,14 +2,17 @@
 set -Eeuo pipefail
 
 [[ "$EUID" -eq 0 ]] || { echo "Execute como root." >&2; exit 1; }
-for cmd in truncate mkfs.btrfs mount umount btrfs snapper; do
+for cmd in truncate mkfs.btrfs mount umount btrfs snapper systemctl; do
   command -v "$cmd" >/dev/null 2>&1 || { echo "Comando ausente: $cmd" >&2; exit 1; }
 done
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SETUP="$SCRIPT_DIR/../forja-packages/forja-snapshots/forja-snapshot-setup"
 WORK="$(mktemp -d /tmp/forja-btrfs-snapshot-test.XXXXXX)"
 IMAGE="$WORK/btrfs.img"
 TOP="$WORK/top"
 ROOT="$WORK/root"
+GRUB_STUB="$WORK/grub-mkconfig"
 cleanup() {
   umount "$ROOT" 2>/dev/null || true
   umount "$TOP" 2>/dev/null || true
@@ -23,18 +26,43 @@ mount -o loop,subvolid=5 "$IMAGE" "$TOP"
 btrfs subvolume create "$TOP/@"
 mount -o loop,subvol=@ "$IMAGE" "$ROOT"
 
-# Exercise the same Snapper config creation used by Forja's first-boot setup.
-snapper -c root --root "$ROOT" create-config /
+install -d "$ROOT/usr/lib/systemd/system" "$ROOT/boot/grub"
+for unit in snapper-timeline.timer snapper-cleanup.timer grub-btrfsd.service; do
+  source="/usr/lib/systemd/system/$unit"
+  [[ -s "$source" ]] || source="/lib/systemd/system/$unit"
+  [[ -s "$source" ]] || { echo "Unidade não encontrada no build host: $unit" >&2; exit 1; }
+  install -m644 "$source" "$ROOT/usr/lib/systemd/system/$unit"
+done
+
+cat > "$GRUB_STUB" <<'STUB'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+while (($#)); do
+  if [[ "$1" == "-o" ]]; then
+    output="$2"
+    shift 2
+  else
+    shift
+  fi
+done
+mkdir -p "$(dirname "$output")"
+printf '# Forja CI GRUB config stub\n' > "$output"
+STUB
+chmod +x "$GRUB_STUB"
+
+FORJA_SNAPSHOT_ROOT="$ROOT" GRUB_MKCONFIG="$GRUB_STUB" bash "$SETUP" --boot
 test -s "$ROOT/etc/snapper/configs/root"
 test -d "$ROOT/.snapshots"
+test -s "$ROOT/boot/grub/grub.cfg"
+test -L "$ROOT/etc/systemd/system/timers.target.wants/snapper-timeline.timer"
+test -L "$ROOT/etc/systemd/system/timers.target.wants/snapper-cleanup.timer"
+test -L "$ROOT/etc/systemd/system/multi-user.target.wants/grub-btrfsd.service"
 
-# Create a real numbered snapshot and verify that Snapper can enumerate it.
 printf 'before snapshot\n' > "$ROOT/forja-snapshot-test.txt"
 snapper -c root --root "$ROOT" create --description "Forja CI snapshot"
 list="$(snapper -c root --root "$ROOT" list --columns number,description)"
 grep -q "Forja CI snapshot" <<<"$list"
 
-# Exercise the pre/post pair used by the Pacman transaction hooks.
 pre="$(snapper -c root --root "$ROOT" create --type pre --print-number --description "Forja CI pre")"
 [[ "$pre" =~ ^[0-9]+$ ]]
 printf 'after pre snapshot\n' >> "$ROOT/forja-snapshot-test.txt"
@@ -43,6 +71,5 @@ list="$(snapper -c root --root "$ROOT" list --columns number,type,description)"
 grep -q "Forja CI pre" <<<"$list"
 grep -q "Forja CI post" <<<"$list"
 
-# Confirm that Btrfs really stored snapshot subvolumes, not merely Snapper metadata.
 btrfs subvolume list "$TOP" | grep -q '/.snapshots/'
-echo "PASS: Btrfs subvolume, Snapper config, numbered snapshot and pre/post pair validated."
+echo "PASS: setup Forja, timers, GRUB hook, snapshot real e par pre/post validados em Btrfs."
