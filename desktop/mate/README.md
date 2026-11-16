@@ -98,8 +98,8 @@ A aplicação própria da Forja OS fica em `forja-store/`. Ela não depende do P
 - A loja ainda não oferece instalação/remoção de Flatpaks nem gerenciamento de remotes Flathub.
 - A compilação AUR exige que o usuário tenha `base-devel`, `git`, `less` e `sudo`; o PKGBUILD nunca é executado como root. O conteúdo do AUR não é auditado automaticamente nem considerado confiável.
 - Pacotes instalados manualmente que não existem mais no AUR não podem ter atualização comparada pela API.
-- A interface, Polkit, transações reais, AUR e Flatpak ainda precisam de testes em uma VM EndeavourOS/Arch. A checagem estática do GitHub Actions não prova que as operações funcionam no desktop.
-- O instalador `install-forja-store.sh` instala os arquivos em um root filesystem preparado, mas ainda precisa ser chamado pelo futuro pipeline de build/instalação da ISO. Não há, nesta branch, um pipeline completo que garanta a presença da loja no sistema instalado.
+- A interface, Polkit, transações reais, AUR e Flatpak ainda precisam de testes em uma VM Arch Linux. A checagem estática do GitHub Actions não prova que as operações funcionam no desktop.
+- O perfil Archiso em desenvolvimento chama `install-forja-store.sh` durante a preparação do root filesystem live. Não há, nesta branch, um pipeline completo que garanta a presença da loja no sistema instalado.
 
 O pacote Arch pode ser preparado a partir de `forja-store/PKGBUILD` com `makepkg` em ambiente Arch Linux. Para a imagem, o processo de build deverá instalar o pacote ou executar o instalador contra o root filesystem de destino. Não instalar Pamac ou Shelly como dependência da Forja Store.
 
@@ -110,6 +110,6 @@ O `forja-monitor/` contém um monitor próprio, leve e integrado ao MATE. A inte
 
 A implementação evita dependências pesadas: não usa o código do GNOME System Monitor, GNOME Shell, libadwaita, GTK4, Electron, WebKit ou psutil. Lê métricas simples diretamente de `/proc` e `/sys`, sem daemon residente. Só coleta dados enquanto a janela está aberta, a cada dois segundos, e mantém até 48 amostras por gráfico. A página de informações faz consultas pontuais quando aberta.
 
-O instalador `install-forja-monitor.sh` copia o programa para um root filesystem preparado. O pacote não acrescenta dependências à seleção MATE além de GTK3/PyGObject que já estão disponíveis na camada.
+O script `bases/archlinux/build-profile.sh` chama `install-forja-monitor.sh` durante a preparação do root filesystem live. O pacote não acrescenta dependências à seleção MATE além de GTK3/PyGObject que já estão disponíveis na camada.
 
-**Limites:** código inicial registrado, ainda precisa passar por validação no GitHub Actions e teste real em sessão MATE. O instalador ainda não está conectado a um pipeline de ISO. A data de instalação só aparece quando o instalador real gravar `/var/lib/forja-os/install-info.json`; até lá, o aplicativo informa que ela está indisponível.
+**Limites:** código inicial registrado, ainda precisa passar por validação no GitHub Actions e teste real em sessão MATE. O instalador agora é chamado pelo perfil Archiso em desenvolvimento. A data de instalação só aparece quando o instalador real gravar `/var/lib/forja-os/install-info.json`; até lá, o aplicativo informa que ela está indisponível.
