@@ -37,6 +37,8 @@ cp -a "$REPO_ROOT/desktops/xfce" "$TARGET/forja-desktop-assets"
 # Copy the upstream profile framework files, then replace only the profile-specific
 # package list and profile definition with Forja's versions.
 cp -a "$UPSTREAM_ROOT/airootfs" "$TARGET/"
+# Re-apply Forja files after the upstream tree so the edition always wins on path collisions.
+cp -a "$PROFILE_DIR/airootfs/." "$TARGET/airootfs/"
 cp -a "$UPSTREAM_ROOT/efiboot" "$TARGET/"
 cp -a "$UPSTREAM_ROOT/syslinux" "$TARGET/"
 cp -a "$UPSTREAM_ROOT/pacman.conf" "$TARGET/"
@@ -84,6 +86,25 @@ cp -a "$PROFILE_DIR/apply-forja-live.sh" "$TARGET/airootfs/root/apply-forja-live
 cp -a "$REPO_ROOT/desktops/xfce" "$TARGET/airootfs/root/forja-desktop-assets"
 cp -a "$UPSTREAM_ROOT/prepare.sh" "$TARGET/upstream-prepare.sh"
 cp -a "$UPSTREAM_ROOT/profiledef.sh" "$TARGET/upstream-profiledef.sh"
+
+# Verify every upstream asset consumed by the EndeavourOS live-user hook.
+for required_file in \
+  "$TARGET/airootfs/root/liveuser.png" \
+  "$TARGET/airootfs/root/livewall.png" \
+  "$TARGET/airootfs/root/endeavouros-skel-liveuser/PKGBUILD"; do
+  [[ -s "$required_file" ]] || {
+    echo "Erro: asset obrigatório do ambiente Live ausente: $required_file" >&2
+    exit 1
+  }
+done
+[[ -d "$TARGET/airootfs/root/root-theme" ]] || {
+  echo "Erro: tema-base do usuário root ausente no framework EndeavourOS." >&2
+  exit 1
+}
+[[ -s "$TARGET/airootfs/usr/local/bin/forja-update" ]] || {
+  echo "Erro: cliente Forja Updates não foi aplicado ao rootfs." >&2
+  exit 1
+}
 
 chmod +x "$TARGET/prepare-forja.sh" "$TARGET/prepare.sh" "$TARGET/run_before_squashfs.sh" "$TARGET/airootfs/root/apply-forja-live.sh" "$TARGET/airootfs/usr/local/bin/forja-update"
 echo "Perfil Forja XFCE preparado em: $TARGET"
