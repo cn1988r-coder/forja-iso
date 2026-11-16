@@ -39,7 +39,9 @@ gnome-calculator
 # This does not install the XFCE desktop, panel, session, or file manager.
 xfce4-screenshooter
 
-# Forja Store: native Arch/EndeavourOS package management
+# Forja Store: graphical GTK3 app store
+python
+gtk3
 pacman-contrib
 python-gobject
 python-cairo
