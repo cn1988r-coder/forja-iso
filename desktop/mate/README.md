@@ -79,3 +79,26 @@ O módulo `forja-update-indicator/` fornece um indicador GTK3 para a área de no
 O clique no ícone chama `forja-store --updates`. O menu também permite solicitar uma nova verificação. O instalador `install-forja-update-indicator.sh` copia o programa, os ícones e a entrada de autostart para um root filesystem Arch/EndeavourOS já preparado. O pacote `pacman-contrib` foi incluído em `packages.x86_64`.
 
 **Limites atuais e validação:** o indicador foi adicionado à branch `foundation/dual-base`, mas a Forja Store ainda não existe nessa branch. Por isso, a chamada `forja-store --updates` está definida como contrato de integração, não como integração concluída; enquanto a loja não estiver instalada, o indicador informa essa condição em vez de falhar silenciosamente. O instalador ainda precisa ser conectado ao processo de construção da imagem. A compatibilidade visual/funcional de `Gtk.StatusIcon` depende do applet de área de notificação do MATE e precisa ser testada numa sessão MATE real. A validação estática do Python e do shell no GitHub Actions não substitui esse teste, nem um build da ISO.
+
+
+## Forja Store nativa (Arch/EndeavourOS)
+
+A aplicação própria da Forja OS fica em `forja-store/`. Ela não depende do Pamac nem do Shelly.
+
+**Funções implementadas no código inicial:**
+- Pesquisa de pacotes nos repositórios oficiais com `pacman -Ss`.
+- Instalação e remoção de pacotes oficiais por um auxiliar restrito, solicitado via Polkit.
+- Atualização completa do sistema com `pacman -Syu`; a loja não executa atualização parcial.
+- Consulta de atualizações oficiais com `checkupdates`.
+- Pesquisa no AUR pela API oficial e compilação no terminal como usuário comum, com revisão manual do PKGBUILD antes de confirmar.
+- Detecção de atualizações para pacotes estrangeiros encontrados em `pacman -Qm`, comparando versões com `vercmp`; cada atualização AUR exige revisão e confirmação próprias.
+- Consulta e atualização de Flatpaks já instalados, separando escopo de sistema e usuário.
+
+**Limitações conhecidas desta primeira implementação:**
+- A loja ainda não oferece instalação/remoção de Flatpaks nem gerenciamento de remotes Flathub.
+- A compilação AUR exige que o usuário tenha `base-devel`, `git`, `less` e `sudo`; o PKGBUILD nunca é executado como root. O conteúdo do AUR não é auditado automaticamente nem considerado confiável.
+- Pacotes instalados manualmente que não existem mais no AUR não podem ter atualização comparada pela API.
+- A interface, Polkit, transações reais, AUR e Flatpak ainda precisam de testes em uma VM EndeavourOS/Arch. A checagem estática do GitHub Actions não prova que as operações funcionam no desktop.
+- O instalador `install-forja-store.sh` instala os arquivos em um root filesystem preparado, mas ainda precisa ser chamado pelo futuro pipeline de build/instalação da ISO. Não há, nesta branch, um pipeline completo que garanta a presença da loja no sistema instalado.
+
+O pacote Arch pode ser preparado a partir de `forja-store/PKGBUILD` com `makepkg` em ambiente Arch/EndeavourOS. Para a imagem, o processo de build deverá instalar o pacote ou executar o instalador contra o root filesystem de destino. Não instalar Pamac ou Shelly como dependência da Forja Store.
