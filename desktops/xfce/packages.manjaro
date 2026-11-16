@@ -58,7 +58,9 @@ appstream
 archlinux-appstream-data
 polkit
 polkit-gnome
-# Shelly será a única loja gráfica; Flatpak é mantido como backend opcional.
+# Shelly é a única loja gráfica do sistema; backend Flatpak oficial da Shelly.
+shelly-bin
+shelly-flatpak-backend-bin
 flatpak
 base-devel
 git
