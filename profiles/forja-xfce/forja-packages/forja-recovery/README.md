@@ -6,12 +6,12 @@ Primeiro componente funcional da ferramenta oficial de recuperação do Forja OS
 
 - Diagnóstico somente de leitura: sistema de arquivos raiz, Snapper, integridade da base local do Pacman, GRUB, kernel, initramfs e ferramentas Btrfs.
 - Listagem de snapshots da configuração Snapper chamada `root`.
-- Criação manual de snapshot da raiz, somente quando a raiz é Btrfs e Snapper já está configurado.
+- Criação manual de snapshot da raiz, somente quando a raiz é Btrfs e Snapper já está configurado.\n- Preparação de rollback via Snapper com número do snapshot e confirmação explícita no terminal.
 - Interface GTK3 e comando de terminal.
 
 ## Limites explícitos
 
-Esta versão **não executa rollback**, não altera o GRUB, não reinstala pacotes automaticamente e não repara initramfs. Essas ações dependem de validar o layout Btrfs produzido pelo Calamares, a configuração de boot e o comportamento de recuperação em VM. A interface não deve oferecer ações destrutivas antes desses testes.
+O rollback está disponível apenas no CLI e exige `--confirm`, além do número de um snapshot existente. O Snapper prepara o retorno ao estado selecionado e o sistema precisa ser reiniciado. A interface GTK ainda não oferece esse botão. O fluxo completo de rollback, boot e retorno ao sistema deve ser testado em VM antes de distribuir a ISO. Esta ferramenta não reinstala pacotes automaticamente nem repara initramfs.
 
 A criação de snapshots não inclui automaticamente /home. A política real de subvolumes depende da configuração de instalação; não se deve presumir que /home esteja separado.
 
@@ -20,4 +20,4 @@ A criação de snapshots não inclui automaticamente /home. A política real de 
 - `forja-recovery`: abre a interface.
 - `forja-recovery-cli diagnose`: diagnóstico JSON.
 - `forja-recovery-cli snapshots`: lista snapshots.
-- `sudo forja-recovery-cli create-snapshot --description "Antes de atualizar"`: cria snapshot manual.
+- `sudo forja-recovery-cli create-snapshot --description "Antes de atualizar"`: cria snapshot manual.\n- `sudo forja-recovery-cli rollback --snapshot 12 --confirm`: prepara rollback para o snapshot 12; confira o número antes de confirmar.
