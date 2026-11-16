@@ -70,6 +70,8 @@ jobs:
           bash -n bases/archlinux/profiledef.sh
           bash -n bases/archlinux/build-profile.sh
           bash -n bases/archlinux/airootfs/root/customize_airootfs.sh
+          bash -n desktop/mate/install-target.sh
+          python -m json.tool bases/archlinux/airootfs/etc/archinstall/forja-mate.json >/dev/null
           bash -n bases/archlinux/validate-profile.sh
           bash bases/archlinux/validate-profile.sh
           pacman-conf --config bases/archlinux/pacman.conf --repo-list
