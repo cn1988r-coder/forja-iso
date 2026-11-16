@@ -20,6 +20,7 @@ bash -n "$PROFILE/tests/test-snapshots-btrfs.sh"
 python3 -m py_compile "$RECOVERY/forja-recovery-cli" "$RECOVERY/forja-recovery-gui" "$PROFILE/airootfs/usr/local/bin/forja-update"
 rm -rf "$RECOVERY/__pycache__" "$PROFILE/airootfs/usr/local/bin/__pycache__"
 bash -n "$ROOT/desktops/xfce/profile.conf" "$ROOT/desktops/xfce/install-branding.sh" "$ROOT/desktops/xfce/apply-forja-layout.sh"
+grep -Fq 'localedef -i pt_BR -f UTF-8 pt_BR.UTF-8' "$ROOT/desktops/xfce/install-branding.sh" || { echo "FALHA: locale pt_BR não é gerado no chroot Live." >&2; exit 1; }
 
 if grep -Eiq 'manjaro|mhwd|pacman-mirrors' "$PACKAGES"; then
   echo "FALHA: pacote exclusivo do Manjaro encontrado." >&2; exit 1
