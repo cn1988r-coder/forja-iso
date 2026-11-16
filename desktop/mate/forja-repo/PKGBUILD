@@ -1,0 +1,16 @@
+pkgname=forja-repo-client
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Consulta isolada do repositório binário de aplicativos Forja OS"
+arch=('any')
+url="https://github.com/cn1988r-coder/forja-updates"
+license=('GPL-3.0-or-later')
+depends=('pacman' 'pacman-contrib' 'sudo')
+source=('forja-repo' 'pacman.conf')
+sha256sums=('SKIP' 'SKIP')
+
+package() {
+  install -Dm755 "$srcdir/forja-repo" "$pkgdir/usr/bin/forja-repo"
+  install -Dm644 "$srcdir/pacman.conf" "$pkgdir/etc/forja/pacman.conf"
+  install -d "$pkgdir/var/lib/forja-repo" "$pkgdir/var/cache/forja-repo/pkg"
+}
