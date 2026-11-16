@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 """Narrow privileged transaction helper for Forja Store on Arch Linux."""
-import os
 import re
 import subprocess
 import sys
@@ -9,7 +8,7 @@ PACKAGE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9@._+:-]*$")
 FLATPAK_ID = re.compile(r"^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)+$")
 ACTIONS = {
     "install", "remove", "upgrade", "flatpak-install-system",
-    "flatpak-remove-system", "flatpak-update-system", "install-file",
+    "flatpak-remove-system", "flatpak-update-system",
 }
 
 
@@ -37,16 +36,6 @@ def main(argv=None):
             print("A atualização não aceita argumentos.", file=sys.stderr)
             return 2
         return call(["/usr/bin/pacman", "-Syu"])
-
-    if action == "install-file":
-        if len(args) != 1:
-            print("Informe um pacote local.", file=sys.stderr)
-            return 2
-        path = os.path.realpath(args[0])
-        if not path.startswith("/tmp/forja-store-") or not path.endswith(".pkg.tar.zst") or not os.path.isfile(path):
-            print("Arquivo de pacote local inválido.", file=sys.stderr)
-            return 2
-        return call(["/usr/bin/pacman", "-U", "--", path])
 
     if action.startswith("flatpak-"):
         if action == "flatpak-update-system":
