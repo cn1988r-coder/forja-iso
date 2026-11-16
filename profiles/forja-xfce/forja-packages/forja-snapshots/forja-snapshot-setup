@@ -8,7 +8,7 @@ die() { log "ERRO: $*" >&2; exit 1; }
 
 [[ "$EUID" -eq 0 ]] || die "execute como root."
 command -v findmnt >/dev/null || die "findmnt não encontrado."
-command -v snapper >/dev/null || die "snapper não encontrado."
+command -v timeshift >/dev/null || die "Timeshift não encontrado."
 command -v btrfs >/dev/null || die "btrfs-progs não encontrado."
 [[ -d "$ROOT" ]] || die "raiz de destino inexistente: $ROOT"
 
@@ -17,66 +17,60 @@ if [[ "$root_fs" != "btrfs" ]]; then
   log "Raiz não é Btrfs (tipo: ${root_fs:-desconhecido}); ignorando ambiente Live."
   exit 0
 fi
-root_source="$(findmnt -n -o SOURCE "$ROOT")"
-log "Raiz Btrfs detectada: $root_source"
 
-SNAPPER=(snapper -c root)
 if [[ "$ROOT" != "/" ]]; then
-  SNAPPER+=(--root "$ROOT")
+  die "A configuração do Timeshift deve ser executada no primeiro boot do sistema instalado, não em um rootfs montado externamente."
 fi
 
-if ! "${SNAPPER[@]}" get-config >/dev/null 2>&1; then
-  [[ ! -e "$ROOT/.snapshots" || -d "$ROOT/.snapshots" ]] || die "$ROOT/.snapshots existe e não é um diretório."
-  if mountpoint -q "$ROOT/.snapshots"; then
-    die "$ROOT/.snapshots já é um ponto de montagem. Verifique o layout antes de continuar."
-  fi
-  rmdir "$ROOT/.snapshots" 2>/dev/null || true
-  "${SNAPPER[@]}" create-config /
-fi
+root_subvol="$(findmnt -n -o FSROOT /)"
+[[ "$root_subvol" == "/@" ]] || die "Layout incompatível com Timeshift: raiz atual em '$root_subvol'; esperado /@."
+root_uuid="$(findmnt -n -o UUID -T /)"
+[[ -n "$root_uuid" ]] || die "Não foi possível identificar o UUID do volume Btrfs."
 
-config="$ROOT/etc/snapper/configs/root"
-[[ -s "$config" ]] || die "configuração Snapper root não foi criada."
-set_config() {
-  local key="$1" value="$2"
-  if grep -qE "^#?[[:space:]]*${key}=" "$config"; then
-    sed -i -E "s|^#?[[:space:]]*${key}=.*|${key}=${value}|" "$config"
-  else
-    printf '%s=%s\n' "$key" "$value" >> "$config"
-  fi
+fstab_root="$(awk '!/^[[:space:]]*#/ && $2=="/" {print $4; exit}' /etc/fstab)"
+[[ -n "$fstab_root" ]] || die "Entrada da raiz ausente em /etc/fstab."
+if grep -Eq '(^|,)subvolid=' <<<"$fstab_root"; then
+  die "Remova subvolid= da entrada / em /etc/fstab; Timeshift precisa que o subvolume @ possa ser trocado."
+fi
+grep -Eq '(^|,)subvol=@(,|$)' <<<"$fstab_root" || die "A entrada / em /etc/fstab deve montar subvol=@."
+
+install -d -m755 /etc/timeshift
+cat > /etc/timeshift/timeshift.json <<EOF
+{
+  "backup_device_uuid": "$root_uuid",
+  "parent_device_uuid": "",
+  "do_first_run": "false",
+  "btrfs_mode": "true",
+  "include_btrfs_home": "false",
+  "stop_cron_emails": "true",
+  "schedule_monthly": "false",
+  "schedule_weekly": "true",
+  "schedule_daily": "true",
+  "schedule_hourly": "false",
+  "schedule_boot": "true",
+  "count_monthly": "2",
+  "count_weekly": "3",
+  "count_daily": "5",
+  "count_hourly": "6",
+  "count_boot": "3",
+  "snapshot_size": "0",
+  "snapshot_count": "0",
+  "exclude": [],
+  "exclude-apps": []
 }
-set_config SUBVOLUME '"/"'
-set_config FSTYPE '"btrfs"'
-set_config TIMELINE_CREATE '"yes"'
-set_config TIMELINE_CLEANUP '"yes"'
-set_config NUMBER_CLEANUP '"yes"'
-set_config NUMBER_LIMIT '"10"'
-set_config NUMBER_LIMIT_IMPORTANT '"5"'
-set_config TIMELINE_LIMIT_HOURLY '"5"'
-set_config TIMELINE_LIMIT_DAILY '"7"'
-set_config TIMELINE_LIMIT_WEEKLY '"4"'
-set_config TIMELINE_LIMIT_MONTHLY '"3"'
-set_config TIMELINE_LIMIT_YEARLY '"0"'
+EOF
+chmod 600 /etc/timeshift/timeshift.json
 
-if [[ "$ROOT" == "/" ]]; then
-  systemctl enable --now snapper-timeline.timer snapper-cleanup.timer
-else
-  systemctl --root="$ROOT" enable snapper-timeline.timer snapper-cleanup.timer
+timeshift --list >/dev/null 2>&1 || die "Timeshift não reconheceu a configuração Btrfs; não foi criado snapshot."
+if ! timeshift --list 2>/dev/null | grep -q 'timeshift-btrfs'; then
+  timeshift --create --comments "Forja OS: snapshot inicial" --tags B --scripted || die "Falha ao criar o snapshot inicial."
 fi
 
-if ! "${SNAPPER[@]}" list --columns number | awk '$1 ~ /^[0-9]+$/ && $1 != 0 { found=1 } END { exit !found }'; then
-  "${SNAPPER[@]}" create --description "Forja: instalação inicial"
-fi
-
-grub_service="$ROOT/usr/lib/systemd/system/grub-btrfsd.service"
-[[ -s "$grub_service" ]] || grub_service="$ROOT/lib/systemd/system/grub-btrfsd.service"
-[[ -s "$grub_service" ]] || die "grub-btrfsd.service não foi encontrado no sistema de destino."
-if [[ "$ROOT" == "/" ]]; then
-  systemctl enable --now grub-btrfsd.service
-else
-  systemctl --root="$ROOT" enable grub-btrfsd.service
-fi
-
-[[ -x "$GRUB_MKCONFIG" && -d "$ROOT/boot/grub" ]] || die "GRUB não está instalado ou /boot/grub não existe."
-"$GRUB_MKCONFIG" -o "$ROOT/boot/grub/grub.cfg"
-"${SNAPPER[@]}" list >/dev/null
-log "Snapper configurado, timers ativados e menu GRUB atualizado."
+[[ -x "$GRUB_MKCONFIG" && -d /boot/grub ]] || die "GRUB não está instalado ou /boot/grub não existe."
+systemctl enable --now forja-timeshift-check.timer
+grub_service="/usr/lib/systemd/system/grub-btrfsd.service"
+[[ -s "$grub_service" ]] || die "grub-btrfsd.service não foi encontrado."
+systemctl enable --now grub-btrfsd.service
+"$GRUB_MKCONFIG" -o /boot/grub/grub.cfg
+timeshift --list >/dev/null || die "A listagem final do Timeshift falhou."
+log "Timeshift Btrfs configurado; timer, GRUB-Btrfs e snapshot inicial verificados."
