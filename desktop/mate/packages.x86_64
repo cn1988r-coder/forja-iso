@@ -63,6 +63,9 @@ udisks2
 xdg-utils
 xdg-user-dirs
 
+# System information display
+fastfetch
+
 # Forja OS visual identity
 materia-gtk-theme
 papirus-icon-theme
