@@ -1,9 +1,0 @@
-#!/bin/sh
-# Compatibilidade com as formas usadas pelo yay: sudo pacman ... e sudo -S pacman ...
-if [ "${1:-}" = "-S" ] && { [ "${2:-}" = "pacman" ] || [ "${2:-}" = "/usr/bin/pacman" ]; }; then
-  shift
-fi
-if [ "${1:-}" = "pacman" ] || [ "${1:-}" = "/usr/bin/pacman" ]; then
-  shift
-fi
-exec /usr/bin/pkexec /usr/bin/pacman "$@"
