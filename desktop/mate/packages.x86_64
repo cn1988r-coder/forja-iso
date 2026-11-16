@@ -1,0 +1,50 @@
+# MATE core (Arch Linux Extra)
+caja
+marco
+mate-backgrounds
+mate-control-center
+mate-desktop
+mate-icon-theme
+mate-menus
+mate-notification-daemon
+mate-panel
+mate-polkit
+mate-session-manager
+mate-settings-daemon
+mate-themes
+
+# Essential MATE applications
+atril
+engrampa
+eom
+mate-calc
+mate-media
+mate-power-manager
+mate-screensaver
+mate-terminal
+mate-utils
+mozo
+pluma
+
+# Login and session
+lightdm
+lightdm-gtk-greeter
+
+# Network, Bluetooth, audio and removable media
+networkmanager
+network-manager-applet
+blueman
+pipewire
+pipewire-alsa
+pipewire-pulse
+wireplumber
+pavucontrol
+upower
+gvfs
+gvfs-mtp
+udisks2
+
+# Forja OS visual identity
+materia-gtk-theme
+papirus-icon-theme
+ttf-dejavu
