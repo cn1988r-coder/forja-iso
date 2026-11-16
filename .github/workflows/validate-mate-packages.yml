@@ -31,7 +31,7 @@ jobs:
       - name: Update Arch package databases and install validation tools
         run: |
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm python base-devel shadow gtk3 python-gobject python-cairo xorg-server-xvfb xorg-xauth dbus
+          pacman -S --needed --noconfirm python base-devel shadow gtk3 python-gobject python-cairo polkit xorg-server-xvfb xorg-xauth dbus
 
       - name: Validate package names and dependency resolution
         shell: bash
@@ -144,11 +144,16 @@ jobs:
           assert 'action.lookup("program") === "/usr/bin/forja-pacman-transaction"' in rule
           PY
           useradd --create-home builder
-          chown -R builder:builder desktop/mate/forja-store
-          runuser -u builder -- bash -lc 'cd desktop/mate/forja-store && makepkg --nodeps --noconfirm'
+          chown -R builder:builder desktop/mate/forja-repo desktop/mate/forja-store
+          runuser -u builder -- bash -lc 'cd desktop/mate/forja-repo && makepkg --noconfirm'
+          repo_package="$(find desktop/mate/forja-repo -maxdepth 1 -name 'forja-repo-client-*.pkg.tar.zst' -print -quit)"
+          test -n "$repo_package"
+          pacman -U --noconfirm "$repo_package"
+          pacman -Qk forja-repo-client
+          runuser -u builder -- bash -lc 'cd desktop/mate/forja-store && makepkg --noconfirm'
           package="$(find desktop/mate/forja-store -maxdepth 1 -name 'forja-store-*.pkg.tar.zst' -print -quit)"
           test -n "$package"
-          pacman -U --noconfirm --nodeps "$package"
+          pacman -U --noconfirm "$package"
           pacman -Qk forja-store
           test -s /usr/share/polkit-1/rules.d/49-forja-store.rules
           grep -q 'forja-pacman-transaction' /usr/share/polkit-1/rules.d/49-forja-store.rules
