@@ -16,10 +16,32 @@ if [[ -d "$SKEL_DIR" ]]; then
   }
   (
     cd "$SKEL_DIR"
-    makepkg -f
+    makepkg --syncdeps --noconfirm -f
   )
 else
   echo "Erro: pacote endeavouros-skel-liveuser não encontrado no perfil." >&2
+  exit 1
+fi
+
+fi
+
+# Build Shelly from the maintained local PKGBUILD and stage both packages for
+# EndeavourOS' local-package installation hook.
+SHELLY_DIR="$PROFILE_DIR/../../desktops/xfce/shelly"
+if [[ -f "$SHELLY_DIR/PKGBUILD-bin" ]]; then
+  command -v makepkg >/dev/null 2>&1 || {
+    echo "Erro: makepkg não encontrado para preparar Shelly." >&2
+    exit 1
+  }
+  install -d "$PROFILE_DIR/airootfs/root/packages"
+  (
+    cd "$SHELLY_DIR"
+    makepkg --syncdeps --noconfirm -f --config /etc/makepkg.conf
+  )
+  find "$SHELLY_DIR" -maxdepth 1 -type f -name 'shelly-*.pkg.tar.zst' -exec cp -f {} "$PROFILE_DIR/airootfs/root/packages/" \;
+  find "$SHELLY_DIR" -maxdepth 1 -type f -name 'shelly-flatpak-backend-*.pkg.tar.zst' -exec cp -f {} "$PROFILE_DIR/airootfs/root/packages/" \;
+else
+  echo "Erro: PKGBUILD do Shelly não encontrado em $SHELLY_DIR." >&2
   exit 1
 fi
 
