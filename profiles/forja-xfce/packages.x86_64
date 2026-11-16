@@ -24,6 +24,7 @@ git
 networkmanager
 reflector
 curl
+jq
 wireless-regdb
 wpa_supplicant
 bluez
