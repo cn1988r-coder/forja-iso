@@ -206,7 +206,6 @@ FASTFETCH
 done
 
 # Papirus é fornecido pelo pacote oficial papirus-icon-theme.
-# Pamac permanece integralmente na versão oficial fornecida pelo Manjaro.
 
 # Materialize every package-list symlink before editing. Never rewrite
 # shared Manjaro profile files through a symlink from the Forja profile.
@@ -254,7 +253,7 @@ while IFS= read -r -d '' package_list; do
     fi
     case "$package" in
       # Drivers opcionais incompatíveis/dispensáveis na ISO desktop: módulo RT3562STA legado e módulos de convidado VirtualBox.
-      linux[0-9]*-rt3562sta|linux[0-9]*-virtualbox-guest-modules|manjaro-hello|manjaro-settings-manager|manjaro-settings-manager-notifier|xfce4-goodies|xfce4-artwork|xfce4-wallpapers|manjaro-wallpapers|manjaro-wallpapers-18.0|manjaro-wallpapers-by-lunix-xfce|wallpapers-2018|wallpapers-juhraya|illyria-wallpaper|manjaro-xfce-settings|manjaro-xfce-minimal-settings|gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|gtk3-print-backends|splix|pyqt5-common|xdg-su|manjaro-documentation-en|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*)
+      linux[0-9]*-rt3562sta|linux[0-9]*-virtualbox-guest-modules|manjaro-hello|manjaro-settings-manager|manjaro-settings-manager-notifier|xfce4-goodies|xfce4-artwork|xfce4-wallpapers|manjaro-wallpapers|manjaro-wallpapers-18.0|manjaro-wallpapers-by-lunix-xfce|wallpapers-2018|wallpapers-juhraya|illyria-wallpaper|manjaro-xfce-settings|manjaro-xfce-minimal-settings|gtk-theme-breath|galculator-gtk2|qpdfview|gconf|gksu|appimagelauncher|hexchat|midori|pidgin|sylpheed|p7zip|ms-office-online|pulseaudio-ctl|steam-manjaro|pamac|pamac-cli|pamac-gtk|libpamac|libpamac-flatpak-plugin|gtk3-print-backends|splix|pyqt5-common|xdg-su|manjaro-documentation-en|mlocate|gcc-libs-multilib|gcc-multilib|pkg-config|lib32-flex|lib32-mesa-demos|nvidia*|lib32-nvidia*|catalyst*|lib32-catalyst*)
         echo "Forja: pacote legado/NVIDIA removido: $package" >&2
         printf '# Forja: pacote legado removido: %s\n' "$package" >> "$filtered_list"
         continue
@@ -274,7 +273,7 @@ done < <(find "$TARGET" -type f -name 'Packages-*' -print0 | sort -zu)
 # Componentes fundamentais da instalação e do ambiente selecionado não podem
 # ser removidos como opcionais: a ausência deles deve parar a ISO com clareza.
 BASE_CORE_PACKAGES=(systemd grub efibootmgr mkinitcpio calamares btrfs-progs linux-firmware manjaro-release manjaro-keyring manjaro-system pacman-mirrors mhwd mhwd-db networkmanager)
-DESKTOP_CORE_PACKAGES=(plymouth libnotify pamac-gtk libpamac-flatpak-plugin xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin dockbarx xfce4-dockbarx-plugin xfce4-panel-profiles xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders bibata-cursor-theme gtk3 gsettings-desktop-schemas python python-gobject pacman-contrib polkit polkit-gnome flatpak yay git base-devel appstream archlinux-appstream-data)
+DESKTOP_CORE_PACKAGES=(plymouth libnotify  xfce4-session xfce4-panel xfce4-settings xfce4-appfinder xfdesktop xfwm4 xfconf exo garcon thunar thunar-volman tumbler xfce4-terminal xfce4-taskmanager xfce4-power-manager xfce4-notifyd xfce4-whiskermenu-plugin dockbarx xfce4-dockbarx-plugin xfce4-panel-profiles xfce4-pulseaudio-plugin xfce4-clipman-plugin lightdm lightdm-gtk-greeter firefox networkmanager network-manager-applet bluez bluez-utils blueman adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders bibata-cursor-theme gtk3 gsettings-desktop-schemas python python-gobject pacman-contrib polkit polkit-gnome flatpak yay git base-devel appstream archlinux-appstream-data)
 MISSING_CORE_PACKAGES=()
 for package in "${BASE_CORE_PACKAGES[@]}" "${DESKTOP_CORE_PACKAGES[@]}"; do
   if ! pacman_info "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" >/dev/null 2>&1; then
