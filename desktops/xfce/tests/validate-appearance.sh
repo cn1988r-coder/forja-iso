@@ -10,8 +10,8 @@ done
 
 for package in \
   adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders \
-  bibata-cursor-theme noto-fonts ttf-jetbrains-mono gtk3 libnotify libpamac-flatpak-plugin \
-  gsettings-desktop-schemas appstream archlinux-appstream-data flatpak pamac-cli pamac-gtk libpamac libpamac-flatpak-plugin base-devel git \
+  bibata-cursor-theme noto-fonts ttf-jetbrains-mono gtk3 libnotify \
+  gsettings-desktop-schemas appstream archlinux-appstream-data flatpak base-devel git \
   xfce4-panel dockbarx xfce4-dockbarx-plugin xfce4-whiskermenu-plugin \
   xfce4-pulseaudio-plugin xfce4-power-manager xfce4-notifyd plymouth \
   xfce4-clipman-plugin networkmanager network-manager-applet bluez bluez-utils blueman; do
@@ -177,7 +177,6 @@ grep -q '@define-color forja_text #ffffff' "$ROOT/forja-gtk.css"
 
 # Update badge is intentionally white with a gray check; pending updates use a gray X.
 
-grep -q 'libpamac-flatpak-plugin' "$REPO_ROOT/build-manjaro.sh"
 
 # Btrfs: pacote presente no sistema Live/instalado, padrão do Calamares e compressão zstd.
 grep -q 'btrfs-progs' "$REPO_ROOT/build-manjaro.sh"
@@ -186,12 +185,8 @@ grep -q 'TARGET/rootfs/etc/calamares/modules/mount.conf' "$REPO_ROOT/build-manja
 grep -q '^defaultFileSystemType: "btrfs"$' "$ROOT/calamares/partition.conf"
 grep -q 'availableFileSystemTypes: \["btrfs", "ext4", "f2fs"\]' "$ROOT/calamares/partition.conf"
 grep -q 'compress=zstd:1' "$ROOT/calamares/mount.conf"
-grep -q "^pamac-gtk$" "$ROOT/packages.manjaro"
-grep -q "^pamac-cli$" "$ROOT/packages.manjaro"
-grep -q "^libpamac$" "$ROOT/packages.manjaro"
-grep -q "^libpamac-flatpak-plugin$" "$ROOT/packages.manjaro"
 ! grep -RqiE "Forja Store|forja-pamac-pacman|FORJA_SKIP_STORE_INSTALL" "$REPO_ROOT" --exclude-dir=.git
-echo "Forja XFCE: aparência, painel DockbarX e Pamac oficial validados."
+echo "Forja XFCE: aparência e painel DockbarX; Shelly package recipe present."
 grep -q '>community-extra dockbarx' "$ROOT/packages.manjaro"
 grep -q '>community-extra xfce4-dockbarx-plugin' "$ROOT/packages.manjaro"
 grep -q '\[community-extra\]' "$REPO_ROOT/build-manjaro.sh"
@@ -293,3 +288,11 @@ grep -q '^Exec=/usr/bin/shelly-ui$' "$ROOT/shelly-autostart.desktop"
 grep -q '^X-GNOME-Autostart-enabled=true$' "$ROOT/shelly-autostart.desktop"
 grep -q 'shelly-autostart.desktop' "$ROOT/install-branding.sh"
 grep -q 'etc/xdg/autostart/shelly.desktop' "$ROOT/install-branding.sh"
+
+# Shelly is the sole intended graphical software store; Pamac must be absent.
+test -s "$ROOT/shelly/PKGBUILD"
+grep -q '^pkgver=3.3.0$' "$ROOT/shelly/PKGBUILD"
+grep -q 'zig=0.17.1' "$ROOT/shelly/PKGBUILD"
+! grep -Eq '^(pamac|pamac-cli|pamac-gtk|libpamac|libpamac-flatpak-plugin)$' "$ROOT/packages.manjaro"
+! grep -Eq 'pamac-gtk|pamac-cli|libpamac' "$REPO_ROOT/build-manjaro.sh"
+grep -q '^Exec=/usr/bin/shelly-ui$' "$ROOT/shelly-autostart.desktop"
