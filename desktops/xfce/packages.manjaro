@@ -16,8 +16,10 @@ xfce4-taskmanager
 xfce4-power-manager
 xfce4-notifyd
 xfce4-whiskermenu-plugin
-# Ferramentas de painel usadas pelo Big Community XFCE.
-xfce4-docklike-plugin
+# DockbarX e integração com o painel XFCE, fornecidos pelo BigCommunity.
+community-keyring
+>community-extra dockbarx
+>community-extra xfce4-dockbarx-plugin
 xfce4-panel-profiles
 xfce4-pulseaudio-plugin
 xfce4-clipman-plugin
