@@ -25,6 +25,12 @@ Usar o MATE upstream dos repositórios oficiais do Arch/EndeavourOS como base fu
 - **Captura de tela:** usar somente `xfce4-screenshooter`, como ferramenta isolada. O pacote `mate-utils` foi deixado de fora porque inclui o `mate-screenshot` nativo. Não instalar o desktop XFCE, painel, sessão, gerenciador de arquivos ou demais aplicativos XFCE.
 - **Wallpaper padrão:** fundo cinza uniforme com a chama original da Forja OS em preto sólido, sem texto ou cores adicionais.
 
+## IPTVnator integrado
+
+O IPTVnator é um aplicativo padrão planejado para a sessão MATE. O instalador `install-iptvnator.sh` baixa o pacote pacman oficial x86_64 da release 0.25.0, confere o SHA-256 publicado e instala o pacote dentro do root filesystem informado usando `arch-chroot`. O pacote oficial fornece a entrada de aplicativo para o menu MATE. O script deve ser chamado pelo processo de construção da imagem depois que o root filesystem estiver preparado, por exemplo: `sudo desktop/mate/install-iptvnator.sh /caminho/para/airootfs`. A versão e o hash ficam fixados intencionalmente para builds reproduzíveis e devem ser atualizados juntos após verificar uma nova release oficial.
+
+**Limite atual:** o instalador está no repositório, mas ainda não foi conectado a um fluxo de build de ISO, pois o projeto ainda não tem um pipeline de construção completo para essa base. Portanto, não declarar o IPTVnator instalado na ISO até essa integração e um build de teste serem concluídos. A dock própria também ainda não existe; a integração de ícone nela fica pendente da implementação da dock.
+
 ## Arquivos
 
 - `packages.x86_64`: seleção explícita de pacotes, sem instalar indiscriminadamente o grupo `mate-extra`. Inclui Fastfetch, `gnome-calculator` como aplicativo independente, somente `xfce4-screenshooter` como exceção pontual e `dconf` para os padrões de desktop do sistema.
