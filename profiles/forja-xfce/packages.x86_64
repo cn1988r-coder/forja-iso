@@ -1,7 +1,4 @@
-# Forja OS XFCE package set.
-# Based on Arch repositories plus the EndeavourOS repository configured upstream.
-
-# Base system and EndeavourOS live environment
+# Forja OS XFCE package set. DockbarX is built locally by prepare.sh.
 base
 base-devel
 arch-install-scripts
@@ -46,12 +43,9 @@ lvm2
 efibootmgr
 grub
 os-prober
-
-# XFCE desktop
 xfce4
 xfce4-goodies
 xfce4-whiskermenu-plugin
-xfce4-docklike-plugin
 xfce4-genmon-plugin
 xfce4-clipman-plugin
 xfce4-pulseaudio-plugin
@@ -66,8 +60,6 @@ flatpak
 thunar-archive-plugin
 file-roller
 blueman
-
-# Forja visual identity
 adw-gtk-theme
 papirus-icon-theme
 bibata-cursor-theme
@@ -75,8 +67,6 @@ noto-fonts
 noto-fonts-emoji
 noto-fonts-cjk
 ttf-jetbrains-mono
-
-# Desktop portals and utilities
 xdg-user-dirs
 xdg-utils
 xdg-desktop-portal
@@ -88,6 +78,4 @@ gvfs-mtp
 cups
 system-config-printer
 
-# Installer is intentionally not listed here:
-# EndeavourOS currently documents its Calamares package as a separately built
-# local package. Add the verified EndeavourOS Calamares build to airootfs/root/packages.
+# Calamares is supplied separately as a verified local package.
