@@ -1,8 +1,9 @@
 [Unit]
-Description=Agendamento diario de snapshots Timeshift do Forja OS
+Description=Verifica snapshots Timeshift no boot e diariamente
 
 [Timer]
-OnCalendar=daily
+OnBootSec=5min
+OnUnitActiveSec=24h
 Persistent=true
 RandomizedDelaySec=20m
 
