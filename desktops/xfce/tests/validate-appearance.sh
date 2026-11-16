@@ -293,8 +293,8 @@ grep -q 'etc/xdg/autostart/shelly.desktop' "$ROOT/install-branding.sh"
 grep -q '^LANG=pt_BR.UTF-8$' "$ROOT/install-branding.sh"
 grep -q '^LANGUAGE=pt_BR:pt:en$' "$ROOT/install-branding.sh"
 grep -q '^pt_BR.UTF-8 UTF-8$' "$ROOT/install-branding.sh"
-grep -q 'localedef --no-archive --prefix="$DEST" -i pt_BR -f UTF-8 pt_BR.UTF-8' "$ROOT/install-branding.sh"
-grep -q 'localedef --no-archive --prefix="$DEST" -i en_US -f UTF-8 en_US.UTF-8' "$ROOT/install-branding.sh"
+grep -q 'localedef --prefix="$DEST" -i pt_BR -f UTF-8 pt_BR.UTF-8' "$ROOT/install-branding.sh"
+grep -q 'localedef --prefix="$DEST" -i en_US -f UTF-8 en_US.UTF-8' "$ROOT/install-branding.sh"
 
 # Plymouth: hook deve ser inserido imediatamente após udev ou systemd.
 grep -q 'Theme=forja' "$ROOT/plymouth/plymouthd.conf"
