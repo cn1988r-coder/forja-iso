@@ -38,7 +38,7 @@ jobs:
 
       - name: Validate XFCE appearance and integration
         shell: bash
-        run: bash -x desktops/xfce/tests/validate-appearance.sh
+        run: bash desktops/xfce/tests/validate-appearance.sh
 
       - name: Validate XML files
         shell: bash
