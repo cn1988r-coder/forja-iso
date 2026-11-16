@@ -1,0 +1,86 @@
+# Forja OS XFCE package set.
+# Based on Arch repositories plus the EndeavourOS repository configured upstream.
+
+# Base system and EndeavourOS live environment
+base
+base-devel
+archlinux-keyring
+endeavouros-keyring
+endeavouros-mirrorlist
+endeavouros-branding
+eos-dracut
+dracut
+kernel-install-for-dracut
+linux
+linux-firmware
+linux-headers
+sudo
+nano
+git
+networkmanager
+wireless-regdb
+wpa_supplicant
+bluez
+bluez-utils
+pipewire
+pipewire-alsa
+pipewire-pulse
+wireplumber
+alsa-utils
+pavucontrol
+udisks2
+udisks2-btrfs
+btrfs-progs
+dosfstools
+e2fsprogs
+xfsprogs
+ntfs-3g
+lvm2
+efibootmgr
+grub
+os-prober
+
+# XFCE desktop
+xfce4
+xfce4-goodies
+xfce4-whiskermenu-plugin
+xfce4-docklike-plugin
+xfce4-genmon-plugin
+xfce4-clipman-plugin
+xfce4-pulseaudio-plugin
+xfce4-power-manager
+xfce4-notifyd
+lightdm
+lightdm-gtk-greeter
+lightdm-gtk-greeter-settings
+network-manager-applet
+firefox
+thunar-archive-plugin
+file-roller
+pavucontrol
+blueman
+
+# Forja visual identity
+adw-gtk-theme
+papirus-icon-theme
+bibata-cursor-theme
+noto-fonts
+noto-fonts-emoji
+noto-fonts-cjk
+ttf-jetbrains-mono
+
+# Desktop portals and utilities
+xdg-user-dirs
+xdg-utils
+xdg-desktop-portal
+xdg-desktop-portal-gtk
+polkit
+polkit-gnome
+gvfs
+gvfs-mtp
+cups
+system-config-printer
+
+# Installer is intentionally not listed here:
+# EndeavourOS currently documents its Calamares package as a separately built
+# local package. Add the verified EndeavourOS Calamares build to airootfs/root/packages.
