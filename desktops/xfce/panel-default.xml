@@ -70,7 +70,7 @@
     <property name="plugin-9" type="string" value="notification-plugin"/>
     <property name="plugin-10" type="string" value="clock">
       <property name="mode" type="uint" value="2"/>
-      <property name="digital-format" type="string" value="%A, %d de %B de %Y  ·  %H:%M"/>
+      <property name="digital-format" type="string" value="%H:%M&#10;%d/%m/%Y"/>
       <property name="tooltip-format" type="string" value="%A, %d de %B de %Y"/>
     </property>
   </property>
