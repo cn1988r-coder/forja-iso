@@ -2,6 +2,11 @@ name: Forja OS X XFCE
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/build-forja-iso.yml'
 
 permissions:
   contents: read
@@ -28,11 +33,17 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          test "$(git branch --show-current)" = "feature/forja-xfce-endeavouros-port"
+          expected_branch="feature/forja-xfce-endeavouros-port"
+          expected_sha="$(git ls-remote --exit-code origin "refs/heads/$expected_branch" | awk 'NR == 1 {print $1}')"
+          actual_sha="$(git rev-parse HEAD)"
+          test -n "$expected_sha"
+          test "$actual_sha" = "$expected_sha"
           test -f profiles/forja-xfce/prepare-forja.sh
           test -f profiles/forja-xfce/prepare.sh
+          test -f profiles/forja-xfce/packages.x86_64
+          test -f profiles/forja-xfce/profiledef.sh
           ! grep -q 'forja-pamac-pacman' .github/workflows/build-forja-iso.yml
-          echo "Fonte confirmada: Forja OS XFCE sobre EndeavourOS"
+          echo "Fonte confirmada: $expected_branch ($actual_sha), Forja OS XFCE sobre EndeavourOS"
 
       - name: Configure Arch and EndeavourOS repositories
         shell: bash
