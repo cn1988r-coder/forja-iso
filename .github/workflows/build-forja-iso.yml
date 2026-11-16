@@ -1,203 +1,22 @@
-name: Build Forja OS XFCE ISO
+name: Forja OS XFCE ISO
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
-    inputs:
-      kernel:
-        description: "Kernel da ISO"
-        required: true
-        type: choice
-        options:
-          - lts
-          - latest
-        default: lts
 
 permissions:
   contents: read
 
-concurrency:
-  group: forja-iso-build-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
-  build-iso:
-    name: Build Forja XFCE ISO
-    runs-on: ubuntu-24.04
-    timeout-minutes: 360
+  branch-guard:
+    name: Confirmar branch da compilação
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout Forja OS XFCE source
-        uses: actions/checkout@v4
-        with:
-          ref: feature/forja-xfce-store-integration
-
-      - name: Run Forja source and package-manager checks
+      - name: Exigir a branch XFCE EndeavourOS
         shell: bash
         run: |
           set -Eeuo pipefail
-          for script in \
-            build-cloud.sh build-manjaro.sh \
-            desktops/xfce/apply-forja-layout.sh \
-            desktops/xfce/install-branding.sh \
-            desktops/xfce/tests/validate-appearance.sh \
-            forja-pamac-pacman/build-pamac.sh \
-            forja-pamac-pacman/install.sh; do
-            bash -n "$script"
-          done
-          python3 -m compileall -q forja-pamac-pacman/src forja-pamac-pacman/tests
-          python3 -m unittest discover -s forja-pamac-pacman/tests -v
-          bash desktops/xfce/tests/validate-appearance.sh
-
-      - name: Prepare dedicated ext4 filesystem for Manjaro OverlayFS
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          mkdir -p "$RUNNER_TEMP/forja-iso-output"
-          mkdir -p "$RUNNER_TEMP/forja-manjaro-ext4"
-          image="$RUNNER_TEMP/forja-manjaro-work.ext4"
-          mountpoint="$RUNNER_TEMP/forja-manjaro-ext4"
-          if mountpoint -q "$mountpoint"; then
-            sudo umount "$mountpoint"
-          fi
-          rm -f "$image"
-          # OverlayFS requires a supported upper filesystem. A bind-mounted
-          # directory can still inherit the runner/Docker backing filesystem.
-          # Put the complete Manjaro chroot tree on a real ext4 loop filesystem.
-          truncate -s 10G "$image"
-          sudo mkfs.ext4 -F -m 0 "$image"
-          sudo mount -o loop "$image" "$mountpoint"
-          sudo chmod 0777 "$mountpoint"
-          df -hT "$mountpoint"
-          test "$(stat -f -c %T "$mountpoint")" = ext2/ext3
-          mkdir -p "$mountpoint/overlay-test/lower" "$mountpoint/overlay-test/upper" \
-                   "$mountpoint/overlay-test/work" "$mountpoint/overlay-test/merged"
-          printf 'overlay-test-ok\n' > "$mountpoint/overlay-test/lower/probe"
-          sudo mount -t overlay forja-preflight \
-            -o "lowerdir=$mountpoint/overlay-test/lower,upperdir=$mountpoint/overlay-test/upper,workdir=$mountpoint/overlay-test/work" \
-            "$mountpoint/overlay-test/merged"
-          grep -Fxq 'overlay-test-ok' "$mountpoint/overlay-test/merged/probe"
-          sudo umount "$mountpoint/overlay-test/merged"
-          rm -rf "$mountpoint/overlay-test"
-          echo "OVERLAYFS_HOST_PREFLIGHT_OK: upperdir/workdir em ext4."
-
-      - name: Build ISO from the independent Forja XFCE profile
-        shell: bash
-        env:
-          FORJA_KERNEL: ${{ inputs.kernel || 'lts' }}
-        run: |
-          set -Eeuo pipefail
-          docker pull manjarolinux/base:latest
-          docker run --rm \
-            --network host \
-            --privileged \
-            --security-opt seccomp=unconfined \
-            -v "$GITHUB_WORKSPACE:/forja-ci:ro" \
-            -v "$RUNNER_TEMP/forja-manjaro-ext4:/tmp/forja-manjaro" \
-            -v "$RUNNER_TEMP/forja-iso-output:/forja-output" \
-            -e FORJA_DISTRIBUTION=manjaro \
-            -e FORJA_DESKTOP=xfce \
-            -e FORJA_KERNEL="$FORJA_KERNEL" \
-            -e FORJA_PREFLIGHT_ONLY=0 \
-            -e FORJA_OUTPUT=/forja-output \
-            manjarolinux/base:latest \
-            bash -lc '
-              set -Eeuo pipefail
-              mountpoint -q /tmp/forja-manjaro
-              test "$(stat -f -c %T /tmp/forja-manjaro)" = ext2/ext3
-              mkdir -p /tmp/forja-manjaro/overlay-test/{lower,upper,work,merged}
-              printf "overlay-test-ok\\n" > /tmp/forja-manjaro/overlay-test/lower/probe
-              mount -t overlay forja-container-preflight \
-                -o lowerdir=/tmp/forja-manjaro/overlay-test/lower,upperdir=/tmp/forja-manjaro/overlay-test/upper,workdir=/tmp/forja-manjaro/overlay-test/work \
-                /tmp/forja-manjaro/overlay-test/merged
-              grep -Fxq "overlay-test-ok" /tmp/forja-manjaro/overlay-test/merged/probe
-              umount /tmp/forja-manjaro/overlay-test/merged
-              rm -rf /tmp/forja-manjaro/overlay-test
-              echo "OVERLAYFS_CONTAINER_PREFLIGHT_OK: ext4 bind mount aceita upperdir."
-              bash /forja-ci/build-cloud.sh
-            '
-
-      - name: Verify ISO and checksum exist
-        id: iso
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          mapfile -t isos < <(find "$RUNNER_TEMP/forja-iso-output" -type f -name '*.iso' -print)
-          test "${#isos[@]}" -eq 1
-          iso="${isos[0]}"
-          test -s "$iso"
-          checksum="$iso.sha256"
-          test -s "$checksum"
-          (cd "$(dirname "$iso")" && sha256sum -c "$(basename "$checksum")")
-          size="$(stat -c %s "$iso")"
-          test "$size" -gt 1000000000
-          mkdir -p "$RUNNER_TEMP/forja-iso-publish"
-          cp -- "$iso" "$RUNNER_TEMP/forja-iso-publish/"
-          expected_sha="$(awk '{print $1}' "$checksum")"
-          echo "iso_name=$(basename "$iso")" >> "$GITHUB_OUTPUT"
-          echo "sha256=$expected_sha" >> "$GITHUB_OUTPUT"
-          echo "size=$size" >> "$GITHUB_OUTPUT"
-
-      - name: Publish only the complete ISO (24 hours)
-        uses: actions/upload-artifact@v4
-        with:
-          name: forja-os-xfce-iso
-          path: ${{ runner.temp }}/forja-iso-publish/*.iso
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 1
-
-      - name: Verify the published artifact contains only the ISO
-        uses: actions/download-artifact@v4
-        with:
-          name: forja-os-xfce-iso
-          path: ${{ runner.temp }}/forja-artifact-check
-      - name: Check downloaded ISO and checksum
-        shell: bash
-        env:
-          EXPECTED_SHA256: ${{ steps.iso.outputs.sha256 }}
-          EXPECTED_SIZE: ${{ steps.iso.outputs.size }}
-          EXPECTED_NAME: ${{ steps.iso.outputs.iso_name }}
-        run: |
-          set -Eeuo pipefail
-          mapfile -d '' -t files < <(find "$RUNNER_TEMP/forja-artifact-check" -type f -print0)
-          if (( ${#files[@]} != 1 )); then
-            printf 'ERRO: esperado exatamente 1 arquivo no artefato; encontrados %s.\\n' "${#files[@]}" >&2
-            printf 'Arquivo: %s\\n' "${files[@]}" >&2
+          if [[ "${GITHUB_REF_NAME}" != "feature/forja-xfce-endeavouros-port" ]]; then
+            echo "::error::Selecione a branch feature/forja-xfce-endeavouros-port no campo Branch antes de iniciar."
             exit 1
           fi
-          iso="${files[0]}"
-          if [[ "$(basename "$iso")" != "$EXPECTED_NAME" ]]; then
-            echo "ERRO: nome inesperado no artefato: $(basename "$iso")" >&2
-            exit 1
-          fi
-          test -s "$iso" || { echo "ERRO: ISO baixada está vazia." >&2; exit 1; }
-          size="$(stat -c %s "$iso")"
-          if [[ "$size" != "$EXPECTED_SIZE" ]]; then
-            echo "ERRO: tamanho divergente. Esperado=$EXPECTED_SIZE; recebido=$size" >&2
-            exit 1
-          fi
-          actual_sha="$(sha256sum "$iso" | awk '{print $1}')"
-          if [[ "$actual_sha" != "$EXPECTED_SHA256" ]]; then
-            echo "ERRO: SHA256 divergente. Esperado=$EXPECTED_SHA256; recebido=$actual_sha" >&2
-            exit 1
-          fi
-          echo "DOWNLOADABLE_ISO_OK: $iso ($size bytes, SHA256 verified)"
-
-      - name: Clean dedicated ext4 build filesystem
-        if: always()
-        shell: bash
-        run: |
-          set +e
-          mountpoint="$RUNNER_TEMP/forja-manjaro-ext4"
-          if mountpoint -q "$mountpoint"; then
-            sudo umount "$mountpoint"
-          fi
-          rm -f "$RUNNER_TEMP/forja-manjaro-work.ext4"
-
-      - name: Show temporary download instructions
-        if: success()
-        run: |
-          echo "ISO publicada como artefato temporário por 24 horas."
-          echo "Abra esta execução em Actions > Artifacts para baixar a ISO e o SHA256."
+          echo "Branch correta selecionada. O workflow completo da branch XFCE será executado."
