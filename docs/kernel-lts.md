@@ -1,29 +1,17 @@
-# Política de kernel LTS da Forja OS
+# Política de kernel da Forja OS
 
-## Regra do projeto
+## Regra atual
 
-As edições da Forja OS devem usar o pacote **`linux-lts`** dos repositórios oficiais Arch Linux/EndeavourOS como kernel padrão. Não fixar uma versão numérica do kernel no perfil: o pacote `linux-lts` acompanha a linha LTS mantida e empacotada pelo Arch.
+A base ativa da Forja OS é o **Arch Linux direto**. O pacote `linux` presente em `bases/archlinux/packages.x86_64` é obtido dos repositórios oficiais do Arch. A escolha de kernel poderá ser revista em decisão explícita do projeto, mas o repositório Forja não distribuirá kernel nem headers.
 
-## Perfil XFCE
+## Atualizações
 
-O perfil `profiles/forja-xfce/packages.x86_64` inclui:
-- `linux-lts`: kernel LTS.
-- `linux-lts-headers`: headers correspondentes, necessários para módulos externos e ferramentas que os utilizem.
-- `linux-firmware`: firmware de dispositivos.
+- Instalações existentes recebem atualizações de kernel pelos repositórios oficiais Arch com o Pacman.
+- Novas ISOs resolvem a versão disponível nos repositórios oficiais durante o build.
+- Não copiar kernel, headers ou firmware para o repositório binário Forja.
 
-Os pacotes `linux` e `linux-headers` não devem ser incluídos junto deles como kernel padrão da edição.
+## Validação
 
-## Como as atualizações acontecem
+Uma mudança de kernel só será considerada validada após build da ISO e testes de boot live, instalação, detecção de hardware, módulos e suspensão/retomada quando suportada.
 
-- **Instalações já realizadas:** recebem as novas versões empacotadas do kernel LTS por `sudo pacman -Syu`, a partir dos repositórios oficiais configurados.
-- **Novas ISOs:** cada compilação resolve a versão atual disponível de `linux-lts` e `linux-lts-headers` nos repositórios oficiais no momento do build.
-- Não manter cópia do código-fonte do kernel no repositório Forja Updates e não criar repositório pacman próprio para o kernel.
-- O repositório Forja Updates fica reservado a componentes exclusivos da Forja OS; atualizações do kernel pertencem ao fluxo oficial do Arch/EndeavourOS.
-
-## Validação obrigatória
-
-Uma mudança de kernel só é considerada validada depois de compilar a ISO e testar inicialização Live, detecção de hardware, módulos essenciais e suspensão/retomada quando suportada. A troca de pacote no perfil, por si só, não comprova esses testes.
-
-## Escopo
-
-Esta política é a regra geral do projeto. A alteração de pacote aplicada nesta etapa cobre o perfil XFCE EndeavourOS existente. Outras edições devem adotar a mesma política quando seus perfis forem implementados ou atualizados.
+Esta política substitui as referências antigas a edições XFCE/EndeavourOS que não fazem parte da base ativa atual.
