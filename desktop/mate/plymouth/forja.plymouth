@@ -1,0 +1,18 @@
+[Plymouth Theme]
+Name=Forja OS
+Description=Forja OS boot splash with the Forja flame and spinner
+ModuleName=two-step
+
+[two-step]
+ImageDir=/usr/share/plymouth/themes/forja
+HorizontalAlignment=.5
+VerticalAlignment=.5
+WatermarkHorizontalAlignment=.5
+WatermarkVerticalAlignment=.72
+WatermarkVerticalOffset=0
+Transition=none
+TransitionDuration=0.0
+BackgroundStartColor=0x080808
+BackgroundEndColor=0x080808
+ProgressBarBackgroundColor=0x303030
+ProgressBarForegroundColor=0x668fbd
