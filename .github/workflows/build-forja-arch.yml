@@ -9,6 +9,7 @@ on:
       - "bases/archlinux/**"
       - "desktop/mate/**"
       - "build-support/calamares/**"
+      - "build-support/brisk-menu/**"
       - ".github/workflows/build-forja-arch.yml"
   workflow_dispatch:
 
@@ -34,24 +35,27 @@ jobs:
       - name: Checkout Forja OS
         uses: actions/checkout@v4
 
-      - name: Build pinned Calamares package from reviewed AUR recipe
+      - name: Build pinned Calamares and Brisk Menu packages from reviewed AUR recipes
         shell: bash
         run: |
           set -Eeuo pipefail
           useradd --create-home --shell /bin/bash builder
           printf '%s\n' 'builder ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/90-builder
           chmod 0440 /etc/sudoers.d/90-builder
-          build_dir="$RUNNER_TEMP/calamares-build"
           repo_dir="$RUNNER_TEMP/forja-calamares-repo"
-          install -d -o builder -g builder "$build_dir" "$repo_dir"
-          install -m 0644 build-support/calamares/PKGBUILD "$build_dir/PKGBUILD"
-          chown builder:builder "$build_dir/PKGBUILD"
-          cd "$build_dir"
-          runuser -u builder -- makepkg --syncdeps --noconfirm --cleanbuild
-          package="$(find "$build_dir" -maxdepth 1 -type f -name 'calamares-*.pkg.tar.zst' -print -quit)"
-          test -n "$package"
-          install -m 0644 "$package" "$repo_dir/"
-          repo-add "$repo_dir/forja-calamares.db.tar.gz" "$repo_dir"/calamares-*.pkg.tar.zst
+          install -d -o builder -g builder "$repo_dir"
+          for recipe in calamares brisk-menu; do
+            build_dir="$RUNNER_TEMP/${recipe}-build"
+            install -d -o builder -g builder "$build_dir"
+            install -m 0644 "build-support/${recipe}/PKGBUILD" "$build_dir/PKGBUILD"
+            chown builder:builder "$build_dir/PKGBUILD"
+            (
+              cd "$build_dir"
+              runuser -u builder -- makepkg --syncdeps --noconfirm --cleanbuild
+            )
+            find "$build_dir" -maxdepth 1 -type f -name '*.pkg.tar.zst' -exec install -m 0644 {} "$repo_dir/" \;
+          done
+          repo-add "$repo_dir/forja-calamares.db.tar.gz" "$repo_dir"/*.pkg.tar.zst
           echo "FORJA_CALAMARES_REPO=$repo_dir" >> "$GITHUB_ENV"
 
       - name: Static checks and Calamares configuration validation
@@ -60,6 +64,7 @@ jobs:
           set -Eeuo pipefail
           bash -n bases/archlinux/build-profile.sh
           bash -n build-support/calamares/PKGBUILD
+          bash -n build-support/brisk-menu/PKGBUILD
           bash -n bases/archlinux/validate-profile.sh
           bash -n desktop/mate/install-target.sh
           bash -n desktop/mate/apply-defaults.sh
@@ -79,6 +84,7 @@ jobs:
           print(f"Validated {len(files)} Calamares YAML configuration files")
           PY
           grep -qx 'calamares' desktop/mate/packages.x86_64
+          grep -qx 'brisk-menu' desktop/mate/packages.x86_64
           test -s bases/archlinux/airootfs/etc/calamares/settings.conf
           test -s bases/archlinux/airootfs/etc/calamares/modules/bootloader.conf
           test -s bases/archlinux/airootfs/etc/calamares/modules/shellprocess-pacstrap.conf
