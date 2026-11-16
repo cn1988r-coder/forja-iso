@@ -105,7 +105,6 @@ jobs:
           test -s "$store_test_root/root/etc/polkit-1/rules.d/49-forja-store.rules"
           grep -q 'forja-pacman-transaction' "$store_test_root/root/etc/polkit-1/rules.d/49-forja-store.rules"
           grep -q '^Terminal=false
-          rm -rf "$store_test_root"
 
       - name: Build bootable ISO with Calamares
         shell: bash
