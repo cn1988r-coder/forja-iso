@@ -17,7 +17,7 @@ builder or the upstream EndeavourOS checkout.
 1. Clone the official EndeavourOS-ISO repository.
 2. Run `prepare-forja.sh` from this directory, setting
    `ENDEAVOUROS_ISO_DIR` to the upstream checkout if it is not the current directory.
-3. Review the generated `forja-xfce-profile` directory before building.
+3. Enter `forja-xfce-profile` and run `./prepare.sh` to build the live-user skeleton and the two Shelly packages.\n4. Review the generated profile and verify the required Calamares package before any ISO build.
 
 The profile wraps the upstream `run_before_squashfs.sh`: it runs the original EndeavourOS
 live-user preparation first, then executes the Forja XFCE live-session hook in the
