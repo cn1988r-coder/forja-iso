@@ -4,10 +4,18 @@ on:
   push:
     branches:
       - main
-      - feature/forja-xfce-store-integration
+      - feature/forja-xfce-endeavouros-port
+    paths:
+      - 'profiles/forja-xfce/**'
+      - 'desktops/xfce/**'
+      - '.github/workflows/validate-forja-source.yml'
   pull_request:
     branches:
       - main
+    paths:
+      - 'profiles/forja-xfce/**'
+      - 'desktops/xfce/**'
+      - '.github/workflows/validate-forja-source.yml'
   workflow_dispatch:
 
 permissions:
@@ -18,99 +26,28 @@ jobs:
     name: Validate Forja XFCE source
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout Forja XFCE source
+      - name: Checkout Forja OS XFCE EndeavourOS source
         uses: actions/checkout@v4
         with:
-          ref: feature/forja-xfce-store-integration
+          ref: feature/forja-xfce-endeavouros-port
 
-      - name: Validate shell syntax
+      - name: Install XML validation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxml2-utils
+
+      - name: Validate XFCE profile, packages and shell syntax
         shell: bash
         run: |
           set -Eeuo pipefail
-          for script in \
-            build-cloud.sh build-manjaro.sh \
-            desktops/xfce/apply-forja-layout.sh \
-            desktops/xfce/install-branding.sh \
-            desktops/xfce/tests/validate-appearance.sh \
-            forja-pamac-pacman/build-pamac.sh \
-            forja-pamac-pacman/install.sh; do
-            bash -n "$script"
-          done
-
-      - name: Validate Python source and tests
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          python3 -m compileall -q forja-pamac-pacman/src forja-pamac-pacman/tests
-          python3 -m unittest discover -s forja-pamac-pacman/tests -v
-
-      - name: Validate Forja desktop configuration
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          bash desktops/xfce/tests/validate-appearance.sh
-          python3 - <<'PY'
-          from pathlib import Path
-          import xml.etree.ElementTree as ET
-
-          for path in (
-              Path("desktops/xfce/panel-default.xml"),
-              Path("desktops/xfce/forja-xfce-desktop.xml"),
-          ):
-              ET.parse(path)
-              print(f"XML OK: {path}")
-          PY
-      - name: Validate Manjaro pacman and mirror configuration
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-
-          source = Path("build-manjaro.sh").read_text()
-          def heredoc(tag, destination):
-              prefix = f"""install -Dm644 /dev/stdin "$TARGET/rootfs/{destination}" <<'{tag}'"""
-              lines = source.splitlines()
-              start = lines.index(prefix)
-              end = lines.index(tag, start + 1)
-              path = Path("/tmp") / Path(destination).name
-              path.write_text(chr(10).join(lines[start + 1:end]) + chr(10))
-              return path
-
-          pacman = heredoc("PACMANCONF", "etc/pacman.conf")
-          mirrors = heredoc("MIRRORSCONF", "etc/pacman-mirrors.conf")
-          service = heredoc("MIRRORSERVICE", "etc/systemd/system/forja-manjaro-mirrors.service")
-
-          conf = pacman.read_text()
-          assert "[core]" in conf and "[extra]" in conf
-          assert conf.count("Include = /etc/pacman.d/mirrorlist") == 2
-          assert "Server =" not in conf
-          mirror_conf = mirrors.read_text()
-          assert "Branch = stable" in mirror_conf
-          assert "Protocols = https,http" in mirror_conf
-          unit = service.read_text()
-          assert "ExecStart=/usr/bin/pacman-mirrors --fasttrack 10" in unit
-          assert "After=network-online.target" in unit
-          assert "Restart=on-failure" in unit
-          assert "StartLimitIntervalSec=0" in unit.split("[Service]", 1)[0]
-          assert "pacman-mirrors" in source.split("BASE_CORE_PACKAGES=(", 1)[1].split(")", 1)[0]
-          assert 'grep -Fxq pacman-mirrors "$TARGET/Packages-Root"' in source
-          assert 'ln -sfn ../forja-manjaro-mirrors.service' in source
-          assert 'pacman-mirrors --api --set-branch stable --protocol https,http' in source
-          assert 'pacman-mirrors --fasttrack 10' in source
-          assert 'grep -Eq \'^[[:space:]]*Server[[:space:]]*=[[:space:]]*https?://\'' in source
-          print("Manjaro pacman.conf, stable mirror branch, HTTPS mirror preference and first-boot mirror service validated.")
-          PY
-          mkdir -p /tmp/forja-systemd-root/usr/bin /tmp/forja-systemd-root/etc/systemd/system
-          printf '#!/bin/sh\\nexit 0\\n' > /tmp/forja-systemd-root/usr/bin/pacman-mirrors
-          chmod 0755 /tmp/forja-systemd-root/usr/bin/pacman-mirrors
-          cp /tmp/forja-manjaro-mirrors.service /tmp/forja-systemd-root/etc/systemd/system/
-          for target in sysinit.target basic.target network-online.target display-manager.service; do
-            cat > "/tmp/forja-systemd-root/etc/systemd/system/$target" <<'UNIT'
-          [Unit]
-          Description=Validation placeholder
-          UNIT
-          done
-          systemd-analyze verify --root=/tmp/forja-systemd-root forja-manjaro-mirrors.service
-
+          bash profiles/forja-xfce/tests/validate-profile.sh
+          xmllint --noout desktops/xfce/panel-default.xml
+          xmllint --noout desktops/xfce/forja-xfce-desktop.xml
+          python3 -m py_compile \
+            profiles/forja-xfce/forja-packages/forja-recovery/forja-recovery-cli \
+            profiles/forja-xfce/forja-packages/forja-recovery/forja-recovery-gui \
+            profiles/forja-xfce/airootfs/usr/local/bin/forja-update
+          rm -rf \
+            profiles/forja-xfce/forja-packages/forja-recovery/__pycache__ \
+            profiles/forja-xfce/airootfs/usr/local/bin/__pycache__
+          echo "Validação Forja XFCE concluída. Nenhuma ISO foi compilada."
