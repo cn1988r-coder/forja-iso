@@ -38,8 +38,12 @@ jobs:
           fi
 
           for package in "${packages[@]}"; do
-            pacman -Si "$package" >/dev/null
-            printf 'FOUND %s\n' "$package"
+            if pacman -Si "$package" >/dev/null 2>&1 || pacman -Sgq "$package" >/dev/null 2>&1; then
+              printf 'FOUND %s\n' "$package"
+            else
+              echo "MISSING $package" >&2
+              exit 1
+            fi
           done
 
           pacman -Sp --needed --print-format '%n %v' -- "${packages[@]}" | tee /tmp/mate-transaction.txt
@@ -47,5 +51,9 @@ jobs:
           bash -n desktop/mate/apply-defaults.sh
           bash -n desktop/mate/install-iptvnator.sh
           bash -n desktop/mate/install-forja-update-indicator.sh
+          bash -n desktop/mate/install-forja-store.sh
+          bash -n desktop/mate/forja-store/forja-aur-build
           bash -n desktop/mate/scripts/validate-packages.sh
           python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
+          python -m py_compile desktop/mate/forja-store/forja-store.py
+          python -m py_compile desktop/mate/forja-store/forja-pacman-transaction
