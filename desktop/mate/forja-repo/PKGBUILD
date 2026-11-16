@@ -6,11 +6,12 @@ arch=('any')
 url="https://github.com/cn1988r-coder/forja-updates"
 license=('GPL-3.0-or-later')
 depends=('pacman' 'pacman-contrib' 'sudo')
-source=('forja-repo' 'pacman.conf')
-sha256sums=('SKIP' 'SKIP')
+source=('forja-repo' 'pacman.conf' 'pacman-install.conf')
+sha256sums=('SKIP' 'SKIP' 'SKIP')
 
 package() {
   install -Dm755 "$srcdir/forja-repo" "$pkgdir/usr/bin/forja-repo"
   install -Dm644 "$srcdir/pacman.conf" "$pkgdir/etc/forja/pacman.conf"
+  install -Dm644 "$srcdir/pacman-install.conf" "$pkgdir/etc/forja/pacman-install.conf"
   install -d "$pkgdir/var/lib/forja-repo" "$pkgdir/var/cache/forja-repo/pkg"
 }
