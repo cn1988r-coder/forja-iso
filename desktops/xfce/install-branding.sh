@@ -33,6 +33,9 @@ install -Dm644 "$ROOT/forja-xfce-appearance.desktop" "$DEST/etc/xdg/autostart/fo
 # Shelly opens with the user's XFCE session; its UI starts its notification service.
 install -Dm644 "$ROOT/shelly-autostart.desktop" "$DEST/etc/xdg/autostart/shelly.desktop"
 install -Dm644 "$ROOT/forja-gtk.css" "$DEST/etc/skel/.config/gtk-3.0/gtk.css"
+# Keep the canonical theme and Whisker defaults available to the login hook.
+install -Dm644 "$ROOT/forja-gtk.css" "$DEST/usr/share/forja/forja-gtk.css"
+install -Dm644 "$ROOT/forja-whiskermenu.rc" "$DEST/usr/share/forja/forja-whiskermenu.rc"
 install -Dm644 "$ROOT/forja-whiskermenu.rc" "$DEST/etc/skel/.config/xfce4/panel/whiskermenu-1.rc"
 
 # A single system-wide panel: Whisker + DockbarX + system tray + clock.
