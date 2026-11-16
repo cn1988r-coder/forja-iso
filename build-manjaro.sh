@@ -616,7 +616,26 @@ ROOTFS_CHROOT="$(find "$CHROOTS" -type d -name rootfs -print -quit)"
 }
 install -Dm644 /forja-ci/desktops/xfce/plymouth/forja-mkinitcpio.conf "$ROOTFS_CHROOT/tmp/forja-mkinitcpio.conf"
 install -Dm755 /forja-ci/desktops/xfce/plymouth/apply-mkinitcpio.sh "$ROOTFS_CHROOT/tmp/forja-apply-mkinitcpio.sh"
-install -Dm644 /forja-ci/desktops/xfce/plymouth/forja-grub "$ROOTFS_CHROOT/etc/default/grub"
+# Acrescenta os parâmetros silenciosos ao GRUB existente sem substituir
+# as demais opções padrão fornecidas pelo Manjaro.
+source /forja-ci/desktops/xfce/plymouth/forja-grub
+GRUB_DEFAULT_FILE="$ROOTFS_CHROOT/etc/default/grub"
+[[ -s "$GRUB_DEFAULT_FILE" ]] || {
+  echo "ERRO: configuração padrão do GRUB ausente no rootfs." >&2
+  exit 47
+}
+GRUB_EXISTING_ARGS="$(sed -n 's/^GRUB_CMDLINE_LINUX_DEFAULT="\\(.*\\)"$/\\1/p' "$GRUB_DEFAULT_FILE" | head -n1)"
+for boot_arg in $GRUB_CMDLINE_LINUX_DEFAULT; do
+  case " $GRUB_EXISTING_ARGS " in
+    *" $boot_arg "*) ;;
+    *) GRUB_EXISTING_ARGS="${GRUB_EXISTING_ARGS:+$GRUB_EXISTING_ARGS }$boot_arg" ;;
+  esac
+done
+if grep -q '^GRUB_CMDLINE_LINUX_DEFAULT=' "$GRUB_DEFAULT_FILE"; then
+  sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\\"$GRUB_EXISTING_ARGS\\"|" "$GRUB_DEFAULT_FILE"
+else
+  printf 'GRUB_CMDLINE_LINUX_DEFAULT="%s"\\n' "$GRUB_EXISTING_ARGS" >> "$GRUB_DEFAULT_FILE"
+fi
 install -Dm644 /forja-ci/desktops/xfce/plymouth/plymouthd.conf "$ROOTFS_CHROOT/etc/plymouth/plymouthd.conf"
 install -Dm644 /forja-ci/desktops/xfce/plymouth/forja.plymouth "$ROOTFS_CHROOT/usr/share/plymouth/themes/forja/forja.plymouth"
 install -Dm644 /forja-ci/desktops/xfce/plymouth/forja.script "$ROOTFS_CHROOT/usr/share/plymouth/themes/forja/forja.script"
