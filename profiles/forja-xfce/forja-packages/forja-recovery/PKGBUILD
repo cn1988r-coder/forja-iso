@@ -1,11 +1,11 @@
 pkgname=forja-recovery
-pkgver=0.1.0
+pkgver=0.2.0
 pkgrel=1
-pkgdesc="Ferramenta oficial de diagnóstico e recuperação do Forja OS"
+pkgdesc="Diagnostico do Forja OS e acesso ao Timeshift para recuperacao"
 arch=('any')
 url="https://github.com/cn1988r-coder/forja-iso"
 license=('GPL-3.0-or-later')
-depends=('python' 'python-gobject' 'gtk3' 'btrfs-progs' 'snapper' 'pacman' 'grub')
+depends=('python' 'python-gobject' 'gtk3' 'btrfs-progs' 'timeshift' 'pacman' 'grub')
 optdepends=('grub-btrfs: disponibilizar snapshots Btrfs no menu GRUB')
 source=('forja-recovery-cli' 'forja-recovery-gui' 'forja-recovery.desktop')
 sha256sums=('SKIP' 'SKIP' 'SKIP')
