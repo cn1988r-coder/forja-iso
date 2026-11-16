@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Interface GTK simples do Forja Recovery."""
+"""Interface GTK do Forja Recovery com restauracao delegada ao Timeshift."""
 import json
 import subprocess
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk
 
 CLI = "/usr/bin/forja-recovery-cli"
 
@@ -16,7 +16,7 @@ class RecoveryWindow(Gtk.Window):
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.add(root)
         title = Gtk.Label()
-        title.set_markup("<span size='xx-large' weight='bold'>Forja Recovery</span>\nDiagnóstico e recuperação do sistema")
+        title.set_markup("<span size='xx-large' weight='bold'>Forja Recovery</span>\nDiagnóstico e recuperação pelo Timeshift")
         title.set_xalign(0)
         root.pack_start(title, False, False, 0)
         actions = Gtk.Box(spacing=8)
@@ -24,14 +24,14 @@ class RecoveryWindow(Gtk.Window):
         for label, callback in (("Executar diagnóstico", self.diagnose),
                                 ("Listar snapshots", self.list_snapshots),
                                 ("Criar snapshot", self.create_snapshot),
-                                ("Restaurar snapshot", self.rollback_snapshot)):
+                                ("Abrir restauração", self.restore_snapshot)):
             button = Gtk.Button(label=label)
             button.connect("clicked", callback)
             actions.pack_start(button, False, False, 0)
         self.output = Gtk.TextView()
         self.output.set_editable(False)
         self.output.set_cursor_visible(False)
-        self.output.get_buffer().set_text("Execute um diagnóstico para verificar o estado do sistema.\n\nAs verificações são somente de leitura. Criar snapshots e restaurar uma versão anterior exige confirmação e privilégios administrativos.")
+        self.output.get_buffer().set_text("O Timeshift gerencia os snapshots e executa a restauração.\n\nUse o diagnóstico para conferir Btrfs, Timeshift e GRUB-Btrfs.")
         scroll = Gtk.ScrolledWindow()
         scroll.set_hexpand(True)
         scroll.set_vexpand(True)
@@ -44,7 +44,7 @@ class RecoveryWindow(Gtk.Window):
     def execute(self, args):
         try:
             p = subprocess.run(args, text=True, stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT, timeout=45, check=False)
+                               stderr=subprocess.STDOUT, timeout=60, check=False)
             self.show_text(p.stdout or ("Concluído." if p.returncode == 0 else "Falha na operação."))
         except Exception as exc:
             self.show_text(f"Não foi possível executar: {exc}")
@@ -52,7 +52,7 @@ class RecoveryWindow(Gtk.Window):
     def diagnose(self, *_):
         try:
             p = subprocess.run([CLI, "diagnose"], text=True, stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT, timeout=45, check=False)
+                               stderr=subprocess.STDOUT, timeout=60, check=False)
             data = json.loads(p.stdout)
             lines = []
             for item in data:
@@ -65,80 +65,26 @@ class RecoveryWindow(Gtk.Window):
     def list_snapshots(self, *_):
         self.execute([CLI, "snapshots"])
 
-    def rollback_snapshot(self, *_):
+    def restore_snapshot(self, *_):
         warning = Gtk.MessageDialog(transient_for=self, flags=0,
                                     message_type=Gtk.MessageType.WARNING,
                                     buttons=Gtk.ButtonsType.OK_CANCEL,
-                                    text="Restaurar o sistema a partir de um snapshot?")
+                                    text="Abrir o Timeshift para restaurar o sistema?")
         warning.format_secondary_text(
-            "O Forja Recovery criará uma nova raiz gravável baseada no snapshot escolhido "
-            "e alterará o subvolume padrão do Btrfs. A operação exige reinicialização. "
-            "Arquivos pessoais em /home não são revertidos por este snapshot."
+            "A restauração será executada pelo próprio Timeshift. Confira o snapshot, "
+            "o volume Btrfs e o subvolume raiz antes de confirmar. Não interrompa a operação."
         )
         response = warning.run()
         warning.destroy()
-        if response != Gtk.ResponseType.OK:
-            return
-
-        try:
-            p = subprocess.run(["snapper", "-c", "root", "list", "--columns",
-                                "number,date,description"], text=True,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                               timeout=30, check=False)
-        except Exception as exc:
-            self.show_text(f"Não foi possível consultar os snapshots: {exc}")
-            return
-        if p.returncode != 0:
-            self.show_text(p.stdout or "Snapper não conseguiu listar os snapshots.")
-            return
-
-        choices = []
-        for line in p.stdout.splitlines():
-            fields = [part.strip() for part in line.split("|")]
-            if not fields or not fields[0].isdigit():
-                continue
-            number = int(fields[0])
-            if number == 0:
-                continue
-            label = " | ".join(fields)
-            choices.append((str(number), label))
-        if not choices:
-            self.show_text("Não há snapshots numerados disponíveis para restauração.")
-            return
-
-        dialog = Gtk.Dialog(title="Escolher snapshot", transient_for=self, flags=0)
-        dialog.add_button("Cancelar", Gtk.ResponseType.CANCEL)
-        dialog.add_button("Continuar", Gtk.ResponseType.OK)
-        combo = Gtk.ComboBoxText()
-        for number, label in choices:
-            combo.append(number, label)
-        combo.set_active(0)
-        dialog.get_content_area().pack_start(combo, True, True, 12)
-        dialog.show_all()
-        response = dialog.run()
-        selected = combo.get_active_id()
-        dialog.destroy()
-        if response != Gtk.ResponseType.OK or not selected:
-            return
-
-        confirm = Gtk.MessageDialog(transient_for=self, flags=0,
-                                    message_type=Gtk.MessageType.ERROR,
-                                    buttons=Gtk.ButtonsType.OK_CANCEL,
-                                    text=f"Confirmar restauração do snapshot {selected}?")
-        confirm.format_secondary_text(
-            "Isso muda o subvolume padrão de inicialização. Não desligue o computador "
-            "durante a operação. Após a conclusão, reinicie o Forja OS."
-        )
-        response = confirm.run()
-        confirm.destroy()
         if response == Gtk.ResponseType.OK:
-            self.execute(["pkexec", CLI, "rollback", "--snapshot", selected, "--confirm"])
+            self.execute([CLI, "open-timeshift"])
 
     def create_snapshot(self, *_):
-        dialog = Gtk.MessageDialog(transient_for=self, flags=0, message_type=Gtk.MessageType.WARNING,
+        dialog = Gtk.MessageDialog(transient_for=self, flags=0,
+                                   message_type=Gtk.MessageType.WARNING,
                                    buttons=Gtk.ButtonsType.OK_CANCEL,
                                    text="Criar um snapshot manual da raiz?")
-        dialog.format_secondary_text("O Snapper precisa estar configurado e a raiz precisa usar Btrfs. Esta ação não altera /home.")
+        dialog.format_secondary_text("O Timeshift criará o snapshot Btrfs. /home não será incluído.")
         response = dialog.run()
         dialog.destroy()
         if response != Gtk.ResponseType.OK:
