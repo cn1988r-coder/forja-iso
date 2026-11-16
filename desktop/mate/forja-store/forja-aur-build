@@ -6,6 +6,7 @@ name="${1:-}"
 }
 command -v git >/dev/null || { echo "Instale git para usar o AUR."; exit 1; }
 command -v makepkg >/dev/null || { echo "Instale base-devel para compilar pacotes AUR."; exit 1; }
+command -v less >/dev/null || { echo "Instale less para revisar os arquivos do pacote."; exit 1; }
 work="$(mktemp -d "${TMPDIR:-/tmp}/forja-aur-${name}.XXXXXX")"
 trap 'rm -rf "$work"' EXIT
 cd "$work"
@@ -13,11 +14,20 @@ echo "Obtendo receita do AUR: $name"
 git clone --depth=1 "https://aur.archlinux.org/$name.git" "$name"
 cd "$name"
 echo
-echo "===== REVISE O PKGBUILD E OS ARQUIVOS DO PACOTE ====="
-less PKGBUILD
-if [[ -f .install ]]; then less .install; fi
+echo "===== ARQUIVOS RECEBIDOS DO AUR ====="
+git ls-files
+echo
+echo "===== REVISÃO DOS ARQUIVOS DE TEXTO VERSIONADOS ====="
+while IFS= read -r -d '' file; do
+  if file --mime-type -b "$file" | grep -q '^text/'; then
+    echo
+    echo "===== $file ====="
+    less "$file"
+  fi
+done < <(git ls-files -z)
 echo
 echo "A compilação executará código fornecido pelo mantenedor do pacote."
+echo "A revisão manual não garante que o pacote seja seguro."
 read -r -p "Você revisou os arquivos e deseja continuar? Digite COMPILAR: " answer
 [[ "$answer" == "COMPILAR" ]] || { echo "Operação cancelada."; exit 1; }
 echo "Compilando como usuário comum. makepkg poderá solicitar sudo para dependências."
