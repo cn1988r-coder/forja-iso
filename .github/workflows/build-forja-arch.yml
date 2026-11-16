@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/forja-arch-mate
+      - fix/forja-store-launcher-indicator
     paths:
       - "bases/archlinux/**"
       - "desktop/mate/**"
