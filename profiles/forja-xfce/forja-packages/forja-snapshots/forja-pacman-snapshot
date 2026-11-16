@@ -14,7 +14,7 @@ case "$action" in
   pre)
     number="$(snapper -c root create --type pre --print-number --description "Forja: antes de transação Pacman")"
     [[ "$number" =~ ^[0-9]+$ ]] || exit 1
-    printf '%s\\n' "$number" > "$STATE_FILE"
+    printf '%s\n' "$number" > "$STATE_FILE"
     chmod 0600 "$STATE_FILE"
     ;;
   post)
