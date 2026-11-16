@@ -1,10 +1,10 @@
 # Forja OS MATE
 
-Camada de ambiente gráfico da edição MATE da Forja OS. Ela fica separada das fundações técnicas `bases/archlinux/` e `bases/endeavouros/`.
+Camada de ambiente gráfico da edição MATE da Forja OS. Ela fica separada da fundação oficial ativa `bases/archlinux/`. A antiga fundação `bases/endeavouros/` está preservada apenas como referência inativa.
 
 ## Princípio
 
-Usar o MATE upstream dos repositórios oficiais do Arch/EndeavourOS como base funcional e aplicar a identidade Forja OS por cima. Não importar uma edição MATE de outra distribuição, não substituir componentes centrais sem necessidade e não copiar configurações de desktop de terceiros.
+Usar o MATE upstream dos repositórios oficiais do Arch Linux como base funcional e aplicar a identidade Forja OS por cima. Não importar uma edição MATE de outra distribuição, não substituir componentes centrais sem necessidade e não copiar configurações de desktop de terceiros.
 
 ## Escopo inicial
 
@@ -43,9 +43,9 @@ O IPTVnator é um aplicativo padrão planejado para a sessão MATE. O instalador
 - `scripts/validate-packages.sh`: verifica nomes de pacotes com o pacman.
 - `forja-luz-noturna/`: protótipo da interface e backend de temperatura de cor; a entrada de autostart está em `skel/.config/autostart/`.
 
-## Wallpaper padrão na imagem EndeavourOS
+## Wallpaper padrão no perfil Arch Linux
 
-O perfil `bases/endeavouros/airootfs/` inclui o SVG em `/usr/share/backgrounds/forja/forja-mate-wallpaper.svg`, um perfil dconf de sistema e a configuração `org.mate.desktop.background`. O hook Pacman `etc/pacman.d/hooks/90-forja-dconf.hook` executa `dconf update` após a instalação do pacote dconf durante a preparação do root filesystem da ISO, para que o MATE use esse wallpaper como padrão sem exigir configuração manual do usuário. O arquivo de wallpaper também fica em `desktop/mate/wallpapers/` como fonte editável do projeto.
+O perfil Arch ativo deverá receber estes arquivos em `bases/archlinux/airootfs/` inclui o SVG em `/usr/share/backgrounds/forja/forja-mate-wallpaper.svg`, um perfil dconf de sistema e a configuração `org.mate.desktop.background`. O hook Pacman `etc/pacman.d/hooks/90-forja-dconf.hook` executa `dconf update` após a instalação do pacote dconf durante a preparação do root filesystem da ISO, para que o MATE use esse wallpaper como padrão sem exigir configuração manual do usuário. O arquivo de wallpaper também fica em `desktop/mate/wallpapers/` como fonte editável do projeto.
 
 **Limite de validação:** os arquivos foram registrados no perfil, mas ainda não houve build da ISO nem teste visual de uma sessão MATE. A presença do padrão no sistema instalado após uma instalação completa também depende de como o instalador transfere os padrões do ambiente live para o sistema de destino; isso ainda precisa ser testado e integrado.
 
@@ -65,7 +65,7 @@ A lista evita instalar o grupo completo `mate-extra`, mas mantém os componentes
 
 ## Validação
 
-Execute `bash desktop/mate/scripts/validate-packages.sh` em um ambiente Arch/EndeavourOS atualizado, com as bases de pacotes sincronizadas. Isso verifica a existência dos nomes nos repositórios configurados; não substitui instalação, resolução integral de dependências, testes de sessão ou build de ISO.
+Execute `bash desktop/mate/scripts/validate-packages.sh` em um ambiente Arch Linux atualizado, com as bases de pacotes sincronizadas. Isso verifica a existência dos nomes nos repositórios configurados; não substitui instalação, resolução integral de dependências, testes de sessão ou build de ISO.
 
 ## Estado
 
@@ -76,12 +76,12 @@ Esta é uma camada inicial de definição. O wallpaper padrão está configurado
 
 O módulo `forja-update-indicator/` fornece um indicador GTK3 para a área de notificação do painel MATE. Ele usa o utilitário `checkupdates` do pacote oficial `pacman-contrib`, faz a primeira consulta após o início da sessão e repete a verificação a cada 30 minutos. O ícone de estado normal é um escudo cinza simples; quando há atualizações, o mesmo escudo recebe um pequeno ponto laranja, inspirado no indicador do Linux Mint. Não há marca de verificação grande no centro.
 
-O clique no ícone chama `forja-store --updates`. O menu também permite solicitar uma nova verificação. O instalador `install-forja-update-indicator.sh` copia o programa, os ícones e a entrada de autostart para um root filesystem Arch/EndeavourOS já preparado. O pacote `pacman-contrib` foi incluído em `packages.x86_64`.
+O clique no ícone chama `forja-store --updates`. O menu também permite solicitar uma nova verificação. O instalador `install-forja-update-indicator.sh` copia o programa, os ícones e a entrada de autostart para um root filesystem Arch Linux já preparado. O pacote `pacman-contrib` foi incluído em `packages.x86_64`.
 
 **Limites atuais e validação:** o indicador foi adicionado à branch `foundation/dual-base`, mas a Forja Store ainda não existe nessa branch. Por isso, a chamada `forja-store --updates` está definida como contrato de integração, não como integração concluída; enquanto a loja não estiver instalada, o indicador informa essa condição em vez de falhar silenciosamente. O instalador ainda precisa ser conectado ao processo de construção da imagem. A compatibilidade visual/funcional de `Gtk.StatusIcon` depende do applet de área de notificação do MATE e precisa ser testada numa sessão MATE real. A validação estática do Python e do shell no GitHub Actions não substitui esse teste, nem um build da ISO.
 
 
-## Forja Store nativa (Arch/EndeavourOS)
+## Forja Store nativa (Arch Linux)
 
 A aplicação própria da Forja OS fica em `forja-store/`. Ela não depende do Pamac nem do Shelly.
 
@@ -101,7 +101,7 @@ A aplicação própria da Forja OS fica em `forja-store/`. Ela não depende do P
 - A interface, Polkit, transações reais, AUR e Flatpak ainda precisam de testes em uma VM EndeavourOS/Arch. A checagem estática do GitHub Actions não prova que as operações funcionam no desktop.
 - O instalador `install-forja-store.sh` instala os arquivos em um root filesystem preparado, mas ainda precisa ser chamado pelo futuro pipeline de build/instalação da ISO. Não há, nesta branch, um pipeline completo que garanta a presença da loja no sistema instalado.
 
-O pacote Arch pode ser preparado a partir de `forja-store/PKGBUILD` com `makepkg` em ambiente Arch/EndeavourOS. Para a imagem, o processo de build deverá instalar o pacote ou executar o instalador contra o root filesystem de destino. Não instalar Pamac ou Shelly como dependência da Forja Store.
+O pacote Arch pode ser preparado a partir de `forja-store/PKGBUILD` com `makepkg` em ambiente Arch Linux. Para a imagem, o processo de build deverá instalar o pacote ou executar o instalador contra o root filesystem de destino. Não instalar Pamac ou Shelly como dependência da Forja Store.
 
 
 ## Forja Monitor
