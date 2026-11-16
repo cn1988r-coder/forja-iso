@@ -4,27 +4,24 @@ Esta é a **base oficial escolhida para a Forja OS**. A distribuição será der
 
 ## Responsabilidade
 
-O Arch Linux fornece kernel, firmware, drivers, bibliotecas, ferramentas essenciais e os pacotes oficiais do sistema. A Forja não substituirá esses componentes por versões próprias.
+O Arch Linux fornece kernel, firmware, drivers, bibliotecas, ferramentas essenciais e pacotes oficiais. A Forja não substituirá esses componentes por versões próprias.
 
-O repositório binário Forja será uma fonte adicional e separada, restrita a aplicativos e componentes desenvolvidos ou mantidos pelo projeto. Não terá prioridade sobre os repositórios oficiais e não será usado para atualizar o sistema-base.
+O repositório binário Forja será uma fonte adicional e separada, restrita a aplicativos e componentes próprios. Não terá prioridade sobre os repositórios oficiais e não será usado para atualizar o sistema-base.
 
-## Conteúdo atual
+## Perfil e construção
 
-- `packages.x86_64`: seleção inicial de pacotes para uma base mínima em modo texto.
-- `profiledef.sh`: parâmetros iniciais de perfil Archiso.
-- `pacman.conf`: configuração inicial dos repositórios oficiais Arch (`core` e `extra`).
+- `packages.x86_64`: seleção inicial de pacotes da base Arch.
+- `pacman.conf`: somente repositórios oficiais Arch (`core` e `extra`).
+- `profiledef.sh`: metadados iniciais do perfil Archiso.
+- `build-profile.sh`: obtém o perfil oficial `releng` do Archiso em commit fixo, combina os pacotes Arch/MATE e aplica a árvore `airootfs` da Forja.
+- `airootfs/`: configurações do MATE, LightDM, usuário live, locale pt_BR, fuso de São Paulo, teclado ABNT2 e atalhos de instalação.
 
-## Estado e próximos passos
+## Instalador
 
-Esta fundação **ainda não é uma ISO compilável validada**. Antes do primeiro build instalável, precisamos completar e auditar o perfil Archiso: estrutura `airootfs`, bootloader, initramfs, serviços, permissões, mirrorlist, usuário live, instalador, integração MATE e inclusão dos aplicativos Forja. Também será necessário validar a instalação em máquina virtual e testar o sistema instalado.
+A sessão live inclui o Archinstall oficial, aberto pelo atalho **Instalar Forja OS**. Ele é um instalador interativo em terminal, não o Calamares. O usuário deverá selecionar o disco, particionamento, bootloader, usuário e os pacotes necessários. A integração que garante a instalação automática de todas as personalizações Forja no sistema de destino ainda precisa ser concluída e testada.
 
-Nenhum build de ISO ou instalação funcional foi realizado nesta etapa.
+## Validação
 
-## Origem
+O GitHub Actions valida os nomes de pacotes, scripts e estrutura do perfil e executa a tentativa de build da ISO. Uma validação estática ou um build de CI não substitui boot real em VM, teste de hardware, instalação no disco e teste do sistema instalado.
 
-- Archiso oficial: https://gitlab.archlinux.org/archlinux/archiso
-- Repositório espelho de leitura: https://github.com/archlinux/archiso
-- Commit de referência: `8e3ead17e1e5cfde503534d23be918b8787d3dd3`
-- Perfil de referência: `configs/baseline`
-
-A lista de pacotes é uma seleção inicial da Forja OS, não uma cópia integral da lista baseline oficial.
+**Estado:** perfil e fluxo de construção inicial integrados ao branch de desenvolvimento. A primeira ISO ainda não foi validada como mídia inicializável ou instalável. Não executar build no Dell Inspiron com SSD de 128 GB; usar GitHub Actions ou um host Arch com espaço livre suficiente.
