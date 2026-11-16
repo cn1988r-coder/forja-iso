@@ -33,6 +33,7 @@ if grep -R -Eiq '(^|[[:space:]])snapper([[:space:]]|$)|snapper-' "$PACKAGES" "$S
   echo "FALHA: dependencia/referencia ativa ao Snapper encontrada." >&2; exit 1
 fi
 grep -Fq 'value="dockbarx"' "$PANEL"
+grep -Fq 'value="p=11;x=0;y=0"' "$PANEL" || { echo "FALHA: painel XFCE não está centralizado na borda inferior." >&2; exit 1; }
 if grep -Eiq 'docklike|xfce4-docklike-plugin' "$PANEL" "$PACKAGES" "$ROOT/desktops/xfce/packages.arch"; then
   echo "FALHA: referência ativa a Docklike encontrada." >&2; exit 1
 fi
