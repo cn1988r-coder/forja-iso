@@ -25,7 +25,7 @@ jobs:
       - name: Update Arch package databases and install validation tools
         run: |
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm python
+          pacman -S --needed --noconfirm python base-devel
 
       - name: Validate package names and dependency resolution
         shell: bash
@@ -63,4 +63,5 @@ jobs:
           python -c "import xml.etree.ElementTree as ET; ET.parse('desktop/mate/forja-store/br.forja.store.policy')"
           useradd --create-home builder
           chown -R builder:builder desktop/mate/forja-store
-          runuser -u builder -- bash -lc 'cd desktop/mate/forja-store && makepkg --printsrcinfo' >/tmp/forja-store.SRCINFO
+          runuser -u builder -- bash -lc 'cd desktop/mate/forja-store && makepkg --nodeps --noconfirm'
+          test -n "$(find desktop/mate/forja-store -maxdepth 1 -name 'forja-store-*.pkg.tar.zst' -print -quit)"
