@@ -624,6 +624,10 @@ manjaro-chroot "$ROOTFS_CHROOT" flatpak info --system org.ferdium.Ferdium >/dev/
   echo "ERRO: Ferdium não foi encontrado após a instalação no rootfs." >&2
   exit 48
 }
+test -s "$ROOTFS_CHROOT/var/lib/flatpak/exports/share/applications/org.ferdium.Ferdium.desktop" || {
+  echo "ERRO: o atalho do Ferdium não foi exportado para o menu XFCE." >&2
+  exit 49
+}
 install -Dm644 /forja-ci/desktops/xfce/plymouth/forja-mkinitcpio.conf "$ROOTFS_CHROOT/tmp/forja-mkinitcpio.conf"
 install -Dm755 /forja-ci/desktops/xfce/plymouth/apply-mkinitcpio.sh "$ROOTFS_CHROOT/tmp/forja-apply-mkinitcpio.sh"
 # Acrescenta os parâmetros silenciosos ao GRUB existente sem substituir
