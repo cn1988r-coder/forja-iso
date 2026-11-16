@@ -35,7 +35,7 @@ pavucontrol
 udisks2
 udisks2-btrfs
 btrfs-progs
-snapper
+timeshift
 inotify-tools
 dosfstools
 e2fsprogs
