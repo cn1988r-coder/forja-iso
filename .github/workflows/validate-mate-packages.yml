@@ -241,5 +241,7 @@ jobs:
           assert 'DBPath = /var/lib/forja-repo/' in open("desktop/mate/forja-repo/pacman.conf", encoding="utf-8").read()
           assert 'Include = /etc/pacman.conf' in open("desktop/mate/forja-repo/pacman-install.conf", encoding="utf-8").read()
           assert 'pacman -Syu' not in repo_client
+          assert 'pkexec /usr/bin/forja-pacman-transaction forja-sync' in repo_client
+          assert 'sudo ' not in repo_client
           print("Forja Store source integration tests passed.")
           PY
