@@ -4,13 +4,13 @@ set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO_ROOT="$(cd -- "$ROOT/../.." && pwd)"
 
-for script in "$ROOT/apply-forja-layout.sh" "$ROOT/install-branding.sh" "$ROOT/plymouth/forja-mkinitcpio.conf" "$REPO_ROOT/build-manjaro.sh" "$REPO_ROOT/forja-pamac-pacman/install.sh" "$REPO_ROOT/forja-pamac-pacman/build-pamac.sh"; do
+for script in "$ROOT/apply-forja-layout.sh" "$ROOT/install-branding.sh" "$ROOT/plymouth/forja-mkinitcpio.conf" "$REPO_ROOT/build-manjaro.sh"; do
   bash -n "$script"
 done
 
 for package in \
   adw-gtk-theme materia-gtk-theme papirus-icon-theme papirus-folders \
-  bibata-cursor-theme noto-fonts ttf-jetbrains-mono gtk3 gtk4 libadwaita libnotify libpamac-flatpak-plugin \
+  bibata-cursor-theme noto-fonts ttf-jetbrains-mono gtk3 libnotify libpamac-flatpak-plugin \
   gsettings-desktop-schemas appstream archlinux-appstream-data flatpak pamac-cli pamac-gtk libpamac libpamac-flatpak-plugin base-devel git \
   xfce4-panel dockbarx xfce4-dockbarx-plugin xfce4-whiskermenu-plugin \
   xfce4-pulseaudio-plugin xfce4-power-manager xfce4-notifyd plymouth \
@@ -137,14 +137,9 @@ for stock_wallpaper in manjaro-wallpapers-18.0 wallpapers-2018 wallpapers-juhray
 done
 grep -q 'forja-papirus-folders.service' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'papirus-folders -C grey --theme Papirus-Dark' "$REPO_ROOT/build-manjaro.sh"
-grep -q 'forja-pamac-pacman/install.sh' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'for overlay_name in desktop-overlay live-overlay' "$REPO_ROOT/build-manjaro.sh"
-grep -q 'FORJA_SKIP_STORE_INSTALL:-0' "$REPO_ROOT/build-manjaro.sh"
 
-grep -q 'OnlyShowIn=XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-update-indicator.desktop"
 grep -q 'polkit-gnome' "$ROOT/packages.manjaro"
-grep -q 'for state in available current error' "$REPO_ROOT/forja-pamac-pacman/install.sh"
-grep -q '"forja-update-error"' "$REPO_ROOT/forja-pamac-pacman/src/forja-update-indicator"
 
 grep -q '#000000' "$ROOT/forja-black-wallpaper.svg"
 grep -q '/usr/share/backgrounds/forja-black.svg' "$ROOT/forja-xfce-desktop.xml"
@@ -181,28 +176,8 @@ grep -q '@define-color forja_text #ffffff' "$ROOT/forja-gtk.css"
 ! grep -qiE '#[0-9a-f]*(00a|08f|f80|f00)' "$ROOT/forja-gtk.css"
 
 # Update badge is intentionally white with a gray check; pending updates use a gray X.
-grep -q 'stroke="#ffffff"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-current.svg"
-grep -q 'stroke="#777777"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-current.svg"
-grep -q 'stroke="#ffffff"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-available.svg"
-grep -q 'stroke="#777777"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-available.svg"
-grep -q 'OnlyShowIn=XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-update-indicator.desktop"
 
-# Forja Store is the Pamac GTK4/libadwaita frontend with Forja styling.
-test -f "$REPO_ROOT/forja-pamac-pacman/build-pamac.sh"
-test -f "$REPO_ROOT/forja-pamac-pacman/patches/forja-store.css"
-grep -q 'UPSTREAM_COMMIT="363e794fef4f9f6a0e54757fd12155cf27e02cc3"' "$REPO_ROOT/forja-pamac-pacman/build-pamac.sh"
-grep -q 'meson compile -C "$BUILD" pamac-manager' "$REPO_ROOT/forja-pamac-pacman/build-pamac.sh"
-grep -q 'about.application_name = "Forja Store"' "$REPO_ROOT/forja-pamac-pacman/build-pamac.sh"
-grep -q '@define-color forja_bg #111111' "$REPO_ROOT/forja-pamac-pacman/patches/forja-store.css"
-grep -q 'boxed-list > row' "$REPO_ROOT/forja-pamac-pacman/patches/forja-store.css"
-grep -q 'button.suggested-action' "$REPO_ROOT/forja-pamac-pacman/patches/forja-store.css"
-grep -q 'FORJA_PAMAC_BUILD_DIR' "$REPO_ROOT/forja-pamac-pacman/install.sh"
 grep -q 'libpamac-flatpak-plugin' "$REPO_ROOT/build-manjaro.sh"
-grep -q 'build-pamac.sh' "$REPO_ROOT/build-manjaro.sh"
-grep -q 'LD_LIBRARY_PATH="/usr/lib/forja' "$REPO_ROOT/forja-pamac-pacman/bin/forja-store"
-grep -q 'pamac' "$REPO_ROOT/forja-pamac-pacman/src/forja-pacman-transaction"
-grep -q 'parse_flatpak_updates' "$REPO_ROOT/forja-pamac-pacman/src/forja-update-indicator"
-grep -q 'forja_store_core.py' "$REPO_ROOT/forja-pamac-pacman/install.sh"
 
 # Btrfs: pacote presente no sistema Live/instalado, padrão do Calamares e compressão zstd.
 grep -q 'btrfs-progs' "$REPO_ROOT/build-manjaro.sh"
@@ -211,7 +186,12 @@ grep -q 'TARGET/rootfs/etc/calamares/modules/mount.conf' "$REPO_ROOT/build-manja
 grep -q '^defaultFileSystemType: "btrfs"$' "$ROOT/calamares/partition.conf"
 grep -q 'availableFileSystemTypes: \["btrfs", "ext4", "f2fs"\]' "$ROOT/calamares/partition.conf"
 grep -q 'compress=zstd:1' "$ROOT/calamares/mount.conf"
-echo "Forja XFCE: aparência, painel DockbarX, indicador e interface Pamac da Forja validados." "$ROOT/packages.manjaro"
+grep -q "^pamac-gtk$" "$ROOT/packages.manjaro"
+grep -q "^pamac-cli$" "$ROOT/packages.manjaro"
+grep -q "^libpamac$" "$ROOT/packages.manjaro"
+grep -q "^libpamac-flatpak-plugin$" "$ROOT/packages.manjaro"
+! grep -RqiE "Forja Store|forja-pamac-pacman|FORJA_SKIP_STORE_INSTALL" "$REPO_ROOT" --exclude-dir=.git
+echo "Forja XFCE: aparência, painel DockbarX e Pamac oficial validados."
 grep -q '>community-extra dockbarx' "$ROOT/packages.manjaro"
 grep -q '>community-extra xfce4-dockbarx-plugin' "$ROOT/packages.manjaro"
 grep -q '\[community-extra\]' "$REPO_ROOT/build-manjaro.sh"
@@ -259,14 +239,9 @@ for stock_wallpaper in manjaro-wallpapers-18.0 wallpapers-2018 wallpapers-juhray
 done
 grep -q 'forja-papirus-folders.service' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'papirus-folders -C grey --theme Papirus-Dark' "$REPO_ROOT/build-manjaro.sh"
-grep -q 'forja-pamac-pacman/install.sh' "$REPO_ROOT/build-manjaro.sh"
 grep -q 'for overlay_name in desktop-overlay live-overlay' "$REPO_ROOT/build-manjaro.sh"
-grep -q 'FORJA_SKIP_STORE_INSTALL:-0' "$REPO_ROOT/build-manjaro.sh"
 
-grep -q 'OnlyShowIn=XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-update-indicator.desktop"
 grep -q 'polkit-gnome' "$ROOT/packages.manjaro"
-grep -q 'for state in available current error' "$REPO_ROOT/forja-pamac-pacman/install.sh"
-grep -q '"forja-update-error"' "$REPO_ROOT/forja-pamac-pacman/src/forja-update-indicator"
 
 grep -q '#000000' "$ROOT/forja-black-wallpaper.svg"
 grep -q '/usr/share/backgrounds/forja-black.svg' "$ROOT/forja-xfce-desktop.xml"
@@ -301,28 +276,8 @@ grep -q '@define-color forja_text #ffffff' "$ROOT/forja-gtk.css"
 ! grep -qiE '#[0-9a-f]*(00a|08f|f80|f00)' "$ROOT/forja-gtk.css"
 
 # Update badge is intentionally white with a gray check; pending updates use a gray X.
-grep -q 'stroke="#ffffff"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-current.svg"
-grep -q 'stroke="#777777"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-current.svg"
-grep -q 'stroke="#ffffff"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-available.svg"
-grep -q 'stroke="#777777"' "$REPO_ROOT/forja-pamac-pacman/icons/forja-update-available.svg"
-grep -q 'OnlyShowIn=XFCE;' "$REPO_ROOT/forja-pamac-pacman/forja-update-indicator.desktop"
 
-# Forja Store is the Pamac GTK4/libadwaita frontend with Forja styling.
-test -f "$REPO_ROOT/forja-pamac-pacman/build-pamac.sh"
-test -f "$REPO_ROOT/forja-pamac-pacman/patches/forja-store.css"
-grep -q 'UPSTREAM_COMMIT="363e794fef4f9f6a0e54757fd12155cf27e02cc3"' "$REPO_ROOT/forja-pamac-pacman/build-pamac.sh"
-grep -q 'meson compile -C "$BUILD" pamac-manager' "$REPO_ROOT/forja-pamac-pacman/build-pamac.sh"
-grep -q 'about.application_name = "Forja Store"' "$REPO_ROOT/forja-pamac-pacman/build-pamac.sh"
-grep -q '@define-color forja_bg #111111' "$REPO_ROOT/forja-pamac-pacman/patches/forja-store.css"
-grep -q 'boxed-list > row' "$REPO_ROOT/forja-pamac-pacman/patches/forja-store.css"
-grep -q 'button.suggested-action' "$REPO_ROOT/forja-pamac-pacman/patches/forja-store.css"
-grep -q 'FORJA_PAMAC_BUILD_DIR' "$REPO_ROOT/forja-pamac-pacman/install.sh"
 grep -q 'libpamac-flatpak-plugin' "$REPO_ROOT/build-manjaro.sh"
-grep -q 'build-pamac.sh' "$REPO_ROOT/build-manjaro.sh"
-grep -q 'LD_LIBRARY_PATH="/usr/lib/forja' "$REPO_ROOT/forja-pamac-pacman/bin/forja-store"
-grep -q 'pamac' "$REPO_ROOT/forja-pamac-pacman/src/forja-pacman-transaction"
-grep -q 'parse_flatpak_updates' "$REPO_ROOT/forja-pamac-pacman/src/forja-update-indicator"
-grep -q 'forja_store_core.py' "$REPO_ROOT/forja-pamac-pacman/install.sh"
 
 # Btrfs: pacote presente no sistema Live/instalado, padrão do Calamares e compressão zstd.
 grep -q 'btrfs-progs' "$REPO_ROOT/build-manjaro.sh"
