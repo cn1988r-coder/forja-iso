@@ -131,7 +131,15 @@ jobs:
           python -m py_compile desktop/mate/forja-store/forja-store.py
           python -m py_compile desktop/mate/forja-store/forja-pacman-transaction
           xvfb-run -a dbus-run-session -- python desktop/mate/forja-store/forja-store.py --self-test
-          python -c "import xml.etree.ElementTree as ET; ET.parse('desktop/mate/forja-store/br.forja.store.policy')"
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          policy = ET.parse("desktop/mate/forja-store/br.forja.store.policy").getroot()
+          action = policy.find("action")
+          assert action is not None and action.attrib["id"] == "br.forja.store.manage-packages"
+          rule = open("desktop/mate/forja-store/49-forja-store.rules", encoding="utf-8").read()
+          assert 'action.id === "br.forja.store.manage-packages"' in rule
+          assert 'action.lookup("program") === "/usr/bin/forja-pacman-transaction"' in rule
+          PY
           useradd --create-home builder
           chown -R builder:builder desktop/mate/forja-store
           runuser -u builder -- bash -lc 'cd desktop/mate/forja-store && makepkg --nodeps --noconfirm'
