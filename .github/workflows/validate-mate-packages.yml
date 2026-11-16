@@ -139,3 +139,40 @@ jobs:
             echo "The transaction helper accepted an invalid action." >&2
             exit 1
           fi
+
+          python - <<'PY'
+          import runpy
+          from unittest.mock import patch
+
+          helper = runpy.run_path("desktop/mate/forja-store/forja-pacman-transaction")
+          main = helper["main"]
+
+          with patch.object(helper["subprocess"], "call", side_effect=[0, 0]) as call:
+              assert main(["flatpak-install-system", "org.mozilla.firefox"]) == 0
+              assert call.call_args_list[0].args[0] == [
+                  "/usr/bin/flatpak", "remote-add", "--if-not-exists",
+                  "--system", "flathub", "https://flathub.org/repo/flathub.flatpakrepo"
+              ]
+              assert call.call_args_list[1].args[0] == [
+                  "/usr/bin/flatpak", "install", "--system",
+                  "--noninteractive", "--assumeyes", "flathub", "org.mozilla.firefox"
+              ]
+
+          with patch.object(helper["subprocess"], "call", return_value=0) as call:
+              assert main(["flatpak-remove-system", "org.mozilla.firefox"]) == 0
+              assert call.call_args.args[0] == [
+                  "/usr/bin/flatpak", "uninstall", "--system",
+                  "--noninteractive", "--assumeyes", "org.mozilla.firefox"
+              ]
+
+          with patch.object(helper["subprocess"], "call") as call:
+              assert main(["flatpak-remove-system", "invalid-id"]) == 2
+              call.assert_not_called()
+
+          store = open("desktop/mate/forja-store/forja-store.py", encoding="utf-8").read()
+          assert 'flatpak search' in store
+          assert 'flatpak install' in store
+          assert 'flatpak-remove-system' in store
+          assert 'forja-aur-build' in store
+          print("Forja Store source integration tests passed.")
+          PY
