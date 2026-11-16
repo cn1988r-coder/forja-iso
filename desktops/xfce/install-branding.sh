@@ -28,12 +28,6 @@ fi
 install -Dm644 "$ROOT/forja-flame.svg" "$DEST/usr/share/icons/hicolor/scalable/apps/forja.svg"
 install -Dm644 "$ROOT/forja-black-wallpaper.svg" "$DEST/usr/share/backgrounds/forja-black.svg"
 
-# Plymouth: tela preta, texto FORJA OS e animação luminosa minimalista.
-install -Dm644 "$ROOT/plymouth/forja.plymouth" "$DEST/usr/share/plymouth/themes/forja/forja.plymouth"
-install -Dm644 "$ROOT/plymouth/forja.script" "$DEST/usr/share/plymouth/themes/forja/forja.script"
-install -Dm644 "$ROOT/plymouth/plymouthd.conf" "$DEST/etc/plymouth/plymouthd.conf"
-install -Dm644 "$ROOT/plymouth/forja-mkinitcpio.conf" "$DEST/etc/mkinitcpio.conf.d/forja-plymouth.conf"
-install -Dm644 "$ROOT/plymouth/forja-grub" "$DEST/etc/default/grub"
 install -Dm755 "$ROOT/apply-forja-layout.sh" "$DEST/usr/lib/forja/apply-xfce-layout.sh"
 install -Dm644 "$ROOT/forja-xfce-appearance.desktop" "$DEST/etc/xdg/autostart/forja-xfce-appearance.desktop"
 # Shelly opens with the user's XFCE session; its UI starts its notification service.
