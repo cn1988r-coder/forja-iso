@@ -25,7 +25,7 @@ jobs:
       - name: Update Arch package databases and install validation tools
         run: |
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm python base-devel shadow gtk3 python-gobject
+          pacman -S --needed --noconfirm python base-devel shadow gtk3 python-gobject python-cairo xorg-server-xvfb xorg-xauth dbus
 
       - name: Validate package names and dependency resolution
         shell: bash
@@ -60,6 +60,7 @@ jobs:
           bash -n desktop/mate/scripts/validate-packages.sh
           python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
           python -m py_compile desktop/mate/forja-monitor/forja-monitor.py
+          xvfb-run -a dbus-run-session -- python desktop/mate/forja-monitor/forja-monitor.py --self-test
           python -m py_compile desktop/mate/forja-store/forja-store.py
           python -m py_compile desktop/mate/forja-store/forja-pacman-transaction
           python -c "import xml.etree.ElementTree as ET; ET.parse('desktop/mate/forja-store/br.forja.store.policy')"
