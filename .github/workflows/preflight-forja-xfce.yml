@@ -73,8 +73,8 @@ jobs:
           set -Eeuo pipefail
           su builder -c 'cd /tmp/EndeavourOS-ISO/forja-xfce-profile && ./prepare.sh'
           mapfile -t packages < <(find /tmp/EndeavourOS-ISO/forja-xfce-profile/airootfs/root/packages -maxdepth 1 -type f -name '*.pkg.tar.zst' -print)
-          (( ${#packages[@]} == 6 )) || {
-            echo "Esperados seis pacotes locais Forja; encontrados: ${#packages[@]}" >&2
+          (( ${#packages[@]} == 7 )) || {
+            echo "Esperados sete pacotes locais Forja; encontrados: ${#packages[@]}" >&2
             exit 1
           }
           for package in "${packages[@]}"; do pacman -Qp "$package"; done
