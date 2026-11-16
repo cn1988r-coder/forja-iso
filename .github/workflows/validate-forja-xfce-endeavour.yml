@@ -1,0 +1,31 @@
+name: Validate Forja XFCE EndeavourOS profile
+
+on:
+  push:
+    branches:
+      - feature/forja-xfce-endeavouros-port
+    paths:
+      - 'profiles/forja-xfce/**'
+      - 'desktops/xfce/**'
+      - '.github/workflows/validate-forja-xfce-endeavour.yml'
+  pull_request:
+    paths:
+      - 'profiles/forja-xfce/**'
+      - 'desktops/xfce/**'
+      - '.github/workflows/validate-forja-xfce-endeavour.yml'
+
+jobs:
+  static-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XML validator
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxml2-utils
+      - name: Validate profile scripts and packages
+        run: bash profiles/forja-xfce/tests/validate-profile.sh
+      - name: Validate XFCE XML configuration
+        run: |
+          xmllint --noout desktops/xfce/panel-default.xml
+          xmllint --noout desktops/xfce/forja-xfce-desktop.xml
