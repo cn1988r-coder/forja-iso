@@ -1,12 +1,12 @@
-/* Forja OS: restrained monochrome styling, aligned with Adwaita Dark. */
-@define-color forja_bg #242424;
-@define-color forja_surface #303030;
-@define-color forja_surface_alt #292929;
-@define-color forja_hover #3b3b3b;
-@define-color forja_border #454545;
-@define-color forja_text #ffffff;
-@define-color forja_muted #c0bfbc;
-@define-color forja_selected #454545;
+/* Forja OS: modern Whisker menu, monochrome graphite interface. */
+@define-color forja_bg #202020;
+@define-color forja_surface #292929;
+@define-color forja_surface_alt #252525;
+@define-color forja_hover #393939;
+@define-color forja_border #414141;
+@define-color forja_text #f4f4f4;
+@define-color forja_muted #b7b7b7;
+@define-color forja_selected #444444;
 
 #XfcePanelWindow {
   background-color: @forja_surface;
@@ -14,76 +14,80 @@
   border-top: 1px solid @forja_border;
 }
 
-/* Forja OS 2026: Whisker compact, crisp and deliberately composed. */
+/* Floating launcher surface */
 #whiskermenu-window {
-  background-color: #202020;
-  color: #f2f2f2;
-  border: 1px solid #414141;
-  border-radius: 14px;
-  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.48);
+  background-color: @forja_bg;
+  color: @forja_text;
+  border: 1px solid #484848;
+  border-radius: 16px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.58);
 }
 
 #whiskermenu-window frame,
-#whiskermenu-window .contents {
-  background-color: #202020;
+#whiskermenu-window .contents,
+#whiskermenu-window .launchers-pane {
+  background-color: @forja_bg;
   border: 0;
 }
 
 #whiskermenu-window .title-area {
-  background-image: linear-gradient(to bottom, #292929, #242424);
-  padding: 12px 14px 10px;
-  border-bottom: 1px solid #3b3b3b;
+  background-color: #262626;
+  padding: 15px 17px 13px;
+  border-bottom: 1px solid #3c3c3c;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
 }
 
 #whiskermenu-window .title-area .profile-username {
-  color: #f5f5f5;
-  font-size: 11pt;
-  font-weight: 650;
-  letter-spacing: 0.2px;
+  color: @forja_text;
+  font-size: 12pt;
+  font-weight: 700;
+  letter-spacing: 0.25px;
 }
 
 #whiskermenu-window .profile-picture {
   border: 1px solid #555555;
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 #whiskermenu-window .search-area {
-  background-color: #242424;
-  padding: 10px 12px;
-  border-bottom: 1px solid #3b3b3b;
+  background-color: #262626;
+  padding: 12px 15px 14px;
+  border-bottom: 1px solid #3c3c3c;
 }
 
 #whiskermenu-window entry {
-  min-height: 34px;
-  background-color: #171717;
-  color: #f5f5f5;
-  border: 1px solid #454545;
-  border-radius: 9px;
-  padding: 5px 10px;
+  min-height: 38px;
+  background-color: #191919;
+  color: @forja_text;
+  border: 1px solid #4a4a4a;
+  border-radius: 10px;
+  padding: 6px 12px;
   caret-color: #ffffff;
   box-shadow: none;
+  font-size: 10pt;
 }
 
 #whiskermenu-window entry:focus {
-  background-color: #191919;
-  border-color: #858585;
-  box-shadow: inset 0 0 0 1px #555555;
+  background-color: #1b1b1b;
+  border-color: #888888;
+  box-shadow: inset 0 0 0 1px #5a5a5a;
 }
 
 #whiskermenu-window .categories {
   background-color: #252525;
   border-right: 1px solid #3c3c3c;
-  padding: 7px 6px;
+  padding: 10px 8px;
 }
 
 #whiskermenu-window .category-button {
-  min-height: 30px;
-  margin: 2px 1px;
-  padding: 5px 8px;
+  min-height: 36px;
+  margin: 3px 1px;
+  padding: 7px 10px;
   background-color: transparent;
-  color: #bcbcbc;
+  color: @forja_muted;
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: 9px;
   font-size: 9.5pt;
   font-weight: 500;
   box-shadow: none;
@@ -98,87 +102,85 @@
   background-color: #414141;
   color: #ffffff;
   border-color: #555555;
-  box-shadow: inset 2px 0 0 #d0d0d0;
-}
-
-#whiskermenu-window .launchers-pane,
-#whiskermenu-window .launchers {
-  background-color: #202020;
-  color: #f1f1f1;
+  box-shadow: inset 3px 0 0 #d0d0d0;
 }
 
 #whiskermenu-window .launchers {
-  padding: 7px 9px;
+  background-color: @forja_bg;
+  color: @forja_text;
+  padding: 10px 12px;
 }
 
 #whiskermenu-window .launchers button {
-  min-height: 34px;
-  margin: 1px 2px;
-  padding: 5px 8px;
+  min-height: 42px;
+  margin: 3px 2px;
+  padding: 7px 10px;
   background-color: transparent;
-  color: #ededed;
+  color: #eeeeee;
   border: 1px solid transparent;
-  border-radius: 7px;
-  font-size: 9.5pt;
+  border-radius: 9px;
+  font-size: 10pt;
   box-shadow: none;
 }
 
 #whiskermenu-window .launchers button:hover {
-  background-color: #343434;
-  border-color: #484848;
+  background-color: #353535;
+  border-color: #4a4a4a;
   color: #ffffff;
 }
 
 #whiskermenu-window .launchers button:focus,
 #whiskermenu-window .launchers button:selected {
-  background-color: #3c3c3c;
+  background-color: #414141;
   border-color: #606060;
   color: #ffffff;
 }
 
 #whiskermenu-window .commands-area {
-  background-color: #242424;
-  padding: 7px 9px;
-  border-top: 1px solid #3b3b3b;
+  background-color: #262626;
+  padding: 9px 12px;
+  border-top: 1px solid #3c3c3c;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
 }
 
 #whiskermenu-window .command-button {
-  min-width: 30px;
-  min-height: 30px;
-  margin: 1px 3px;
-  padding: 4px;
+  min-width: 34px;
+  min-height: 34px;
+  margin: 2px 4px;
+  padding: 5px;
   background-color: transparent;
-  color: #bdbdbd;
+  color: #c5c5c5;
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: 9px;
   box-shadow: none;
 }
 
 #whiskermenu-window .command-button:hover {
-  background-color: #383838;
+  background-color: #3a3a3a;
   color: #ffffff;
   border-color: #505050;
 }
 
 #whiskermenu-window scrollbar slider {
-  background-color: #666666;
-  border-radius: 6px;
-  min-width: 5px;
-  min-height: 5px;
+  background-color: #686868;
+  border-radius: 7px;
+  min-width: 6px;
+  min-height: 6px;
 }
 
 #whiskermenu-window scrollbar slider:hover {
-  background-color: #999999;
+  background-color: #a0a0a0;
 }
 
 #whiskermenu-button {
   background-color: transparent;
   color: @forja_text;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 9px;
   margin: 4px 3px;
-  padding: 0 11px;
-  font-weight: 600;
+  padding: 0 12px;
+  font-weight: 650;
 }
 
 #whiskermenu-button:hover {
@@ -192,14 +194,12 @@
   background-color: @forja_selected;
   color: @forja_text;
   border: 1px solid #666666;
-  box-shadow: inset 0 -2px 0 #bdbdbd;
 }
 
 #whiskermenu-button image {
   -gtk-icon-style: symbolic;
 }
 
-/* Consistent spacing for native XFCE panel items and status indicators. */
 #XfcePanelWindow button {
   min-height: 30px;
   padding: 0 6px;
