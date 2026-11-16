@@ -383,14 +383,20 @@ class Store(Gtk.Application):
                 self.run_privileged(["remove", name], "Remoção de " + name)
             return
         if item["source"] == "aur":
-            dialog = Gtk.MessageDialog(transient_for=self.window, modal=True,
-                message_type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK_CANCEL,
-                text="Pacote comunitário do AUR")
-            dialog.format_secondary_text("O AUR não é revisado oficialmente. A compilação abre um terminal para que você revise o PKGBUILD e confirme a instalação.")
-            response = dialog.run()
+            dialog = Gtk.MessageDialog(
+                transient_for=self.window, modal=True,
+                message_type=Gtk.MessageType.INFO,
+                buttons=Gtk.ButtonsType.CLOSE,
+                text="Instalação gráfica do AUR ainda não disponível",
+            )
+            dialog.format_secondary_text(
+                "A Forja Store permite pesquisar pacotes do AUR, mas não inicia "
+                "terminais nem executa receitas comunitárias nesta versão. "
+                "Use os repositórios oficiais do Arch para instalar aplicativos "
+                "diretamente pela loja."
+            )
+            dialog.run()
             dialog.destroy()
-            if response == Gtk.ResponseType.OK and shutil.which("mate-terminal"):
-                subprocess.Popen(["mate-terminal", "--", "bash", "-lc", "exec /usr/bin/forja-aur-build " + name])
             return
         installed = name in self.installed
         verb = "remover" if installed else "instalar"
