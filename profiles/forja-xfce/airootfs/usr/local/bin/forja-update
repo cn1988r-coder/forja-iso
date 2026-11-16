@@ -2,6 +2,7 @@
 """Safe, manifest-driven updater for Forja XFCE components."""
 from __future__ import annotations
 import hashlib, json, os, shutil, sys, tempfile, urllib.request
+from urllib.parse import urlparse
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -40,7 +41,12 @@ def fetch(url: str, destination: Path) -> None:
     request = urllib.request.Request(url, headers={"User-Agent": "Forja-Update/1"})
     with urllib.request.urlopen(request, timeout=30) as response, destination.open("wb") as out:
         final_url = response.geturl()
-        if not (final_url.startswith(ASSET_PREFIX) or final_url.startswith("https://raw.githubusercontent.com/" + REPOSITORY + "/")):
+        parsed = urlparse(final_url)
+        if url.startswith(ASSET_PREFIX):
+            trusted = parsed.scheme == "https" and parsed.hostname in ("github.com", "release-assets.githubusercontent.com")
+        else:
+            trusted = final_url.startswith("https://raw.githubusercontent.com/" + REPOSITORY + "/")
+        if not trusted:
             fail("redirecionamento de download não confiável.")
         shutil.copyfileobj(response, out)
 
@@ -141,7 +147,7 @@ def main() -> None:
                     Path(temp_name).unlink(missing_ok=True)
                 applied.append(record)
             (backup_dir / "state.json").write_text(json.dumps({"files": records}, indent=2), encoding="utf-8")
-        except Exception:
+        except BaseException:
             for item in reversed(applied):
                 target = Path(item["target"])
                 backup = backup_dir / item["backup"] if item["backup"] else None
