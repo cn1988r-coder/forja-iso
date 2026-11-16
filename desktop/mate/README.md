@@ -24,7 +24,7 @@ Ao final, o Archinstall executa um comando pós-instalação que obtém o códig
 
 ## Aplicativos Forja incluídos no plano
 
-- **Forja Store:** loja GTK3 para pacotes oficiais, AUR e Flatpak, com as limitações documentadas no próprio código.
+- **Forja Store:** loja GTK3 para repositórios oficiais do Arch, AUR e Flathub. Pacotes oficiais usam Polkit/Pacman; Flatpaks podem ser instalados por usuário ou para todo o sistema e atualizados separadamente; pacotes AUR são pesquisados e abertos em sessão de revisão/compilação como usuário comum.
 - **Forja Monitor / Sobre do Forja OS:** monitor GTK3/Cairo e informações de hardware. Não usa daemon residente.
 - **Indicador de atualizações:** consulta atualizações oficiais via checkupdates e abre a Forja Store.
 - **Forja Luz Noturna:** protótipo GTK3/XRandR; depende do suporte do driver gráfico.
