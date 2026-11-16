@@ -60,6 +60,16 @@ if grep -Eiq "rm[[:space:]]+-rf|mkfs\\.|dd[[:space:]]+if=" "$RECOVERY/forja-reco
   echo "FALHA: operação destrutiva não permitida no núcleo inicial do Recovery." >&2
   exit 1
 fi
+grep -Fq 'cp -a "$PROFILE_DIR/airootfs/." "$TARGET/airootfs/"' "$PROFILE/prepare-forja.sh"
+grep -Fq '"$TARGET/airootfs/root/liveuser.png"' "$PROFILE/prepare-forja.sh"
+grep -Fq '(( ${#local_packages[@]} == 5 ))' "$PROFILE/prepare.sh"
+grep -Fq '0bbb1280ccd373262561453d85201f2707483990' "$ROOT/.github/workflows/build-forja-iso.yml"
+grep -Fq '0bbb1280ccd373262561453d85201f2707483990' "$ROOT/.github/workflows/preflight-forja-xfce.yml"
+if grep -Fxq 'calamares' "$PACKAGES"; then
+  echo "FALHA: Calamares não deve entrar sem branding e configuração Forja validados." >&2
+  exit 1
+fi
+grep -Fq 'não instalará o sistema pelo Calamares' "$PROFILE/README.md"
 grep -Fq "cn1988r-coder/forja-updates" "$PROFILE/airootfs/usr/local/bin/forja-update"
 grep -Fq "forja-update --rollback" "$PROFILE/airootfs/usr/local/bin/forja-update"
 if grep -Eq "forja-updates.*(pacman.conf|Server =)" "$PROFILE/airootfs/usr/local/bin/forja-update"; then echo "FALHA: Forja Updates não pode ser configurado como repositório pacman." >&2; exit 1; fi
