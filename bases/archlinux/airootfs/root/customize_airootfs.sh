@@ -21,4 +21,20 @@ if [[ -d /etc/skel/.config ]]; then
   cp -a /etc/skel/.config /home/forja/
   chown -R forja:forja /home/forja/.config
 fi
+cat > /etc/locale.gen <<'EOF'
+pt_BR.UTF-8 UTF-8
+en_US.UTF-8 UTF-8
+EOF
+locale-gen
+printf '%s\n' 'LANG=pt_BR.UTF-8' > /etc/locale.conf
+ln -snf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
+install -d /etc/X11/xorg.conf.d
+cat > /etc/X11/xorg.conf.d/00-keyboard.conf <<'EOF'
+Section "InputClass"
+    Identifier "Forja Brazilian keyboard"
+    MatchIsKeyboard "on"
+    Option "XkbLayout" "br"
+    Option "XkbVariant" "abnt2"
+EndSection
+EOF
 systemctl enable NetworkManager.service bluetooth.service lightdm.service
