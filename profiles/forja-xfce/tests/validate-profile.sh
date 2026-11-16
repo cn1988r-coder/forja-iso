@@ -6,8 +6,9 @@ PACKAGES="$PROFILE/packages.x86_64"
 DOCKBARX="$PROFILE/forja-packages/dockbarx/PKGBUILD"
 DOCKBARX_INSTALL="$PROFILE/forja-packages/dockbarx/dockbarx.install"
 DOCKBARX_PLUGIN="$PROFILE/forja-packages/xfce4-dockbarx-plugin/PKGBUILD"
+RECOVERY="$PROFILE/forja-packages/forja-recovery"
 PANEL="$ROOT/desktops/xfce/panel-default.xml"
-required=("$PROFILE/profiledef.sh" "$PROFILE/prepare.sh" "$PROFILE/prepare-forja.sh" "$PROFILE/run_before_squashfs.sh" "$PROFILE/apply-forja-live.sh" "$PROFILE/README.md" "$DOCKBARX" "$DOCKBARX_INSTALL" "$DOCKBARX_PLUGIN" "$ROOT/desktops/xfce/install-branding.sh" "$ROOT/desktops/xfce/apply-forja-layout.sh" "$PANEL")
+required=("$PROFILE/profiledef.sh" "$PROFILE/prepare.sh" "$PROFILE/prepare-forja.sh" "$PROFILE/run_before_squashfs.sh" "$PROFILE/apply-forja-live.sh" "$PROFILE/README.md" "$DOCKBARX" "$DOCKBARX_INSTALL" "$DOCKBARX_PLUGIN" "$RECOVERY/PKGBUILD" "$RECOVERY/forja-recovery-cli" "$RECOVERY/forja-recovery-gui" "$RECOVERY/forja-recovery.desktop" "$RECOVERY/README.md" "$ROOT/desktops/xfce/install-branding.sh" "$ROOT/desktops/xfce/apply-forja-layout.sh" "$PANEL")
 for file in "${required[@]}"; do
   [[ -f "$file" ]] || { echo "FALHA: arquivo ausente: $file" >&2; exit 1; }
 done
@@ -16,6 +17,9 @@ bash -n "$PROFILE/prepare.sh"
 bash -n "$PROFILE/prepare-forja.sh"
 bash -n "$PROFILE/run_before_squashfs.sh"
 bash -n "$PROFILE/apply-forja-live.sh"
+bash -n "$RECOVERY/PKGBUILD"
+python3 -m py_compile "$RECOVERY/forja-recovery-cli" "$RECOVERY/forja-recovery-gui"
+rm -rf "$RECOVERY/__pycache__"
 bash -n "$ROOT/desktops/xfce/profile.conf"
 bash -n "$ROOT/desktops/xfce/install-branding.sh"
 bash -n "$ROOT/desktops/xfce/apply-forja-layout.sh"
@@ -25,7 +29,7 @@ if grep -Eiq 'manjaro|mhwd|pacman-mirrors' "$PACKAGES"; then
 fi
 duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$PACKAGES" | awk '{print $1}' | sort | uniq -d)"
 [[ -z "$duplicates" ]] || { echo "FALHA: pacotes duplicados: $duplicates" >&2; exit 1; }
-for package in base xorg-server arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils syslinux dracut eos-dracut linux xfce4 lightdm firefox papirus-icon-theme bibata-cursor-theme reflector curl; do
+for package in snapper gtk3 python-gobject base xorg-server arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils syslinux dracut eos-dracut linux xfce4 lightdm firefox papirus-icon-theme bibata-cursor-theme reflector curl; do
   grep -Fxq "$package" "$PACKAGES" || { echo "FALHA: pacote obrigatório ausente: $package" >&2; exit 1; }
 done
 grep -Fq 'value="dockbarx"' "$PANEL"
@@ -48,4 +52,10 @@ grep -Fq 'for required in profiledef.sh prepare.sh run_before_squashfs.sh pacman
 grep -Fq 'for required_dir in airootfs efiboot syslinux' "$PROFILE/prepare-forja.sh"
 grep -Fq 'cp -a "$UPSTREAM_ROOT/efiboot" "$TARGET/"' "$PROFILE/prepare-forja.sh"
 grep -Fq 'cp -a "$UPSTREAM_ROOT/syslinux" "$TARGET/"' "$PROFILE/prepare-forja.sh"
-echo "Validação estática do perfil Forja XFCE/EndeavourOS concluída (DockbarX; sem ISO)."
+grep -Fq "forja-recovery-*.pkg.tar.zst" "$PROFILE/prepare.sh"
+grep -Fq "forja-recovery-cli diagnose" "$RECOVERY/README.md"
+if grep -Eiq "rm[[:space:]]+-rf|mkfs\\.|dd[[:space:]]+if=" "$RECOVERY/forja-recovery-cli" "$RECOVERY/forja-recovery-gui"; then
+  echo "FALHA: operação destrutiva não permitida no núcleo inicial do Recovery." >&2
+  exit 1
+fi
+echo "Validação estática do perfil Forja XFCE/EndeavourOS concluída (DockbarX e Forja Recovery; sem ISO)."
