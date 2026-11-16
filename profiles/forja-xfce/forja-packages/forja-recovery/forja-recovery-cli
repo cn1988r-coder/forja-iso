@@ -51,7 +51,7 @@ def diagnose() -> list[dict]:
     results.append(check("Integração GRUB-Btrfs", shutil.which("grub-btrfsd") is not None,
                          shutil.which("grub-btrfsd") or "grub-btrfsd não encontrado."))
     explicit, detail = root_uses_explicit_btrfs_subvolume()
-    rollback_ready = not explicit and not detail.startswith("Não foi encontrada")
+    rollback_ready = not explicit
     results.append(check("Layout de rollback Snapper", rollback_ready, detail))
     return results
 
@@ -75,7 +75,7 @@ def root_uses_explicit_btrfs_subvolume() -> tuple[bool, str]:
     fstab = Path("/etc/fstab")
     found = False
     if not fstab.is_file():
-        return False, "/etc/fstab não está disponível."
+        return True, "/etc/fstab não está disponível; rollback bloqueado."
     for raw in fstab.read_text(encoding="utf-8", errors="replace").splitlines():
         line = raw.split("#", 1)[0].strip()
         if not line:
@@ -92,7 +92,7 @@ def root_uses_explicit_btrfs_subvolume() -> tuple[bool, str]:
             if token.startswith("rootflags=") and ("subvol=" in token or "subvolid=" in token):
                 return True, "A linha de comando do kernel fixa o subvolume raiz por rootflags."
     if not found:
-        return False, "Não foi encontrada uma entrada verificável para / em /etc/fstab."
+        return True, "Não foi encontrada uma entrada verificável para / em /etc/fstab; rollback bloqueado."
     return False, "A raiz usa o subvolume padrão do Btrfs."
 
 def rollback_snapshot(number: int, confirmed: bool) -> tuple[int, str]:
@@ -106,7 +106,7 @@ def rollback_snapshot(number: int, confirmed: bool) -> tuple[int, str]:
     if rc or fs.strip() != "btrfs":
         return 3, "A raiz não está em Btrfs. Nenhuma alteração foi feita."
     explicit, detail = root_uses_explicit_btrfs_subvolume()
-    if explicit or "Não foi encontrada" in detail:
+    if explicit:
         return 6, detail + " Rollback automático bloqueado para evitar alterar o subvolume errado."
     rc, out = run(["snapper", "-c", "root", "list", "--columns", "number"])
     if rc:
