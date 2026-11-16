@@ -1,9 +1,14 @@
 [Desktop Entry]
+Version=1.0
 Type=Application
 Name=Forja Store
-Comment=Loja de aplicativos da Forja OS
+GenericName=Loja de aplicativos
+Comment=Instale e atualize aplicativos na Forja OS
 Exec=/usr/bin/forja-store
-Icon=system-software-install
+TryExec=/usr/bin/forja-store
+Icon=forja-store
 Terminal=false
+DBusActivatable=false
 Categories=System;PackageManager;
 StartupNotify=true
+StartupWMClass=br.forja.Store
