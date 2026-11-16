@@ -68,6 +68,10 @@ jobs:
           done
           pacman -Sp --needed --print-format '%n %v' -- "${base_packages[@]}" | tee /tmp/arch-base-transaction.txt
           bash -n bases/archlinux/profiledef.sh
+          bash -n bases/archlinux/build-profile.sh
+          bash -n bases/archlinux/airootfs/root/customize_airootfs.sh
+          bash -n bases/archlinux/validate-profile.sh
+          bash bases/archlinux/validate-profile.sh
           pacman-conf --config bases/archlinux/pacman.conf --repo-list
 
           bash -n desktop/mate/apply-defaults.sh
@@ -75,8 +79,10 @@ jobs:
           bash -n desktop/mate/install-forja-update-indicator.sh
           bash -n desktop/mate/install-forja-store.sh
           bash -n desktop/mate/install-forja-monitor.sh
+          bash -n desktop/mate/forja-repo/forja-repo
           bash -n desktop/mate/forja-store/forja-aur-build
           bash -n desktop/mate/forja-store/PKGBUILD
+          bash -n desktop/mate/forja-repo/PKGBUILD
           bash -n desktop/mate/scripts/validate-packages.sh
           python -m py_compile desktop/mate/forja-update-indicator/forja-update-indicator.py
           python -m py_compile desktop/mate/forja-monitor/forja-monitor.py
