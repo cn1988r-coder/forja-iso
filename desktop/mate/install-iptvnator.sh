@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Installs the official IPTVnator pacman package into an already prepared
-# Arch/EndeavourOS root filesystem. Run as root on the ISO build host.
+# Arch Linux root filesystem. Run as root on the ISO build host.
 # Usage: install-iptvnator.sh /path/to/airootfs
 
 ROOT="${1:-}"
