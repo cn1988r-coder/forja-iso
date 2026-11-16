@@ -614,6 +614,16 @@ ROOTFS_CHROOT="$(find "$CHROOTS" -type d -name rootfs -print -quit)"
   echo "ERRO: buildiso não deixou o rootfs de trabalho disponível para configurar o Plymouth." >&2
   exit 44
 }
+
+# Ferdium é incluído como aplicativo instalado no sistema, não apenas listado na Shelly.
+# O Flatpak é instalado em escopo system dentro do rootfs para aparecer no menu XFCE.
+echo "Instalando Ferdium no rootfs da Forja OS..."
+manjaro-chroot "$ROOTFS_CHROOT" flatpak remote-add --system --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+manjaro-chroot "$ROOTFS_CHROOT" flatpak install --system --noninteractive --assumeyes flathub org.ferdium.Ferdium
+manjaro-chroot "$ROOTFS_CHROOT" flatpak info --system org.ferdium.Ferdium >/dev/null || {
+  echo "ERRO: Ferdium não foi encontrado após a instalação no rootfs." >&2
+  exit 48
+}
 install -Dm644 /forja-ci/desktops/xfce/plymouth/forja-mkinitcpio.conf "$ROOTFS_CHROOT/tmp/forja-mkinitcpio.conf"
 install -Dm755 /forja-ci/desktops/xfce/plymouth/apply-mkinitcpio.sh "$ROOTFS_CHROOT/tmp/forja-apply-mkinitcpio.sh"
 # Acrescenta os parâmetros silenciosos ao GRUB existente sem substituir
