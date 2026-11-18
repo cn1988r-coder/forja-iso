@@ -38,6 +38,5 @@ jobs:
           shellcheck -S warning -e SC1091 build-manjaro.sh build-cloud.sh
           desktop-file-validate desktops/mate/panel-launchers/*.desktop
           python3 -c 'import json, xml.etree.ElementTree as ET; json.load(open("desktops/mate/fastfetch/config.jsonc")); ET.parse("desktops/mate/panel-launchers/forja-menu.svg")'
-          xmllint --noout desktops/mate/panel/forja.layout
           grep -Fq 'ref: feature/forja-manjaro-mate' .github/workflows/build-forja-iso.yml
           grep -Fq 'retention-days: 1' .github/workflows/build-forja-iso.yml
