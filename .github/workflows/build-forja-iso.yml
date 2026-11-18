@@ -21,6 +21,16 @@ jobs:
         with:
           ref: feature/forja-manjaro-mate
 
+      - name: Install build validation tools
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          sudo apt-get update
+          sudo apt-get install -y shellcheck desktop-file-utils python3
+          command -v shellcheck
+          command -v desktop-file-validate
+          python3 --version
+
       - name: Identify exact Forja OS source revision
         shell: bash
         run: |
