@@ -21,6 +21,15 @@ jobs:
         with:
           ref: feature/forja-manjaro-mate
 
+      - name: Identify exact Forja OS source revision
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          echo "Source branch: feature/forja-manjaro-mate"
+          echo "Source commit: $(git rev-parse HEAD)"
+          test -s desktops/mate/profile.conf
+          test -s build-manjaro.sh
+
       - name: Validate MATE source before build
         shell: bash
         run: |
@@ -61,6 +70,26 @@ jobs:
           )
           printf 'Docker image: %s\n' "${DOCKER_ARGS[-2]}"
           docker run "${DOCKER_ARGS[@]}"
+
+      - name: Verify ISO and SHA-256 before publishing
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          shopt -s nullglob
+          isos=(forja-output/*.iso)
+          test "${#isos[@]}" -eq 1 || {
+            echo "ERRO: esperado exatamente um arquivo ISO, encontrados: ${#isos[@]}" >&2
+            exit 1
+          }
+          iso="${isos[0]}"
+          test -s "$iso"
+          test -s "$iso.sha256"
+          test -s forja-output/build-info.txt
+          (cd forja-output && sha256sum -c "$(basename "$iso").sha256")
+          grep -Fxq 'BASE=Manjaro Stable' forja-output/build-info.txt
+          grep -Fxq 'DESKTOP=mate' forja-output/build-info.txt
+          grep -Fxq 'KERNEL=lts' forja-output/build-info.txt
+          echo "ISO validada para publicação: $iso"
 
       - name: Upload temporary ISO artifact (24 hours)
         uses: actions/upload-artifact@v4
