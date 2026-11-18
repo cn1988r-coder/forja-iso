@@ -42,17 +42,22 @@ jobs:
             docker volume rm -f "$WORK_VOLUME" >/dev/null 2>&1 || true
           }
           trap cleanup_work_volume EXIT
-          docker run --rm --privileged \\
-            --mount "type=volume,source=$WORK_VOLUME,target=/forja-work" \\
-            --volume "$GITHUB_WORKSPACE:/forja-ci" \\
-            --volume "$GITHUB_WORKSPACE/forja-output:/forja-output" \\
-            --env FORJA_WORK=/forja-work \\
-            --env FORJA_DISTRIBUTION=manjaro \\
-            --env FORJA_DESKTOP=mate \\
-            --env FORJA_KERNEL=lts \\
-            --env FORJA_OUTPUT=/forja-output \\
-            manjarolinux/base:latest \\
+          DOCKER_ARGS=(
+            --rm
+            --privileged
+            --mount "type=volume,source=${WORK_VOLUME},target=/forja-work"
+            --volume "${GITHUB_WORKSPACE}:/forja-ci"
+            --volume "${GITHUB_WORKSPACE}/forja-output:/forja-output"
+            --env FORJA_WORK=/forja-work
+            --env FORJA_DISTRIBUTION=manjaro
+            --env FORJA_DESKTOP=mate
+            --env FORJA_KERNEL=lts
+            --env FORJA_OUTPUT=/forja-output
+            manjarolinux/base:latest
             bash -lc 'bash /forja-ci/build-cloud.sh'
+          )
+          printf 'Docker image: %s\n' "${DOCKER_ARGS[-2]}"
+          docker run "${DOCKER_ARGS[@]}"
 
       - name: Upload temporary ISO artifact (24 hours)
         uses: actions/upload-artifact@v4
