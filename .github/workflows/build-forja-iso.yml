@@ -30,22 +30,28 @@ jobs:
           bash -n build-cloud.sh
 
       - name: Prepare output directory
-        run: mkdir -p "$GITHUB_WORKSPACE/forja-output" "$RUNNER_TEMP/forja-work"
+        run: mkdir -p "$GITHUB_WORKSPACE/forja-output"
 
       - name: Build inside the official Manjaro base container
         shell: bash
         run: |
           set -Eeuo pipefail
-          docker run --rm --privileged \
-            --volume "$GITHUB_WORKSPACE:/forja-ci" \
-            --volume "$GITHUB_WORKSPACE/forja-output:/forja-output" \
-            --volume "$RUNNER_TEMP/forja-work:/forja-work" \
-            --env FORJA_WORK=/forja-work \
-            --env FORJA_DISTRIBUTION=manjaro \
-            --env FORJA_DESKTOP=mate \
-            --env FORJA_KERNEL=lts \
-            --env FORJA_OUTPUT=/forja-output \
-            manjarolinux/base:latest \
+          WORK_VOLUME="forja-mate-work-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          docker volume create "$WORK_VOLUME" >/dev/null
+          cleanup_work_volume() {
+            docker volume rm -f "$WORK_VOLUME" >/dev/null 2>&1 || true
+          }
+          trap cleanup_work_volume EXIT
+          docker run --rm --privileged \\
+            --mount "type=volume,source=$WORK_VOLUME,target=/forja-work" \\
+            --volume "$GITHUB_WORKSPACE:/forja-ci" \\
+            --volume "$GITHUB_WORKSPACE/forja-output:/forja-output" \\
+            --env FORJA_WORK=/forja-work \\
+            --env FORJA_DISTRIBUTION=manjaro \\
+            --env FORJA_DESKTOP=mate \\
+            --env FORJA_KERNEL=lts \\
+            --env FORJA_OUTPUT=/forja-output \\
+            manjarolinux/base:latest \\
             bash -lc 'bash /forja-ci/build-cloud.sh'
 
       - name: Upload temporary ISO artifact (24 hours)
