@@ -28,6 +28,9 @@ jobs:
           bash desktops/mate/tests/validate-profile.sh
           bash -n build-manjaro.sh
           bash -n build-cloud.sh
+          shellcheck -S warning -e SC1091 build-manjaro.sh build-cloud.sh
+          desktop-file-validate desktops/mate/panel-launchers/*.desktop
+          python3 -c 'import json, xml.etree.ElementTree as ET; json.load(open("desktops/mate/fastfetch/config.jsonc")); ET.parse("desktops/mate/panel-launchers/forja-menu.svg")'
 
       - name: Prepare output directory
         run: mkdir -p "$GITHUB_WORKSPACE/forja-output"
