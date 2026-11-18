@@ -1,21 +1,6 @@
-name: Validate Forja OS source (no ISO build)
+name: Validate Forja OS MATE source (no ISO build)
 
 on:
-  push:
-    branches:
-      - main
-      - feature/forja-xfce-endeavouros-port
-    paths:
-      - 'profiles/forja-xfce/**'
-      - 'desktops/xfce/**'
-      - '.github/workflows/validate-forja-source.yml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'profiles/forja-xfce/**'
-      - 'desktops/xfce/**'
-      - '.github/workflows/validate-forja-source.yml'
   workflow_dispatch:
 
 permissions:
@@ -23,31 +8,27 @@ permissions:
 
 jobs:
   validate-source:
-    name: Validate Forja XFCE source
+    name: Validate Forja MATE source and build prerequisites
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout Forja OS XFCE EndeavourOS source
+      - name: Checkout Forja OS MATE source
         uses: actions/checkout@v4
         with:
-          ref: feature/forja-xfce-endeavouros-port
+          ref: feature/forja-manjaro-mate
 
-      - name: Install XML validation tools
+      - name: Install validation tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y libxml2-utils
+          sudo apt-get install -y shellcheck desktop-file-utils
 
-      - name: Validate XFCE profile, packages and shell syntax
+      - name: Validate MATE source
         shell: bash
         run: |
           set -Eeuo pipefail
-          bash profiles/forja-xfce/tests/validate-profile.sh
-          xmllint --noout desktops/xfce/panel-default.xml
-          xmllint --noout desktops/xfce/forja-xfce-desktop.xml
-          python3 -m py_compile \
-            profiles/forja-xfce/forja-packages/forja-recovery/forja-recovery-cli \
-            profiles/forja-xfce/forja-packages/forja-recovery/forja-recovery-gui \
-            profiles/forja-xfce/airootfs/usr/local/bin/forja-update
-          rm -rf \
-            profiles/forja-xfce/forja-packages/forja-recovery/__pycache__ \
-            profiles/forja-xfce/airootfs/usr/local/bin/__pycache__
-          echo "Validação Forja XFCE concluída. Nenhuma ISO foi compilada."
+          bash desktops/mate/tests/validate-profile.sh
+          bash -n build-manjaro.sh
+          bash -n build-cloud.sh
+          shellcheck -S warning -e SC1091 build-manjaro.sh build-cloud.sh
+          desktop-file-validate desktops/mate/panel-launchers/*.desktop
+          python3 -c 'import json, xml.etree.ElementTree as ET; json.load(open("desktops/mate/fastfetch/config.jsonc")); ET.parse("desktops/mate/panel-launchers/forja-menu.svg")'
+          echo "Validação de origem concluída. Nenhuma ISO foi compilada."
