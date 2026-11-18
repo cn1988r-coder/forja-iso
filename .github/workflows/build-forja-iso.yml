@@ -2,6 +2,9 @@ name: Build Forja OS Manjaro MATE LTS ISO
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/forja-manjaro-mate
 
 permissions:
   contents: read
