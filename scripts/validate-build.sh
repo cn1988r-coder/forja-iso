@@ -76,6 +76,7 @@ grep -Fq 'MENU COLOR title        1;37;40 #ffffffff #00000000 std' "$ROOT/script
 grep -Fq 'splash.unlink()' "$ROOT/scripts/build-forja-iso.sh" || fail "splash gráfico upstream não será removido"
 grep -Fq 'auto-entries no' "$ROOT/scripts/build-forja-iso.sh" || fail "systemd-boot sem configuração neutra"
 grep -Fq 'quiet loglevel=3 vt.global_cursor_default=0' "$ROOT/scripts/build-forja-iso.sh" || fail "inicialização sem modo visual discreto"
+grep -Fq "'-comp' 'zstd' '-Xcompression-level' '3'" "$ROOT/scripts/build-forja-iso.sh" || fail "SquashFS não usa Zstandard nível 3 para acelerar leitura e boot"
 
 if grep -Eq 'requiredStorage|requiredRam|chrooted_cleaner_script[.]sh|forja-installer|python - PKGBUILD' "$ROOT/scripts/build-forja-iso.sh"; then
   fail "o script contém alterações não autorizadas no fluxo do Calamares"
