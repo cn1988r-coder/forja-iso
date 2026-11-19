@@ -66,3 +66,140 @@ if "regularExpression: /[a-z_][a-z0-9_-]*[$]?$/" in qml:
     raise SystemExit("Validação QML do login não foi ancorada.")
 if "regularExpression: /[a-zA-Z0-9][-a-zA-Z0-9_]+/" in qml:
     raise SystemExit("Validação QML do hostname não foi ancorada.")
+
+
+# Replace the EndeavourOS installer flows with the Forja image installer.
+# Both modes install the exact live filesystem from the ISO. Online mode only
+# refreshes Arch package databases; it does not run netinstall or select a DE.
+settings_common = """# Forja OS installer: install the exact Forja live image.
+---
+modules-search: [ local ]
+
+instances:
+- id: online
+  module: packages
+  config: packages_online.conf
+
+sequence:
+- show:
+  - locale
+  - keyboard
+  - partition
+  - usersq
+  - summary
+- exec:
+  - partition
+  - mount
+  - unpackfs
+  - machineid
+  - locale
+  - keyboard
+  - localecfg
+  - fstab
+  - removeuser
+  - usersq
+  - networkcfg
+  - displaymanager
+  - hwclock
+  - hardwaredetect
+  - grubcfg
+  - bootloader
+  - services-systemd
+  - preservefiles
+  - umount
+- show:
+  - finished
+
+branding: forja
+prompt-install: true
+dont-chroot: false
+oem-setup: false
+disable-cancel: false
+disable-cancel-during-exec: false
+hide-back-and-next-during-exec: true
+quit-at-end: false
+"""
+
+settings_offline = source / "data/eos/settings_offline.conf"
+settings_online = source / "data/eos/settings_online.conf"
+settings_offline.write_text(settings_common)
+online_text = settings_common.replace(
+    "  - unpackfs\n",
+    "  - unpackfs\n  - packages@online\n",
+    1,
+)
+settings_online.write_text(online_text)
+
+# Fixed Forja boot policy: no desktop/package/bootloader chooser.
+modules = source / "data/eos/modules"
+(modules / "bootloader.conf").write_text("""---
+kernelSearchPath: "/usr/lib/modules"
+kernelPattern: "^vmlinuz.*"
+kernelParams: [ "quiet", "loglevel=3" ]
+refindKernelList: [ "linux" ]
+efiBootloaderId: "Forja OS"
+grubInstall: "grub-install"
+grubMkconfig: "grub-mkconfig"
+grubCfg: "/boot/grub/grub.cfg"
+grubProbe: "grub-probe"
+efiBootMgr: "efibootmgr"
+installEFIFallback: true
+""")
+(modules / "grubcfg.conf").write_text("""---
+overwrite: true
+prefer_grub_d: false
+keep_distributor: false
+kernel_params:
+  - "quiet"
+  - "loglevel=3"
+defaults:
+    GRUB_TIMEOUT: 5
+    GRUB_DEFAULT: 0
+    GRUB_DISABLE_SUBMENU: false
+    GRUB_DISABLE_RECOVERY: true
+    GRUB_EARLY_INITRD_LINUX_STOCK: ""
+always_use_defaults: true
+""")
+(modules / "displaymanager.conf").write_text("""---
+displaymanagers:
+  - lightdm
+basicSetup: false
+sysconfigSetup: false
+""")
+(modules / "services-systemd.conf").write_text("""---
+units:
+  - name: "NetworkManager.service"
+    action: "enable"
+  - name: "lightdm.service"
+    action: "enable"
+  - name: "bluetooth.service"
+    action: "enable"
+  - name: "systemd-timesyncd.service"
+    action: "enable"
+  - name: "fstrim.timer"
+    action: "enable"
+  - name: "graphical.target"
+    action: "set-default"
+""")
+
+# The installed system uses only Arch repositories. EndeavourOS repositories,
+# keys and mirrorlists are not copied into the Forja live or installed system.
+pacman_conf = source.parent.parent / "airootfs" / "etc" / "pacman.conf"
+if pacman_conf.parent.exists():
+    pacman_conf.write_text("""[options]
+Architecture = auto
+Color
+VerbosePkgLists
+ParallelDownloads = 5
+SigLevel = Required DatabaseOptional
+LocalFileSigLevel = Optional
+
+[core]
+Include = /etc/pacman.d/mirrorlist
+
+[extra]
+Include = /etc/pacman.d/mirrorlist
+
+[multilib]
+Include = /etc/pacman.d/mirrorlist
+""")
