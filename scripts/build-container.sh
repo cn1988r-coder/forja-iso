@@ -28,7 +28,7 @@ printf '[FORJA] Construindo ambiente Arch + repositórios EndeavourOS...\n'
 
 printf '[FORJA] Iniciando compilação dentro do container...\n'
 "$ENGINE" run --rm --privileged \
-  --user 1000:1000 \
+  --user "$(id -u):$(id -g)" \
   -v "$ROOT:/workspace" \
   -w /workspace \
   "$IMAGE"
