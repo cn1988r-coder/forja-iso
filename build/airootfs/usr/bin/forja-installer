@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+CONFIG_DIR="/etc/calamares"
+OFFLINE_CONFIG="$CONFIG_DIR/settings_offline.conf"
+ACTIVE_CONFIG="$CONFIG_DIR/settings.conf"
+
+if [[ ! -r "$OFFLINE_CONFIG" ]]; then
+  printf 'Forja OS: configuração offline do Calamares não foi encontrada.\n' >&2
+  exit 1
+fi
+
+exec pkexec /usr/bin/bash -c 'install -m 0644 /etc/calamares/settings_offline.conf /etc/calamares/settings.conf && exec /usr/bin/calamares'
