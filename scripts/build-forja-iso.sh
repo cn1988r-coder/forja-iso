@@ -108,7 +108,7 @@ if motd_marker not in s:
     raise SystemExit('Não foi possível localizar a etapa do motd.')
 s = s.replace(motd_marker, "sed -i 's/EndeavourOS/Forja OS/g' \"/usr/lib/endeavouros-release\"\n" + motd_marker, 1)
 os_marker = 'echo "---> Install locally built packages on ISO (place packages under airootfs/root/packages) --->"'
-os_patch = 'sed -i -e \'s/^NAME=.*/NAME="Forja OS"/\' -e \'s/^PRETTY_NAME=.*/PRETTY_NAME="Forja OS"/\' -e \'s/^ID=.*/ID=forja/\' -e \'s/^ID_LIKE=.*/ID_LIKE=arch/\' "/usr/lib/os-release"\nif ! grep -q \'^ID_LIKE=\' "/usr/lib/os-release"; then printf \'ID_LIKE=arch\\n\' >> "/usr/lib/os-release"; fi\n'
+os_patch = 'sed -i -e \'s/^NAME=.*/NAME="Forja OS"/\' -e \'s/^PRETTY_NAME=.*/PRETTY_NAME="Forja OS"/\' -e \'s/^ID=.*/ID=forja/\' -e \'s/^ID_LIKE=.*/ID_LIKE=arch/\' "/usr/lib/os-release"\nif ! grep -q \'^ID_LIKE=\' "/usr/lib/os-release"; then printf \'ID_LIKE=arch\n\' >> "/usr/lib/os-release"; fi\n'
 if os_marker not in s:
     raise SystemExit('Não foi possível localizar a etapa de pacotes locais.')
 s = s.replace(os_marker, os_patch + os_marker, 1)
@@ -142,11 +142,11 @@ for rel in ("efiboot", "syslinux"):
                 if line.strip().startswith("MENU TITLE"):
                     line = "MENU TITLE Forja OS"
                 lines.append(line)
-            content = "\\n".join(lines).rstrip() + "\\n"
+            content = "\n".join(lines).rstrip() + "\n"
         if path.name == "loader.conf":
-            content = "default archiso-x86_64-linux.conf\\ntimeout 3\\nconsole-mode max\\neditor no\\nauto-entries no\\nauto-firmware no\\n"
+            content = "default archiso-x86_64-linux.conf\ntimeout 3\nconsole-mode max\neditor no\nauto-entries no\nauto-firmware no\n"
         if path.name.startswith("archiso-x86_64-linux"):
-            content = content.rstrip() + " quiet loglevel=3 vt.global_cursor_default=0\\n"
+            content = content.rstrip() + " quiet loglevel=3 vt.global_cursor_default=0\n"
         if path.name == "archiso_sys.cfg":
             content = content.replace("TIMEOUT 150", "TIMEOUT 30")
         path.write_text(content)
@@ -189,14 +189,14 @@ from pathlib import Path
 import sys
 cleaner = Path(sys.argv[1])
 content = cleaner.read_text()
-remove_marker = "        /etc/sudoers.d/g_wheel\\n"
+remove_marker = "        /etc/sudoers.d/g_wheel\n"
 if remove_marker not in content:
     raise SystemExit("Não foi possível localizar a lista de limpeza do liveuser no Calamares.")
-content = content.replace(remove_marker, remove_marker + "        /etc/lightdm/lightdm.conf.d/10-forja-live.conf\\n", 1)
+content = content.replace(remove_marker, remove_marker + "        /etc/lightdm/lightdm.conf.d/10-forja-live.conf\n", 1)
 cleanup_marker = "    rm -rf /etc/calamares /opt/extra-drivers"
 if cleanup_marker not in content:
     raise SystemExit("Não foi possível localizar a limpeza final do Calamares.")
-content = content.replace(cleanup_marker, "    rm -f /usr/bin/forja-installer /usr/share/applications/forja-installer.desktop\\n" + cleanup_marker, 1)
+content = content.replace(cleanup_marker, "    rm -f /usr/bin/forja-installer /usr/share/applications/forja-installer.desktop\n" + cleanup_marker, 1)
 cleaner.write_text(content)
 PATCH
 """
@@ -238,7 +238,7 @@ clone_at_commit https://aur.archlinux.org/iptvnator-bin.git "$IPTVNATOR_SRC" "$I
 (
   cd "$IPTVNATOR_SRC"
   makepkg --syncdeps --noconfirm
-  find . -maxdepth 1 -name 'iptvnator-bin-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \\;
+  find . -maxdepth 1 -name 'iptvnator-bin-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
 )
 
 log "Construindo Ferdium a partir da receita AUR"
