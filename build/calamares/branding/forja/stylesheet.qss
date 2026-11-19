@@ -1,0 +1,106 @@
+/* Forja OS Calamares identity. Upstream Calamares and EndeavourOS components retain their licenses. */
+#mainApp {
+    background-color: #11151b;
+    color: #e8edf4;
+}
+#sidebarMenuApp {
+    background-color: #171e27;
+    color: #e8edf4;
+    padding-top: 0px;
+}
+QWidget {
+    background-color: transparent;
+    color: #e8edf4;
+    font: 12px "Noto Sans";
+}
+QLabel, QCheckBox, QRadioButton {
+    color: #e8edf4;
+    background: transparent;
+}
+QPushButton {
+    color: #f5f7fa;
+    background-color: #263343;
+    border: 1px solid #40546b;
+    border-radius: 5px;
+    padding: 7px 14px;
+    min-height: 20px;
+}
+QPushButton:hover {
+    color: #ffffff;
+    background-color: #34485f;
+    border: 1px solid #4b91c8;
+}
+QPushButton:pressed {
+    color: #ffffff;
+    background-color: #1c2938;
+    border: 1px solid #ff9b45;
+}
+QPushButton:disabled {
+    color: #8793a1;
+    background-color: #202832;
+    border: 1px solid #303b48;
+}
+QLineEdit, QTextEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+    color: #f5f7fa;
+    background-color: #202a36;
+    selection-color: #ffffff;
+    selection-background-color: #286da3;
+    border: 1px solid #40546b;
+    border-radius: 4px;
+    padding: 5px;
+}
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QSpinBox:focus, QComboBox:focus {
+    border: 1px solid #4b91c8;
+}
+QComboBox QAbstractItemView {
+    color: #f5f7fa;
+    background-color: #202a36;
+    selection-color: #ffffff;
+    selection-background-color: #286da3;
+}
+QCheckBox::indicator, QRadioButton::indicator {
+    width: 14px;
+    height: 14px;
+}
+QListView, QTreeView, QTableView {
+    color: #e8edf4;
+    background-color: #1a222c;
+    alternate-background-color: #202a36;
+    selection-color: #ffffff;
+    selection-background-color: #286da3;
+    border: 1px solid #354354;
+}
+QHeaderView::section {
+    color: #f5f7fa;
+    background-color: #263343;
+    border: 0;
+    padding: 5px;
+}
+QScrollBar:vertical {
+    background: #171e27;
+    width: 11px;
+    margin: 0;
+}
+QScrollBar::handle:vertical {
+    background: #465b72;
+    min-height: 24px;
+    border-radius: 4px;
+}
+QScrollBar::handle:vertical:hover {
+    background: #4b91c8;
+}
+QToolTip {
+    color: #ffffff;
+    background-color: #263343;
+    border: 1px solid #4b91c8;
+    padding: 4px;
+}
+#debugButton, #aboutButton {
+    color: #cbd5e1;
+    background-color: transparent;
+    border: none;
+    padding: 4px;
+}
+#debugButton:hover, #aboutButton:hover {
+    color: #ff9b45;
+}
