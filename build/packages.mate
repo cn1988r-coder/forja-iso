@@ -1,0 +1,30 @@
+# MATE desktop and session
+mate-session-manager
+mate-panel
+mate-control-center
+caja
+marco
+mate-settings-daemon
+mate-terminal
+mate-themes
+mate-backgrounds
+mate-applets
+mate-notification-daemon
+mate-power-manager
+mate-screensaver
+mate-system-monitor
+mate-utils
+atril
+eom
+engrampa
+pluma
+
+# Display manager
+lightdm
+lightdm-gtk-greeter
+
+# Forja appearance
+materia-gtk-theme
+papirus-icon-theme
+bibata-cursor-theme
+dconf
