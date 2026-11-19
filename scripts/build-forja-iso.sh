@@ -193,6 +193,15 @@ SHELLY_SRC="$WORK/Shelly-ALPM"
 mkdir -p "$SHELLY_SRC"
 curl -fsSL "https://raw.githubusercontent.com/Seafoam-Labs/Shelly-ALPM/$SHELLY_COMMIT/PKGBUILD-git" -o "$SHELLY_SRC/PKGBUILD"
 [[ -s "$SHELLY_SRC/PKGBUILD" ]] || die "PKGBUILD do Shelly não foi baixado."
+for source_file in \
+  shellybuild.conf \
+  com.shellyorg.shelly.desktop \
+  com.shellyorg.shelly-notifications.desktop \
+  shelly-flatpak-integrate; do
+  curl -fsSL "https://raw.githubusercontent.com/Seafoam-Labs/Shelly-ALPM/$SHELLY_COMMIT/$source_file" \
+    -o "$SHELLY_SRC/$source_file"
+  [[ -s "$SHELLY_SRC/$source_file" ]] || die "Arquivo auxiliar do Shelly não foi baixado: $source_file"
+done
 (
   cd "$SHELLY_SRC"
   sed -i 's/#branch=development/#commit='"$SHELLY_COMMIT"'/' PKGBUILD
