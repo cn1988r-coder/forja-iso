@@ -199,6 +199,22 @@ CALAMARES_SRC="$WORK/calamares-pkg"
 mkdir -p "$CALAMARES_SRC"
 curl -fsSL "https://raw.githubusercontent.com/endeavouros-team/PKGBUILDS/$PKGBUILDS_COMMIT/calamares/PKGBUILD" -o "$CALAMARES_SRC/PKGBUILD"
 [[ -s "$CALAMARES_SRC/PKGBUILD" ]] || die "PKGBUILD original do Calamares não foi baixado."
+cp "$ROOT/scripts/patch-calamares.py" "$CALAMARES_SRC/patch-calamares.py"
+mkdir -p "$CALAMARES_SRC/branding"
+cp -a "$ROOT/build/calamares/branding/forja" "$CALAMARES_SRC/branding/forja"
+python - "$CALAMARES_SRC/PKGBUILD" <<'PY'
+import pathlib, sys
+path = pathlib.Path(sys.argv[1])
+source = path.read_text()
+source = source.replace("-DCMAKE_BUILD_TYPE=Debug", "-DCMAKE_BUILD_TYPE=Release", 1)
+needle = '    awk -i inplace -v version="${pkgver}" -v release="${release_name}" "$replace_command" "${srcdir}/calamares-${pkgver}/data/eos/branding/endeavouros/branding.desc"\n}'
+replacement = needle[:-1] + '    python "$startdir/patch-calamares.py" "${srcdir}/calamares-${pkgver}"\n}'
+if needle not in source:
+    raise SystemExit("Não foi possível inserir a identidade Forja no prepare() do PKGBUILD.")
+if "-DCMAKE_BUILD_TYPE=Release" not in source:
+    raise SystemExit("A receita Calamares não foi alterada para Release.")
+path.write_text(source.replace(needle, replacement, 1))
+PY
 (
   cd "$CALAMARES_SRC"
   makepkg --syncdeps --noconfirm
