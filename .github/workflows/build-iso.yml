@@ -36,7 +36,11 @@ jobs:
           df -h /
 
       - name: Construir ambiente Arch com repositórios EndeavourOS
-        run: docker build --pull -t forja-os-iso-builder .
+        run: |
+          docker build --pull \
+            --build-arg BUILD_UID="$(id -u)" \
+            --build-arg BUILD_GID="$(id -g)" \
+            -t forja-os-iso-builder .
 
       - name: Compilar ISO com mkarchiso
         run: |
