@@ -5,7 +5,7 @@ import re
 import sys
 
 source = Path(sys.argv[1])
-branding = Path(__file__).resolve().parent.parent / "build/calamares/branding/forja"
+branding = Path(__file__).resolve().parent / "branding/forja"
 target_branding = source / "data/eos/branding/forja"
 target_branding.mkdir(parents=True, exist_ok=True)
 for item in branding.iterdir():
