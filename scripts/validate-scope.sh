@@ -26,7 +26,7 @@ if grep -Eiq 'Shellia|eos-settings-plasma|KDE Plasma' "$README"; then
 fi
 
 grep -Fq 'Calamares' "$README" || fail "preservação do Calamares não registrada"
-grep -Fq 'nenhuma ISO foi compilada' "$README" || fail "estado de compilação não está explícito"
+grep -Fiq 'nenhuma ISO foi compilada' "$README" || fail "estado de compilação não está explícito"
 
 pass "escopo da Forja OS consistente"
 pass "auditoria técnica do framework presente"
