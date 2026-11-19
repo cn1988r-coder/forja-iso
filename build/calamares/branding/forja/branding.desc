@@ -1,0 +1,28 @@
+componentName: forja
+
+welcomeStyleCalamares: false
+welcomeExpandingLogo: false
+windowExpanding: noexpand
+windowSize: 1200px,715px
+windowPlacement: center
+sidebar: widget
+navigation: widget
+
+strings:
+    productName:         Forja OS
+    shortProductName:    Forja OS
+    version:             ${release_name} ${version}
+    shortVersion:        ${version}
+    versionedName:       Forja OS ${release_name}
+    shortVersionedName:  ${release_name}
+    bootloaderEntryName: Forja OS
+
+images:
+    productLogo:         "forja-logo.svg"
+    productIcon:         "forja-logo.svg"
+
+style:
+   SidebarBackground:        "#11151b"
+   SidebarText:              "#e8edf4"
+   SidebarTextCurrent:       "#ff9b45"
+   SidebarBackgroundCurrent: "#202a36"
