@@ -64,6 +64,10 @@ PY
 
 log "Aplicando identidade visual e configurações MATE"
 cp -a "$ROOT/build/airootfs/." "$EOS_DIR/airootfs/"
+# GTK settings belong to the EndeavourOS liveuser skeleton package, not the base airootfs /etc/skel.
+# Keeping a second copy here makes pacman reject endeavouros-skel-liveuser with file conflicts.
+rm -f "$EOS_DIR/airootfs/etc/skel/.config/gtk-3.0/settings.ini"
+rm -f "$EOS_DIR/airootfs/etc/skel/.config/gtk-4.0/settings.ini"
 SKEL="$EOS_DIR/airootfs/root/endeavouros-skel-liveuser/src/etc/skel"
 mkdir -p "$SKEL/.config/gtk-3.0" "$SKEL/.config/gtk-4.0"
 cp "$ROOT/build/airootfs/etc/skel/.config/gtk-3.0/settings.ini" "$SKEL/.config/gtk-3.0/settings.ini"
@@ -111,10 +115,23 @@ calamares_patch = """if [[ ! -r /etc/calamares/settings_offline.conf ]]; then
   exit 1
 fi
 install -m 0644 /etc/calamares/settings_offline.conf /etc/calamares/settings.conf
-for desktop_file in /usr/share/applications/calamares.desktop /home/liveuser/.local/share/applications/calamares.desktop; do
-  [[ -f "$desktop_file" ]] || { echo "Calamares desktop entry is missing: $desktop_file" >&2; exit 1; }
-  sed -i -e 's|^TryExec=eos-welcome$|TryExec=calamares|' -e 's|^Exec=eos-welcome$|Exec=pkexec calamares|' "$desktop_file"
-done
+if [[ ! -f /home/liveuser/.local/share/applications/calamares.desktop ]]; then
+  echo "Calamares live-session desktop entry is missing: /home/liveuser/.local/share/applications/calamares.desktop" >&2
+  exit 1
+fi
+if [[ ! -x /usr/bin/calamares ]]; then
+  echo "Calamares executable is missing: /usr/bin/calamares" >&2
+  exit 1
+fi
+sed -i -e 's|^TryExec=eos-welcome$|TryExec=calamares|' -e 's|^Exec=eos-welcome$|Exec=pkexec calamares|' /home/liveuser/.local/share/applications/calamares.desktop
+grep -Fxq 'TryExec=calamares' /home/liveuser/.local/share/applications/calamares.desktop || {
+  echo "Calamares desktop entry has an invalid TryExec value." >&2
+  exit 1
+}
+grep -Fxq 'Exec=pkexec calamares' /home/liveuser/.local/share/applications/calamares.desktop || {
+  echo "Calamares desktop entry has an invalid Exec value." >&2
+  exit 1
+}
 """
 if calamares_marker not in s:
     raise SystemExit('Não foi possível localizar a instalação dos pacotes locais para ativar o Calamares offline.')
