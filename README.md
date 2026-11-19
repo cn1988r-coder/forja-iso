@@ -1,34 +1,27 @@
 # Forja OS
 
-## Base do sistema
-- EndeavourOS Linux.
-- Manter o instalador Calamares fornecido pelo EndeavourOS.
-- Não criar outro instalador.
+## Definições do projeto
 
-## Ambiente gráfico
-- MATE como único ambiente gráfico.
-- Configuração visual totalmente escura.
+- **Base:** EndeavourOS Linux.
+- **Instalador:** manter o Calamares da distribuição EndeavourOS, incluindo a variante/fork e os módulos necessários. Não criar instalador próprio.
+- **Ambiente gráfico:** MATE como único ambiente gráfico.
+- **Aparência:** interface escura, tema GTK Materia Dark, ícones Papirus e cursor Bibata.
+- **Área de trabalho:** fundo preto puro (#000000), sem wallpapers do EndeavourOS ou de terceiros.
+- **Aplicativos:** Firefox, Ferdium e Shelly (gerenciador gráfico de pacotes para Arch Linux).
 
-## Aplicativos
-- Firefox.
-- Ferdium.
-- Shellia: loja de aplicativos para a base Arch Linux.
+## Regras
 
-## Personalização visual
-- Tema GTK: Materia Dark.
-- Ícones: Papirus.
-- Cursor: Bibata.
-- Papel de parede: wallpaper oficial da Forja OS.
+- Trabalhar somente neste repositório.
+- Não incluir outro ambiente gráfico nem aplicativos fora da lista definida.
+- Preservar os componentes necessários do EndeavourOS, especialmente o instalador.
+- Não declarar validação ou compilação concluída sem evidência reproduzível.
 
-## Limites do projeto
-- Não adicionar outros aplicativos, ambientes gráficos ou personalizações.
-- Preservar os componentes funcionais do EndeavourOS.
-- Manter a distribuição simples e leve.
-- Validar a integração da Shellia no ambiente MATE e na base EndeavourOS; ser compatível com Arch não substitui os testes de dependências e funcionamento.
+## Estado técnico
 
-## Estado atual
-Este repositório foi reiniciado e, no momento desta atualização, continha somente este README.md. Ainda não há estrutura de compilação ou arquivos de configuração da ISO.
+O repositório está em preparação. A estrutura de compilação da Forja OS ainda não foi criada e nenhuma ISO foi compilada.
 
-O wallpaper da Forja OS também não está presente na branch main neste momento. Ele deverá ser adicionado ao repositório antes de ser configurado como papel de parede padrão.
+O framework oficial do EndeavourOS usa uma versão modificada do Archiso. O perfil upstream atualmente contém uma sessão KDE e etapas específicas para o esqueleto de usuário, tema e wallpaper do KDE/EndeavourOS. Portanto, não basta trocar a lista de pacotes por MATE: é necessário adaptar essas etapas e preservar a integração do Calamares do EndeavourOS.
 
-As definições acima registram o escopo solicitado; não significam que uma ISO já tenha sido montada, validada ou compilada.
+A lista upstream consultada não instala Calamares diretamente: ela documenta que o pacote não está mais no repositório e que deve ser construído separadamente. A preparação da Forja precisa localizar e integrar a receita oficial/fork compatível antes de qualquer ISO ser considerada instalável.
+
+A validação automatizada inicial verifica o escopo e os arquivos do projeto. Ela não substitui a validação de dependências, o teste do instalador em máquina virtual ou a compilação real da ISO.
