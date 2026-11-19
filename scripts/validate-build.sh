@@ -21,6 +21,7 @@ for file in \
 done
 
 bash -n "$ROOT/scripts/build-forja-iso.sh" || fail "erro de sintaxe no script de compilação"
+bash -n "$ROOT/build/airootfs/usr/bin/forja-installer" || fail "erro de sintaxe no launcher Calamares"
 bash -n "$ROOT/scripts/build-container.sh" || fail "erro de sintaxe no wrapper Docker/Podman"
 
 grep -Fq 'EOS_COMMIT="90376d8f52ab19e19073eed33d6f36c46ec7c409"' "$ROOT/scripts/build-forja-iso.sh" || fail "framework EndeavourOS sem revisão fixada"
@@ -33,6 +34,10 @@ grep -Fxq 'mate-session-manager' "$ROOT/build/packages.mate" || fail "pacote MAT
 grep -Fxq 'lightdm' "$ROOT/build/packages.mate" || fail "LightDM ausente"
 grep -Fxq 'mate-polkit' "$ROOT/build/packages.mate" || fail "agente Polkit do MATE ausente"
 grep -Fq 'settings_offline.conf' "$ROOT/build/airootfs/usr/bin/forja-installer" || fail "launcher Calamares offline ausente"
+grep -Fq 'welcome|xdg-desktop-portal-kde' "$ROOT/scripts/build-forja-iso.sh" || fail "filtro de Welcome KDE/XFCE não está configurado"
+if grep -Fxq 'welcome' "$ROOT/build/packages.mate" || grep -Fxq 'partitionmanager' "$ROOT/build/packages.mate"; then
+  fail "aplicativo Welcome/Partition Manager não deve entrar no perfil MATE"
+fi
 grep -Fq 'Forja OS' "$ROOT/build/airootfs/usr/share/applications/forja-installer.desktop" || fail "launcher Forja OS sem identificação"
 grep -Fxq 'materia-gtk-theme' "$ROOT/build/packages.mate" || fail "Materia ausente"
 grep -Fxq 'papirus-icon-theme' "$ROOT/build/packages.mate" || fail "Papirus ausente"
