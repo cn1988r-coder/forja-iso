@@ -201,6 +201,17 @@ clone_at_commit https://aur.archlinux.org/bibata-cursor-theme.git "$BIBATA_SRC" 
   find . -maxdepth 1 -name 'bibata-cursor-theme-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
 )
 
+log "Construindo IPTVnator a partir da receita AUR"
+IPTVNATOR_SRC="$WORK/iptvnator-bin-aur"
+IPTVNATOR_COMMIT="$(git ls-remote https://aur.archlinux.org/iptvnator-bin.git HEAD | awk '{print $1}')"
+[[ -n "$IPTVNATOR_COMMIT" ]] || die "Não foi possível localizar a receita AUR do IPTVnator."
+clone_at_commit https://aur.archlinux.org/iptvnator-bin.git "$IPTVNATOR_SRC" "$IPTVNATOR_COMMIT"
+(
+  cd "$IPTVNATOR_SRC"
+  makepkg --syncdeps --noconfirm
+  find . -maxdepth 1 -name 'iptvnator-bin-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \\;
+)
+
 log "Construindo Ferdium a partir da receita AUR"
 FERDIUM_SRC="$WORK/ferdium-aur"
 clone_at_commit https://aur.archlinux.org/ferdium-bin.git "$FERDIUM_SRC" "$(git ls-remote https://aur.archlinux.org/ferdium-bin.git HEAD | awk '{print $1}')"
@@ -220,6 +231,7 @@ shopt -u nullglob
 [[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'calamares-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Calamares do EndeavourOS não foi gerado."
 [[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'shelly-git-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Shelly não foi gerado."
 [[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'ferdium-bin-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Ferdium não foi gerado."
+[[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'iptvnator-bin-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote IPTVnator não foi gerado."
 [[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'bibata-cursor-theme-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Bibata não foi gerado."
 
 log "Preparando framework EndeavourOS"
