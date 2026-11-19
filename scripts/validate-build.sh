@@ -108,7 +108,7 @@ grep -Fxq 'os-prober' "$ROOT/build/packages.mate" || fail "os-prober não está 
 grep -Fq 'iptvnator-bin-aur' "$ROOT/scripts/build-forja-iso.sh" || fail "IPTVnator não é preparado para a imagem"
 grep -Fq 'pacman-key --populate archlinux' "$ROOT/scripts/build-forja-iso.sh" || fail "chaveiro do sistema final não está limitado ao Arch"
 grep -Fq 'Forja OS uses the complete ISO filesystem' "$ROOT/scripts/build-forja-iso.sh" || fail "a preparação ainda não declara a instalação pela imagem completa"
-grep -Fq 'settings_online.write_text(online_text)' "$ROOT/scripts/patch-calamares.py" || fail "configuração online própria ausente"
+grep -Fq 'settings_online.write_text(settings_common)' "$ROOT/scripts/patch-calamares.py" || fail "configuração online própria ausente"
 grep -Fq 'settings_offline.write_text(settings_common)' "$ROOT/scripts/patch-calamares.py" || fail "configuração offline própria ausente"
 grep -Fq 'packages@online' "$ROOT/scripts/patch-calamares.py" || fail "modo online não atualiza a base de pacotes Arch"
 grep -Fq 'efiBootloaderId: "Forja OS"' "$ROOT/scripts/patch-calamares.py" || fail "identificação do GRUB/EFI não é Forja OS"
