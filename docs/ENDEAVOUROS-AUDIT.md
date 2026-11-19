@@ -23,6 +23,14 @@
 6. O PKGBUILD de Shelly exige Zig 0.17.1 e constrói a interface GTK4 e o CLI. O pacote está fixado ao commit indicado acima.
 7. Ferdium e Bibata são obtidos por receitas AUR, que são conteúdo comunitário e não binários oficiais.
 
+## Ambiente de compilação isolado
+
+O repositório agora inclui um Dockerfile que parte de Arch Linux e configura os
+repositórios EndeavourOS usando o `pacman.conf` do commit fixado do framework e
+a mirrorlist do commit fixado de PKGBUILDS. O wrapper `scripts/build-container.sh`
+permite iniciar a compilação em Manjaro ou outra distribuição com Docker/Podman,
+sem instalar repositórios EndeavourOS no sistema hospedeiro.
+
 ## Adaptação implementada no repositório
 
 - Lista inicial de pacotes MATE, LightDM e Xorg em `build/packages.mate`.
