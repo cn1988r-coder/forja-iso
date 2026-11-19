@@ -26,15 +26,6 @@ jobs:
       - name: Baixar repositório
         uses: actions/checkout@v4
 
-      - name: Liberar espaço temporário do runner
-        run: |
-          df -h /
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
-          sudo rm -rf /usr/local/share/chromium /usr/local/share/powershell
-          sudo rm -rf /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
-          docker system prune -af || true
-          df -h /
-
       - name: Construir ambiente Arch com repositórios EndeavourOS
         run: |
           docker build --pull \
