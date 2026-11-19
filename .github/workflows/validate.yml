@@ -11,10 +11,12 @@ permissions:
   contents: read
 
 jobs:
-  validar-escopo:
+  validar-escopo-e-build:
     runs-on: ubuntu-latest
     steps:
       - name: Baixar repositório
         uses: actions/checkout@v4
       - name: Validar definições do projeto
         run: bash scripts/validate-scope.sh
+      - name: Validar estrutura e sintaxe do build
+        run: bash scripts/validate-build.sh
