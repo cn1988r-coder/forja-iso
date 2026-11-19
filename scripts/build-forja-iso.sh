@@ -66,6 +66,9 @@ SKEL="$EOS_DIR/airootfs/root/endeavouros-skel-liveuser/src/etc/skel"
 mkdir -p "$SKEL/.config/gtk-3.0" "$SKEL/.config/gtk-4.0"
 cp "$ROOT/build/airootfs/etc/skel/.config/gtk-3.0/settings.ini" "$SKEL/.config/gtk-3.0/settings.ini"
 cp "$ROOT/build/airootfs/etc/skel/.config/gtk-4.0/settings.ini" "$SKEL/.config/gtk-4.0/settings.ini"
+if [[ -f "$SKEL/.local/share/applications/calamares.desktop" ]]; then
+  sed -i 's/EndeavourOS/Forja OS/g' "$SKEL/.local/share/applications/calamares.desktop"
+fi
 rm -rf "$SKEL/.config/kdedefaults" "$SKEL/.config/plasma"* "$SKEL/.local/share/plasma" "$SKEL/.local/share/konsole"
 mkdir -p "$EOS_DIR/airootfs/root/packages"
 
@@ -90,7 +93,7 @@ import pathlib, sys
 p = pathlib.Path(sys.argv[1])
 s = p.read_text()
 old = 'systemctl set-default multi-user.target'
-new = 'systemctl enable lightdm.service\nsystemctl set-default graphical.target'
+new = 'systemctl enable lightdm.service\nsystemctl set-default graphical.target\ndconf update'
 if old not in s:
     raise SystemExit('Não foi possível localizar o ponto de ativação do alvo multi-user no script upstream.')
 p.write_text(s.replace(old, new, 1))
@@ -128,6 +131,17 @@ clone_at_commit https://github.com/Seafoam-Labs/Shelly-ALPM.git "$SHELLY_SRC" "$
   find . -maxdepth 1 -name 'shelly-git-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
 )
 
+log "Construindo tema Bibata a partir da receita AUR"
+BIBATA_SRC="$WORK/bibata-cursor-theme-aur"
+BIBATA_COMMIT="$(git ls-remote https://aur.archlinux.org/bibata-cursor-theme.git HEAD | awk '{print $1}')"
+[[ -n "$BIBATA_COMMIT" ]] || die "Não foi possível localizar a receita AUR do Bibata."
+clone_at_commit https://aur.archlinux.org/bibata-cursor-theme.git "$BIBATA_SRC" "$BIBATA_COMMIT"
+(
+  cd "$BIBATA_SRC"
+  makepkg --syncdeps --noconfirm
+  find . -maxdepth 1 -name 'bibata-cursor-theme-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
+)
+
 log "Construindo Ferdium a partir da receita AUR"
 FERDIUM_SRC="$WORK/ferdium-aur"
 clone_at_commit https://aur.archlinux.org/ferdium-bin.git "$FERDIUM_SRC" "$(git ls-remote https://aur.archlinux.org/ferdium-bin.git HEAD | awk '{print $1}')"
@@ -147,6 +161,7 @@ shopt -u nullglob
 [[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'calamares-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Calamares do EndeavourOS não foi gerado."
 [[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'shelly-git-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Shelly não foi gerado."
 [[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'ferdium-bin-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Ferdium não foi gerado."
+[[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'bibata-cursor-theme-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Bibata não foi gerado."
 
 log "Preparando framework EndeavourOS"
 (
