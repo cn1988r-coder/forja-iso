@@ -4,20 +4,28 @@
 
 O Pacman normal em /etc/pacman.conf continua responsável pelo sistema Arch: kernel, bibliotecas, dependências, correções e atualizações de segurança.
 
-O repositório Forja é separado e destinado somente a pacotes próprios da distribuição. O comando forja usa /etc/forja/pacman.conf, sem editar nem substituir a configuração normal do Pacman.
+O repositório Forja é separado e destinado somente a pacotes próprios da distribuição. O comando de entrada é **sudo forja** e utiliza /etc/forja/pacman.conf, sem editar nem substituir a configuração normal do Pacman.
 
 Pacotes publicados no repositório próprio devem usar o prefixo forja-. Dependências normais podem ser resolvidas pelos repositórios oficiais Arch listados na configuração isolada.
 
-## Comandos
+## Uso
 
-- sudo forja sync: sincroniza as bases pela configuração isolada.
-- forja search TERMO: pesquisa nos repositórios dessa configuração.
-- sudo forja install forja-pacote: instala pacote próprio Forja.
-- sudo forja upgrade: atualiza somente pacotes instalados com prefixo forja-.
-- sudo forja remove forja-pacote: remove pacote próprio.
-- forja list: lista pacotes Forja instalados.
+O usuário executa somente:
 
-O comando não executa atualização geral do sistema. Para isso, o usuário continua usando o Pacman normal.
+```bash
+sudo forja
+```
+
+O comando abre um menu interativo com as opções:
+1. Atualizar a lista de pacotes do repositório Forja.
+2. Pesquisar pacotes.
+3. Instalar pacote Forja.
+4. Atualizar somente pacotes Forja já instalados.
+5. Remover pacote Forja.
+6. Listar pacotes Forja instalados.
+0. Sair.
+
+Não é necessário memorizar subcomandos. O menu permanece aberto até a opção Sair. Todas as operações de pacotes usam a configuração isolada. A atualização geral do sistema continua sendo responsabilidade do Pacman normal, fora do menu Forja.
 
 ## Arquivos da imagem
 
@@ -28,7 +36,7 @@ O comando não executa atualização geral do sistema. Para isso, o usuário con
 
 ## Estado operacional
 
-A integração do comando e a configuração isolada estão preparadas no código-fonte. O repositório remoto ainda NÃO está operacional: faltam hospedagem, URL HTTPS real, chave pública de assinatura, fingerprint oficial e pacotes Forja publicados.
+A interface de menu e a configuração isolada estão preparadas no código-fonte. O repositório remoto ainda NÃO está operacional: faltam hospedagem, URL HTTPS real, chave pública de assinatura, fingerprint oficial e pacotes Forja publicados.
 
 A configuração exige assinatura de banco de dados e pacotes (SigLevel = Required DatabaseRequired). O comando recusa operações remotas enquanto a URL e o fingerprint não estiverem configurados e a chave não estiver no chaveiro Pacman.
 
@@ -47,4 +55,4 @@ Não aceitar automaticamente chaves ou fingerprints. A chave oficial deve ser co
 - Sem chave oficial ou fingerprint.
 - Sem pacotes Forja publicados.
 - Operações remotas permanecem bloqueadas até esses itens existirem.
-- A implementação ainda precisa de testes reais em Arch/Forja antes de ser considerada pronta para uso.
+- A implementação do menu ainda precisa de testes reais em Arch/Forja antes de ser considerada pronta para uso.
