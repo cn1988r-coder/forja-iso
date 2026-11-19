@@ -4,7 +4,7 @@ ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
 RUN pacman -Syu --noconfirm && \
-    pacman -S --noconfirm --needed curl wget sudo git base-devel archiso squashfs-tools imagemagick python
+    pacman -S --noconfirm --needed curl wget sudo shadow git base-devel archiso squashfs-tools imagemagick python
 
 RUN pacman-key --init && pacman-key --populate archlinux && \
     curl -fsSL https://raw.githubusercontent.com/endeavouros-team/EndeavourOS-ISO/90376d8f52ab19e19073eed33d6f36c46ec7c409/pacman.conf -o /etc/pacman.conf && \
@@ -20,8 +20,8 @@ RUN pacman-key --init && pacman-key --populate archlinux && \
 ARG BUILD_UID=1000
 ARG BUILD_GID=1000
 
-RUN groupadd --gid "$BUILD_GID" builder && \
-    useradd --create-home --uid "$BUILD_UID" --gid builder --groups wheel builder && \
+RUN getent group "$BUILD_GID" >/dev/null || groupadd --gid "$BUILD_GID" builder; \
+    useradd --create-home --uid "$BUILD_UID" --gid "$BUILD_GID" --groups wheel builder && \
     printf 'builder ALL=(ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/builder && \
     chmod 0440 /etc/sudoers.d/builder
 
