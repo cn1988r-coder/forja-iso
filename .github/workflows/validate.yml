@@ -1,0 +1,20 @@
+name: Validar projeto
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validar-escopo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+      - name: Validar definições do projeto
+        run: bash scripts/validate-scope.sh
