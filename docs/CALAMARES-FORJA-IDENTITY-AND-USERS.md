@@ -52,3 +52,17 @@ senha e hostname, concluir a instalação e reiniciar no sistema instalado.
 
 A etapa de usuários e o instalador não devem ser considerados aprovados até esses
 testes de ponta a ponta passarem.
+
+
+## Fluxo simplificado aprovado para a Forja OS
+
+A interface do Calamares deve apresentar somente três etapas ao usuário:
+1. Dados da conta: nome completo, usuário, senha e confirmação, além do hostname no mesmo formulário.
+2. Escolha do disco e particionamento.
+3. Resumo e confirmação para iniciar a instalação.
+
+Idioma e teclado são herdados da sessão Live e aplicados automaticamente durante a instalação, sem telas adicionais. Não apresentar seleção de desktop, pacotes, Netinstall ou modos específicos do EndeavourOS. O único ambiente instalado é MATE.
+
+A execução continua usando os módulos internos necessários: particionamento, montagem, cópia de `/run/archiso/bootmnt/arch/x86_64/airootfs.sfs`, configuração de usuário, sistema, LightDM e GRUB. Tanto com internet quanto sem internet, a origem instalada é sempre a imagem Forja da ISO. A conexão não pode trocar a origem para EndeavourOS nem iniciar uma instalação de pacotes de outro sistema.
+
+**Estado:** a ordem da interface foi ajustada no patcher para usuário → disco → resumo. Ainda é necessária compilação da ISO e validação em VM para comprovar que o fluxo completo funciona.
