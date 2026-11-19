@@ -105,6 +105,20 @@ motd_marker = 'echo "---> Add builddate to motd --->"'
 if motd_marker not in s:
     raise SystemExit('Não foi possível localizar a etapa do motd.')
 s = s.replace(motd_marker, "sed -i 's/EndeavourOS/Forja OS/g' \"/usr/lib/endeavouros-release\"\n" + motd_marker, 1)
+calamares_marker = 'pacman -U --noconfirm --needed -- "/root/packages/"*".pkg.tar.zst"\n'
+calamares_patch = """if [[ ! -r /etc/calamares/settings_offline.conf ]]; then
+  echo "Calamares offline configuration is missing." >&2
+  exit 1
+fi
+install -m 0644 /etc/calamares/settings_offline.conf /etc/calamares/settings.conf
+for desktop_file in /usr/share/applications/calamares.desktop /home/liveuser/.local/share/applications/calamares.desktop; do
+  [[ -f "$desktop_file" ]] || { echo "Calamares desktop entry is missing: $desktop_file" >&2; exit 1; }
+  sed -i -e 's|^TryExec=eos-welcome$|TryExec=calamares|' -e 's|^Exec=eos-welcome$|Exec=pkexec calamares|' "$desktop_file"
+done
+"""
+if calamares_marker not in s:
+    raise SystemExit('Não foi possível localizar a instalação dos pacotes locais para ativar o Calamares offline.')
+s = s.replace(calamares_marker, calamares_marker + calamares_patch, 1)
 os_marker = 'echo "---> Install locally built packages on ISO (place packages under airootfs/root/packages) --->"'
 os_patch = 'sed -i -e \'s/^NAME=.*/NAME="Forja OS"/\' -e \'s/^PRETTY_NAME=.*/PRETTY_NAME="Forja OS"/\' -e \'s/^ID=.*/ID=forja/\' -e \'s/^ID_LIKE=.*/ID_LIKE=arch/\' "/usr/lib/os-release"\nif ! grep -q \'^ID_LIKE=\' "/usr/lib/os-release"; then printf \'ID_LIKE=arch\n\' >> "/usr/lib/os-release"; fi\n'
 if os_marker not in s:
@@ -163,41 +177,13 @@ s = s.replace('iso_application="EndeavourOS Live/Rescue CD"', 'iso_application="
 p.write_text(s)
 PY
 
-log "Construindo Calamares do fork EndeavourOS"
+log "Construindo Calamares original do EndeavourOS"
 CALAMARES_SRC="$WORK/calamares-pkg"
 mkdir -p "$CALAMARES_SRC"
 curl -fsSL "https://raw.githubusercontent.com/endeavouros-team/PKGBUILDS/$PKGBUILDS_COMMIT/calamares/PKGBUILD" -o "$CALAMARES_SRC/PKGBUILD"
-[[ -s "$CALAMARES_SRC/PKGBUILD" ]] || die "PKGBUILD do Calamares não foi baixado."
+[[ -s "$CALAMARES_SRC/PKGBUILD" ]] || die "PKGBUILD original do Calamares não foi baixado."
 (
   cd "$CALAMARES_SRC"
-  python - PKGBUILD <<'PY'
-import pathlib, sys
-p = pathlib.Path(sys.argv[1])
-s = p.read_text()
-needle = '    awk -i inplace -v version="${pkgver}" -v release="${release_name}" "$replace_command" "${srcdir}/calamares-${pkgver}/data/eos/branding/endeavouros/branding.desc"\n'
-if needle not in s:
-    raise SystemExit("Não foi possível localizar a etapa de branding no PKGBUILD do Calamares.")
-extra = """    sed -i "s/EndeavourOS/Forja OS/g" "${srcdir}/calamares-${pkgver}/data/eos/branding/endeavouros/branding.desc"
-    sed -i -E 's/requiredStorage:[[:space:]]*5\.5/requiredStorage:    15.0/' "${srcdir}/calamares-${pkgver}/data/eos/modules/welcome_offline.conf"
-    sed -i -E 's/requiredRam:[[:space:]]*1\.0/requiredRam:        2.0/' "${srcdir}/calamares-${pkgver}/data/eos/modules/welcome_offline.conf"
-    python - "${srcdir}/calamares-${pkgver}/data/eos/scripts/chrooted_cleaner_script.sh" <<'PATCH'
-from pathlib import Path
-import sys
-cleaner = Path(sys.argv[1])
-content = cleaner.read_text()
-remove_marker = "        /etc/sudoers.d/g_wheel\n"
-if remove_marker not in content:
-    raise SystemExit("Não foi possível localizar a lista de limpeza do liveuser no Calamares.")
-content = content.replace(remove_marker, remove_marker + "        /etc/lightdm/lightdm.conf.d/10-forja-live.conf\n", 1)
-cleanup_marker = "    rm -rf /etc/calamares /opt/extra-drivers"
-if cleanup_marker not in content:
-    raise SystemExit("Não foi possível localizar a limpeza final do Calamares.")
-cleaner.write_text(content)
-PATCH
-"""
-s = s.replace(needle, needle + extra)
-p.write_text(s)
-PY
   makepkg --syncdeps --noconfirm
   find . -maxdepth 1 -name 'calamares-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
 )
