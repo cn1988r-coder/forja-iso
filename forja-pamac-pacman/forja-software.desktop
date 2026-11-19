@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Forja Store
-Comment=Loja de aplicativos da FORJA OS
-Exec=/usr/bin/forja-store
-Icon=forja-store
-Terminal=false
-Categories=System;PackageManager;
-StartupNotify=true

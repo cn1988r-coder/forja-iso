@@ -1,7 +1,0 @@
-# Forja Store: GTK3 interface, Pacman and Flatpak backend
-gtk3
-python
-python-gobject
-pacman-contrib
-polkit
-flatpak
