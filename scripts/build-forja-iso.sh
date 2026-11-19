@@ -151,9 +151,10 @@ if needle not in s:
 extra = """    sed -i "s/EndeavourOS/Forja OS/g" "${srcdir}/calamares-${pkgver}/data/eos/branding/endeavouros/branding.desc"
     sed -i -E 's/requiredStorage:[[:space:]]*5\.5/requiredStorage:    15.0/' "${srcdir}/calamares-${pkgver}/data/eos/modules/welcome_offline.conf"
     sed -i -E 's/requiredRam:[[:space:]]*1\.0/requiredRam:        2.0/' "${srcdir}/calamares-${pkgver}/data/eos/modules/welcome_offline.conf"
-    python - <<'PATCH'
+    python - "${srcdir}/calamares-${pkgver}/data/eos/scripts/chrooted_cleaner_script.sh" <<'PATCH'
 from pathlib import Path
-cleaner = Path("${srcdir}/calamares-${pkgver}/data/eos/scripts/chrooted_cleaner_script.sh")
+import sys
+cleaner = Path(sys.argv[1])
 content = cleaner.read_text()
 remove_marker = "        /etc/sudoers.d/g_wheel\\n"
 if remove_marker not in content:
