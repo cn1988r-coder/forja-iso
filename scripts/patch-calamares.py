@@ -38,7 +38,7 @@ for name in ("usersq-qt6.qml", "usersq.qml"):
     old_user = "regularExpression: /[a-z_][a-z0-9_-]*[$]?$/"
     new_user = "regularExpression: /^[a-z_][a-z0-9_-]*[$]?$/"
     old_host = "regularExpression: /[a-zA-Z0-9][-a-zA-Z0-9_]+/"
-    new_host = "regularExpression: /^[a-zA-Z0-9][-a-zA-Z0-9_]*$/"
+    new_host = "regularExpression: /^[a-zA-Z0-9][-a-zA-Z0-9_]+$/"
     if old_user not in text or old_host not in text:
         raise SystemExit(f"Expressões de validação esperadas não encontradas em {name}.")
     text = text.replace(old_user, new_user, 1).replace(old_host, new_host, 1)
