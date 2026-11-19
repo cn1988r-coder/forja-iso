@@ -115,21 +115,20 @@ calamares_patch = """if [[ ! -r /etc/calamares/settings_offline.conf ]]; then
   exit 1
 fi
 install -m 0644 /etc/calamares/settings_offline.conf /etc/calamares/settings.conf
-desktop_file="/home/liveuser/.local/share/applications/calamares.desktop"
-if [[ ! -f "$desktop_file" ]]; then
-  echo "Calamares live-session desktop entry is missing: $desktop_file" >&2
+if [[ ! -f /home/liveuser/.local/share/applications/calamares.desktop ]]; then
+  echo "Calamares live-session desktop entry is missing: /home/liveuser/.local/share/applications/calamares.desktop" >&2
   exit 1
 fi
 if [[ ! -x /usr/bin/calamares ]]; then
   echo "Calamares executable is missing: /usr/bin/calamares" >&2
   exit 1
 fi
-sed -i -e 's|^TryExec=eos-welcome$|TryExec=calamares|' -e 's|^Exec=eos-welcome$|Exec=pkexec calamares|' "$desktop_file"
-grep -Fxq 'TryExec=calamares' "$desktop_file" || {
+sed -i -e 's|^TryExec=eos-welcome$|TryExec=calamares|' -e 's|^Exec=eos-welcome$|Exec=pkexec calamares|' /home/liveuser/.local/share/applications/calamares.desktop
+grep -Fxq 'TryExec=calamares' /home/liveuser/.local/share/applications/calamares.desktop || {
   echo "Calamares desktop entry has an invalid TryExec value." >&2
   exit 1
 }
-grep -Fxq 'Exec=pkexec calamares' "$desktop_file" || {
+grep -Fxq 'Exec=pkexec calamares' /home/liveuser/.local/share/applications/calamares.desktop || {
   echo "Calamares desktop entry has an invalid Exec value." >&2
   exit 1
 }
