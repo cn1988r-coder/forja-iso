@@ -79,6 +79,9 @@ instances:
 - id: online
   module: packages
   config: packages_online.conf
+- id: forja_cleanup
+  module: shellprocess
+  config: shellprocess_forja_cleanup.conf
 
 sequence:
 - show:
@@ -106,6 +109,7 @@ sequence:
   - bootloader
   - services-systemd
   - preservefiles
+  - shellprocess@forja_cleanup
   - umount
 - show:
   - finished
@@ -173,6 +177,14 @@ displaymanagers:
 basicSetup: false
 sysconfigSetup: false
 """)
+(modules / "shellprocess_forja_cleanup.conf").write_text("""---
+dontChroot: false
+verbose: true
+script:
+  - "pacman -Rdd --noconfirm calamares"
+  - "rm -rf /etc/calamares /usr/share/calamares /usr/lib/calamares /usr/share/endeavouros"
+  - "rm -f /etc/pacman.d/endeavouros-mirrorlist /usr/lib/endeavouros-release"
+""")
 (modules / "services-systemd.conf").write_text("""---
 units:
   - name: "NetworkManager.service"
@@ -193,7 +205,7 @@ units:
 unpackfs = modules / "unpackfs.conf"
 if not unpackfs.exists() or "/run/archiso/bootmnt/arch/x86_64/airootfs.sfs" not in unpackfs.read_text():
     raise SystemExit("A origem da imagem Forja no unpackfs.conf não foi encontrada.")
-for required in ("packages_online.conf", "displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf"):
+for required in ("packages_online.conf", "displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf", "shellprocess_forja_cleanup.conf"):
     if not (modules / required).exists():
         raise SystemExit(f"Módulo necessário ausente: {required}")
 for config in (settings_offline, settings_online):
