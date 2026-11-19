@@ -26,6 +26,16 @@ jobs:
       - name: Baixar repositório
         uses: actions/checkout@v4
 
+      - name: Diagnóstico inicial do runner
+        run: |
+          set -euxo pipefail
+          echo "Commit: $GITHUB_SHA"
+          echo "Workspace: $GITHUB_WORKSPACE"
+          df -h "$GITHUB_WORKSPACE"
+          free -h
+          nproc
+          docker version
+
       - name: Construir ambiente Arch com repositórios EndeavourOS
         run: |
           docker build --pull \
