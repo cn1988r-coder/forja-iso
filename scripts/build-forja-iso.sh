@@ -64,6 +64,8 @@ PY
 
 log "Aplicando identidade visual e configurações MATE"
 cp -a "$ROOT/build/airootfs/." "$EOS_DIR/airootfs/"
+# Ensure the Forja repository client is executable in the generated live and installed system.
+chmod 0755 "$EOS_DIR/airootfs/usr/bin/forja"
 # The Forja live and installed system must use Arch repositories only.
 mkdir -p "$EOS_DIR/airootfs/etc"
 cat > "$EOS_DIR/airootfs/etc/pacman.conf" <<'PACMANCONF'
