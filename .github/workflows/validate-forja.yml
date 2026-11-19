@@ -1,0 +1,22 @@
+name: Validar perfil Forja OS
+
+on:
+  push:
+    branches:
+      - fix/forja-calamares-stability
+    paths:
+      - "scripts/**"
+      - "build/**"
+      - ".github/workflows/validate-forja.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  static-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validar scripts e perfil da distribuição
+        run: bash scripts/validate-build.sh
