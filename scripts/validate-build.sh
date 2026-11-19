@@ -84,6 +84,12 @@ fi
 grep -Fq 'CMAKE_BUILD_TYPE=Release' "$ROOT/scripts/build-forja-iso.sh" || fail "Calamares não está configurado para build Release"
 grep -Fq 'patch-calamares.py' "$ROOT/scripts/build-forja-iso.sh" || fail "patch de branding e validação do Calamares não será aplicado"
 grep -Fq 'branding: forja' "$ROOT/scripts/patch-calamares.py" || fail "configuração offline não aponta para o branding Forja"
+grep -Fq '  - usersq
+  - partition
+  - summary' "$ROOT/scripts/patch-calamares.py" || fail "telas do Calamares não seguem usuário, disco e resumo"
+if grep -Fq '  - packagechooser' "$ROOT/scripts/patch-calamares.py" || grep -Fq '  - netinstall' "$ROOT/scripts/patch-calamares.py"; then
+  fail "telas de seleção de pacotes ou Netinstall ainda aparecem no fluxo"
+fi
 grep -Fq 'regularExpression: /^[a-z_][a-z0-9_-]*[$]?$/' "$ROOT/scripts/patch-calamares.py" || fail "validação integral de usuário não está prevista"
 grep -Fq 'regularExpression: /^[a-zA-Z0-9][-a-zA-Z0-9_]+$/' "$ROOT/scripts/patch-calamares.py" || fail "validação integral de hostname não está prevista"
 grep -Fq 'maximumLength: 31' "$ROOT/scripts/patch-calamares.py" || fail "limite de usuário não está alinhado ao Calamares"
