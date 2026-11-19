@@ -84,6 +84,14 @@ Include = /etc/pacman.d/mirrorlist
 [multilib]
 Include = /etc/pacman.d/mirrorlist
 PACMANCONF
+# Ship the build host's Arch Linux mirrorlist into the live and installed image.
+# The final system must never inherit EndeavourOS mirrors.
+[[ -s /etc/pacman.d/mirrorlist ]] || die "Mirrorlist oficial do Arch Linux não encontrada no ambiente de compilação."
+if grep -Eiq 'endeavouros' /etc/pacman.d/mirrorlist; then
+  die "A mirrorlist do ambiente contém servidores EndeavourOS; use uma mirrorlist Arch Linux."
+fi
+grep -Eq '^Server[[:space:]]*=' /etc/pacman.d/mirrorlist || die "A mirrorlist do Arch Linux não contém servidores ativos."
+install -Dm644 /etc/pacman.d/mirrorlist "$EOS_DIR/airootfs/etc/pacman.d/mirrorlist"
 # GTK settings belong to the EndeavourOS liveuser skeleton package, not the base airootfs /etc/skel.
 # Keeping a second copy here makes pacman reject endeavouros-skel-liveuser with file conflicts.
 rm -f "$EOS_DIR/airootfs/etc/skel/.config/gtk-3.0/settings.ini"
@@ -96,9 +104,9 @@ rm -rf "$SKEL/.config/kdedefaults" "$SKEL/.config/plasma"* "$SKEL/.local/share/p
 find "$SKEL/.config" -maxdepth 1 -type f \( -name 'balo*' -o -name 'kcm*' -o -name 'kde*' -o -name 'kscreen*' -o -name 'ksmserverrc' -o -name 'ksplashrc' -o -name 'kwalletrc' -o -name 'kxkbrc' -o -name 'plasma*' -o -name 'powerdevilrc' -o -name 'powermanagementprofilesrc' -o -name 'systemsettingsrc' \) -delete
 mkdir -p "$EOS_DIR/airootfs/root/packages"
 
-log "Gerando wallpapers pretos puros"
-magick -size 1920x1080 xc:'#000000' "$EOS_DIR/airootfs/root/livewall.png"
-magick -size 1920x1080 xc:'#000000' "$EOS_DIR/airootfs/root/endeavouros-wallpaper.png"
+log "Preparando wallpaper espacial oficial da Forja OS"
+FORJA_WALLPAPER="$ROOT/build/airootfs/usr/share/backgrounds/forja/forja-wallpaper.png"
+[[ -s "$FORJA_WALLPAPER" ]] || die "Wallpaper oficial ausente: $FORJA_WALLPAPER. A ISO não será gerada com fundo preto."
 
 log "Removendo etapa específica de configuração KDE do prepare.sh"
 python - "$EOS_DIR/prepare.sh" <<'PY'
@@ -336,9 +344,9 @@ log "Preparando framework EndeavourOS"
   ./prepare.sh
 )
 
-log "Reaplicando fundo preto após prepare.sh"
-magick -size 1920x1080 xc:'#000000' "$EOS_DIR/airootfs/root/livewall.png"
-magick -size 1920x1080 xc:'#000000' "$EOS_DIR/airootfs/root/endeavouros-wallpaper.png"
+log "Aplicando wallpaper oficial da Forja após prepare.sh"
+cp "$FORJA_WALLPAPER" "$EOS_DIR/airootfs/root/livewall.png"
+cp "$FORJA_WALLPAPER" "$EOS_DIR/airootfs/root/endeavouros-wallpaper.png"
 
 log "Compilando ISO Forja OS. Esta etapa pode levar bastante tempo."
 (
