@@ -20,3 +20,16 @@ jobs:
         uses: actions/checkout@v4
       - name: Validar scripts e perfil da distribuição
         run: bash scripts/validate-build.sh
+      - name: Testar patcher contra o Calamares upstream fixado
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch 26.03.2.3 https://github.com/endeavouros-team/calamares.git "$RUNNER_TEMP/calamares"
+          mkdir -p "$RUNNER_TEMP/branding"
+          cp -a build/calamares/branding/forja "$RUNNER_TEMP/branding/forja"
+          cp scripts/patch-calamares.py "$RUNNER_TEMP/patch-calamares.py"
+          python "$RUNNER_TEMP/patch-calamares.py" "$RUNNER_TEMP/calamares"
+          grep -Fxq 'branding: forja' "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
+          grep -Fxq 'branding: forja' "$RUNNER_TEMP/calamares/data/eos/settings_online.conf"
+          grep -Fq 'packages@online' "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
+          grep -Fq 'shellprocess@forja_cleanup' "$RUNNER_TEMP/calamares/data/eos/settings_online.conf"
+          ! grep -Eq 'packagechooser|netinstall|eos_pacman|pacstrap|eos_script' "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
