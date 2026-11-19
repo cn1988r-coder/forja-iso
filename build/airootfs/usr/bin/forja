@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+CONFIG="/etc/forja/pacman.conf"
+MIRRORLIST="/etc/pacman.d/forja-mirrorlist"
+KEY_FILE="/etc/forja/repository-key"
+PACMAN="/usr/bin/pacman"
+usage() {
+  cat <<'EOF'
+Forja OS package repository
+Usage:
+  sudo forja sync
+  forja search TERM
+  sudo forja install forja-PACKAGE [...]
+  sudo forja upgrade
+  sudo forja remove forja-PACKAGE [...]
+  forja list
+  forja help
+
+Uses an isolated Pacman configuration. It never changes /etc/pacman.conf
+and never performs normal system upgrades. Direct install/remove operations
+are restricted to packages named forja-*.
+EOF
+}
+die() { printf 'Forja: %s\n' "$*" >&2; exit 1; }
+[[ -x "$PACMAN" ]] || die "Pacman não encontrado."
+[[ -r "$CONFIG" ]] || die "Configuração isolada ausente: $CONFIG"
+root_only() { [[ "$EUID" -eq 0 ]] || die "Execute com sudo."; }
+repository_ready() {
+  [[ -r "$MIRRORLIST" ]] || die "Servidor Forja não configurado."
+  grep -Eq '^[[:space:]]*Server[[:space:]]*=[[:space:]]*https://' "$MIRRORLIST" || die "URL HTTPS do repositório ausente."
+  [[ -s "$KEY_FILE" ]] || die "Fingerprint da chave Forja ausente."
+  local fp
+  fp="$(grep -Eo '[A-Fa-f0-9]{40}' "$KEY_FILE" | head -n1 || true)"
+  [[ "$fp" =~ ^[A-Fa-f0-9]{40}$ ]] || die "Fingerprint deve conter 40 caracteres hexadecimais."
+  pacman-key --list-keys "$fp" >/dev/null 2>&1 || die "Chave Forja não está instalada no chaveiro Pacman."
+}
+check_names() {
+  local p
+  for p in "$@"; do [[ "$p" == forja-* ]] || die "Somente pacotes forja-* podem ser operados: $p"; done
+}
+[[ $# -gt 0 ]] || { usage; exit 0; }
+case "$1" in
+  help|-h|--help) usage ;;
+  list) "$PACMAN" -Qq | grep '^forja-' || true ;;
+  sync) root_only; repository_ready; "$PACMAN" --config "$CONFIG" -Sy ;;
+  search) repository_ready; shift; [[ $# -gt 0 ]] || die "Informe um termo."; "$PACMAN" --config "$CONFIG" -Ss "$@" ;;
+  install) root_only; repository_ready; shift; [[ $# -gt 0 ]] || die "Informe um pacote."; check_names "$@"; "$PACMAN" --config "$CONFIG" -S --needed "$@" ;;
+  remove) root_only; shift; [[ $# -gt 0 ]] || die "Informe um pacote."; check_names "$@"; "$PACMAN" -R "$@" ;;
+  upgrade)
+    root_only
+    repository_ready
+    "$PACMAN" --config "$CONFIG" -Sy
+    mapfile -t packages < <("$PACMAN" --config "$CONFIG" -Quq | grep '^forja-' || true)
+    if (("${#packages[@]}" == 0)); then printf 'Nenhum pacote Forja possui atualização disponível.\n'; exit 0; fi
+    "$PACMAN" --config "$CONFIG" -S --needed "${packages[@]}"
+    ;;
+  *) usage >&2; die "Comando desconhecido: $1" ;;
+esac
