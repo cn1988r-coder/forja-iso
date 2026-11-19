@@ -88,7 +88,7 @@ grep -Fq 'regularExpression: /^[a-zA-Z0-9][-a-zA-Z0-9_]+$/' "$ROOT/scripts/patch
 grep -Fq 'maximumLength: 31' "$ROOT/scripts/patch-calamares.py" || fail "limite de usuário não está alinhado ao Calamares"
 grep -Fq 'maximumLength: 63' "$ROOT/scripts/patch-calamares.py" || fail "limite de hostname não está alinhado ao Calamares"
 grep -Fq 'nobody' "$ROOT/scripts/patch-calamares.py" || fail "nomes reservados do sistema não estão bloqueados na interface"
-grep -Fq 're.subn(r"(?m)^    - wheel\\n' "$ROOT/scripts/patch-calamares.py" || fail "duplicidade do grupo wheel não será removida"
+grep -Fq 're.subn(r"(?m)^    - wheel\n' "$ROOT/scripts/patch-calamares.py" || fail "duplicidade do grupo wheel não será removida"
 grep -Fq 'background-color: #11151b' "$ROOT/build/calamares/branding/forja/stylesheet.qss" || fail "tema escuro Forja ausente"
 python - "$ROOT/scripts/patch-calamares.py" <<'PY'
 import pathlib, sys
