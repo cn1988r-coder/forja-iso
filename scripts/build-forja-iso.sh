@@ -148,7 +148,24 @@ s = p.read_text()
 needle = '    awk -i inplace -v version="${pkgver}" -v release="${release_name}" "$replace_command" "${srcdir}/calamares-${pkgver}/data/eos/branding/endeavouros/branding.desc"\n'
 if needle not in s:
     raise SystemExit("Não foi possível localizar a etapa de branding no PKGBUILD do Calamares.")
-s = s.replace(needle, needle + '    sed -i "s/EndeavourOS/Forja OS/g" "${srcdir}/calamares-${pkgver}/data/eos/branding/endeavouros/branding.desc"\n')
+extra = """    sed -i "s/EndeavourOS/Forja OS/g" "${srcdir}/calamares-${pkgver}/data/eos/branding/endeavouros/branding.desc"
+    sed -i -E 's/requiredStorage:[[:space:]]*5\.5/requiredStorage:    15.0/' "${srcdir}/calamares-${pkgver}/data/eos/modules/welcome_offline.conf"
+    python - <<'PATCH'
+from pathlib import Path
+cleaner = Path("${srcdir}/calamares-${pkgver}/data/eos/scripts/chrooted_cleaner_script.sh")
+content = cleaner.read_text()
+remove_marker = "        /etc/sudoers.d/g_wheel\\n"
+if remove_marker not in content:
+    raise SystemExit("Não foi possível localizar a lista de limpeza do liveuser no Calamares.")
+content = content.replace(remove_marker, remove_marker + "        /etc/lightdm/lightdm.conf.d/10-forja-live.conf\\n", 1)
+cleanup_marker = "    rm -rf /etc/calamares /opt/extra-drivers"
+if cleanup_marker not in content:
+    raise SystemExit("Não foi possível localizar a limpeza final do Calamares.")
+content = content.replace(cleanup_marker, "    rm -f /usr/bin/forja-installer /usr/share/applications/forja-installer.desktop\\n" + cleanup_marker, 1)
+cleaner.write_text(content)
+PATCH
+"""
+s = s.replace(needle, needle + extra)
 p.write_text(s)
 PY
   makepkg --syncdeps --noconfirm
