@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="220" viewBox="0 0 640 220">
+  <rect width="640" height="220" rx="18" fill="#11151b"/>
+  <path d="M76 42h72v20H99v31h43v20H99v49H76z" fill="#4b91c8"/>
+  <path d="M159 42h24l30 120h-24l-6-27h-25l-6 27h-23zm19 74-7-34-7 34z" fill="#ff9b45"/>
+  <text x="238" y="112" font-family="Noto Sans, sans-serif" font-size="62" font-weight="700" fill="#f5f7fa">FORJA</text>
+  <text x="242" y="157" font-family="Noto Sans, sans-serif" font-size="30" font-weight="500" letter-spacing="8" fill="#ff9b45">OS</text>
+</svg>
