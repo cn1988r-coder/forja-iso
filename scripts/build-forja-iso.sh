@@ -150,6 +150,7 @@ if needle not in s:
     raise SystemExit("Não foi possível localizar a etapa de branding no PKGBUILD do Calamares.")
 extra = """    sed -i "s/EndeavourOS/Forja OS/g" "${srcdir}/calamares-${pkgver}/data/eos/branding/endeavouros/branding.desc"
     sed -i -E 's/requiredStorage:[[:space:]]*5\.5/requiredStorage:    15.0/' "${srcdir}/calamares-${pkgver}/data/eos/modules/welcome_offline.conf"
+    sed -i -E 's/requiredRam:[[:space:]]*1\.0/requiredRam:        2.0/' "${srcdir}/calamares-${pkgver}/data/eos/modules/welcome_offline.conf"
     python - <<'PATCH'
 from pathlib import Path
 cleaner = Path("${srcdir}/calamares-${pkgver}/data/eos/scripts/chrooted_cleaner_script.sh")
