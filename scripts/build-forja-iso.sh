@@ -41,12 +41,12 @@ clone_at_commit() {
 log "Obtendo framework EndeavourOS fixado em $EOS_COMMIT"
 clone_at_commit https://github.com/endeavouros-team/EndeavourOS-ISO.git "$EOS_DIR" "$EOS_COMMIT"
 
-log "Adaptando lista KDE para MATE"
+log "Preparando lista fixa de pacotes Forja OS com MATE, Firefox e aplicativos próprios"
 python - "$EOS_DIR/packages.x86_64" "$ROOT/build/packages.mate" <<'PY'
 import pathlib, re, sys
 target = pathlib.Path(sys.argv[1])
 mate = pathlib.Path(sys.argv[2]).read_text()
-remove = re.compile(r'^(ark|bluedevil|breeze.*|dolphin.*|endeavouros-konsole-colors|eos-apps-info|eos-log-tool|eos-packagelist|eos-quickstart|firewall-applet|ffmpegthumbs|gwenview|haruna|kate|kcalc|kde.*|kimageformats|kinfocenter|kio.*|konsole|kscreen|kwallet.*|kwayland.*|okular|partitionmanager|plasma.*|powerdevil|print-manager|reflector-simple|spectacle|sddm|welcome|xdg-desktop-portal-kde)$')
+remove = re.compile(r'^(endeavouros-(mirrorlist|keyring|branding)|eos-[a-z0-9-]+|ark|bluedevil|breeze.*|dolphin.*|endeavouros-konsole-colors|eos-apps-info|eos-log-tool|eos-packagelist|eos-quickstart|firewall-applet|ffmpegthumbs|gwenview|haruna|kate|kcalc|kde.*|kimageformats|kinfocenter|kio.*|konsole|kscreen|kwallet.*|kwayland.*|okular|partitionmanager|plasma.*|powerdevil|print-manager|reflector-simple|spectacle|sddm|welcome|xdg-desktop-portal-kde)$')
 lines = []
 for line in target.read_text().splitlines():
     item = line.strip()
@@ -64,6 +64,26 @@ PY
 
 log "Aplicando identidade visual e configurações MATE"
 cp -a "$ROOT/build/airootfs/." "$EOS_DIR/airootfs/"
+# The Forja live and installed system must use Arch repositories only.
+mkdir -p "$EOS_DIR/airootfs/etc"
+cat > "$EOS_DIR/airootfs/etc/pacman.conf" <<'PACMANCONF'
+[options]
+Architecture = auto
+Color
+VerbosePkgLists
+ParallelDownloads = 5
+SigLevel = Required DatabaseOptional
+LocalFileSigLevel = Optional
+
+[core]
+Include = /etc/pacman.d/mirrorlist
+
+[extra]
+Include = /etc/pacman.d/mirrorlist
+
+[multilib]
+Include = /etc/pacman.d/mirrorlist
+PACMANCONF
 # GTK settings belong to the EndeavourOS liveuser skeleton package, not the base airootfs /etc/skel.
 # Keeping a second copy here makes pacman reject endeavouros-skel-liveuser with file conflicts.
 rm -f "$EOS_DIR/airootfs/etc/skel/.config/gtk-3.0/settings.ini"
@@ -194,7 +214,7 @@ s = s.replace('iso_application="EndeavourOS Live/Rescue CD"', 'iso_application="
 p.write_text(s)
 PY
 
-log "Construindo Calamares original do EndeavourOS"
+log "Construindo Calamares upstream com fluxo de instalação Forja OS"
 CALAMARES_SRC="$WORK/calamares-pkg"
 mkdir -p "$CALAMARES_SRC"
 curl -fsSL "https://raw.githubusercontent.com/endeavouros-team/PKGBUILDS/$PKGBUILDS_COMMIT/calamares/PKGBUILD" -o "$CALAMARES_SRC/PKGBUILD"
