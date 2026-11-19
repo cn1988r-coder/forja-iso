@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply the Forja OS branding and focused users-step fixes to the pinned EOS Calamares source."""
+"""Apply the Forja OS branding and focused users-step fixes to pinned Calamares."""
 from pathlib import Path
 import re
 import sys
@@ -15,49 +15,51 @@ for item in branding.iterdir():
 settings = source / "data/eos/settings_offline.conf"
 text = settings.read_text()
 if "branding: endeavouros" not in text:
-    raise SystemExit("Não foi encontrada a identidade upstream esperada em settings_offline.conf.")
+    raise SystemExit("Branding upstream esperado não encontrado em settings_offline.conf.")
 settings.write_text(text.replace("branding: endeavouros", "branding: forja", 1))
 
-# The EOS config lists wheel twice, once as a string and once as a system-group
-# mapping. Keep the explicit mapping, which creates the group when needed.
+# Keep only the explicit system-group mapping for wheel.
 for name in ("usersq.conf", "users.conf"):
     path = source / "data/eos/modules" / name
     if not path.exists():
         continue
     text = path.read_text()
-    text = re.sub(r"(?m)^    - wheel\\n(?=    - rfkill\\n)", "", text, count=1)
+    text, count = re.subn(r"(?m)^    - wheel\n(?=    - rfkill\n)", "", text, count=1)
+    if count != 1:
+        raise SystemExit(f"Entrada duplicada de wheel não encontrada em {name}.")
     path.write_text(text)
 
-# Keep the QML validator aligned with the C++ validator: both expressions
-# must validate the entire value, not merely a matching suffix/sub-string.
+# Anchor the QML expressions to match Calamares' full-string C++ validation.
 for name in ("usersq-qt6.qml", "usersq.qml"):
     path = source / "src/modules/usersq" / name
     if not path.exists():
         continue
     text = path.read_text()
-    text = text.replace(
-        "regularExpression: /[a-z_][a-z0-9_-]*[$]?$/",
-        "regularExpression: /^[a-z_][a-z0-9_-]*[$]?$/",
-    )
-    text = text.replace(
-        "regularExpression: /[a-zA-Z0-9][-a-zA-Z0-9_]+/",
-        "regularExpression: /^[a-zA-Z0-9][-a-zA-Z0-9_]*$/",
-    )
+    old_user = "regularExpression: /[a-z_][a-z0-9_-]*[$]?$/"
+    new_user = "regularExpression: /^[a-z_][a-z0-9_-]*[$]?$/"
+    old_host = "regularExpression: /[a-zA-Z0-9][-a-zA-Z0-9_]+/"
+    new_host = "regularExpression: /^[a-zA-Z0-9][-a-zA-Z0-9_]*$/"
+    if old_user not in text or old_host not in text:
+        raise SystemExit(f"Expressões de validação esperadas não encontradas em {name}.")
+    text = text.replace(old_user, new_user, 1).replace(old_host, new_host, 1)
     if name == "usersq-qt6.qml":
-        text = text.replace('readonly property color unfilledFieldColor: "#3A3F45"', 'readonly property color unfilledFieldColor: "#202a36"')
-        text = text.replace('readonly property color positiveFieldColor: "#4E5661"', 'readonly property color positiveFieldColor: "#26394b"')
-        text = text.replace('readonly property color negativeFieldColor: "#7F3F3F"', 'readonly property color negativeFieldColor: "#63343b"')
-        text = text.replace('readonly property color unfilledFieldOutlineColor: "#5C6370"', 'readonly property color unfilledFieldOutlineColor: "#40546b"')
-        text = text.replace('readonly property color positiveFieldOutlineColor: "#7F9F7F"', 'readonly property color positiveFieldOutlineColor: "#4b91c8"')
-        text = text.replace('readonly property color negativeFieldOutlineColor: "#BF616A"', 'readonly property color negativeFieldOutlineColor: "#d56b78"')
-        text = text.replace('readonly property color commentsColor: "#ffffff"', 'readonly property color commentsColor: "#b8c4d2"')
+        colors = {
+            '#3A3F45': '#202a36',
+            '#4E5661': '#26394b',
+            '#7F3F3F': '#63343b',
+            '#5C6370': '#40546b',
+            '#7F9F7F': '#4b91c8',
+            '#BF616A': '#d56b78',
+        }
+        for old, new in colors.items():
+            text = text.replace(old, new)
+        text = text.replace('commentsColor: "#ffffff"', 'commentsColor: "#b8c4d2"')
     path.write_text(text)
 
-# Fail closed if any expected QML validator was not patched.
 qml = (source / "src/modules/usersq/usersq-qt6.qml").read_text()
 if "regularExpression: /^[a-z_][a-z0-9_-]*[$]?$/ " in qml:
-    raise SystemExit("A expressão de usuário ainda contém um espaço inesperado.")
+    raise SystemExit("Expressão de login contém espaço inesperado.")
 if "regularExpression: /[a-z_][a-z0-9_-]*[$]?$/" in qml:
-    raise SystemExit("A validação QML do login não foi ancorada.")
+    raise SystemExit("Validação QML do login não foi ancorada.")
 if "regularExpression: /[a-zA-Z0-9][-a-zA-Z0-9_]+/" in qml:
-    raise SystemExit("A validação QML do hostname não foi ancorada.")
+    raise SystemExit("Validação QML do hostname não foi ancorada.")
