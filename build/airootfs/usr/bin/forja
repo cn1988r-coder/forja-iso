@@ -1,58 +1,129 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+
 CONFIG="/etc/forja/pacman.conf"
 MIRRORLIST="/etc/pacman.d/forja-mirrorlist"
 KEY_FILE="/etc/forja/repository-key"
 PACMAN="/usr/bin/pacman"
-usage() {
-  cat <<'EOF'
-Forja OS package repository
-Usage:
-  sudo forja sync
-  forja search TERM
-  sudo forja install forja-PACKAGE [...]
-  sudo forja upgrade
-  sudo forja remove forja-PACKAGE [...]
-  forja list
-  forja help
 
-Uses an isolated Pacman configuration. It never changes /etc/pacman.conf
-and never performs normal system upgrades. Direct install/remove operations
-are restricted to packages named forja-*.
-EOF
+die() {
+  printf 'Forja: %s\n' "$*" >&2
+  return 1
 }
-die() { printf 'Forja: %s\n' "$*" >&2; exit 1; }
-[[ -x "$PACMAN" ]] || die "Pacman não encontrado."
-[[ -r "$CONFIG" ]] || die "Configuração isolada ausente: $CONFIG"
-root_only() { [[ "$EUID" -eq 0 ]] || die "Execute com sudo."; }
+
+root_only() {
+  [[ "$EUID" -eq 0 ]] || die "Execute com sudo: sudo forja"
+}
+
 repository_ready() {
-  [[ -r "$MIRRORLIST" ]] || die "Servidor Forja não configurado."
+  [[ -r "$CONFIG" ]] || die "Configuração isolada ausente: $CONFIG"
+  [[ -r "$MIRRORLIST" ]] || die "Servidor Forja ainda não configurado."
   grep -Eq '^[[:space:]]*Server[[:space:]]*=[[:space:]]*https://' "$MIRRORLIST" || die "URL HTTPS do repositório ausente."
   [[ -s "$KEY_FILE" ]] || die "Fingerprint da chave Forja ausente."
+
   local fp
   fp="$(grep -Eo '[A-Fa-f0-9]{40}' "$KEY_FILE" | head -n1 || true)"
   [[ "$fp" =~ ^[A-Fa-f0-9]{40}$ ]] || die "Fingerprint deve conter 40 caracteres hexadecimais."
   pacman-key --list-keys "$fp" >/dev/null 2>&1 || die "Chave Forja não está instalada no chaveiro Pacman."
 }
+
 check_names() {
-  local p
-  for p in "$@"; do [[ "$p" == forja-* ]] || die "Somente pacotes forja-* podem ser operados: $p"; done
+  local package
+  for package in "$@"; do
+    [[ "$package" == forja-* ]] || die "Somente pacotes com prefixo forja- podem ser operados: $package"
+  done
 }
-[[ $# -gt 0 ]] || { usage; exit 0; }
-case "$1" in
-  help|-h|--help) usage ;;
-  list) "$PACMAN" -Qq | grep '^forja-' || true ;;
-  sync) root_only; repository_ready; "$PACMAN" --config "$CONFIG" -Sy ;;
-  search) repository_ready; shift; [[ $# -gt 0 ]] || die "Informe um termo."; "$PACMAN" --config "$CONFIG" -Ss "$@" ;;
-  install) root_only; repository_ready; shift; [[ $# -gt 0 ]] || die "Informe um pacote."; check_names "$@"; "$PACMAN" --config "$CONFIG" -S --needed "$@" ;;
-  remove) root_only; shift; [[ $# -gt 0 ]] || die "Informe um pacote."; check_names "$@"; "$PACMAN" -R "$@" ;;
-  upgrade)
-    root_only
-    repository_ready
-    "$PACMAN" --config "$CONFIG" -Sy
-    mapfile -t packages < <("$PACMAN" --config "$CONFIG" -Quq | grep '^forja-' || true)
-    if (("${#packages[@]}" == 0)); then printf 'Nenhum pacote Forja possui atualização disponível.\n'; exit 0; fi
-    "$PACMAN" --config "$CONFIG" -S --needed "${packages[@]}"
-    ;;
-  *) usage >&2; die "Comando desconhecido: $1" ;;
-esac
+
+sync_repository() {
+  repository_ready || return 1
+  "$PACMAN" --config "$CONFIG" -Sy
+}
+
+search_packages() {
+  local term
+  read -r -p "Pesquisar no repositório Forja: " term
+  [[ -n "$term" ]] || { printf 'Pesquisa cancelada.\n'; return 0; }
+  repository_ready || return 1
+  "$PACMAN" --config "$CONFIG" -Ss "$term"
+}
+
+install_packages() {
+  local package_line
+  local -a packages
+  read -r -p "Nome do pacote Forja (forja-nome): " package_line
+  [[ -n "$package_line" ]] || { printf 'Instalação cancelada.\n'; return 0; }
+  read -r -a packages <<< "$package_line"
+  check_names "${packages[@]}" || return 1
+  repository_ready || return 1
+  "$PACMAN" --config "$CONFIG" -S --needed "${packages[@]}"
+}
+
+upgrade_packages() {
+  repository_ready || return 1
+  "$PACMAN" --config "$CONFIG" -Sy
+  local -a packages
+  mapfile -t packages < <("$PACMAN" --config "$CONFIG" -Quq | grep '^forja-' || true)
+  if (("${#packages[@]}" == 0)); then
+    printf 'Nenhum pacote Forja possui atualização disponível.\n'
+    return 0
+  fi
+  "$PACMAN" --config "$CONFIG" -S --needed "${packages[@]}"
+}
+
+remove_packages() {
+  local package_line
+  local -a packages
+  read -r -p "Nome do pacote Forja para remover: " package_line
+  [[ -n "$package_line" ]] || { printf 'Remoção cancelada.\n'; return 0; }
+  read -r -a packages <<< "$package_line"
+  check_names "${packages[@]}" || return 1
+  "$PACMAN" -R "${packages[@]}"
+}
+
+list_packages() {
+  "$PACMAN" -Qq | grep '^forja-' || printf 'Nenhum pacote Forja instalado.\n'
+}
+
+show_menu() {
+  printf '\n'
+  printf '====================================\n'
+  printf '          REPOSITÓRIO FORJA         \n'
+  printf '====================================\n'
+  printf '1) Atualizar lista de pacotes\n'
+  printf '2) Pesquisar pacotes\n'
+  printf '3) Instalar pacote Forja\n'
+  printf '4) Atualizar pacotes Forja instalados\n'
+  printf '5) Remover pacote Forja\n'
+  printf '6) Listar pacotes Forja instalados\n'
+  printf '0) Sair\n'
+  printf '------------------------------------\n'
+}
+
+main() {
+  [[ -x "$PACMAN" ]] || die "Pacman não encontrado."
+  [[ -r "$CONFIG" ]] || die "Configuração isolada ausente: $CONFIG"
+  root_only
+
+  if (($# != 0)); then
+    die "Use somente o comando sudo forja, sem argumentos."
+    return 1
+  fi
+
+  while true; do
+    show_menu
+    local choice
+    read -r -p "Escolha uma opção: " choice || break
+    case "$choice" in
+      1) sync_repository || true ;;
+      2) search_packages || true ;;
+      3) install_packages || true ;;
+      4) upgrade_packages || true ;;
+      5) remove_packages || true ;;
+      6) list_packages || true ;;
+      0) printf 'Saindo do repositório Forja.\n'; break ;;
+      *) printf 'Opção inválida.\n' ;;
+    esac
+  done
+}
+
+main "$@"
