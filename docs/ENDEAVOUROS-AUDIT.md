@@ -89,3 +89,13 @@ O perfil upstream fixado utilizava SquashFS com XZ e filtro BCJ. XZ prioriza tam
 O build Forja substitui essa configuração por SquashFS com Zstandard nível 3 e bloco de 1 MiB. A escolha prioriza velocidade de descompressão e leitura, mantendo compressão real para a ISO. A consequência esperada é uma ISO maior que a variante XZ, em troca de menor custo de CPU ao carregar o sistema. Não se usa compressão máxima: o objetivo é responsividade, não o menor arquivo possível.
 
 Nenhum serviço essencial do MATE, LightDM, NetworkManager, Bluetooth ou Shelly é desativado como atalho de desempenho. A otimização do boot deve continuar com medições em VM, comparando tempo até LightDM, tempo até a sessão MATE utilizável e consumo de RAM/CPU. Ainda não há benchmark de ISO compilada; portanto, o ganho precisa ser confirmado em teste real.
+
+
+## Correções de Pacman e wallpaper (19/11/2026)
+
+- O `pacman.conf` da imagem final declara somente os repositórios Arch Linux: core, extra e multilib.
+- O build copia a mirrorlist do Arch Linux para `airootfs/etc/pacman.d/mirrorlist` e interrompe a compilação se ela estiver ausente, sem servidores ou contiver referências EndeavourOS.
+- A mirrorlist do ambiente de compilação deve ser a oficial do Arch; o script não cria um repositório próprio da Forja nem inventa endereço ou chave de assinatura.
+- O MATE passa a apontar para `/usr/share/backgrounds/forja/forja-wallpaper.png` com opção de zoom, preservando a possibilidade de o usuário substituir o fundo.
+- O build deixa de fabricar imagens pretas e exige o arquivo oficial antes de compilar. Depois do prepare.sh, o arquivo é copiado para os caminhos de wallpaper Live e Calamares.
+- **Bloqueio de asset:** o arquivo PNG espacial em resolução 8K ainda precisa ser incorporado em `build/airootfs/usr/share/backgrounds/forja/forja-wallpaper.png`. A compilação agora falha explicitamente enquanto esse arquivo não existir, em vez de gerar uma ISO com fundo preto.
