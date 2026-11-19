@@ -17,13 +17,15 @@ trap 'die "Falha na linha $LINENO. Consulte a mensagem acima."' ERR
 [[ -f /etc/arch-release ]] || die "Use EndeavourOS ou Arch Linux com os repositórios EndeavourOS habilitados."
 [[ $EUID -ne 0 ]] || die "Execute como usuário normal. O script usa sudo apenas nas etapas necessárias."
 command -v git >/dev/null || die "Instale git."
+command -v curl >/dev/null || die "Instale curl."
 command -v makepkg >/dev/null || die "makepkg não encontrado. Use um host Arch/EndeavourOS."
 command -v sudo >/dev/null || die "sudo não encontrado."
 
 mkdir -p "$WORK" "$PKG_DIR"
 
 log "Instalando dependências de compilação"
-sudo pacman -S --needed --noconfirm archiso git squashfs-tools imagemagick base-devel python
+sudo pacman -S --needed --noconfirm archiso git curl squashfs-tools imagemagick base-devel python
+export MAKEFLAGS="-j$(nproc)"
 
 clone_at_commit() {
   local url="$1" dir="$2" commit="$3"
@@ -137,10 +139,12 @@ p.write_text(s)
 PY
 
 log "Construindo Calamares do fork EndeavourOS"
-CALAMARES_SRC="$WORK/PKGBUILDS"
-clone_at_commit https://github.com/endeavouros-team/PKGBUILDS.git "$CALAMARES_SRC" "$PKGBUILDS_COMMIT"
+CALAMARES_SRC="$WORK/calamares-pkg"
+mkdir -p "$CALAMARES_SRC"
+curl -fsSL "https://raw.githubusercontent.com/endeavouros-team/PKGBUILDS/$PKGBUILDS_COMMIT/calamares/PKGBUILD" -o "$CALAMARES_SRC/PKGBUILD"
+[[ -s "$CALAMARES_SRC/PKGBUILD" ]] || die "PKGBUILD do Calamares não foi baixado."
 (
-  cd "$CALAMARES_SRC/calamares"
+  cd "$CALAMARES_SRC"
   python - PKGBUILD <<'PY'
 import pathlib, sys
 p = pathlib.Path(sys.argv[1])
@@ -176,10 +180,11 @@ PY
 
 log "Construindo Shelly a partir do código oficial fixado"
 SHELLY_SRC="$WORK/Shelly-ALPM"
-clone_at_commit https://github.com/Seafoam-Labs/Shelly-ALPM.git "$SHELLY_SRC" "$SHELLY_COMMIT"
+mkdir -p "$SHELLY_SRC"
+curl -fsSL "https://raw.githubusercontent.com/Seafoam-Labs/Shelly-ALPM/$SHELLY_COMMIT/PKGBUILD-git" -o "$SHELLY_SRC/PKGBUILD"
+[[ -s "$SHELLY_SRC/PKGBUILD" ]] || die "PKGBUILD do Shelly não foi baixado."
 (
   cd "$SHELLY_SRC"
-  cp PKGBUILD-git PKGBUILD
   sed -i 's/#branch=development/#commit='"$SHELLY_COMMIT"'/' PKGBUILD
   makepkg --syncdeps --noconfirm
   find . -maxdepth 1 -name 'shelly-git-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
