@@ -113,6 +113,11 @@ grep -Fq 'settings_offline.write_text(settings_common)' "$ROOT/scripts/patch-cal
 grep -Fq 'packages@online' "$ROOT/scripts/patch-calamares.py" || fail "modo online não atualiza a base de pacotes Arch"
 grep -Fq 'efiBootloaderId: "Forja OS"' "$ROOT/scripts/patch-calamares.py" || fail "identificação do GRUB/EFI não é Forja OS"
 grep -Fq 'displaymanagers:' "$ROOT/scripts/patch-calamares.py" || fail "gerenciador de sessão fixo não foi configurado"
+grep -Fq 'skip_if_no_internet: true' "$ROOT/scripts/patch-calamares.py" || fail "modo offline não tolera ausência de rede"
+grep -Fq 'shellprocess@forja_cleanup' "$ROOT/scripts/patch-calamares.py" || fail "limpeza final da instalação Forja ausente"
+grep -Fq 'pacman -Rdd --noconfirm calamares' "$ROOT/scripts/patch-calamares.py" || fail "Calamares não será removido do sistema instalado"
+grep -Fq 'rm -f /etc/pacman.d/endeavouros-mirrorlist' "$ROOT/scripts/patch-calamares.py" || fail "mirrorlist EndeavourOS não será removida do sistema instalado"
+
 if grep -Eq 'endeavouros|eos-' "$ROOT/build/packages.mate"; then
   fail "pacotes EndeavourOS encontrados no perfil final"
 fi
