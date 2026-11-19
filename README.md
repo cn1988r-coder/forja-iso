@@ -20,7 +20,7 @@
 
 - `Dockerfile`: ambiente de build Arch Linux com repositórios EndeavourOS.
 - `build/packages.mate`: seleção inicial de pacotes MATE, LightDM e aparência.
-- `build/airootfs/`: configurações dconf, LightDM e GTK para a sessão Forja, além do launcher próprio do instalador offline Calamares.
+- `build/airootfs/`: configurações dconf, LightDM e GTK para a sessão Forja, além do launcher próprio do instalador offline Calamares. O cleaner do instalador remove o launcher e o autologin live do sistema instalado.
 - `scripts/build-container.sh`: executa o build isolado via Docker/Podman.
 - `scripts/build-forja-iso.sh`: adapta o framework fixado, remove o Welcome KDE/XFCE e utilitários KDE, prepara o Calamares offline, constrói os pacotes locais e chama o mkarchiso.
 - `scripts/validate-build.sh`: validação estática de arquivos, revisões e sintaxe Bash.
