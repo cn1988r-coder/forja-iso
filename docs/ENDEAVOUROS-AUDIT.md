@@ -38,8 +38,9 @@ sem instalar repositórios EndeavourOS no sistema hospedeiro.
 - Configurações GTK3/GTK4 para o usuário live e esqueleto.
 - Configuração LightDM para sessão MATE live.
 - Script que clona o framework em revisão fixada, remove a seleção KDE e os aplicativos Welcome/Partition Manager, injeta MATE, remove a etapa `eos-settings-plasma`, compila o Calamares usando o PKGBUILD original do EndeavourOS sem alterar sua receita nem seus arquivos internos, prepara Shelly, Ferdium e Bibata, e chama `mkarchiso`.
-- O atalho gráfico original do Calamares é mantido e ajustado para iniciar diretamente `pkexec calamares`, sem depender do `eos-welcome` e sem criar um instalador próprio. Na preparação da ISO, a configuração offline original do EndeavourOS é ativada como `/etc/calamares/settings.conf`.
-- O script altera o nome do sistema em `/usr/lib/os-release`, no arquivo de release do EndeavourOS, no motd e nos menus de boot. Não aplica rebranding próprio nem alterações aos módulos internos do Calamares.
+- O atalho gráfico original do Calamares é mantido e ajustado para iniciar diretamente `pkexec calamares`, sem depender do `eos-welcome` e sem criar um instalador próprio. Na preparação da ISO, a configuração offline é ativada como `/etc/calamares/settings.conf` e passa a apontar para o branding `forja`.
+- A receita do Calamares é adaptada durante o build para compilar em `Release`, instalar identidade visual Forja própria e corrigir a duplicidade do grupo `wheel` e as expressões de validação QML da etapa `usersq`. O fork e os módulos upstream continuam sendo utilizados.
+- A análise detalhada da identidade, das correções de usuários e dos testes pendentes está em `docs/CALAMARES-FORJA-IDENTITY-AND-USERS.md`.
 - Validador estático separado para estrutura, revisões e sintaxe.
 
 ## Pontos que ainda precisam de execução e correção
@@ -47,10 +48,10 @@ sem instalar repositórios EndeavourOS no sistema hospedeiro.
 - Confirmar se todos os nomes de pacotes MATE estão disponíveis nos repositórios habilitados no host de build.
 - Confirmar a disponibilidade do Zig 0.17.1 requerido pelo PKGBUILD de Shelly.
 - Revisar as receitas AUR de Ferdium e Bibata e testar a construção delas no host.
-- Confirmar se o pacote original do Calamares do EndeavourOS abre pelo atalho gráfico na sessão MATE e carrega a configuração offline original.
+- Confirmar se o pacote adaptado do Calamares abre pelo atalho gráfico na sessão MATE e carrega a identidade Forja e a configuração offline.
 - Verificar se o liveuser entra automaticamente no MATE via LightDM e se o dconf system database é aplicado.
 - Verificar o perfil final para que não restem pacotes, serviços ou referências KDE.
-- Compilar a ISO e testar boot UEFI/BIOS, rede, MATE, Firefox, Ferdium, Shelly, Calamares, particionamento e instalação em VM.
+- Compilar a ISO e testar boot UEFI/BIOS, rede, MATE, Firefox, Ferdium, Shelly, Calamares, particionamento, criação de usuário, senha e instalação completa em VM.
 
 ## Limite de validação
 
