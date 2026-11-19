@@ -14,7 +14,9 @@ for file in \
   "$ROOT/build/airootfs/etc/dconf/db/local.d/00-forja" \
   "$ROOT/build/airootfs/etc/lightdm/lightdm.conf.d/10-forja-live.conf" \
   "$ROOT/build/airootfs/etc/skel/.config/gtk-3.0/settings.ini" \
-  "$ROOT/build/airootfs/etc/skel/.config/gtk-4.0/settings.ini"; do
+  "$ROOT/build/airootfs/etc/skel/.config/gtk-4.0/settings.ini" \
+  "$ROOT/build/airootfs/usr/bin/forja-installer" \
+  "$ROOT/build/airootfs/usr/share/applications/forja-installer.desktop"; do
   [[ -f "$file" ]] || fail "arquivo necessário ausente: $file"
 done
 
@@ -29,6 +31,9 @@ grep -Fq '474a51d4c7cb6f82bfbb2e78a7ce9a321aa5eabd/endeavouros-mirrorlist' "$ROO
 
 grep -Fxq 'mate-session-manager' "$ROOT/build/packages.mate" || fail "pacote MATE ausente"
 grep -Fxq 'lightdm' "$ROOT/build/packages.mate" || fail "LightDM ausente"
+grep -Fxq 'mate-polkit' "$ROOT/build/packages.mate" || fail "agente Polkit do MATE ausente"
+grep -Fq 'settings_offline.conf' "$ROOT/build/airootfs/usr/bin/forja-installer" || fail "launcher Calamares offline ausente"
+grep -Fq 'Forja OS' "$ROOT/build/airootfs/usr/share/applications/forja-installer.desktop" || fail "launcher Forja OS sem identificação"
 grep -Fxq 'materia-gtk-theme' "$ROOT/build/packages.mate" || fail "Materia ausente"
 grep -Fxq 'papirus-icon-theme' "$ROOT/build/packages.mate" || fail "Papirus ausente"
 grep -Fq "picture-filename=''" "$ROOT/build/airootfs/etc/dconf/db/local.d/00-forja" || fail "configuração de fundo vazio ausente"
