@@ -208,7 +208,7 @@ path = pathlib.Path(sys.argv[1])
 source = path.read_text()
 source = source.replace("-DCMAKE_BUILD_TYPE=Debug", "-DCMAKE_BUILD_TYPE=Release", 1)
 needle = '    awk -i inplace -v version="${pkgver}" -v release="${release_name}" "$replace_command" "${srcdir}/calamares-${pkgver}/data/eos/branding/endeavouros/branding.desc"\n}'
-replacement = needle[:-1] + '    python "$startdir/patch-calamares.py" "${srcdir}/calamares-${pkgver}"\n}'
+replacement = needle[:-1] + '    python "$startdir/patch-calamares.py" "${srcdir}/calamares-${pkgver}"\n    awk -i inplace -v version="${pkgver}" -v release="${release_name}" "$replace_command" "${srcdir}/calamares-${pkgver}/data/eos/branding/forja/branding.desc"\n}'
 if needle not in source:
     raise SystemExit("Não foi possível inserir a identidade Forja no prepare() do PKGBUILD.")
 if "-DCMAKE_BUILD_TYPE=Release" not in source:
