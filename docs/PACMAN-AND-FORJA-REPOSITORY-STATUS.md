@@ -5,30 +5,40 @@ Data do registro: 19/11/2026
 ## Decisão de arquitetura
 
 - O Pacman do Arch Linux continua responsável pelas atualizações normais do sistema: kernel, bibliotecas, dependências, correções e segurança.
-- O repositório Forja deve conter somente pacotes próprios da distribuição.
-- O repositório Forja não deve substituir nem interferir nas atualizações normais do Pacman.
-- O acesso ao repositório Forja deve ser isolado e ativado somente quando o usuário executar `sudo forja`, sendo desativado ao terminar.
+- O repositório Forja contém somente pacotes próprios da distribuição, identificados pelo prefixo forja-.
+- O repositório Forja não substitui nem interfere na configuração normal do Pacman.
+- O acesso ao repositório Forja é feito pelo comando sudo forja, que usa uma configuração Pacman separada.
 
-## Estado encontrado na branch fix/forja-calamares-stability
+## Implementado no código-fonte
 
-Foi consultado `scripts/build-forja-iso.sh`. O script grava um `/etc/pacman.conf` com os repositórios oficiais `core`, `extra` e `multilib`, usando a mirrorlist do Arch Linux.
+- Cliente em build/airootfs/usr/bin/forja.
+- Configuração isolada em build/airootfs/etc/forja/pacman.conf.
+- Arquivo de mirrorlist próprio em build/airootfs/etc/pacman.d/forja-mirrorlist.
+- Arquivo reservado ao fingerprint em build/airootfs/etc/forja/repository-key.
+- Script de build copia esses arquivos para a imagem e aplica permissão executável ao cliente.
+- Comandos previstos: sync, search, install, upgrade, remove e list.
+- Instalação e remoção direta pelo cliente são limitadas a nomes forja-*.
+- upgrade consulta e atualiza somente pacotes instalados com prefixo forja-; não executa atualização geral do sistema.
+- O cliente não modifica /etc/pacman.conf.
 
-Na árvore da branch não foram encontrados:
-- um comando executável `forja`;
-- uma configuração Pacman separada para o repositório Forja;
-- integração que habilite temporariamente esse repositório ao executar `sudo forja`;
-- configuração de URL de hospedagem e chave de assinatura do repositório.
+## Ainda não operacional
 
-## Conclusão
+O serviço remoto ainda não está pronto. Faltam:
+- hospedagem compatível com repositório Pacman;
+- URL HTTPS real;
+- chave pública oficial e fingerprint confirmado por canal confiável;
+- pacotes Forja publicados e bancos de dados assinados.
 
-A separação das atualizações normais do Arch está prevista no script, mas a integração isolada do repositório Forja ainda não está implementada. Portanto, não considerar o repositório Forja operacional nem afirmar que `sudo forja` funciona.
+O cliente mantém operações remotas bloqueadas enquanto a URL e o fingerprint não estiverem configurados e a chave não estiver no chaveiro Pacman. A configuração exige assinaturas de banco de dados e pacotes.
 
-## Pendências para implementação
+## Próximos passos
 
-1. Criar o comando `forja` e sua configuração Pacman isolada.
-2. Garantir que o comando use o repositório Forja somente durante sua execução e não altere a configuração normal do Pacman.
-3. Restringir o repositório a pacotes próprios Forja.
-4. Configurar hospedagem, URL e chave de assinatura.
-5. Documentar o fluxo e, em etapa futura autorizada, realizar testes reais.
+1. Definir a hospedagem e o endereço HTTPS.
+2. Gerar e proteger a chave de assinatura do repositório.
+3. Publicar os primeiros pacotes próprios com prefixo forja-.
+4. Configurar o fingerprint público no sistema após conferência independente.
+5. Em etapa autorizada, realizar testes reais de instalação, atualização seletiva e isolamento da configuração.
 
-Nenhuma build, validação ou geração de ISO foi executada como parte deste registro.
+## Limite desta etapa
+
+As alterações foram gravadas no repositório e na branch de trabalho. Não foram executados build, validação, testes de integração ou geração de ISO. Portanto, a implementação está preparada no código, mas ainda não foi comprovada em execução e o repositório remoto não está ativo.
