@@ -73,9 +73,20 @@ grep -Fq 'splash.unlink()' "$ROOT/scripts/build-forja-iso.sh" || fail "splash gr
 grep -Fq 'auto-entries no' "$ROOT/scripts/build-forja-iso.sh" || fail "systemd-boot sem configuração neutra"
 grep -Fq 'quiet loglevel=3 vt.global_cursor_default=0' "$ROOT/scripts/build-forja-iso.sh" || fail "inicialização sem modo visual discreto"
 
-if grep -Eq 'branding[.]desc|requiredStorage|requiredRam|chrooted_cleaner_script[.]sh|forja-installer|python - PKGBUILD' "$ROOT/scripts/build-forja-iso.sh"; then
-  fail "o script ainda modifica o pacote ou os arquivos internos do Calamares"
+if grep -Eq 'requiredStorage|requiredRam|chrooted_cleaner_script[.]sh|forja-installer|python - PKGBUILD' "$ROOT/scripts/build-forja-iso.sh"; then
+  fail "o script contém alterações não autorizadas no fluxo do Calamares"
 fi
+grep -Fq 'CMAKE_BUILD_TYPE=Release' "$ROOT/scripts/build-forja-iso.sh" || fail "Calamares não está configurado para build Release"
+grep -Fq 'patch-calamares.py' "$ROOT/scripts/build-forja-iso.sh" || fail "patch de branding e validação do Calamares não será aplicado"
+grep -Fq 'branding: forja' "$ROOT/scripts/patch-calamares.py" || fail "configuração offline não aponta para o branding Forja"
+grep -Fq 'regularExpression: /^[a-z_][a-z0-9_-]*[$]?$/' "$ROOT/scripts/patch-calamares.py" || fail "validação integral de usuário não está prevista"
+grep -Fq 'regularExpression: /^[a-zA-Z0-9][-a-zA-Z0-9_]*$/' "$ROOT/scripts/patch-calamares.py" || fail "validação integral de hostname não está prevista"
+grep -Fq 'background-color: #11151b' "$ROOT/build/calamares/branding/forja/stylesheet.qss" || fail "tema escuro Forja ausente"
+python - "$ROOT/scripts/patch-calamares.py" <<'PY'
+import pathlib, sys
+compile(pathlib.Path(sys.argv[1]).read_text(), sys.argv[1], "exec")
+print("OK: patch Python do Calamares sintaticamente válido")
+PY
 if [[ -e "$ROOT/build/airootfs/usr/bin/forja-installer" || -e "$ROOT/build/airootfs/usr/share/applications/forja-installer.desktop" ]]; then
   fail "instalador próprio antigo ainda está presente"
 fi
