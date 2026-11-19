@@ -85,6 +85,10 @@ grep -Fq 'patch-calamares.py' "$ROOT/scripts/build-forja-iso.sh" || fail "patch 
 grep -Fq 'branding: forja' "$ROOT/scripts/patch-calamares.py" || fail "configuração offline não aponta para o branding Forja"
 grep -Fq 'regularExpression: /^[a-z_][a-z0-9_-]*[$]?$/' "$ROOT/scripts/patch-calamares.py" || fail "validação integral de usuário não está prevista"
 grep -Fq 'regularExpression: /^[a-zA-Z0-9][-a-zA-Z0-9_]+$/' "$ROOT/scripts/patch-calamares.py" || fail "validação integral de hostname não está prevista"
+grep -Fq 'maximumLength: 31' "$ROOT/scripts/patch-calamares.py" || fail "limite de usuário não está alinhado ao Calamares"
+grep -Fq 'maximumLength: 63' "$ROOT/scripts/patch-calamares.py" || fail "limite de hostname não está alinhado ao Calamares"
+grep -Fq 'nobody' "$ROOT/scripts/patch-calamares.py" || fail "nomes reservados do sistema não estão bloqueados na interface"
+grep -Fq 're.subn(r"(?m)^    - wheel\\n' "$ROOT/scripts/patch-calamares.py" || fail "duplicidade do grupo wheel não será removida"
 grep -Fq 'background-color: #11151b' "$ROOT/build/calamares/branding/forja/stylesheet.qss" || fail "tema escuro Forja ausente"
 python - "$ROOT/scripts/patch-calamares.py" <<'PY'
 import pathlib, sys
