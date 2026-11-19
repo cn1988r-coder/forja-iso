@@ -222,6 +222,15 @@ s = s.replace('iso_name="EndeavourOS_Triton"', 'iso_name="ForjaOS_MATE"')
 s = s.replace('iso_label="EOS_$(date +%Y%m)"', 'iso_label="FORJA_$(date +%Y%m)"')
 s = s.replace('iso_publisher="EndeavourOS <https://endeavouros.com>"', 'iso_publisher="Forja OS"')
 s = s.replace('iso_application="EndeavourOS Live/Rescue CD"', 'iso_application="Forja OS Live/Install"')
+# Zstandard favors fast decompression during Live startup over the smaller, slower XZ image.
+s, count = re.subn(
+    r"(?m)^airootfs_image_tool_options=.*$",
+    "airootfs_image_tool_options=('-comp' 'zstd' '-Xcompression-level' '3' '-b' '1M')",
+    s,
+    count=1,
+)
+if count != 1:
+    raise SystemExit("Não foi possível configurar SquashFS com Zstandard para inicialização rápida.")
 p.write_text(s)
 PY
 
