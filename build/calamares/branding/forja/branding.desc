@@ -22,7 +22,7 @@ images:
     productIcon:         "forja-logo.svg"
 
 style:
-   SidebarBackground:        "#11151b"
-   SidebarText:              "#e8edf4"
-   SidebarTextCurrent:       "#ff9b45"
-   SidebarBackgroundCurrent: "#202a36"
+   SidebarBackground:        "#101010"
+   SidebarText:              "#e8e8e8"
+   SidebarTextCurrent:       "#ffffff"
+   SidebarBackgroundCurrent: "#292929"
