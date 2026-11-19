@@ -32,6 +32,14 @@ if not blocks:
 for index, block in enumerate(blocks, 1):
     compile(block, f"build-forja-iso.sh:python-block-{index}", "exec")
 print(f"OK: {len(blocks)} blocos Python embutidos válidos")
+extra = re.search(r'extra = """(.*?)"""', source, re.S)
+if not extra:
+    raise SystemExit("Patch complementar do PKGBUILD Calamares não foi encontrado.")
+nested = re.search(r"python - <<'PATCH'\\n(.*?)\\nPATCH", extra.group(1), re.S)
+if not nested:
+    raise SystemExit("Patch Python do cleaner Calamares não foi encontrado.")
+compile(nested.group(1), "calamares-cleaner-patch", "exec")
+print("OK: patch Python do cleaner Calamares válido")
 PY
 
 grep -Fq 'EOS_COMMIT="90376d8f52ab19e19073eed33d6f36c46ec7c409"' "$ROOT/scripts/build-forja-iso.sh" || fail "framework EndeavourOS sem revisão fixada"
@@ -47,6 +55,10 @@ grep -Fq 'settings_offline.conf' "$ROOT/build/airootfs/usr/bin/forja-installer" 
 grep -Fq 'systemctl enable lightdm.service' "$ROOT/scripts/build-forja-iso.sh" || fail "LightDM não será habilitado"
 grep -Fq 'dconf update' "$ROOT/scripts/build-forja-iso.sh" || fail "banco dconf não será compilado"
 grep -Fq 'branding.desc' "$ROOT/scripts/build-forja-iso.sh" || fail "rebranding do Calamares ausente"
+grep -Fq 'chrooted_cleaner_script.sh' "$ROOT/scripts/build-forja-iso.sh" || fail "limpeza do instalador no sistema instalado ausente"
+grep -Fq '10-forja-live.conf' "$ROOT/scripts/build-forja-iso.sh" || fail "remoção do autologin live no sistema instalado ausente"
+grep -Fq 'requiredStorage' "$ROOT/scripts/build-forja-iso.sh" || fail "requisito de armazenamento do instalador não ajustado"
+grep -Fq 'requiredRam' "$ROOT/scripts/build-forja-iso.sh" || fail "requisito de memória do instalador não ajustado"
 grep -Fq 'welcome|xdg-desktop-portal-kde' "$ROOT/scripts/build-forja-iso.sh" || fail "filtro de Welcome KDE/XFCE não está configurado"
 if grep -Fxq 'welcome' "$ROOT/build/packages.mate" || grep -Fxq 'partitionmanager' "$ROOT/build/packages.mate"; then
   fail "aplicativo Welcome/Partition Manager não deve entrar no perfil MATE"
