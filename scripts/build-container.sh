@@ -21,7 +21,10 @@ if [[ -z "$AVAILABLE_KIB" || "$AVAILABLE_KIB" -lt "$REQUIRED_KIB" ]]; then
 fi
 
 printf '[FORJA] Construindo ambiente Arch + repositórios EndeavourOS...\n'
-"$ENGINE" build -t "$IMAGE" "$ROOT"
+"$ENGINE" build \
+  --build-arg BUILD_UID="$(id -u)" \
+  --build-arg BUILD_GID="$(id -g)" \
+  -t "$IMAGE" "$ROOT"
 
 printf '[FORJA] Iniciando compilação dentro do container...\n'
 "$ENGINE" run --rm --privileged \
