@@ -141,6 +141,8 @@ for rel in ("efiboot", "syslinux"):
                     continue
                 if line.strip().startswith("MENU TITLE"):
                     line = "MENU TITLE Forja OS"
+                if line.strip().startswith("MENU COLOR title"):
+                    line = "MENU COLOR title        1;37;40 #ffffffff #00000000 std"
                 lines.append(line)
             content = "\n".join(lines).rstrip() + "\n"
         if path.name == "loader.conf":
