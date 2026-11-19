@@ -69,7 +69,8 @@ cp "$ROOT/build/airootfs/etc/skel/.config/gtk-4.0/settings.ini" "$SKEL/.config/g
 if [[ -f "$SKEL/.local/share/applications/calamares.desktop" ]]; then
   sed -i 's/EndeavourOS/Forja OS/g' "$SKEL/.local/share/applications/calamares.desktop"
 fi
-rm -rf "$SKEL/.config/kdedefaults" "$SKEL/.config/plasma"* "$SKEL/.local/share/plasma" "$SKEL/.local/share/konsole"
+rm -rf "$SKEL/.config/kdedefaults" "$SKEL/.config/plasma"* "$SKEL/.local/share/plasma" "$SKEL/.local/share/konsole" "$SKEL/.local/etc/xdg/kdeglobals"
+find "$SKEL/.config" -maxdepth 1 -type f \\( -name 'balo*' -o -name 'kcm*' -o -name 'kde*' -o -name 'kscreen*' -o -name 'ksmserverrc' -o -name 'ksplashrc' -o -name 'kwalletrc' -o -name 'kxkbrc' -o -name 'plasma*' -o -name 'powerdevilrc' -o -name 'powermanagementprofilesrc' -o -name 'systemsettingsrc' \\) -delete
 mkdir -p "$EOS_DIR/airootfs/root/packages"
 
 log "Gerando wallpapers pretos puros"
@@ -87,7 +88,7 @@ s = re.sub(r'(?m)^get_pkg "eos-settings-plasma"\s*$', '# KDE settings package in
 p.write_text(s)
 PY
 
-log "Configurando LightDM e alvo gráfico"
+log "Configurando LightDM, removendo sobras KDE e alvo gráfico"
 python - "$EOS_DIR/run_before_squashfs.sh" <<'PY'
 import pathlib, sys
 p = pathlib.Path(sys.argv[1])
@@ -96,8 +97,14 @@ old = 'systemctl set-default multi-user.target'
 new = 'systemctl enable lightdm.service\nsystemctl set-default graphical.target\ndconf update'
 if old not in s:
     raise SystemExit('Não foi possível localizar o ponto de ativação do alvo multi-user no script upstream.')
-p.write_text(s.replace(old, new, 1))
+s = s.replace(old, new, 1)
+kde_root_theme = 'echo "---> setup theming for root user --->"\ncp -a "/root/root-theme" "/root/.config"\nrm -R "/root/root-theme"\n'
+if kde_root_theme not in s:
+    raise SystemExit('Não foi possível localizar o bloco de tema KDE do usuário root.')
+s = s.replace(kde_root_theme, '')
+p.write_text(s)
 PY
+rm -rf "$EOS_DIR/airootfs/root/root-theme"
 
 log "Definindo identificação da ISO"
 python - "$EOS_DIR/profiledef.sh" <<'PY'
