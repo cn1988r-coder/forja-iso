@@ -18,36 +18,42 @@
 
 ## Estrutura implementada
 
+- `Dockerfile`: ambiente de build Arch Linux com repositórios EndeavourOS.
 - `build/packages.mate`: seleção inicial de pacotes MATE, LightDM e aparência.
 - `build/airootfs/`: configurações dconf, LightDM e GTK para a sessão Forja.
-- `scripts/build-forja-iso.sh`: preparação do framework EndeavourOS, adaptação do perfil, construção de pacotes locais e chamada do mkarchiso.
-- `scripts/validate-build.sh`: validação estática dos arquivos, revisões fixadas e sintaxe Bash.
+- `scripts/build-container.sh`: executa o build isolado via Docker/Podman.
+- `scripts/build-forja-iso.sh`: adapta o framework fixado, constrói os pacotes locais e chama o mkarchiso.
+- `scripts/validate-build.sh`: validação estática de arquivos, revisões e sintaxe Bash.
 - `docs/ENDEAVOUROS-AUDIT.md`: auditoria do framework upstream.
 
 ## Revisões upstream fixadas
 
 - EndeavourOS-ISO: `90376d8f52ab19e19073eed33d6f36c46ec7c409`.
-- PKGBUILDS EndeavourOS, incluindo receita Calamares: `474a51d4c7cb6f82bfbb2e78a7ce9a321aa5eabd`.
+- PKGBUILDS EndeavourOS: `474a51d4c7cb6f82bfbb2e78a7ce9a321aa5eabd`.
 - Shelly-ALPM: `6840658b19d72205c38bd320c1cef6ff3076bc7c`.
 
 ## Como compilar
 
-Use EndeavourOS ou Arch Linux com os repositórios EndeavourOS habilitados, arquitetura x86_64, rede, sudo, base-devel e espaço livre amplo. Recomendação inicial: pelo menos 40 GiB livres.
+No Manjaro ou em outra distribuição com Docker/Podman instalado, execute na raiz:
 
-Na raiz do repositório:
+```bash
+bash scripts/build-container.sh
+```
+
+Requisitos: x86_64, internet, pelo menos 40 GiB livres no disco e 8 GiB de RAM recomendados. O container executa o build em Arch Linux com os repositórios EndeavourOS configurados.
+
+Também é possível compilar diretamente em EndeavourOS/Arch com os repositórios EndeavourOS:
 
 ```bash
 bash scripts/build-forja-iso.sh
 ```
 
-O script prepara o framework fixado, substitui a seleção KDE por MATE, aplica as configurações Forja, constrói o Calamares do fork EndeavourOS, Shelly, Ferdium e Bibata, e executa o mkarchiso. A saída esperada é `work/EndeavourOS-ISO/out/`.
+A ISO deve aparecer em `work/EndeavourOS-ISO/out/`.
 
-Ferdium, Shelly e Bibata são construídos a partir de receitas externas. AUR é conteúdo comunitário e deve ser tratado como código de terceiros. O build registra as revisões do Shelly e do framework, mas a receita AUR do Ferdium e as receitas AUR usadas no momento do build ainda são obtidas do HEAD atual.
+Ferdium, Shelly e Bibata são construídos a partir de receitas externas. AUR é conteúdo comunitário, não binários oficiais. As revisões do framework e do Shelly são fixadas, mas as receitas AUR de Ferdium e Bibata são obtidas do HEAD no momento do build.
 
 ## Estado real
 
-**A estrutura inicial de compilação foi adicionada ao repositório, mas ainda não foi executada em um host Arch/EndeavourOS. Nenhuma ISO foi compilada ou testada.**
+**A estrutura inicial de compilação foi adicionada e a validação estática do GitHub Actions passou. Ainda não foi executada uma compilação real e nenhuma ISO foi gerada ou testada.**
 
-A validação do GitHub Actions é estática: verifica arquivos, escopo e sintaxe. Ela não substitui makepkg, mkarchiso, boot UEFI/BIOS, teste do MATE ou instalação completa pelo Calamares em máquina virtual.
-
-O build precisa ser executado em um host Arch/EndeavourOS com os repositórios EndeavourOS habilitados. O runner gratuito padrão do GitHub Actions não é tratado como ambiente de compilação de ISO.
+A validação automatizada verifica arquivos, escopo e sintaxe. Não comprova makepkg, mkarchiso, boot UEFI/BIOS, sessão MATE ou instalação completa pelo Calamares em máquina virtual.
