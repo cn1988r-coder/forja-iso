@@ -1,36 +1,50 @@
 # Build da Forja OS
 
-O build usa o framework oficial EndeavourOS-ISO fixado no commit
-`90376d8f52ab19e19073eed33d6f36c46ec7c409`. A revisão está fixada para
-evitar que uma mudança no upstream altere silenciosamente a compilação.
+O caminho recomendado é o ambiente isolado Docker/Podman, baseado em Arch Linux
+com os repositórios EndeavourOS configurados a partir de revisões fixadas.
 
-## Host
+## Requisitos do computador
 
-Use EndeavourOS ou Arch Linux com os repositórios EndeavourOS habilitados.
-O build precisa de acesso à rede, privilégios administrativos, espaço livre
-amplo (recomendado: pelo menos 40 GiB) e memória suficiente. Não é um build
-adequado para o runner gratuito padrão do GitHub Actions.
+- Docker ou Podman instalado.
+- Arquitetura x86_64.
+- Pelo menos 40 GiB livres no disco do projeto.
+- Conexão com a internet.
+- Memória recomendada: 8 GiB ou mais.
 
-## Executar
+## Compilar no Manjaro ou em outra distribuição
 
 Na raiz do repositório:
+
+```bash
+bash scripts/build-container.sh
+```
+
+O script constrói a imagem de build e executa a compilação em container privilegiado.
+O diretório `work/` permanece no projeto e a ISO será criada em
+`work/EndeavourOS-ISO/out/`.
+
+O container usa revisões fixadas do framework EndeavourOS e da lista de pacotes
+oficial. O usuário de build interno tem sudo restrito ao container, não ao host.
+
+## Build direto em EndeavourOS/Arch
+
+Também é possível usar o script diretamente em um host Arch/EndeavourOS com
+repositórios EndeavourOS habilitados:
 
 ```bash
 bash scripts/build-forja-iso.sh
 ```
 
-O script prepara o framework, substitui o conjunto KDE por MATE, aplica as
-configurações Forja, constrói o Calamares do EndeavourOS e os pacotes
-Ferdium/Shelly a partir das receitas publicadas pelos respectivos projetos,
-e chama o compilador EndeavourOS. A saída fica em `work/EndeavourOS-ISO/out/`.
+## Pacotes externos
 
-Pacotes do AUR são receitas comunitárias, não binários oficiais. Revise as
-receitas antes de usá-las em uma compilação de produção.
+Ferdium, Shelly e Bibata são construídos a partir de receitas externas. O
+AUR contém receitas comunitárias, não binários oficiais. As revisões do
+framework e do Shelly são fixadas; as receitas AUR de Ferdium e Bibata são
+obtidas do HEAD no momento da compilação.
 
 ## Estado de validação
 
-A existência do script e dos arquivos de perfil não prova que o build foi
-concluído. A ISO só pode ser marcada como validada depois de uma compilação
-real e testes de boot, sessão MATE e instalação do Calamares em máquina
-virtual. O build requer um host Arch/EndeavourOS; este repositório não fornece
-uma máquina remota persistente.
+A estrutura e a sintaxe do build são verificadas pelo GitHub Actions. Isso não
+prova que os pacotes compilaram nem que a ISO inicializa. A ISO só poderá ser
+marcada como validada depois de uma compilação real e testes de boot, sessão
+MATE e instalação do Calamares em máquina virtual.
