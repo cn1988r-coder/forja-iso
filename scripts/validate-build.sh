@@ -23,6 +23,16 @@ done
 bash -n "$ROOT/scripts/build-forja-iso.sh" || fail "erro de sintaxe no script de compilação"
 bash -n "$ROOT/build/airootfs/usr/bin/forja-installer" || fail "erro de sintaxe no launcher Calamares"
 bash -n "$ROOT/scripts/build-container.sh" || fail "erro de sintaxe no wrapper Docker/Podman"
+python - "$ROOT/scripts/build-forja-iso.sh" <<'PY'
+import pathlib, re, sys
+source = pathlib.Path(sys.argv[1]).read_text()
+blocks = re.findall(r"<<'PY'\\n(.*?)\\nPY", source, re.S)
+if not blocks:
+    raise SystemExit("Nenhum bloco Python foi encontrado no script de build.")
+for index, block in enumerate(blocks, 1):
+    compile(block, f"build-forja-iso.sh:python-block-{index}", "exec")
+print(f"OK: {len(blocks)} blocos Python embutidos válidos")
+PY
 
 grep -Fq 'EOS_COMMIT="90376d8f52ab19e19073eed33d6f36c46ec7c409"' "$ROOT/scripts/build-forja-iso.sh" || fail "framework EndeavourOS sem revisão fixada"
 grep -Fq 'PKGBUILDS_COMMIT="474a51d4c7cb6f82bfbb2e78a7ce9a321aa5eabd"' "$ROOT/scripts/build-forja-iso.sh" || fail "receita Calamares sem revisão fixada"
@@ -34,6 +44,9 @@ grep -Fxq 'mate-session-manager' "$ROOT/build/packages.mate" || fail "pacote MAT
 grep -Fxq 'lightdm' "$ROOT/build/packages.mate" || fail "LightDM ausente"
 grep -Fxq 'mate-polkit' "$ROOT/build/packages.mate" || fail "agente Polkit do MATE ausente"
 grep -Fq 'settings_offline.conf' "$ROOT/build/airootfs/usr/bin/forja-installer" || fail "launcher Calamares offline ausente"
+grep -Fq 'systemctl enable lightdm.service' "$ROOT/scripts/build-forja-iso.sh" || fail "LightDM não será habilitado"
+grep -Fq 'dconf update' "$ROOT/scripts/build-forja-iso.sh" || fail "banco dconf não será compilado"
+grep -Fq 'branding.desc' "$ROOT/scripts/build-forja-iso.sh" || fail "rebranding do Calamares ausente"
 grep -Fq 'welcome|xdg-desktop-portal-kde' "$ROOT/scripts/build-forja-iso.sh" || fail "filtro de Welcome KDE/XFCE não está configurado"
 if grep -Fxq 'welcome' "$ROOT/build/packages.mate" || grep -Fxq 'partitionmanager' "$ROOT/build/packages.mate"; then
   fail "aplicativo Welcome/Partition Manager não deve entrar no perfil MATE"
