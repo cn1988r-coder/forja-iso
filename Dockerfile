@@ -17,7 +17,11 @@ RUN pacman-key --init && pacman-key --populate archlinux && \
     pacman -Syy --noconfirm endeavouros-keyring endeavouros-mirrorlist && \
     pacman -Syu --noconfirm
 
-RUN useradd --create-home --uid 1000 --groups wheel builder && \
+ARG BUILD_UID=1000
+ARG BUILD_GID=1000
+
+RUN groupadd --gid "$BUILD_GID" builder && \
+    useradd --create-home --uid "$BUILD_UID" --gid builder --groups wheel builder && \
     printf 'builder ALL=(ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/builder && \
     chmod 0440 /etc/sudoers.d/builder
 
