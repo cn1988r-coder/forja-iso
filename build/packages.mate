@@ -1,4 +1,8 @@
 # MATE desktop and session
+firefox
+mkinitcpio
+grub
+os-prober
 mate-session-manager
 mate-panel
 mate-control-center
