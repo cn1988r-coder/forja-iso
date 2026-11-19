@@ -157,7 +157,7 @@ if calamares_marker not in s:
     raise SystemExit('Não foi possível localizar a instalação dos pacotes locais para ativar o Calamares offline.')
 s = s.replace(calamares_marker, calamares_marker + calamares_patch, 1)
 os_marker = 'echo "---> Install locally built packages on ISO (place packages under airootfs/root/packages) --->"'
-os_patch = 'sed -i -e \'s/^NAME=.*/NAME="Forja OS"/\' -e \'s/^PRETTY_NAME=.*/PRETTY_NAME="Forja OS"/\' -e \'s/^ID=.*/ID=forja/\' -e \'s/^ID_LIKE=.*/ID_LIKE=arch/\' "/usr/lib/os-release"\nif ! grep -q \'^ID_LIKE=\' "/usr/lib/os-release"; then printf \'ID_LIKE=arch\n\' >> "/usr/lib/os-release"; fi\n'
+os_patch = 'sed -i -e \'s/^NAME=.*/NAME="Forja OS"/\' -e \'s/^PRETTY_NAME=.*/PRETTY_NAME="Forja OS"/\' -e \'s/^ID=.*/ID=forja/\' -e \'s/^ID_LIKE=.*/ID_LIKE=arch/\' "/etc/os-release"\nif ! grep -q \'^ID_LIKE=\' "/etc/os-release"; then printf \'ID_LIKE=arch\n\' >> "/etc/os-release"; fi\n'
 if os_marker not in s:
     raise SystemExit('Não foi possível localizar a etapa de pacotes locais.')
 s = s.replace(os_marker, os_patch + os_marker, 1)
@@ -171,7 +171,7 @@ s = s.replace('pacman -Sw --noconfirm --cachedir "/usr/share/packages" grub eos-
 s = s.replace('echo "---> get needed packages for offline installs --->"\nmkdir -p "/usr/share/packages"\npacman -Syy\npacman -Sw --noconfirm --cachedir "/usr/share/packages" grub eos-dracut kernel-install-for-dracut os-prober nvidia-open nvidia-hook nvidia-utils nvidia-inst broadcom-wl-dkms', 'echo "---> Forja OS uses the complete ISO filesystem for both installation modes --->"')
 s = s.replace('echo "---> Remove ranked mirrorlist, used for fetching offline packages replacing it with original from package --->"\nmv "/etc/pacman.d/mirrorlist-from-package" "/etc/pacman.d/mirrorlist"', 'echo "---> Arch Linux mirrorlist retained for future updates --->"\nrm -f "/etc/pacman.d/mirrorlist-from-package"')
 s = s.replace('systemctl set-default multi-user.target', 'systemctl enable lightdm.service\nsystemctl set-default graphical.target\ndconf update')
-s = s.replace('sed -i \'s/EndeavourOS/Forja OS/g\' "/usr/lib/endeavouros-release"', 'rm -f "/usr/lib/endeavouros-release"\\nprintf "Forja OS\\\\n" > "/usr/lib/forja-release"')
+s = s.replace('sed -i \'s/EndeavourOS/Forja OS/g\' "/usr/lib/endeavouros-release"', 'rm -f "/usr/lib/endeavouros-release"; printf "Forja OS" > "/usr/lib/forja-release"')
 p.write_text(s)
 PY
 rm -rf "$EOS_DIR/airootfs/root/root-theme"
