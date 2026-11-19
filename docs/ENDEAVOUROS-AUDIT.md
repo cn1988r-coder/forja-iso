@@ -80,3 +80,12 @@ A configuração ainda requer compilação real e testes de instalação em VM n
 - Firefox está declarado explicitamente no perfil. IPTVnator continua sendo preparado como pacote local e instalado na imagem Live, que é a imagem copiada para o disco.
 
 A CI da branch executou com sucesso a validação estática e o patcher contra o código upstream fixado do Calamares. Isso valida a adaptação dos arquivos, não substitui a compilação da ISO nem a instalação em máquina virtual.
+
+
+## Desempenho de inicialização da ISO
+
+O perfil upstream fixado utilizava SquashFS com XZ e filtro BCJ. XZ prioriza tamanho de arquivo, mas custa mais CPU para descompactar os dados durante a inicialização da sessão Live e o acesso aos arquivos do sistema.
+
+O build Forja substitui essa configuração por SquashFS com Zstandard nível 3 e bloco de 1 MiB. A escolha prioriza velocidade de descompressão e leitura, mantendo compressão real para a ISO. A consequência esperada é uma ISO maior que a variante XZ, em troca de menor custo de CPU ao carregar o sistema. Não se usa compressão máxima: o objetivo é responsividade, não o menor arquivo possível.
+
+Nenhum serviço essencial do MATE, LightDM, NetworkManager, Bluetooth ou Shelly é desativado como atalho de desempenho. A otimização do boot deve continuar com medições em VM, comparando tempo até LightDM, tempo até a sessão MATE utilizável e consumo de RAM/CPU. Ainda não há benchmark de ISO compilada; portanto, o ganho precisa ser confirmado em teste real.
