@@ -1,0 +1,68 @@
+name: Compilar ISO Forja OS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+      - "scripts/build-forja-iso.sh"
+      - "scripts/build-container.sh"
+      - "build/**"
+      - ".github/workflows/build-iso.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: forja-os-iso-build
+  cancel-in-progress: false
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      - name: Liberar espaço temporário do runner
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          sudo rm -rf /usr/local/share/chromium /usr/local/share/powershell
+          sudo rm -rf /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          docker system prune -af || true
+          df -h /
+
+      - name: Construir ambiente Arch com repositórios EndeavourOS
+        run: docker build --pull -t forja-os-iso-builder .
+
+      - name: Compilar ISO com mkarchiso
+        run: |
+          docker run --rm --privileged \
+            --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            forja-os-iso-builder
+
+      - name: Verificar e calcular hash da ISO
+        run: |
+          shopt -s nullglob
+          isos=(work/EndeavourOS-ISO/out/*.iso)
+          if (( ${#isos[@]} == 0 )); then
+            echo "Nenhuma ISO foi gerada." >&2
+            exit 1
+          fi
+          file "${isos[@]}"
+          sha256sum "${isos[@]}" | tee work/forja-iso-sha256.txt
+
+      - name: Publicar ISO e hash como artefatos
+        uses: actions/upload-artifact@v4
+        with:
+          name: forja-os-iso
+          path: |
+            work/EndeavourOS-ISO/out/*.iso
+            work/forja-iso-sha256.txt
+          if-no-files-found: error
+          retention-days: 14
