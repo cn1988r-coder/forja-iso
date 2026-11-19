@@ -54,6 +54,6 @@ Ferdium, Shelly, IPTVnator e Bibata são construídos a partir de receitas exter
 
 ## Estado real
 
-**A estrutura inicial de compilação foi adicionada e a validação estática do GitHub Actions passou. Ainda não foi executada uma compilação real e nenhuma ISO foi gerada ou testada.**
+**A identidade Forja do Calamares e ajustes na etapa de usuários foram adicionados à branch de trabalho. Ainda não foi executada uma compilação real dessas alterações, nem testes em VM. Nenhuma ISO está aprovada.**
 
 A validação automatizada verifica arquivos, escopo e sintaxe. Não comprova makepkg, mkarchiso, boot UEFI/BIOS, sessão MATE ou instalação completa pelo Calamares em máquina virtual.
