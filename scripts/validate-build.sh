@@ -8,6 +8,10 @@ pass() { printf 'OK: %s\n' "$*"; }
 required_files=(
   "$ROOT/scripts/build-forja-iso.sh"
   "$ROOT/scripts/build-container.sh"
+  "$ROOT/scripts/patch-calamares.py"
+  "$ROOT/build/calamares/branding/forja/branding.desc"
+  "$ROOT/build/calamares/branding/forja/stylesheet.qss"
+  "$ROOT/build/calamares/branding/forja/forja-logo.svg"
   "$ROOT/Dockerfile"
   "$ROOT/.dockerignore"
   "$ROOT/build/packages.mate"
