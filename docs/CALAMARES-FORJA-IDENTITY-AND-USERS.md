@@ -39,6 +39,10 @@ compilado e analisar o log do Calamares no momento do erro.
 
 ## Estado dos testes
 
+O script de adaptação foi executado contra uma árvore sintética com os arquivos e
+padrões esperados, e a lógica de inserção no `prepare()` do PKGBUILD foi verificada
+isoladamente. Isso testa o patch, não substitui a compilação da receita upstream.
+
 **Implementado no código-fonte da branch:** identidade visual Forja, ajuste de
 configuração dos grupos, alinhamento das expressões de validação e build Release.
 
