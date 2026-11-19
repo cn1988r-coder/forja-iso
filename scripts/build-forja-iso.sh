@@ -70,7 +70,7 @@ if [[ -f "$SKEL/.local/share/applications/calamares.desktop" ]]; then
   sed -i 's/EndeavourOS/Forja OS/g' "$SKEL/.local/share/applications/calamares.desktop"
 fi
 rm -rf "$SKEL/.config/kdedefaults" "$SKEL/.config/plasma"* "$SKEL/.local/share/plasma" "$SKEL/.local/share/konsole" "$SKEL/.local/etc/xdg/kdeglobals"
-find "$SKEL/.config" -maxdepth 1 -type f \\( -name 'balo*' -o -name 'kcm*' -o -name 'kde*' -o -name 'kscreen*' -o -name 'ksmserverrc' -o -name 'ksplashrc' -o -name 'kwalletrc' -o -name 'kxkbrc' -o -name 'plasma*' -o -name 'powerdevilrc' -o -name 'powermanagementprofilesrc' -o -name 'systemsettingsrc' \\) -delete
+find "$SKEL/.config" -maxdepth 1 -type f \( -name 'balo*' -o -name 'kcm*' -o -name 'kde*' -o -name 'kscreen*' -o -name 'ksmserverrc' -o -name 'ksplashrc' -o -name 'kwalletrc' -o -name 'kxkbrc' -o -name 'plasma*' -o -name 'powerdevilrc' -o -name 'powermanagementprofilesrc' -o -name 'systemsettingsrc' \) -delete
 mkdir -p "$EOS_DIR/airootfs/root/packages"
 
 log "Gerando wallpapers pretos puros"
