@@ -211,8 +211,8 @@ done
 
 log "Construindo tema Bibata a partir da receita AUR"
 BIBATA_SRC="$WORK/bibata-cursor-theme-aur"
-BIBATA_COMMIT="$(git ls-remote https://aur.archlinux.org/bibata-cursor-theme.git HEAD | awk '{print $1}')"
-[[ -n "$BIBATA_COMMIT" ]] || die "Não foi possível localizar a receita AUR do Bibata."
+BIBATA_COMMIT="$(git ls-remote https://aur.archlinux.org/bibata-cursor-theme.git HEAD | awk 'NR == 1 { print $1; exit }')"
+[[ "$BIBATA_COMMIT" =~ ^[0-9a-f]{40}$ ]] || die "Não foi possível localizar uma revisão válida da receita AUR do Bibata."
 clone_at_commit https://aur.archlinux.org/bibata-cursor-theme.git "$BIBATA_SRC" "$BIBATA_COMMIT"
 (
   cd "$BIBATA_SRC"
@@ -222,8 +222,8 @@ clone_at_commit https://aur.archlinux.org/bibata-cursor-theme.git "$BIBATA_SRC" 
 
 log "Construindo IPTVnator a partir da receita AUR"
 IPTVNATOR_SRC="$WORK/iptvnator-bin-aur"
-IPTVNATOR_COMMIT="$(git ls-remote https://aur.archlinux.org/iptvnator-bin.git HEAD | awk '{print $1}')"
-[[ -n "$IPTVNATOR_COMMIT" ]] || die "Não foi possível localizar a receita AUR do IPTVnator."
+IPTVNATOR_COMMIT="$(git ls-remote https://aur.archlinux.org/iptvnator-bin.git HEAD | awk 'NR == 1 { print $1; exit }')"
+[[ "$IPTVNATOR_COMMIT" =~ ^[0-9a-f]{40}$ ]] || die "Não foi possível localizar uma revisão válida da receita AUR do IPTVnator."
 clone_at_commit https://aur.archlinux.org/iptvnator-bin.git "$IPTVNATOR_SRC" "$IPTVNATOR_COMMIT"
 (
   cd "$IPTVNATOR_SRC"
@@ -233,7 +233,9 @@ clone_at_commit https://aur.archlinux.org/iptvnator-bin.git "$IPTVNATOR_SRC" "$I
 
 log "Construindo Ferdium a partir da receita AUR"
 FERDIUM_SRC="$WORK/ferdium-aur"
-clone_at_commit https://aur.archlinux.org/ferdium-bin.git "$FERDIUM_SRC" "$(git ls-remote https://aur.archlinux.org/ferdium-bin.git HEAD | awk '{print $1}')"
+FERDIUM_COMMIT="$(git ls-remote https://aur.archlinux.org/ferdium-bin.git HEAD | awk 'NR == 1 { print $1; exit }')"
+[[ "$FERDIUM_COMMIT" =~ ^[0-9a-f]{40}$ ]] || die "Não foi possível localizar uma revisão válida da receita AUR do Ferdium."
+clone_at_commit https://aur.archlinux.org/ferdium-bin.git "$FERDIUM_SRC" "$FERDIUM_COMMIT"
 (
   cd "$FERDIUM_SRC"
   makepkg --syncdeps --noconfirm
