@@ -128,7 +128,7 @@ s = s.replace(kde_root_theme, '')
 motd_marker = 'echo "---> Add builddate to motd --->"'
 if motd_marker not in s:
     raise SystemExit('Não foi possível localizar a etapa do motd.')
-s = s.replace(motd_marker, "sed -i 's/EndeavourOS/Forja OS/g' \"/usr/lib/endeavouros-release\"\n" + motd_marker, 1)
+s = s.replace(motd_marker, 'printf "Forja OS\\nBase Arch Linux\\n" > "/usr/lib/forja-release"\n' + motd_marker, 1)
 calamares_marker = 'pacman -U --noconfirm --needed -- "/root/packages/"*".pkg.tar.zst"\n'
 calamares_patch = """if [[ ! -r /etc/calamares/settings_offline.conf ]]; then
   echo "Calamares offline configuration is missing." >&2
