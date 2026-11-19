@@ -104,7 +104,7 @@ s = s.replace(kde_root_theme, '')
 motd_marker = 'echo "---> Add builddate to motd --->"'
 if motd_marker not in s:
     raise SystemExit('Não foi possível localizar a etapa do motd.')
-s = s.replace(motd_marker, 'sed -i 's/EndeavourOS/Forja OS/g' "/usr/lib/endeavouros-release"\n' + motd_marker, 1)
+s = s.replace(motd_marker, "sed -i 's/EndeavourOS/Forja OS/g' \"/usr/lib/endeavouros-release\"\n" + motd_marker, 1)
 os_marker = 'echo "---> Install locally built packages on ISO (place packages under airootfs/root/packages) --->"'
 os_patch = 'sed -i -e \'s/^NAME=.*/NAME="Forja OS"/\' -e \'s/^PRETTY_NAME=.*/PRETTY_NAME="Forja OS"/\' -e \'s/^ID=.*/ID=forja/\' -e \'s/^ID_LIKE=.*/ID_LIKE=arch/\' "/usr/lib/os-release"\nif ! grep -q \'^ID_LIKE=\' "/usr/lib/os-release"; then printf \'ID_LIKE=arch\\n\' >> "/usr/lib/os-release"; fi\n'
 if os_marker not in s:
