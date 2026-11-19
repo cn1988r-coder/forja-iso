@@ -7,7 +7,6 @@ marco
 mate-settings-daemon
 mate-terminal
 mate-themes
-mate-backgrounds
 mate-applets
 mate-notification-daemon
 mate-power-manager
@@ -19,6 +18,10 @@ eom
 engrampa
 pluma
 
+xorg-server
+xorg-xauth
+xorg-xrandr
+
 # Display manager
 lightdm
 lightdm-gtk-greeter
@@ -26,5 +29,4 @@ lightdm-gtk-greeter
 # Forja appearance
 materia-gtk-theme
 papirus-icon-theme
-bibata-cursor-theme
 dconf
