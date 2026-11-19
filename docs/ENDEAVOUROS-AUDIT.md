@@ -56,3 +56,18 @@ sem instalar repositórios EndeavourOS no sistema hospedeiro.
 ## Limite de validação
 
 A estrutura de compilação foi criada, mas não foi executada em host Arch/EndeavourOS nesta etapa. Não há ISO compilada. A validação automatizada do repositório é estática e não comprova build, boot ou instalação.
+
+
+## Fluxo de instalação Forja OS
+
+A configuração do Calamares foi substituída nos dois modos (online e offline):
+- Ambos instalam a imagem completa da sessão Live da Forja OS por meio de `unpackfs`.
+- O modo online atualiza a base de dados dos repositórios Arch após copiar a imagem.
+- O modo offline instala a mesma imagem sem depender de conexão.
+- Foram removidos do fluxo os módulos EndeavourOS de pacotes, pacstrap, EOS pacman, limpeza EOS, netinstall e seleção de pacotes/desktop.
+- A sequência de telas fica em idioma, teclado, particionamento, criação de usuário e resumo. Não há escolha de ambiente gráfico: MATE é fixo.
+- O bootloader é configurado como GRUB e a identificação EFI é Forja OS.
+- A configuração do sistema instalado usa somente os repositórios oficiais Arch Linux. O repositório EndeavourOS permanece, quando necessário, apenas no ambiente de compilação para dependências upstream, nunca como repositório do sistema final.
+- Firefox, MATE, LightDM, Shelly, IPTVnator e demais componentes listados no perfil Forja permanecem na imagem que será copiada.
+
+A configuração ainda requer compilação real e testes de instalação em VM nos dois modos. O fluxo não deve ser considerado validado até completar particionamento, usuário, bootloader, primeiro boot e conferência dos pacotes instalados.
