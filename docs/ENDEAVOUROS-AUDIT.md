@@ -37,7 +37,9 @@ sem instalar repositórios EndeavourOS no sistema hospedeiro.
 - Perfil dconf de sistema com Materia Dark, Papirus, Bibata, fonte Noto Sans e fundo preto sólido.
 - Configurações GTK3/GTK4 para o usuário live e esqueleto.
 - Configuração LightDM para sessão MATE live.
-- Script que clona o framework em revisão fixada, remove a seleção KDE, injeta MATE, remove a etapa `eos-settings-plasma`, prepara o Calamares oficial, Shelly, Ferdium e Bibata, e chama `mkarchiso`.
+- Script que clona o framework em revisão fixada, remove a seleção KDE e os aplicativos Welcome/Partition Manager, injeta MATE, remove a etapa `eos-settings-plasma`, prepara o Calamares oficial, Shelly, Ferdium e Bibata, e chama `mkarchiso`.
+- Launcher próprio “Instalar Forja OS” que seleciona a configuração offline original do Calamares e inicia o instalador via Polkit. O app Welcome do EndeavourOS foi retirado porque o fluxo upstream identifica apenas sessões KDE e XFCE; a configuração offline do Calamares é preservada.
+- O script altera o nome do sistema em `/usr/lib/os-release`, no arquivo de release do EndeavourOS, no motd e nos menus de boot.
 - O script altera o nome exibido na descrição de branding do Calamares para Forja OS.
 - Validador estático separado para estrutura, revisões e sintaxe.
 
