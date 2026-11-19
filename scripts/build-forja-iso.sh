@@ -215,7 +215,7 @@ PY
 
 log "Definindo identificação da ISO"
 python - "$EOS_DIR/profiledef.sh" <<'PY'
-import pathlib, sys
+import pathlib, re, sys
 p = pathlib.Path(sys.argv[1])
 s = p.read_text()
 s = s.replace('iso_name="EndeavourOS_Triton"', 'iso_name="ForjaOS_MATE"')
