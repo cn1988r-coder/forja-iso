@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: forja-os-iso-build
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build-iso:
@@ -41,7 +41,6 @@ jobs:
       - name: Compilar ISO com mkarchiso
         run: |
           docker run --rm --privileged \
-            --user "$(id -u):$(id -g)" \
             -v "$GITHUB_WORKSPACE:/workspace" \
             -w /workspace \
             forja-os-iso-builder
