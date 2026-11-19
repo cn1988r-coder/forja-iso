@@ -129,6 +129,7 @@ settings_online = source / "data/eos/settings_online.conf"
 settings_offline.write_text(settings_common)
 settings_online.write_text(settings_common)
 
+modules = source / "data/eos/modules"
 # The same installer automatically works with or without a network connection.
 (modules / "packages_online.conf").write_text("""---
 backend: pacman
