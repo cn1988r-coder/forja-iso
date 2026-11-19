@@ -46,6 +46,12 @@ grep -Fq 'makepkg --syncdeps --noconfirm' "$ROOT/scripts/build-forja-iso.sh" || 
 grep -Fq 'install -m 0644 /etc/calamares/settings_offline.conf /etc/calamares/settings.conf' "$ROOT/scripts/build-forja-iso.sh" || fail "configuração offline original não é ativada"
 grep -Fq 'Exec=pkexec calamares' "$ROOT/scripts/build-forja-iso.sh" || fail "atalho gráfico não inicia o Calamares diretamente"
 grep -Fq 'TryExec=calamares' "$ROOT/scripts/build-forja-iso.sh" || fail "atalho gráfico não verifica o Calamares"
+grep -Fq 'rm -f "$EOS_DIR/airootfs/etc/skel/.config/gtk-3.0/settings.ini"' "$ROOT/scripts/build-forja-iso.sh" || fail "configuração GTK3 duplicada pode conflitar com endeavouros-skel-liveuser"
+grep -Fq 'rm -f "$EOS_DIR/airootfs/etc/skel/.config/gtk-4.0/settings.ini"' "$ROOT/scripts/build-forja-iso.sh" || fail "configuração GTK4 duplicada pode conflitar com endeavouros-skel-liveuser"
+grep -Fq '/home/liveuser/.local/share/applications/calamares.desktop' "$ROOT/scripts/build-forja-iso.sh" || fail "atalho Calamares não usa o caminho real do perfil liveuser"
+if grep -Fq '/usr/share/applications/calamares.desktop' "$ROOT/scripts/build-forja-iso.sh"; then
+  fail "atalho Calamares aponta para um caminho não fornecido pelo perfil EndeavourOS"
+fi
 grep -Fq 'MAKEFLAGS="-j$(nproc)"' "$ROOT/scripts/build-forja-iso.sh" || fail "compilação paralela de pacotes não está habilitada"
 grep -Fq '90376d8f52ab19e19073eed33d6f36c46ec7c409/pacman.conf' "$ROOT/Dockerfile" || fail "container sem pacman.conf fixado do EndeavourOS"
 grep -Fq '474a51d4c7cb6f82bfbb2e78a7ce9a321aa5eabd/endeavouros-mirrorlist' "$ROOT/Dockerfile" || fail "container sem mirrorlist fixada do EndeavourOS"
