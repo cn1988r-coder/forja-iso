@@ -35,7 +35,7 @@ print(f"OK: {len(blocks)} blocos Python embutidos válidos")
 extra = re.search(r'extra = """(.*?)"""', source, re.S)
 if not extra:
     raise SystemExit("Patch complementar do PKGBUILD Calamares não foi encontrado.")
-nested = re.search(r"python - <<'PATCH'\\n(.*?)\\nPATCH", extra.group(1), re.S)
+nested = re.search(r"python - <<'PATCH'\n(.*?)\nPATCH", extra.group(1), re.S)
 if not nested:
     raise SystemExit("Patch Python do cleaner Calamares não foi encontrado.")
 compile(nested.group(1), "calamares-cleaner-patch", "exec")
