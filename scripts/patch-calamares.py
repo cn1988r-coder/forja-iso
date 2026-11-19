@@ -71,7 +71,7 @@ if "regularExpression: /[a-zA-Z0-9][-a-zA-Z0-9_]+/" in qml:
 # Replace the EndeavourOS installer flows with the Forja image installer.
 # Both modes install the exact live filesystem from the ISO. Online mode only
 # refreshes Arch package databases; it does not run netinstall or select a DE.
-settings_common = """# Forja OS installer: install the exact Forja live image.
+settings_common = """# Forja OS installer: one guided flow, user credentials first, disk second, then install the Forja live image.
 ---
 modules-search: [ local ]
 
@@ -85,10 +85,8 @@ instances:
 
 sequence:
 - show:
-  - locale
-  - keyboard
-  - partition
   - usersq
+  - partition
   - summary
 - exec:
   - partition
