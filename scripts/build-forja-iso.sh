@@ -120,11 +120,40 @@ p.write_text(s)
 PY
 rm -rf "$EOS_DIR/airootfs/root/root-theme"
 
-log "Removendo marcas visíveis do EndeavourOS nos menus de boot"
-mapfile -t boot_files < <(grep -RIl 'EndeavourOS' "$EOS_DIR/efiboot" "$EOS_DIR/syslinux" 2>/dev/null || true)
-for file in "${boot_files[@]}"; do
-  sed -i 's/EndeavourOS/Forja OS/g' "$file"
-done
+log "Aplicando identidade Forja OS aos menus de inicialização"
+python - "$EOS_DIR" <<'PY'
+import pathlib, sys
+root = pathlib.Path(sys.argv[1])
+for rel in ("efiboot", "syslinux"):
+    base = root / rel
+    for path in base.rglob("*"):
+        if not path.is_file():
+            continue
+        try:
+            content = path.read_text()
+        except (UnicodeDecodeError, OSError):
+            continue
+        content = content.replace("EndeavourOS", "Forja OS")
+        if path.name == "archiso_head.cfg":
+            lines = []
+            for line in content.splitlines():
+                if line.strip().startswith("MENU BACKGROUND"):
+                    continue
+                if line.strip().startswith("MENU TITLE"):
+                    line = "MENU TITLE Forja OS"
+                lines.append(line)
+            content = "\\n".join(lines).rstrip() + "\\n"
+        if path.name == "loader.conf":
+            content = "default archiso-x86_64-linux.conf\\ntimeout 3\\nconsole-mode max\\neditor no\\nauto-entries no\\nauto-firmware no\\n"
+        if path.name.startswith("archiso-x86_64-linux"):
+            content = content.rstrip() + " quiet loglevel=3 vt.global_cursor_default=0\\n"
+        if path.name == "archiso_sys.cfg":
+            content = content.replace("TIMEOUT 150", "TIMEOUT 30")
+        path.write_text(content)
+splash = root / "syslinux" / "splash.png"
+if splash.exists():
+    splash.unlink()
+PY
 
 log "Definindo identificação da ISO"
 python - "$EOS_DIR/profiledef.sh" <<'PY'
