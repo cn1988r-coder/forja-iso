@@ -25,6 +25,8 @@ xorg-xrandr
 # Display manager
 lightdm
 lightdm-gtk-greeter
+polkit
+mate-polkit
 
 # Forja appearance
 materia-gtk-theme
