@@ -30,4 +30,5 @@ grep -Fq 'nenhuma ISO foi compilada' "$README" || fail "estado de compilação n
 
 pass "escopo da Forja OS consistente"
 pass "auditoria técnica do framework presente"
+bash "$ROOT/scripts/validate-build.sh"
 printf 'AVISO: esta checagem não compila nem testa uma ISO.\n'
