@@ -91,6 +91,7 @@ sequence:
   - partition
   - mount
   - unpackfs
+  - packages@online
   - machineid
   - locale
   - keyboard
@@ -122,12 +123,19 @@ quit-at-end: false
 settings_offline = source / "data/eos/settings_offline.conf"
 settings_online = source / "data/eos/settings_online.conf"
 settings_offline.write_text(settings_common)
-online_text = settings_common.replace(
-    "  - unpackfs\n",
-    "  - unpackfs\n  - packages@online\n",
-    1,
-)
-settings_online.write_text(online_text)
+settings_online.write_text(settings_common)
+
+# The same installer automatically works with or without a network connection.
+(modules / "packages_online.conf").write_text("""---
+backend: pacman
+skip_if_no_internet: true
+update_db: true
+update_system: false
+pacman:
+    num_retries: 6
+    disable_download_timeout: true
+    needed_only: true
+""")
 
 # Fixed Forja boot policy: no desktop/package/bootloader chooser.
 modules = source / "data/eos/modules"
@@ -195,7 +203,8 @@ for config in (settings_offline, settings_online):
             raise SystemExit(f"Fluxo EndeavourOS não removido de {config.name}: {forbidden}")
     if "branding: forja" not in data or "  - unpackfs" not in data or "  - usersq" not in data:
         raise SystemExit(f"Fluxo Forja incompleto em {config.name}.")
-if "packages@online" not in settings_online.read_text():
-    raise SystemExit("O modo online não executa a atualização da base Arch.")
-if "packages@online" in settings_offline.read_text():
-    raise SystemExit("O modo offline não pode depender da rede.")
+for config in (settings_offline, settings_online):
+    if "packages@online" not in config.read_text():
+        raise SystemExit(f"{config.name} não executa a etapa de rede opcional.")
+if "skip_if_no_internet: true" not in (modules / "packages_online.conf").read_text():
+    raise SystemExit("A instalação sem internet não está protegida contra falha de rede.")
