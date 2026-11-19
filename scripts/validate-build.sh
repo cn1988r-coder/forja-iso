@@ -26,7 +26,7 @@ bash -n "$ROOT/scripts/build-container.sh" || fail "erro de sintaxe no wrapper D
 python - "$ROOT/scripts/build-forja-iso.sh" <<'PY'
 import pathlib, re, sys
 source = pathlib.Path(sys.argv[1]).read_text()
-blocks = re.findall(r"<<'PY'\\n(.*?)\\nPY", source, re.S)
+blocks = re.findall(r"<<'PY'\n(.*?)\nPY", source, re.S)
 if not blocks:
     raise SystemExit("Nenhum bloco Python foi encontrado no script de build.")
 for index, block in enumerate(blocks, 1):
