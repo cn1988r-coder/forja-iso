@@ -116,6 +116,16 @@ CALAMARES_SRC="$WORK/PKGBUILDS"
 clone_at_commit https://github.com/endeavouros-team/PKGBUILDS.git "$CALAMARES_SRC" "$PKGBUILDS_COMMIT"
 (
   cd "$CALAMARES_SRC/calamares"
+  python - PKGBUILD <<'PY'
+import pathlib, sys
+p = pathlib.Path(sys.argv[1])
+s = p.read_text()
+needle = '    awk -i inplace -v version="${pkgver}" -v release="${release_name}" "$replace_command" "${srcdir}/calamares-${pkgver}/data/eos/branding/endeavouros/branding.desc"\n'
+if needle not in s:
+    raise SystemExit("Não foi possível localizar a etapa de branding no PKGBUILD do Calamares.")
+s = s.replace(needle, needle + '    sed -i "s/EndeavourOS/Forja OS/g" "${srcdir}/calamares-${pkgver}/data/eos/branding/endeavouros/branding.desc"\n')
+p.write_text(s)
+PY
   makepkg --syncdeps --noconfirm
   find . -maxdepth 1 -name 'calamares-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
 )
