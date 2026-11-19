@@ -102,6 +102,20 @@ if grep -Fxq 'welcome' "$ROOT/build/packages.mate" || grep -Fxq 'partitionmanage
   fail "aplicativo Welcome/Partition Manager não deve entrar no perfil MATE"
 fi
 
+grep -Fxq 'firefox' "$ROOT/build/packages.mate" || fail "Firefox não está no perfil Forja"
+grep -Fxq 'grub' "$ROOT/build/packages.mate" || fail "GRUB fixo não está no perfil Forja"
+grep -Fxq 'os-prober' "$ROOT/build/packages.mate" || fail "os-prober não está no perfil Forja"
+grep -Fq 'iptvnator-bin-aur' "$ROOT/scripts/build-forja-iso.sh" || fail "IPTVnator não é preparado para a imagem"
+grep -Fq 'pacman-key --populate archlinux' "$ROOT/scripts/build-forja-iso.sh" || fail "chaveiro do sistema final não está limitado ao Arch"
+grep -Fq 'Forja OS uses the complete ISO filesystem' "$ROOT/scripts/build-forja-iso.sh" || fail "a preparação ainda não declara a instalação pela imagem completa"
+grep -Fq 'settings_online.write_text(online_text)' "$ROOT/scripts/patch-calamares.py" || fail "configuração online própria ausente"
+grep -Fq 'settings_offline.write_text(settings_common)' "$ROOT/scripts/patch-calamares.py" || fail "configuração offline própria ausente"
+grep -Fq 'packages@online' "$ROOT/scripts/patch-calamares.py" || fail "modo online não atualiza a base de pacotes Arch"
+grep -Fq 'efiBootloaderId: "Forja OS"' "$ROOT/scripts/patch-calamares.py" || fail "identificação do GRUB/EFI não é Forja OS"
+grep -Fq 'displaymanagers:' "$ROOT/scripts/patch-calamares.py" || fail "gerenciador de sessão fixo não foi configurado"
+if grep -Eq 'endeavouros|eos-' "$ROOT/build/packages.mate"; then
+  fail "pacotes EndeavourOS encontrados no perfil final"
+fi
 grep -Fxq 'materia-gtk-theme' "$ROOT/build/packages.mate" || fail "Materia ausente"
 grep -Fxq 'papirus-icon-theme' "$ROOT/build/packages.mate" || fail "Papirus ausente"
 grep -Fq "picture-filename=''" "$ROOT/build/airootfs/etc/dconf/db/local.d/00-forja" || fail "configuração de fundo vazio ausente"
