@@ -115,7 +115,8 @@ PY
 rm -rf "$EOS_DIR/airootfs/root/root-theme"
 
 log "Removendo marcas visíveis do EndeavourOS nos menus de boot"
-grep -RIl 'EndeavourOS' "$EOS_DIR/efiboot" "$EOS_DIR/syslinux" 2>/dev/null | while read -r file; do
+mapfile -t boot_files < <(grep -RIl 'EndeavourOS' "$EOS_DIR/efiboot" "$EOS_DIR/syslinux" 2>/dev/null || true)
+for file in "${boot_files[@]}"; do
   sed -i 's/EndeavourOS/Forja OS/g' "$file"
 done
 
