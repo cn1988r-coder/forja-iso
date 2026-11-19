@@ -64,12 +64,10 @@ PY
 
 log "Aplicando identidade visual e configurações MATE"
 cp -a "$ROOT/build/airootfs/." "$EOS_DIR/airootfs/"
-chmod 0755 "$EOS_DIR/airootfs/usr/bin/forja-installer"
 SKEL="$EOS_DIR/airootfs/root/endeavouros-skel-liveuser/src/etc/skel"
 mkdir -p "$SKEL/.config/gtk-3.0" "$SKEL/.config/gtk-4.0"
 cp "$ROOT/build/airootfs/etc/skel/.config/gtk-3.0/settings.ini" "$SKEL/.config/gtk-3.0/settings.ini"
 cp "$ROOT/build/airootfs/etc/skel/.config/gtk-4.0/settings.ini" "$SKEL/.config/gtk-4.0/settings.ini"
-rm -f "$SKEL/.local/share/applications/calamares.desktop"
 rm -rf "$SKEL/.config/kdedefaults" "$SKEL/.config/plasma"* "$SKEL/.local/share/plasma" "$SKEL/.local/share/konsole" "$SKEL/.local/etc/xdg/kdeglobals"
 find "$SKEL/.config" -maxdepth 1 -type f \( -name 'balo*' -o -name 'kcm*' -o -name 'kde*' -o -name 'kscreen*' -o -name 'ksmserverrc' -o -name 'ksplashrc' -o -name 'kwalletrc' -o -name 'kxkbrc' -o -name 'plasma*' -o -name 'powerdevilrc' -o -name 'powermanagementprofilesrc' -o -name 'systemsettingsrc' \) -delete
 mkdir -p "$EOS_DIR/airootfs/root/packages"
@@ -112,10 +110,6 @@ os_patch = 'sed -i -e \'s/^NAME=.*/NAME="Forja OS"/\' -e \'s/^PRETTY_NAME=.*/PRE
 if os_marker not in s:
     raise SystemExit('Não foi possível localizar a etapa de pacotes locais.')
 s = s.replace(os_marker, os_patch + os_marker, 1)
-package_cleanup = 'rm -rf "/root/packages/"'
-if package_cleanup not in s:
-    raise SystemExit('Não foi possível localizar a limpeza dos pacotes locais.')
-s = s.replace(package_cleanup, 'rm -f "/usr/share/applications/calamares.desktop"\n' + package_cleanup, 1)
 p.write_text(s)
 PY
 rm -rf "$EOS_DIR/airootfs/root/root-theme"
@@ -198,7 +192,6 @@ content = content.replace(remove_marker, remove_marker + "        /etc/lightdm/l
 cleanup_marker = "    rm -rf /etc/calamares /opt/extra-drivers"
 if cleanup_marker not in content:
     raise SystemExit("Não foi possível localizar a limpeza final do Calamares.")
-content = content.replace(cleanup_marker, "    rm -f /usr/bin/forja-installer /usr/share/applications/forja-installer.desktop\n" + cleanup_marker, 1)
 cleaner.write_text(content)
 PATCH
 """
