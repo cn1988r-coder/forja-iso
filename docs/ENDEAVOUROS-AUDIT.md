@@ -71,3 +71,12 @@ A configuração do Calamares foi substituída nos dois modos (online e offline)
 - Firefox, MATE, LightDM, Shelly, IPTVnator e demais componentes listados no perfil Forja permanecem na imagem que será copiada.
 
 A configuração ainda requer compilação real e testes de instalação em VM nos dois modos. O fluxo não deve ser considerado validado até completar particionamento, usuário, bootloader, primeiro boot e conferência dos pacotes instalados.
+
+### Garantias adicionadas ao fluxo Forja
+
+- O atalho abre a configuração unificada: com internet, o Calamares atualiza a base de dados dos repositórios Arch; sem internet, a etapa é ignorada automaticamente. Em ambos os casos, a origem da instalação é o mesmo `airootfs.sfs` da ISO Forja.
+- A sequência visível é idioma, teclado, particionamento, usuário e resumo. MATE e GRUB são fixos, sem seleção de desktop, netinstall ou escolha de pacotes.
+- Uma etapa final executada dentro do sistema de destino remove o pacote Calamares, seus arquivos de configuração e resíduos de identificação/repositório EndeavourOS. O sistema instalado fica com `ID=forja`, `ID_LIKE=arch` e repositórios Arch.
+- Firefox está declarado explicitamente no perfil. IPTVnator continua sendo preparado como pacote local e instalado na imagem Live, que é a imagem copiada para o disco.
+
+A CI da branch executou com sucesso a validação estática e o patcher contra o código upstream fixado do Calamares. Isso valida a adaptação dos arquivos, não substitui a compilação da ISO nem a instalação em máquina virtual.
