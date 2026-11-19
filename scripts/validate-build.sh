@@ -14,6 +14,7 @@ for file in \
   "$ROOT/build/airootfs/etc/dconf/profile/user" \
   "$ROOT/build/airootfs/etc/dconf/db/local.d/00-forja" \
   "$ROOT/build/airootfs/etc/lightdm/lightdm.conf.d/10-forja-live.conf" \
+  "$ROOT/build/airootfs/etc/lightdm/lightdm-gtk-greeter.conf" \
   "$ROOT/build/airootfs/etc/skel/.config/gtk-3.0/settings.ini" \
   "$ROOT/build/airootfs/etc/skel/.config/gtk-4.0/settings.ini" \
   "$ROOT/build/airootfs/usr/bin/forja-installer" \
@@ -55,6 +56,10 @@ grep -Fxq 'mate-session-manager' "$ROOT/build/packages.mate" || fail "pacote MAT
 grep -Fxq 'lightdm' "$ROOT/build/packages.mate" || fail "LightDM ausente"
 grep -Fxq 'mate-polkit' "$ROOT/build/packages.mate" || fail "agente Polkit do MATE ausente"
 grep -Fq 'settings_offline.conf' "$ROOT/build/airootfs/usr/bin/forja-installer" || fail "launcher Calamares offline ausente"
+grep -Fq 'background=#000000' "$ROOT/build/airootfs/etc/lightdm/lightdm-gtk-greeter.conf" || fail "fundo preto do greeter LightDM ausente"
+grep -Fq 'theme-name=Materia-dark' "$ROOT/build/airootfs/etc/lightdm/lightdm-gtk-greeter.conf" || fail "tema do greeter LightDM ausente"
+grep -Fq 'icon-theme-name=Papirus' "$ROOT/build/airootfs/etc/lightdm/lightdm-gtk-greeter.conf" || fail "ícones do greeter LightDM ausentes"
+grep -Fq 'cursor-theme-name=Bibata-Modern-Classic' "$ROOT/build/airootfs/etc/lightdm/lightdm-gtk-greeter.conf" || fail "cursor do greeter LightDM ausente"
 grep -Fq 'systemctl enable lightdm.service' "$ROOT/scripts/build-forja-iso.sh" || fail "LightDM não será habilitado"
 grep -Fq 'dconf update' "$ROOT/scripts/build-forja-iso.sh" || fail "banco dconf não será compilado"
 grep -Fq 'branding.desc' "$ROOT/scripts/build-forja-iso.sh" || fail "rebranding do Calamares ausente"
