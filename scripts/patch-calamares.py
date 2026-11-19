@@ -42,6 +42,11 @@ for name in ("usersq-qt6.qml", "usersq.qml"):
     if old_user not in text or old_host not in text:
         raise SystemExit(f"Expressões de validação esperadas não encontradas em {name}.")
     text = text.replace(old_user, new_user, 1).replace(old_host, new_host, 1)
+    text = text.replace("id: _userLoginField\\n", "id: _userLoginField\\n                maximumLength: 31\\n", 1)
+    text = text.replace("id: _hostName\\n", "id: _hostName\\n                maximumLength: 63\\n", 1)
+    text = text.replace('_userLoginField.text === "root"', '(_userLoginField.text === "root" || _userLoginField.text === "nobody")')
+    text = text.replace('_hostName.text === "localhost"', '_hostName.text.toLowerCase() === "localhost"')
+    text = text.replace("root is not allowed as username.", "root and nobody are reserved usernames.")
     if name == "usersq-qt6.qml":
         colors = {
             '#3A3F45': '#202a36',
