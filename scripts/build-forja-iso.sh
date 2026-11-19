@@ -209,15 +209,17 @@ done
   find . -maxdepth 1 -name 'shelly-git-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
 )
 
-log "Construindo tema Bibata a partir da receita AUR"
-BIBATA_SRC="$WORK/bibata-cursor-theme-aur"
-BIBATA_COMMIT="$(git ls-remote https://aur.archlinux.org/bibata-cursor-theme.git HEAD | awk 'NR == 1 { print $1; exit }')"
-[[ "$BIBATA_COMMIT" =~ ^[0-9a-f]{40}$ ]] || die "Não foi possível localizar uma revisão válida da receita AUR do Bibata."
-clone_at_commit https://aur.archlinux.org/bibata-cursor-theme.git "$BIBATA_SRC" "$BIBATA_COMMIT"
+log "Obtendo o pacote binário oficial do tema Bibata pela receita AUR"
+# A variante fonte exige python-clickgen, que não existe nos repositórios oficiais.
+# A variante -bin distribui os cursores já gerados e elimina essa dependência de build.
+BIBATA_SRC="$WORK/bibata-cursor-theme-bin-aur"
+BIBATA_COMMIT="$(git ls-remote https://aur.archlinux.org/bibata-cursor-theme-bin.git HEAD | awk 'NR == 1 { print $1; exit }')"
+[[ "$BIBATA_COMMIT" =~ ^[0-9a-f]{40}$ ]] || die "Não foi possível localizar uma revisão válida da receita binária AUR do Bibata."
+clone_at_commit https://aur.archlinux.org/bibata-cursor-theme-bin.git "$BIBATA_SRC" "$BIBATA_COMMIT"
 (
   cd "$BIBATA_SRC"
   makepkg --syncdeps --noconfirm
-  find . -maxdepth 1 -name 'bibata-cursor-theme-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
+  find . -maxdepth 1 -name 'bibata-cursor-theme-bin-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
 )
 
 log "Construindo IPTVnator a partir da receita AUR"
@@ -253,7 +255,7 @@ shopt -u nullglob
 [[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'shelly-git-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Shelly não foi gerado."
 [[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'ferdium-bin-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Ferdium não foi gerado."
 [[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'iptvnator-bin-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote IPTVnator não foi gerado."
-[[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'bibata-cursor-theme-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Bibata não foi gerado."
+[[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'bibata-cursor-theme-bin-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Bibata não foi gerado."
 
 log "Preparando framework EndeavourOS"
 (
