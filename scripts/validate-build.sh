@@ -9,6 +9,7 @@ for file in \
   "$ROOT/scripts/build-forja-iso.sh" \
   "$ROOT/scripts/build-container.sh" \
   "$ROOT/Dockerfile" \
+  "$ROOT/.dockerignore" \
   "$ROOT/build/packages.mate" \
   "$ROOT/build/airootfs/etc/dconf/profile/user" \
   "$ROOT/build/airootfs/etc/dconf/db/local.d/00-forja" \
@@ -47,6 +48,8 @@ grep -Fq 'PKGBUILDS_COMMIT="474a51d4c7cb6f82bfbb2e78a7ce9a321aa5eabd"' "$ROOT/sc
 grep -Fq 'SHELLY_COMMIT="6840658b19d72205c38bd320c1cef6ff3076bc7c"' "$ROOT/scripts/build-forja-iso.sh" || fail "Shelly sem revisão fixada"
 grep -Fq '90376d8f52ab19e19073eed33d6f36c46ec7c409/pacman.conf' "$ROOT/Dockerfile" || fail "container sem pacman.conf fixado do EndeavourOS"
 grep -Fq '474a51d4c7cb6f82bfbb2e78a7ce9a321aa5eabd/endeavouros-mirrorlist' "$ROOT/Dockerfile" || fail "container sem mirrorlist fixada do EndeavourOS"
+grep -Fxq '**' "$ROOT/.dockerignore" || fail "contexto Docker não exclui artefatos do build"
+grep -Fxq '!Dockerfile' "$ROOT/.dockerignore" || fail "Dockerfile não foi preservado no contexto"
 
 grep -Fxq 'mate-session-manager' "$ROOT/build/packages.mate" || fail "pacote MATE ausente"
 grep -Fxq 'lightdm' "$ROOT/build/packages.mate" || fail "LightDM ausente"
