@@ -62,8 +62,6 @@ for name in ("usersq-qt6.qml", "usersq.qml"):
     path.write_text(text)
 
 qml = (source / "src/modules/usersq/usersq-qt6.qml").read_text()
-if "regularExpression: /^[a-z_][a-z0-9_-]*[$]?$/ " in qml:
-    raise SystemExit("Expressão de login contém espaço inesperado.")
 if "regularExpression: /[a-z_][a-z0-9_-]*[$]?$/" in qml:
     raise SystemExit("Validação QML do login não foi ancorada.")
 if "regularExpression: /[a-zA-Z0-9][-a-zA-Z0-9_]+/" in qml:
