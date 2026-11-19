@@ -113,7 +113,7 @@ s = s.replace(os_marker, os_patch + os_marker, 1)
 package_cleanup = 'rm -rf "/root/packages/"'
 if package_cleanup not in s:
     raise SystemExit('Não foi possível localizar a limpeza dos pacotes locais.')
-s = s.replace(package_cleanup, 'rm -f "/usr/share/applications/calamares.desktop"\\n' + package_cleanup, 1)
+s = s.replace(package_cleanup, 'rm -f "/usr/share/applications/calamares.desktop"\n' + package_cleanup, 1)
 p.write_text(s)
 PY
 rm -rf "$EOS_DIR/airootfs/root/root-theme"
