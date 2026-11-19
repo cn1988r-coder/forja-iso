@@ -101,7 +101,6 @@ sequence:
   - networkcfg
   - displaymanager
   - hwclock
-  - hardwaredetect
   - grubcfg
   - bootloader
   - services-systemd
