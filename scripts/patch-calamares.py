@@ -182,24 +182,21 @@ units:
     action: "set-default"
 """)
 
-# The installed system uses only Arch repositories. EndeavourOS repositories,
-# keys and mirrorlists are not copied into the Forja live or installed system.
-pacman_conf = source.parent.parent / "airootfs" / "etc" / "pacman.conf"
-if pacman_conf.parent.exists():
-    pacman_conf.write_text("""[options]
-Architecture = auto
-Color
-VerbosePkgLists
-ParallelDownloads = 5
-SigLevel = Required DatabaseOptional
-LocalFileSigLevel = Optional
-
-[core]
-Include = /etc/pacman.d/mirrorlist
-
-[extra]
-Include = /etc/pacman.d/mirrorlist
-
-[multilib]
-Include = /etc/pacman.d/mirrorlist
-""")
+# Fail closed if the pinned source no longer provides the image-based install path.
+unpackfs = modules / "unpackfs.conf"
+if not unpackfs.exists() or "/run/archiso/bootmnt/arch/x86_64/airootfs.sfs" not in unpackfs.read_text():
+    raise SystemExit("A origem da imagem Forja no unpackfs.conf não foi encontrada.")
+for required in ("packages_online.conf", "displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf"):
+    if not (modules / required).exists():
+        raise SystemExit(f"Módulo necessário ausente: {required}")
+for config in (settings_offline, settings_online):
+    data = config.read_text()
+    for forbidden in ("packagechooser", "netinstall", "eos_pacman", "pacstrap", "eos_script", "cleaner_script"):
+        if forbidden in data:
+            raise SystemExit(f"Fluxo EndeavourOS não removido de {config.name}: {forbidden}")
+    if "branding: forja" not in data or "  - unpackfs" not in data or "  - usersq" not in data:
+        raise SystemExit(f"Fluxo Forja incompleto em {config.name}.")
+if "packages@online" not in settings_online.read_text():
+    raise SystemExit("O modo online não executa a atualização da base Arch.")
+if "packages@online" in settings_offline.read_text():
+    raise SystemExit("O modo offline não pode depender da rede.")
