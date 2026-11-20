@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-printf '%s\\n' 'VENON: o mecanismo independente ainda não está configurado.'
-printf '%s\\n' 'Nenhuma consulta remota foi realizada e nenhum pacote foi instalado.'
-printf '%s\\n' 'Quando estiver implementado, este comando apenas consultará e listará atualizações disponíveis.'
-printf '%s\\n' 'Este comando nunca instala atualizações.'
+printf '%s\n' 'VENON: o mecanismo independente ainda não está configurado.'
+printf '%s\n' 'Nenhuma consulta remota foi realizada e nenhum pacote foi instalado.'
+printf '%s\n' 'Quando estiver implementado, este comando apenas consultará e listará atualizações disponíveis.'
+printf '%s\n' 'Este comando nunca instala atualizações.'
 exit 2
