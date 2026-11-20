@@ -8,6 +8,8 @@ warn() { printf '[VENOM MATE] AVISO: %s\n' "$*" >&2; }
 
 [[ "$EUID" -ne 0 ]] || { warn "Execute como usuário normal."; exit 1; }
 command -v gsettings >/dev/null 2>&1 || { warn "Sessão MATE indisponível; tente novamente após entrar no desktop."; exit 0; }
+marker="$HOME/.config/venom-mate-setup.done"
+[[ -e "$marker" ]] && exit 0
 
 # Instalação AUR equivalente às etapas Brisk Menu e Bibata do script original.
 AUR_HELPER=""
@@ -58,7 +60,7 @@ set_setting org.mate.peripherals-mouse cursor-size "24"
 set_setting org.mate.interface gtk-application-prefer-dark-theme "true"
 
 # Mantém o layout VENOM já validado, com os indicadores de rede, Bluetooth e volume.
-# Não troca para o layout Manjaro nem executa mate-panel --reset.
+# O painel só é recarregado quando o Brisk Menu é instalado com sucesso.
 
 wall_dir="${XDG_DATA_HOME:-$HOME/.local/share}/wallpapers"
 wall_file="$wall_dir/moon-grey-4k.jpg"
@@ -84,5 +86,9 @@ fi
 
 if gsettings list-schemas | grep -Fxq com.solus-project.brisk-menu; then
     gsettings set com.solus-project.brisk-menu label-visible false || true
+fi
+if pacman -Q brisk-menu-git >/dev/null 2>&1 && pacman -Q bibata-cursor-theme-bin >/dev/null 2>&1 && [[ -s "$wall_file" ]]; then
+    mkdir -p "$HOME/.config"
+    touch "$marker"
 fi
 log "Configuração MATE finalizada."
