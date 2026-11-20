@@ -9,7 +9,7 @@ required=(
  "$ROOT/build/airootfs/etc/locale.gen" "$ROOT/build/airootfs/etc/vconsole.conf"
  "$ROOT/build/airootfs/etc/X11/xorg.conf.d/00-keyboard.conf"
  "$ROOT/build/airootfs/etc/dconf/db/local.d/00-venom"
- "$ROOT/scripts/build-venom-iso.sh" "$ROOT/scripts/build-container.sh"
+ "$ROOT/scripts/build-venom-iso.sh" "$ROOT/scripts/build-container.sh"\n "$ROOT/installer/meson.build" "$ROOT/installer/src/main.c" "$ROOT/installer/README.md"
 )
 for file in "${required[@]}"; do [[ -f "$file" ]] || fail "arquivo necessário ausente: $file"; done
 bash -n "$ROOT/scripts/build-venom-iso.sh"
@@ -28,6 +28,6 @@ done
 pass "arquivos básicos e sintaxe dos scripts"
 pass "locale Português do Brasil e teclado Brasil ABNT2"
 pass "pacotes dos indicadores MATE presentes nos manifests"
-pass "manifesto Archiso e mirror oficial configurados"
+pass "manifesto Archiso e mirror oficial configurados"\ngrep -Fq "project('venom-installer', 'c'" "$ROOT/installer/meson.build" || fail "projeto Meson do instalador ausente"\ngrep -Fq 'gtk4' "$ROOT/installer/meson.build" || fail "dependência GTK4 ausente"\ngrep -Fq 'Instalação ainda bloqueada' "$ROOT/installer/src/main.c" || fail "bloqueio de segurança do protótipo ausente"\npass "estrutura inicial do instalador C + GTK4 presente (não funcional para instalação)"
 printf 'PENDENTE: perfil Archiso completo, instalador C/GTK4 e testes em VM.\n'
 printf 'ISO: compilação não executada.\n'
