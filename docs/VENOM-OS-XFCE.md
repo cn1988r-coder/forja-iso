@@ -2,13 +2,13 @@
 
 ## Scope
 
-This edition retains XFCE and its session configuration packages, including `comm-xfce-config` and `comm-xfce-datetime`, because they form part of the desktop structure the user asked to preserve.
+Preserve the original XFCE desktop structure and layout: panel, docklike plugin, Whisker menu, workspace settings, keyboard shortcuts, Thunar settings, window-manager preferences, and session defaults. The configuration files are carried in the VENOM OS overlay after removing vendor artwork, icons, launchers, and wallpaper references.
 
 Retained applications: Firefox and Pamac GTK. IPTVnator is installed on first login from the AUR as `iptvnator-bin`.
 
-Unselected bundled applications, vendor logos, wallpapers, welcome tools, and vendor branding are excluded. The dark GTK theme remains enabled. The operating-system identity, validation job, compilation job, and published artifact use only the name VENOM OS.
+Other bundled applications and vendor identity packages are excluded. The dark theme remains enabled. The operating-system identity, validation job, compilation job, and published artifact use only the name VENOM OS.
 
-The current signed XFCE support repository is used only for the XFCE session configuration and its required trust packages. The obsolete `repo.biglinux.com.br` URL is not used.
+The current signed package source is used only for the XFCE panel plugin and required trust packages. The obsolete `repo.biglinux.com.br` URL is not used.
 
 ## Installer
 
