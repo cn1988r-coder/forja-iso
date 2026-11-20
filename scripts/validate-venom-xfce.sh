@@ -139,6 +139,8 @@ PY
 
 ruby -e 'require "yaml"; YAML.load_file(ARGV.fetch(0))' "$L/etc/calamares/settings.conf" >/dev/null || fail "settings.conf do Calamares não é YAML válido"
 
+ruby -e 'require "yaml"; ARGV.each { |f| YAML.load_file(f); puts "VERDE: YAML válido: #{f}" }' "$L"/etc/calamares/modules/*.conf || fail "configuração YAML de módulo Calamares inválida"
+
 pass "perfil XFCE, dependências, configurações e scripts"
 [[ "$(find "$D/usr/share/themes/adw-gtk3-dark/xfwm4" -type f | wc -l)" -eq 58 ]] || fail "tema XFWM4 Community incompleto (esperados 58 arquivos)"
 pass "tema Community, ícones, cursor, fontes e decoração XFWM4 instalados e selecionados"
