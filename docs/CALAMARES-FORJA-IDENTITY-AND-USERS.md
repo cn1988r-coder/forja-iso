@@ -66,3 +66,16 @@ Idioma e teclado são herdados da sessão Live e aplicados automaticamente duran
 A execução continua usando os módulos internos necessários: particionamento, montagem, cópia de `/run/archiso/bootmnt/arch/x86_64/airootfs.sfs`, configuração de usuário, sistema, LightDM e GRUB. Tanto com internet quanto sem internet, a origem instalada é sempre a imagem Forja da ISO. A conexão não pode trocar a origem para EndeavourOS nem iniciar uma instalação de pacotes de outro sistema.
 
 **Estado:** a ordem da interface foi ajustada no patcher para usuário → disco → resumo. Ainda é necessária compilação da ISO e validação em VM para comprovar que o fluxo completo funciona.
+
+
+## Correções adicionais do fluxo de instalação
+
+A revisão do fluxo completo identificou um bloqueio real no bootloader: a configuração substituída pelo patcher não definia `efiBootLoader` nem uma variável de seleção válida. Como a interface de seleção de bootloader foi removida, o módulo podia encerrar sem instalar o GRUB em sistemas UEFI. A configuração agora fixa explicitamente `efiBootLoader: "grub"`, remove a referência antiga ao seletor da configuração de particionamento e mantém o GRUB como único caminho.
+
+A interface de elevação também foi corrigida de forma restrita. O atalho continua usando `pkexec calamares`, mas a sessão Live recebe uma regra Polkit que autoriza somente o usuário temporário `liveuser`, membro de `wheel`, em sessão local e ativa, para a ação específica do Calamares. A regra é removida do sistema instalado durante a limpeza final; ela não concede autorização geral ao grupo wheel.
+
+O instalador agora usa somente ext4 na instalação guiada, com partição EFI recomendada de 512 MiB e mínimo de 300 MiB. A escolha inicial de particionamento continua sem pré-seleção destrutiva. A atualização de bancos de pacotes foi removida do fluxo: com ou sem internet, a origem da instalação é sempre a imagem completa da própria ISO. As etapas de locale e teclado não são executadas novamente, para não sobrescrever as configurações já presentes na imagem Live.
+
+As validações estáticas foram atualizadas para conferir o tema monocromático atual, a sequência real usuário → disco → resumo, a regra Polkit restrita, o GRUB fixo e a ausência de dependências de instalação online. O workflow de ISO também foi habilitado para a branch autorizada e a retenção do artefato temporário foi reduzida para 24 horas.
+
+**Limite de comprovação:** essas alterações corrigem problemas identificados no código e reforçam os testes automatizados. Elas ainda não equivalem a uma aprovação de instalação real. O Calamares só poderá ser considerado aprovado após a compilação da ISO, a inicialização em VM, a instalação em disco virtual, a reinicialização e a confirmação do primeiro login no MATE com LightDM.
