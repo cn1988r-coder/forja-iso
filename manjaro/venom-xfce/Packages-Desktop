@@ -62,11 +62,8 @@ xorg-xinit
 xorg-xrandr
 firefox
 pamac-gtk
-papirus-icon-theme
-bibata-cursor-theme
 adwaita-gtk-theme
 gnome-themes-extra
-cantarell-fonts
 noto-fonts
 ttf-dejavu
 ttf-roboto
@@ -77,3 +74,9 @@ gvfs
 gvfs-smb
 gvfs-mtp
 udisks2
+adw-gtk-theme
+big-bibata-cursor-theme
+bigicons-papient
+comm-xfce-config
+comm-xfce-datetime
+noto-nerd-fonts-lite
