@@ -1,4 +1,4 @@
-# Forja OS
+# VENOM OS
 
 ## Definições do projeto
 
@@ -20,9 +20,9 @@
 
 - `Dockerfile`: ambiente de build Arch Linux com repositórios EndeavourOS.
 - `build/packages.mate`: seleção inicial de pacotes MATE, LightDM e aparência.
-- `build/airootfs/`: configurações dconf, LightDM e GTK para a sessão Forja, greeter escuro com Materia/Papirus/Bibata e launcher próprio do instalador offline Calamares. O cleaner do instalador remove o launcher e o autologin live do sistema instalado.
+- `build/airootfs/`: configurações dconf, LightDM e GTK para a sessão VENOM, greeter escuro com Materia/Papirus/Bibata e launcher próprio do instalador offline Calamares. O cleaner do instalador remove o launcher e o autologin live do sistema instalado.
 - `scripts/build-container.sh`: executa o build isolado via Docker/Podman.
-- `scripts/build-forja-iso.sh`: adapta o framework fixado, remove o Welcome KDE/XFCE e utilitários KDE, prepara o Calamares offline, constrói os pacotes locais (incluindo IPTVnator) e chama o mkarchiso.
+- `scripts/build-venom-iso.sh`: adapta o framework fixado, remove o Welcome KDE/XFCE e utilitários KDE, prepara o Calamares offline, constrói os pacotes locais (incluindo IPTVnator) e chama o mkarchiso.
 - `scripts/validate-build.sh`: validação estática de arquivos, revisões e sintaxe Bash.
 - `docs/ENDEAVOUROS-AUDIT.md`: auditoria do framework upstream.
 
@@ -45,7 +45,7 @@ Requisitos: x86_64, internet, pelo menos 40 GiB livres no disco e 8 GiB de RAM r
 Também é possível compilar diretamente em EndeavourOS/Arch com os repositórios EndeavourOS:
 
 ```bash
-bash scripts/build-forja-iso.sh
+bash scripts/build-venom-iso.sh
 ```
 
 A ISO deve aparecer em `work/EndeavourOS-ISO/out/`.
@@ -54,6 +54,6 @@ Ferdium, Shelly, IPTVnator e Bibata são construídos a partir de receitas exter
 
 ## Estado real
 
-**A identidade Forja do Calamares e ajustes na etapa de usuários foram adicionados à branch de trabalho. Ainda não foi executada uma compilação real dessas alterações, nem testes em VM. Nenhuma ISO está aprovada.**
+**A identidade VENOM do Calamares e ajustes na etapa de usuários foram adicionados à branch de trabalho. Ainda não foi executada uma compilação real dessas alterações, nem testes em VM. Nenhuma ISO está aprovada.**
 
 A validação automatizada verifica arquivos, escopo e sintaxe. Não comprova makepkg, mkarchiso, boot UEFI/BIOS, sessão MATE ou instalação completa pelo Calamares em máquina virtual.

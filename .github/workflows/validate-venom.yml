@@ -1,13 +1,13 @@
-name: Validar perfil Forja OS
+name: Validar perfil VENOM OS
 
 on:
   push:
     branches:
-      - fix/forja-calamares-stability
+      - fix/venom-calamares-stability
     paths:
       - "scripts/**"
       - "build/**"
-      - ".github/workflows/validate-forja.yml"
+      - ".github/workflows/validate-venom.yml"
 
 permissions:
   contents: read
@@ -33,7 +33,7 @@ jobs:
           git clone https://github.com/endeavouros-team/calamares.git "$RUNNER_TEMP/calamares"
           git -C "$RUNNER_TEMP/calamares" checkout --detach c1aedc8f3abbaa4ecc94a819623884f41b22f087
           mkdir -p "$RUNNER_TEMP/branding"
-          cp -a build/calamares/branding/forja "$RUNNER_TEMP/branding/forja"
+          cp -a build/calamares/branding/venom "$RUNNER_TEMP/branding/venom"
           cp build/packages.arch "$RUNNER_TEMP/branding/packages.arch"
           cp build/packages.mate "$RUNNER_TEMP/branding/packages.mate"
           cp scripts/patch-calamares.py "$RUNNER_TEMP/patch-calamares.py"
@@ -44,43 +44,43 @@ jobs:
             "$EOS/settings_online.conf" \
             "$EOS/settings_offline.conf" \
             "$EOS/modules/packages_online.conf" \
-            "$EOS/modules/welcome_forja_online.conf" \
-            "$EOS/modules/shellprocess_forja_bootstrap.conf" \
-            "$EOS/modules/shellprocess_forja_stage_packages.conf" \
-            "$EOS/modules/shellprocess_forja_local_packages.conf" \
-            "$EOS/modules/shellprocess_forja_grub_defaults.conf" \
-            "$EOS/modules/shellprocess_forja_cleanup.conf"
-          grep -Fxq 'branding: forja' "$EOS/settings_online.conf"
-          grep -Fxq 'branding: forja' "$EOS/settings_offline.conf"
-          grep -Fq 'welcome@forja_welcome' "$EOS/settings_online.conf"
+            "$EOS/modules/welcome_venom_online.conf" \
+            "$EOS/modules/shellprocess_venom_bootstrap.conf" \
+            "$EOS/modules/shellprocess_venom_stage_packages.conf" \
+            "$EOS/modules/shellprocess_venom_local_packages.conf" \
+            "$EOS/modules/shellprocess_venom_grub_defaults.conf" \
+            "$EOS/modules/shellprocess_venom_cleanup.conf"
+          grep -Fxq 'branding: venom' "$EOS/settings_online.conf"
+          grep -Fxq 'branding: venom' "$EOS/settings_offline.conf"
+          grep -Fq 'welcome@venom_welcome' "$EOS/settings_online.conf"
           grep -Fq '  - packages@online' "$EOS/settings_online.conf"
           ! grep -Fq '  - unpackfs' "$EOS/settings_online.conf"
           grep -Fq '  - unpackfs' "$EOS/settings_offline.conf"
           ! grep -Fq 'packages@online' "$EOS/settings_offline.conf"
 
-          grep -Fq '    - internet' "$EOS/modules/welcome_forja_online.conf"
+          grep -Fq '    - internet' "$EOS/modules/welcome_venom_online.conf"
           grep -Fq 'backend: pacman' "$EOS/modules/packages_online.conf"
           grep -Fq 'update_db: true' "$EOS/modules/packages_online.conf"
-          grep -Fq 'pacstrap -K -C /etc/pacman.conf' "$EOS/modules/shellprocess_forja_bootstrap.conf"
-          grep -Fq 'cp /etc/pacman.conf' "$EOS/modules/shellprocess_forja_bootstrap.conf"
+          grep -Fq 'pacstrap -K -C /etc/pacman.conf' "$EOS/modules/shellprocess_venom_bootstrap.conf"
+          grep -Fq 'cp /etc/pacman.conf' "$EOS/modules/shellprocess_venom_bootstrap.conf"
           grep -Fq 'networkmanager' "$EOS/modules/packages_online.conf"
           grep -Fq 'mate-session-manager' "$EOS/modules/packages_online.conf"
-          grep -Fq "wheel ALL=(ALL:ALL) ALL" "$EOS/modules/shellprocess_forja_sudoers.conf"
+          grep -Fq "wheel ALL=(ALL:ALL) ALL" "$EOS/modules/shellprocess_venom_sudoers.conf"
           ! grep -Eq 'endeavouros|eos-' "$EOS/modules/packages_online.conf"
 
-          grep -Fq '/usr/share/forja/packages/shelly-git-*.pkg.tar.zst' "$EOS/modules/shellprocess_forja_stage_packages.conf"
-          grep -Fq 'pacman -U --noconfirm --needed /tmp/forja-packages/*.pkg.tar.zst' "$EOS/modules/shellprocess_forja_local_packages.conf"
-          grep -Fq 'GRUB_DISTRIBUTOR="Forja OS"' "$EOS/modules/shellprocess_forja_grub_defaults.conf"
+          grep -Fq '/usr/share/venom/packages/shelly-git-*.pkg.tar.zst' "$EOS/modules/shellprocess_venom_stage_packages.conf"
+          grep -Fq 'pacman -U --noconfirm --needed /tmp/venom-packages/*.pkg.tar.zst' "$EOS/modules/shellprocess_venom_local_packages.conf"
+          grep -Fq 'GRUB_DISTRIBUTOR="VENOM OS"' "$EOS/modules/shellprocess_venom_grub_defaults.conf"
           python - "$EOS/settings_online.conf" <<'PY'
           import pathlib, sys
           data = pathlib.Path(sys.argv[1]).read_text().split("- exec:", 1)[1].split("- show:", 1)[0]
-          steps = ["shellprocess@forja_bootstrap", "usersq", "shellprocess@forja_sudoers", "networkcfg", "packages@online", "shellprocess@forja_local_packages", "fstab", "shellprocess@forja_grub_defaults", "bootloader"]
+          steps = ["shellprocess@venom_bootstrap", "usersq", "shellprocess@venom_sudoers", "networkcfg", "packages@online", "shellprocess@venom_local_packages", "fstab", "shellprocess@venom_grub_defaults", "bootloader"]
           positions = [data.index("  - " + step) for step in steps]
           if positions != sorted(positions):
-              raise SystemExit("Ordem incorreta: bootstrap Arch, usuário, rede, pacotes Forja e bootloader.")
-          print("OK: sequência online executa bootstrap Arch antes da instalação dos pacotes Forja")
+              raise SystemExit("Ordem incorreta: bootstrap Arch, usuário, rede, pacotes VENOM e bootloader.")
+          print("OK: sequência online executa bootstrap Arch antes da instalação dos pacotes VENOM")
           PY
-          grep -Fq 'rate-mirrors$|reflector-simple$|welcome$|iso-create-ml$' "$EOS/modules/shellprocess_forja_cleanup.conf"
+          grep -Fq 'rate-mirrors$|reflector-simple$|welcome$|iso-create-ml$' "$EOS/modules/shellprocess_venom_cleanup.conf"
 
           grep -Fxq 'efiBootLoader: "grub"' "$EOS/modules/bootloader.conf"
           ! grep -q 'efiBootLoaderVar:' "$EOS/modules/partition.conf"
@@ -92,5 +92,5 @@ jobs:
 
           ! grep -Eq 'packagechooser|netinstall|eos_pacman|pacstrap|eos_script' "$EOS/settings_online.conf"
           ! grep -Eq 'packagechooser|netinstall|eos_pacman|pacstrap|eos_script' "$EOS/settings_offline.conf"
-          grep -Fq 'action.id === "com.github.calamares.calamares"' build/airootfs/etc/polkit-1/rules.d/49-forja-calamares.rules
+          grep -Fq 'action.id === "com.github.calamares.calamares"' build/airootfs/etc/polkit-1/rules.d/49-venom-calamares.rules
           echo "OK: patcher aplicado e fluxos online Arch/offline separados e verificados"

@@ -1,4 +1,4 @@
-# Forja OS base packages from the official Arch Linux repositories.
+# VENOM OS base packages from the official Arch Linux repositories.
 # This manifest is used by the online Calamares installer, not by EndeavourOS.
 base
 archlinux-keyring

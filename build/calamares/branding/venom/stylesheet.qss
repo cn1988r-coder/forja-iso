@@ -1,4 +1,4 @@
-/* Forja OS Calamares identity: monochrome black, graphite, charcoal, gray and white. */
+/* VENOM OS Calamares identity: monochrome black, graphite, charcoal, gray and white. */
 #mainApp {
     background-color: #101010;
     color: #eeeeee;

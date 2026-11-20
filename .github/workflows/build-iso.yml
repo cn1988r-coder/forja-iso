@@ -1,12 +1,12 @@
-name: Compilar ISO Forja OS
+name: Compilar ISO VENOM OS
 
 on:
   workflow_dispatch:
   push:
-    branches: [main, fix/forja-calamares-stability]
+    branches: [main, fix/venom-calamares-stability]
     paths:
       - "Dockerfile"
-      - "scripts/build-forja-iso.sh"
+      - "scripts/build-venom-iso.sh"
       - "scripts/patch-calamares.py"
       - "build/packages.arch"
       - "build/packages.mate"
@@ -18,7 +18,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: forja-os-iso-build-v2
+  group: venom-os-iso-build-v2
   cancel-in-progress: true
 
 jobs:
@@ -44,14 +44,14 @@ jobs:
           docker build --pull \
             --build-arg BUILD_UID="$(id -u)" \
             --build-arg BUILD_GID="$(id -g)" \
-            -t forja-os-iso-builder .
+            -t venom-os-iso-builder .
 
       - name: Compilar ISO com mkarchiso
         run: |
           docker run --rm --privileged \
             -v "$GITHUB_WORKSPACE:/workspace" \
             -w /workspace \
-            forja-os-iso-builder
+            venom-os-iso-builder
 
       - name: Verificar e calcular hash da ISO
         run: |
@@ -62,14 +62,14 @@ jobs:
             exit 1
           fi
           file "${isos[@]}"
-          sha256sum "${isos[@]}" | tee work/forja-iso-sha256.txt
+          sha256sum "${isos[@]}" | tee work/venom-iso-sha256.txt
 
       - name: Publicar ISO e hash como artefatos
         uses: actions/upload-artifact@v4
         with:
-          name: forja-os-iso
+          name: venom-os-iso
           path: |
             work/EndeavourOS-ISO/out/*.iso
-            work/forja-iso-sha256.txt
+            work/venom-iso-sha256.txt
           if-no-files-found: error
           retention-days: 1

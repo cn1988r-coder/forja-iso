@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Apply the Forja OS branding and focused users-step fixes to pinned Calamares."""
+"""Apply the VENOM OS branding and focused users-step fixes to pinned Calamares."""
 from pathlib import Path
 import re
 import sys
 
 source = Path(sys.argv[1])
-branding = Path(__file__).resolve().parent / "branding/forja"
-target_branding = source / "data/eos/branding/forja"
+branding = Path(__file__).resolve().parent / "branding/venom"
+target_branding = source / "data/eos/branding/venom"
 target_branding.mkdir(parents=True, exist_ok=True)
 for item in branding.iterdir():
     if item.is_file():
@@ -16,7 +16,7 @@ settings = source / "data/eos/settings_offline.conf"
 text = settings.read_text()
 if "branding: endeavouros" not in text:
     raise SystemExit("Branding upstream esperado não encontrado em settings_offline.conf.")
-settings.write_text(text.replace("branding: endeavouros", "branding: forja", 1))
+settings.write_text(text.replace("branding: endeavouros", "branding: venom", 1))
 
 # Keep only the explicit system-group mapping for wheel.
 for name in ("usersq.conf", "users.conf"):
@@ -73,7 +73,7 @@ if "regularExpression: /[a-zA-Z0-9][-a-zA-Z0-9_]+/" in qml:
 packages_arch = branding.parent / "packages.arch"
 packages_mate = branding.parent / "packages.mate"
 if not packages_arch.is_file() or not packages_mate.is_file():
-    raise SystemExit("Manifestos de pacotes Arch/Forja ausentes para o instalador online.")
+    raise SystemExit("Manifestos de pacotes Arch/VENOM ausentes para o instalador online.")
 
 def read_packages(path):
     return [line.strip() for line in path.read_text().splitlines()
@@ -87,19 +87,19 @@ if not online_packages or any(not re.fullmatch(r"[a-zA-Z0-9@._+-]+", p) for p in
 if any(p.startswith(("eos-", "endeavouros-")) for p in online_packages):
     raise SystemExit("O manifesto online não pode instalar pacotes EndeavourOS.")
 
-settings_offline_text = """# Forja OS offline: copia a imagem completa da própria ISO.
+settings_offline_text = """# VENOM OS offline: copia a imagem completa da própria ISO.
 ---
 modules-search: [ local ]
 instances:
-- id: forja_sudoers
+- id: venom_sudoers
   module: shellprocess
-  config: shellprocess_forja_sudoers.conf
-- id: forja_grub_defaults
+  config: shellprocess_venom_sudoers.conf
+- id: venom_grub_defaults
   module: shellprocess
-  config: shellprocess_forja_grub_defaults.conf
-- id: forja_cleanup
+  config: shellprocess_venom_grub_defaults.conf
+- id: venom_cleanup
   module: shellprocess
-  config: shellprocess_forja_cleanup.conf
+  config: shellprocess_venom_cleanup.conf
 sequence:
 - show:
   - usersq
@@ -113,19 +113,19 @@ sequence:
   - fstab
   - removeuser
   - usersq
-  - shellprocess@forja_sudoers
+  - shellprocess@venom_sudoers
   - networkcfg
   - displaymanager
   - hwclock
-  - shellprocess@forja_grub_defaults
+  - shellprocess@venom_grub_defaults
   - bootloader
   - services-systemd
   - preservefiles
-  - shellprocess@forja_cleanup
+  - shellprocess@venom_cleanup
   - umount
 - show:
   - finished
-branding: forja
+branding: venom
 prompt-install: true
 dont-chroot: false
 oem-setup: false
@@ -135,37 +135,37 @@ hide-back-and-next-during-exec: true
 quit-at-end: false
 """
 
-settings_online_text = """# Forja OS online: installs a clean Arch system from official Arch repositories.
+settings_online_text = """# VENOM OS online: installs a clean Arch system from official Arch repositories.
 ---
 modules-search: [ local ]
 instances:
-- id: forja_welcome
+- id: venom_welcome
   module: welcome
-  config: welcome_forja_online.conf
+  config: welcome_venom_online.conf
 - id: online
   module: packages
   config: packages_online.conf
-- id: forja_bootstrap
+- id: venom_bootstrap
   module: shellprocess
-  config: shellprocess_forja_bootstrap.conf
-- id: forja_stage_packages
+  config: shellprocess_venom_bootstrap.conf
+- id: venom_stage_packages
   module: shellprocess
-  config: shellprocess_forja_stage_packages.conf
-- id: forja_local_packages
+  config: shellprocess_venom_stage_packages.conf
+- id: venom_local_packages
   module: shellprocess
-  config: shellprocess_forja_local_packages.conf
-- id: forja_sudoers
+  config: shellprocess_venom_local_packages.conf
+- id: venom_sudoers
   module: shellprocess
-  config: shellprocess_forja_sudoers.conf
-- id: forja_grub_defaults
+  config: shellprocess_venom_sudoers.conf
+- id: venom_grub_defaults
   module: shellprocess
-  config: shellprocess_forja_grub_defaults.conf
-- id: forja_cleanup
+  config: shellprocess_venom_grub_defaults.conf
+- id: venom_cleanup
   module: shellprocess
-  config: shellprocess_forja_cleanup.conf
+  config: shellprocess_venom_cleanup.conf
 sequence:
 - show:
-  - welcome@forja_welcome
+  - welcome@venom_welcome
   - locale
   - keyboard
   - usersq
@@ -174,29 +174,29 @@ sequence:
 - exec:
   - partition
   - mount
-  - shellprocess@forja_bootstrap
+  - shellprocess@venom_bootstrap
   - machineid
   - locale
   - keyboard
   - localecfg
   - usersq
-  - shellprocess@forja_sudoers
+  - shellprocess@venom_sudoers
   - networkcfg
-  - shellprocess@forja_stage_packages
+  - shellprocess@venom_stage_packages
   - packages@online
-  - shellprocess@forja_local_packages
+  - shellprocess@venom_local_packages
   - fstab
   - displaymanager
   - hwclock
-  - shellprocess@forja_grub_defaults
+  - shellprocess@venom_grub_defaults
   - bootloader
   - services-systemd
   - preservefiles
-  - shellprocess@forja_cleanup
+  - shellprocess@venom_cleanup
   - umount
 - show:
   - finished
-branding: forja
+branding: venom
 prompt-install: true
 dont-chroot: false
 oem-setup: false
@@ -228,7 +228,7 @@ packages_config.write_text(
     "".join(f"      - {package}\n" for package in online_packages)
 )
 
-welcome_config = source / "data/eos/modules/welcome_forja_online.conf"
+welcome_config = source / "data/eos/modules/welcome_venom_online.conf"
 welcome_config.write_text("""---
 showSupportUrl: false
 showKnownIssuesUrl: false
@@ -255,7 +255,7 @@ geoip:
   selector: "CountryCode"
 """)
 
-(modules / "shellprocess_forja_bootstrap.conf").write_text("""---
+(modules / "shellprocess_venom_bootstrap.conf").write_text("""---
 dontChroot: true
 timeout: 3600
 verbose: true
@@ -263,42 +263,42 @@ script:
   - 'pacstrap -K -C /etc/pacman.conf ${ROOT} base linux linux-firmware archlinux-keyring pacman-mirrorlist sudo networkmanager'
   - 'mkdir -p ${ROOT}/etc/pacman.d && cp /etc/pacman.conf ${ROOT}/etc/pacman.conf && cp /etc/pacman.d/mirrorlist ${ROOT}/etc/pacman.d/mirrorlist'
 """)
-(modules / "shellprocess_forja_sudoers.conf").write_text("""---
+(modules / "shellprocess_venom_sudoers.conf").write_text("""---
 dontChroot: false
 timeout: 30
 verbose: true
 script:
   - "install -d -m 0750 /etc/sudoers.d"
-  - "echo '%wheel ALL=(ALL:ALL) ALL' > /etc/sudoers.d/10-forja-wheel"
-  - "chmod 0440 /etc/sudoers.d/10-forja-wheel"
+  - "echo '%wheel ALL=(ALL:ALL) ALL' > /etc/sudoers.d/10-venom-wheel"
+  - "chmod 0440 /etc/sudoers.d/10-venom-wheel"
   - "visudo -cf /etc/sudoers"
 """)
-(modules / "shellprocess_forja_stage_packages.conf").write_text("""---
+(modules / "shellprocess_venom_stage_packages.conf").write_text("""---
 dontChroot: true
 timeout: 120
 verbose: true
 script:
-  - 'mkdir -p ${ROOT}/tmp/forja-packages'
-  - 'cp /usr/share/forja/packages/shelly-git-*.pkg.tar.zst /usr/share/forja/packages/ferdium-bin-*.pkg.tar.zst /usr/share/forja/packages/iptvnator-bin-*.pkg.tar.zst /usr/share/forja/packages/bibata-cursor-theme-bin-*.pkg.tar.zst ${ROOT}/tmp/forja-packages/'
+  - 'mkdir -p ${ROOT}/tmp/venom-packages'
+  - 'cp /usr/share/venom/packages/shelly-git-*.pkg.tar.zst /usr/share/venom/packages/ferdium-bin-*.pkg.tar.zst /usr/share/venom/packages/iptvnator-bin-*.pkg.tar.zst /usr/share/venom/packages/bibata-cursor-theme-bin-*.pkg.tar.zst ${ROOT}/tmp/venom-packages/'
 """)
-(modules / "shellprocess_forja_local_packages.conf").write_text("""---
+(modules / "shellprocess_venom_local_packages.conf").write_text("""---
 dontChroot: false
 timeout: 1800
 verbose: true
 script:
-  - 'pacman -U --noconfirm --needed /tmp/forja-packages/*.pkg.tar.zst'
-  - 'rm -rf /tmp/forja-packages'
+  - 'pacman -U --noconfirm --needed /tmp/venom-packages/*.pkg.tar.zst'
+  - 'rm -rf /tmp/venom-packages'
 """)
 
-(modules / "shellprocess_forja_cleanup.conf").write_text("""---
+(modules / "shellprocess_venom_cleanup.conf").write_text("""---
 dontChroot: false
 timeout: 180
 verbose: true
 script:
   - 'if pacman -Q calamares >/dev/null 2>&1; then pacman -Rdd --noconfirm calamares; fi'
   - 'packages=$(pacman -Qq | grep -E "^(endeavouros-|eos-|yay$|rate-mirrors$|reflector-simple$|welcome$|iso-create-ml$)" || true); if [ -n "$packages" ]; then pacman -Rdd --noconfirm $packages; fi'
-  - 'rm -rf /etc/calamares /usr/share/calamares /usr/lib/calamares /usr/share/endeavouros /usr/share/eos /usr/share/forja/packages'
-  - 'rm -f /etc/pacman.d/endeavouros-mirrorlist /usr/lib/endeavouros-release /etc/polkit-1/rules.d/49-forja-calamares.rules'
+  - 'rm -rf /etc/calamares /usr/share/calamares /usr/lib/calamares /usr/share/endeavouros /usr/share/eos /usr/share/venom/packages'
+  - 'rm -f /etc/pacman.d/endeavouros-mirrorlist /usr/lib/endeavouros-release /etc/polkit-1/rules.d/49-venom-calamares.rules'
 """)
 
 
@@ -318,10 +318,10 @@ if fs_count != 1:
     raise SystemExit("A lista de sistemas de arquivos de partition.conf mudou inesperadamente.")
 partition_text = partition_text.replace("recommendedSize:    2048MiB", "recommendedSize:    512MiB", 1)
 partition_text = partition_text.replace("minimumSize:        500MiB", "minimumSize:        300MiB", 1)
-partition_text = partition_text.replace('name: "endeavouros"', 'name: "forja"', 1)
+partition_text = partition_text.replace('name: "endeavouros"', 'name: "venom"', 1)
 partition_config.write_text(partition_text)
 
-# Fixed Forja boot policy: no desktop/package/bootloader chooser.
+# Fixed VENOM boot policy: no desktop/package/bootloader chooser.
 modules = source / "data/eos/modules"
 (modules / "bootloader.conf").write_text("""---
 # No bootloader chooser is shown. Always install GRUB on BIOS and UEFI systems.
@@ -330,7 +330,7 @@ kernelSearchPath: "/usr/lib/modules"
 kernelPattern: "^vmlinuz.*"
 kernelParams: [ "quiet", "loglevel=3" ]
 refindKernelList: [ "linux" ]
-efiBootloaderId: "Forja OS"
+efiBootloaderId: "VENOM OS"
 grubInstall: "grub-install"
 grubMkconfig: "grub-mkconfig"
 grubCfg: "/boot/grub/grub.cfg"
@@ -345,7 +345,7 @@ displaymanagers:
 basicSetup: false
 sysconfigSetup: false
 """)
-(modules / "shellprocess_forja_grub_defaults.conf").write_text("""---
+(modules / "shellprocess_venom_grub_defaults.conf").write_text("""---
 dontChroot: false
 timeout: 30
 verbose: true
@@ -355,7 +355,7 @@ script:
     cat > /etc/default/grub <<'GRUB'
     GRUB_DEFAULT=0
     GRUB_TIMEOUT=5
-    GRUB_DISTRIBUTOR="Forja OS"
+    GRUB_DISTRIBUTOR="VENOM OS"
     GRUB_CMDLINE_LINUX_DEFAULT="quiet loglevel=3"
     GRUB_CMDLINE_LINUX=""
     GRUB_DISABLE_SUBMENU=true
@@ -382,8 +382,8 @@ units:
 # Fail closed if the pinned source no longer provides the image-based install path.
 unpackfs = modules / "unpackfs.conf"
 if not unpackfs.exists() or "/run/archiso/bootmnt/arch/x86_64/airootfs.sfs" not in unpackfs.read_text():
-    raise SystemExit("A origem da imagem Forja no unpackfs.conf não foi encontrada.")
-for required in ("displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf", "shellprocess_forja_cleanup.conf", "shellprocess_forja_bootstrap.conf", "shellprocess_forja_sudoers.conf", "shellprocess_forja_stage_packages.conf", "shellprocess_forja_local_packages.conf", "shellprocess_forja_grub_defaults.conf", "packages_online.conf", "welcome_forja_online.conf"):
+    raise SystemExit("A origem da imagem VENOM no unpackfs.conf não foi encontrada.")
+for required in ("displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf", "shellprocess_venom_cleanup.conf", "shellprocess_venom_bootstrap.conf", "shellprocess_venom_sudoers.conf", "shellprocess_venom_stage_packages.conf", "shellprocess_venom_local_packages.conf", "shellprocess_venom_grub_defaults.conf", "packages_online.conf", "welcome_venom_online.conf"):
     if not (modules / required).exists():
         raise SystemExit(f"Módulo necessário ausente: {required}")
 for config in (settings_offline, settings_online):
@@ -391,8 +391,8 @@ for config in (settings_offline, settings_online):
     for forbidden in ("packagechooser", "netinstall", "eos_pacman", "pacstrap", "eos_script", "cleaner_script"):
         if forbidden in data:
             raise SystemExit(f"Fluxo EndeavourOS não removido de {config.name}: {forbidden}")
-    if "branding: forja" not in data or "  - usersq" not in data or "  - bootloader" not in data:
-        raise SystemExit(f"Fluxo Forja incompleto em {config.name}.")
+    if "branding: venom" not in data or "  - usersq" not in data or "  - bootloader" not in data:
+        raise SystemExit(f"Fluxo VENOM incompleto em {config.name}.")
 if "  - unpackfs" not in settings_offline.read_text():
     raise SystemExit("O instalador offline deve copiar a imagem da ISO.")
 if "  - unpackfs" in settings_online.read_text():
@@ -409,7 +409,7 @@ partition_data = partition_config.read_text()
 if "efiBootLoaderVar:" in partition_data:
     raise SystemExit("partition.conf ainda depende do seletor de bootloader removido.")
 if 'availableFileSystemTypes:  ["ext4"]' not in partition_data:
-    raise SystemExit("A instalação Forja deve usar ext4 como único sistema de arquivos selecionável.")
+    raise SystemExit("A instalação VENOM deve usar ext4 como único sistema de arquivos selecionável.")
 if 'efiBootLoader: "grub"' not in (modules / "bootloader.conf").read_text():
     raise SystemExit("GRUB não está definido como bootloader fixo.")
 if "packages@online" in settings_offline.read_text():

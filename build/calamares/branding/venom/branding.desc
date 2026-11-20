@@ -1,4 +1,4 @@
-componentName: forja
+componentName: venom
 
 welcomeStyleCalamares: false
 welcomeExpandingLogo: false
@@ -9,17 +9,17 @@ sidebar: widget
 navigation: widget
 
 strings:
-    productName:         Forja OS
-    shortProductName:    Forja OS
+    productName:         VENOM OS
+    shortProductName:    VENOM OS
     version:             ${release_name} ${version}
     shortVersion:        ${version}
-    versionedName:       Forja OS ${release_name}
+    versionedName:       VENOM OS ${release_name}
     shortVersionedName:  ${release_name}
-    bootloaderEntryName: Forja OS
+    bootloaderEntryName: VENOM OS
 
 images:
-    productLogo:         "forja-logo.svg"
-    productIcon:         "forja-logo.svg"
+    productLogo:         "venom-logo.svg"
+    productIcon:         "venom-logo.svg"
 
 style:
    SidebarBackground:        "#101010"

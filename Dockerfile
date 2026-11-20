@@ -27,4 +27,4 @@ RUN getent group "$BUILD_GID" >/dev/null || groupadd --gid "$BUILD_GID" builder;
 
 WORKDIR /workspace
 USER builder
-ENTRYPOINT ["bash", "scripts/build-forja-iso.sh"]
+ENTRYPOINT ["bash", "scripts/build-venom-iso.sh"]

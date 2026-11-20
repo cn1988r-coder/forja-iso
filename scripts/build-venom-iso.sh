@@ -9,7 +9,7 @@ EOS_COMMIT="90376d8f52ab19e19073eed33d6f36c46ec7c409"
 PKGBUILDS_COMMIT="474a51d4c7cb6f82bfbb2e78a7ce9a321aa5eabd"
 SHELLY_COMMIT="6840658b19d72205c38bd320c1cef6ff3076bc7c"
 
-log() { printf '\n[FORJA] %s\n' "$*"; }
+log() { printf '\n[VENOM] %s\n' "$*"; }
 die() { printf '\n[ERRO] %s\n' "$*" >&2; exit 1; }
 trap 'die "Falha na linha $LINENO. Consulte a mensagem acima."' ERR
 
@@ -41,7 +41,7 @@ clone_at_commit() {
 log "Obtendo framework EndeavourOS fixado em $EOS_COMMIT"
 clone_at_commit https://github.com/endeavouros-team/EndeavourOS-ISO.git "$EOS_DIR" "$EOS_COMMIT"
 
-log "Preparando lista fixa de pacotes Forja OS com MATE, Firefox e aplicativos próprios"
+log "Preparando lista fixa de pacotes VENOM OS com MATE, Firefox e aplicativos próprios"
 python - "$EOS_DIR/packages.x86_64" "$ROOT/build/packages.mate" <<'PY'
 import pathlib, re, sys
 target = pathlib.Path(sys.argv[1])
@@ -64,9 +64,9 @@ PY
 
 log "Aplicando identidade visual e configurações MATE"
 cp -a "$ROOT/build/airootfs/." "$EOS_DIR/airootfs/"
-# Ensure the Forja repository client is executable in the generated live and installed system.
-chmod 0755 "$EOS_DIR/airootfs/usr/bin/forja"
-# The Forja live and installed system must use Arch repositories only.
+# Ensure the VENOM repository client is executable in the generated live and installed system.
+chmod 0755 "$EOS_DIR/airootfs/usr/bin/venom"
+# The VENOM live and installed system must use Arch repositories only.
 mkdir -p "$EOS_DIR/airootfs/etc"
 cat > "$EOS_DIR/airootfs/etc/pacman.conf" <<'PACMANCONF'
 [options]
@@ -106,22 +106,22 @@ rm -rf "$SKEL/.config/kdedefaults" "$SKEL/.config/plasma"* "$SKEL/.local/share/p
 find "$SKEL/.config" -maxdepth 1 -type f \( -name 'balo*' -o -name 'kcm*' -o -name 'kde*' -o -name 'kscreen*' -o -name 'ksmserverrc' -o -name 'ksplashrc' -o -name 'kwalletrc' -o -name 'kxkbrc' -o -name 'plasma*' -o -name 'powerdevilrc' -o -name 'powermanagementprofilesrc' -o -name 'systemsettingsrc' \) -delete
 mkdir -p "$EOS_DIR/airootfs/root/packages"
 
-log "Preparando wallpaper preto monocromático da Forja OS"
-FORJA_WALLPAPER="$ROOT/build/airootfs/usr/share/backgrounds/forja/forja-wallpaper.png"
-mkdir -p "$(dirname "$FORJA_WALLPAPER")" "$EOS_DIR/airootfs/root"
-magick -size 1920x1080 xc:'#101010' "$FORJA_WALLPAPER"
-cp "$FORJA_WALLPAPER" "$EOS_DIR/airootfs/root/livewall.png"
-cp "$FORJA_WALLPAPER" "$EOS_DIR/airootfs/root/endeavouros-wallpaper.png"
-[[ -s "$FORJA_WALLPAPER" ]] || die "Não foi possível gerar o wallpaper monocromático da Forja OS."
+log "Preparando wallpaper preto monocromático da VENOM OS"
+VENOM_WALLPAPER="$ROOT/build/airootfs/usr/share/backgrounds/venom/venom-wallpaper.png"
+mkdir -p "$(dirname "$VENOM_WALLPAPER")" "$EOS_DIR/airootfs/root"
+magick -size 1920x1080 xc:'#101010' "$VENOM_WALLPAPER"
+cp "$VENOM_WALLPAPER" "$EOS_DIR/airootfs/root/livewall.png"
+cp "$VENOM_WALLPAPER" "$EOS_DIR/airootfs/root/endeavouros-wallpaper.png"
+[[ -s "$VENOM_WALLPAPER" ]] || die "Não foi possível gerar o wallpaper monocromático da VENOM OS."
 
 log "Removendo etapa específica de configuração KDE do prepare.sh"
 python - "$EOS_DIR/prepare.sh" <<'PY'
 import pathlib, re, sys
 p = pathlib.Path(sys.argv[1])
 s = p.read_text()
-s = re.sub(r'(?s)# add date to wallpaper.*?a[i]rootfs/root/livewall\.png\n', '# Forja OS: fundo preto puro, sem data sobreposta.\n', s, count=1)
+s = re.sub(r'(?s)# add date to wallpaper.*?a[i]rootfs/root/livewall\.png\n', '# VENOM OS: fundo preto puro, sem data sobreposta.\n', s, count=1)
 s = re.sub(r'(?m)^wget -qN .*endeavouros-wallpaper\.png.*\n', '', s)
-s = re.sub(r'(?m)^get_pkg "eos-settings-plasma"\s*$', '# KDE settings package intentionally omitted for Forja OS.', s)
+s = re.sub(r'(?m)^get_pkg "eos-settings-plasma"\s*$', '# KDE settings package intentionally omitted for VENOM OS.', s)
 p.write_text(s)
 PY
 
@@ -142,10 +142,10 @@ s = s.replace(kde_root_theme, '')
 motd_marker = 'echo "---> Add builddate to motd --->"'
 if motd_marker not in s:
     raise SystemExit('Não foi possível localizar a etapa do motd.')
-s = s.replace(motd_marker, 'printf "Forja OS\\nBase Arch Linux\\n" > "/usr/lib/forja-release"\n' + motd_marker, 1)
+s = s.replace(motd_marker, 'printf "VENOM OS\\nBase Arch Linux\\n" > "/usr/lib/venom-release"\n' + motd_marker, 1)
 calamares_marker = 'pacman -U --noconfirm --needed -- "/root/packages/"*".pkg.tar.zst"\n'
 calamares_patch = """if [[ ! -r /etc/calamares/settings_offline.conf || ! -r /etc/calamares/settings_online.conf ]]; then
-  echo "Calamares Forja online/offline settings are missing." >&2
+  echo "Calamares VENOM online/offline settings are missing." >&2
   exit 1
 fi
 if [[ ! -x /usr/bin/calamares ]]; then
@@ -171,12 +171,12 @@ if [[ ! -f /home/liveuser/.local/share/applications/calamares.desktop ]]; then
   exit 1
 fi
 sed -i \
-  -e 's|^Name=Install System$|Name=Install Forja OS (online)|' \
-  -e 's|^Name\[pt_BR\]=Sistema de Instalação$|Name[pt_BR]=Instalar Forja OS (online)|' \
-  -e 's|^GenericName=System Installer$|GenericName=Forja OS Online Installer|' \
-  -e 's|^GenericName\[pt_BR\]=Instalador de Sistema$|GenericName[pt_BR]=Instalador online da Forja OS|' \
-  -e 's|^Comment=Calamares — System Installer$|Comment=Install Forja OS using official Arch Linux repositories|' \
-  -e 's|^Comment\[pt_BR\]=Calamares — Instalador de Sistema$|Comment[pt_BR]=Instala a Forja OS pelos repositórios oficiais do Arch Linux|' \
+  -e 's|^Name=Install System$|Name=Install VENOM OS (online)|' \
+  -e 's|^Name\[pt_BR\]=Sistema de Instalação$|Name[pt_BR]=Instalar VENOM OS (online)|' \
+  -e 's|^GenericName=System Installer$|GenericName=VENOM OS Online Installer|' \
+  -e 's|^GenericName\[pt_BR\]=Instalador de Sistema$|GenericName[pt_BR]=Instalador online da VENOM OS|' \
+  -e 's|^Comment=Calamares — System Installer$|Comment=Install VENOM OS using official Arch Linux repositories|' \
+  -e 's|^Comment\[pt_BR\]=Calamares — Instalador de Sistema$|Comment[pt_BR]=Instala a VENOM OS pelos repositórios oficiais do Arch Linux|' \
   -e 's|^TryExec=eos-welcome$|TryExec=calamares|' \
   -e 's|^Exec=eos-welcome$|Exec=pkexec calamares -c /etc/calamares-online|' \
   /home/liveuser/.local/share/applications/calamares.desktop
@@ -184,40 +184,40 @@ grep -Fxq 'TryExec=calamares' /home/liveuser/.local/share/applications/calamares
   echo "Calamares desktop entry has an invalid TryExec value." >&2
   exit 1
 }
-grep -Fxq 'Name=Install Forja OS (online)' /home/liveuser/.local/share/applications/calamares.desktop || {
-  echo "Calamares online launcher is not branded as Forja OS." >&2
+grep -Fxq 'Name=Install VENOM OS (online)' /home/liveuser/.local/share/applications/calamares.desktop || {
+  echo "Calamares online launcher is not branded as VENOM OS." >&2
   exit 1
 }
-grep -Fxq 'Name[pt_BR]=Instalar Forja OS (online)' /home/liveuser/.local/share/applications/calamares.desktop || {
-  echo "Calamares online launcher has no Forja OS Portuguese label." >&2
+grep -Fxq 'Name[pt_BR]=Instalar VENOM OS (online)' /home/liveuser/.local/share/applications/calamares.desktop || {
+  echo "Calamares online launcher has no VENOM OS Portuguese label." >&2
   exit 1
 }
 grep -Fxq 'Exec=pkexec calamares -c /etc/calamares-online' /home/liveuser/.local/share/applications/calamares.desktop || {
   echo "Calamares online desktop entry has an invalid Exec value." >&2
   exit 1
 }
-cat > /home/liveuser/.local/share/applications/forja-installer-offline.desktop <<'DESKTOP'
+cat > /home/liveuser/.local/share/applications/venom-installer-offline.desktop <<'DESKTOP'
 [Desktop Entry]
 Type=Application
-Name=Instalar Forja OS (offline)
-Name[pt_BR]=Instalar Forja OS (offline)
-Comment=Instala a Forja OS usando a imagem incluída na ISO
+Name=Instalar VENOM OS (offline)
+Name[pt_BR]=Instalar VENOM OS (offline)
+Comment=Instala a VENOM OS usando a imagem incluída na ISO
 Exec=pkexec calamares -c /etc/calamares-offline
 TryExec=calamares
 Icon=calamares
 Terminal=false
 Categories=System;
 DESKTOP
-chown liveuser:liveuser /home/liveuser/.local/share/applications/forja-installer-offline.desktop
-if [[ ! -f /etc/polkit-1/rules.d/49-forja-calamares.rules ]]; then
+chown liveuser:liveuser /home/liveuser/.local/share/applications/venom-installer-offline.desktop
+if [[ ! -f /etc/polkit-1/rules.d/49-venom-calamares.rules ]]; then
   echo "Restricted live-session Polkit rule for Calamares is missing." >&2
   exit 1
 fi
-grep -Fq 'action.id === "com.github.calamares.calamares"' /etc/polkit-1/rules.d/49-forja-calamares.rules || {
+grep -Fq 'action.id === "com.github.calamares.calamares"' /etc/polkit-1/rules.d/49-venom-calamares.rules || {
   echo "Calamares Polkit action ID is not authorized by the live rule." >&2
   exit 1
 }
-grep -Fq 'subject.user === "liveuser"' /etc/polkit-1/rules.d/49-forja-calamares.rules || {
+grep -Fq 'subject.user === "liveuser"' /etc/polkit-1/rules.d/49-venom-calamares.rules || {
   echo "Calamares Polkit rule is not restricted to liveuser." >&2
   exit 1
 }
@@ -226,31 +226,31 @@ if calamares_marker not in s:
     raise SystemExit('Não foi possível localizar a instalação dos pacotes locais para ativar o Calamares offline.')
 s = s.replace(calamares_marker, calamares_marker + calamares_patch, 1)
 package_archive_marker = 'rm -rf "/root/packages/"\n'
-package_archive_copy = 'mkdir -p "/usr/share/forja/packages"\ncp /root/packages/shelly-git-*.pkg.tar.zst /root/packages/ferdium-bin-*.pkg.tar.zst /root/packages/iptvnator-bin-*.pkg.tar.zst /root/packages/bibata-cursor-theme-bin-*.pkg.tar.zst "/usr/share/forja/packages/"\nrm -rf "/root/packages/"\n'
+package_archive_copy = 'mkdir -p "/usr/share/venom/packages"\ncp /root/packages/shelly-git-*.pkg.tar.zst /root/packages/ferdium-bin-*.pkg.tar.zst /root/packages/iptvnator-bin-*.pkg.tar.zst /root/packages/bibata-cursor-theme-bin-*.pkg.tar.zst "/usr/share/venom/packages/"\nrm -rf "/root/packages/"\n'
 if package_archive_marker not in s:
-    raise SystemExit('Não foi possível preservar os pacotes próprios Forja para o instalador online.')
+    raise SystemExit('Não foi possível preservar os pacotes próprios VENOM para o instalador online.')
 s = s.replace(package_archive_marker, package_archive_copy, 1)
 os_marker = 'echo "---> Install locally built packages on ISO (place packages under airootfs/root/packages) --->"'
-os_patch = 'sed -i -e \'s/^NAME=.*/NAME="Forja OS"/\' -e \'s/^PRETTY_NAME=.*/PRETTY_NAME="Forja OS"/\' -e \'s/^ID=.*/ID=forja/\' -e \'s/^ID_LIKE=.*/ID_LIKE=arch/\' "/etc/os-release"\nif ! grep -q \'^ID_LIKE=\' "/etc/os-release"; then printf \'ID_LIKE=arch\n\' >> "/etc/os-release"; fi\n'
+os_patch = 'sed -i -e \'s/^NAME=.*/NAME="VENOM OS"/\' -e \'s/^PRETTY_NAME=.*/PRETTY_NAME="VENOM OS"/\' -e \'s/^ID=.*/ID=venom/\' -e \'s/^ID_LIKE=.*/ID_LIKE=arch/\' "/etc/os-release"\nif ! grep -q \'^ID_LIKE=\' "/etc/os-release"; then printf \'ID_LIKE=arch\n\' >> "/etc/os-release"; fi\n'
 if os_marker not in s:
     raise SystemExit('Não foi possível localizar a etapa de pacotes locais.')
 s = s.replace(os_marker, os_patch + os_marker, 1)
 
 # Remove EndeavourOS-only operations from the live-image preparation stage.
 s = s.replace('pacman-key --populate archlinux endeavouros', 'pacman-key --populate archlinux')
-s = s.replace('cat "/usr/lib/endeavouros-release" >> "/etc/motd"', 'printf "Forja OS\\nBase Arch Linux\\n" > "/etc/motd"')
-s = s.replace('mv "/root/livewall.png" "/usr/share/endeavouros/backgrounds/endeavouros-wallpaper.png"', 'mkdir -p "/usr/share/backgrounds/forja"\nmv "/root/livewall.png" "/usr/share/backgrounds/forja/forja-wallpaper.png"')
-s = s.replace('mv "/root/endeavouros-wallpaper.png" "/etc/calamares/files/endeavouros-wallpaper.png"', 'mv "/root/endeavouros-wallpaper.png" "/etc/calamares/files/forja-wallpaper.png"')
-s = s.replace('pacman -Sw --noconfirm --cachedir "/usr/share/packages" grub eos-dracut kernel-install-for-dracut os-prober nvidia-open nvidia-hook nvidia-utils nvidia-inst broadcom-wl-dkms', 'true # Forja installs the complete live image; no EndeavourOS package cache is required.')
-s = s.replace('echo "---> get needed packages for offline installs --->"\nmkdir -p "/usr/share/packages"\npacman -Syy\npacman -Sw --noconfirm --cachedir "/usr/share/packages" grub eos-dracut kernel-install-for-dracut os-prober nvidia-open nvidia-hook nvidia-utils nvidia-inst broadcom-wl-dkms', 'echo "---> Forja OS uses the complete ISO filesystem for both installation modes --->"')
+s = s.replace('cat "/usr/lib/endeavouros-release" >> "/etc/motd"', 'printf "VENOM OS\\nBase Arch Linux\\n" > "/etc/motd"')
+s = s.replace('mv "/root/livewall.png" "/usr/share/endeavouros/backgrounds/endeavouros-wallpaper.png"', 'mkdir -p "/usr/share/backgrounds/venom"\nmv "/root/livewall.png" "/usr/share/backgrounds/venom/venom-wallpaper.png"')
+s = s.replace('mv "/root/endeavouros-wallpaper.png" "/etc/calamares/files/endeavouros-wallpaper.png"', 'mv "/root/endeavouros-wallpaper.png" "/etc/calamares/files/venom-wallpaper.png"')
+s = s.replace('pacman -Sw --noconfirm --cachedir "/usr/share/packages" grub eos-dracut kernel-install-for-dracut os-prober nvidia-open nvidia-hook nvidia-utils nvidia-inst broadcom-wl-dkms', 'true # VENOM installs the complete live image; no EndeavourOS package cache is required.')
+s = s.replace('echo "---> get needed packages for offline installs --->"\nmkdir -p "/usr/share/packages"\npacman -Syy\npacman -Sw --noconfirm --cachedir "/usr/share/packages" grub eos-dracut kernel-install-for-dracut os-prober nvidia-open nvidia-hook nvidia-utils nvidia-inst broadcom-wl-dkms', 'echo "---> VENOM OS uses the complete ISO filesystem for both installation modes --->"')
 s = s.replace('echo "---> Remove ranked mirrorlist, used for fetching offline packages replacing it with original from package --->"\nmv "/etc/pacman.d/mirrorlist-from-package" "/etc/pacman.d/mirrorlist"', 'echo "---> Arch Linux mirrorlist retained for future updates --->"\nrm -f "/etc/pacman.d/mirrorlist-from-package"')
 s = s.replace('systemctl set-default multi-user.target', 'systemctl enable lightdm.service\nsystemctl set-default graphical.target\ndconf update')
-s = s.replace('sed -i \'s/EndeavourOS/Forja OS/g\' "/usr/lib/endeavouros-release"', 'rm -f "/usr/lib/endeavouros-release"; printf "Forja OS" > "/usr/lib/forja-release"')
+s = s.replace('sed -i \'s/EndeavourOS/VENOM OS/g\' "/usr/lib/endeavouros-release"', 'rm -f "/usr/lib/endeavouros-release"; printf "VENOM OS" > "/usr/lib/venom-release"')
 p.write_text(s)
 PY
 rm -rf "$EOS_DIR/airootfs/root/root-theme"
 
-log "Aplicando identidade Forja OS aos menus de inicialização"
+log "Aplicando identidade VENOM OS aos menus de inicialização"
 python - "$EOS_DIR" <<'PY'
 import pathlib, sys
 root = pathlib.Path(sys.argv[1])
@@ -263,14 +263,14 @@ for rel in ("efiboot", "syslinux"):
             content = path.read_text()
         except (UnicodeDecodeError, OSError):
             continue
-        content = content.replace("EndeavourOS", "Forja OS")
+        content = content.replace("EndeavourOS", "VENOM OS")
         if path.name == "archiso_head.cfg":
             lines = []
             for line in content.splitlines():
                 if line.strip().startswith("MENU BACKGROUND"):
                     continue
                 if line.strip().startswith("MENU TITLE"):
-                    line = "MENU TITLE Forja OS"
+                    line = "MENU TITLE VENOM OS"
                 if line.strip().startswith("MENU COLOR title"):
                     line = "MENU COLOR title        1;37;40 #ffffffff #00000000 std"
                 lines.append(line)
@@ -292,10 +292,10 @@ python - "$EOS_DIR/profiledef.sh" <<'PY'
 import pathlib, re, sys
 p = pathlib.Path(sys.argv[1])
 s = p.read_text()
-s = s.replace('iso_name="EndeavourOS_Triton"', 'iso_name="ForjaOS_MATE"')
-s = s.replace('iso_label="EOS_$(date +%Y%m)"', 'iso_label="FORJA_$(date +%Y%m)"')
-s = s.replace('iso_publisher="EndeavourOS <https://endeavouros.com>"', 'iso_publisher="Forja OS"')
-s = s.replace('iso_application="EndeavourOS Live/Rescue CD"', 'iso_application="Forja OS Live/Install"')
+s = s.replace('iso_name="EndeavourOS_Triton"', 'iso_name="VENOMOS_MATE"')
+s = s.replace('iso_label="EOS_$(date +%Y%m)"', 'iso_label="VENOM_$(date +%Y%m)"')
+s = s.replace('iso_publisher="EndeavourOS <https://endeavouros.com>"', 'iso_publisher="VENOM OS"')
+s = s.replace('iso_application="EndeavourOS Live/Rescue CD"', 'iso_application="VENOM OS Live/Install"')
 # Zstandard favors fast decompression during Live startup over the smaller, slower XZ image.
 s, count = re.subn(
     r"(?m)^airootfs_image_tool_options=.*$",
@@ -308,14 +308,14 @@ if count != 1:
 p.write_text(s)
 PY
 
-log "Construindo Calamares upstream com fluxo de instalação Forja OS"
+log "Construindo Calamares upstream com fluxo de instalação VENOM OS"
 CALAMARES_SRC="$WORK/calamares-pkg"
 mkdir -p "$CALAMARES_SRC"
 curl -fsSL "https://raw.githubusercontent.com/endeavouros-team/PKGBUILDS/$PKGBUILDS_COMMIT/calamares/PKGBUILD" -o "$CALAMARES_SRC/PKGBUILD"
 [[ -s "$CALAMARES_SRC/PKGBUILD" ]] || die "PKGBUILD original do Calamares não foi baixado."
 cp "$ROOT/scripts/patch-calamares.py" "$CALAMARES_SRC/patch-calamares.py"
 mkdir -p "$CALAMARES_SRC/branding"
-cp -a "$ROOT/build/calamares/branding/forja" "$CALAMARES_SRC/branding/forja"
+cp -a "$ROOT/build/calamares/branding/venom" "$CALAMARES_SRC/branding/venom"
 cp "$ROOT/build/packages.arch" "$CALAMARES_SRC/branding/packages.arch"
 cp "$ROOT/build/packages.mate" "$CALAMARES_SRC/branding/packages.mate"
 python - "$CALAMARES_SRC/PKGBUILD" <<'PY'
@@ -324,9 +324,9 @@ path = pathlib.Path(sys.argv[1])
 source = path.read_text()
 source = source.replace("-DCMAKE_BUILD_TYPE=Debug", "-DCMAKE_BUILD_TYPE=Release", 1)
 needle = '    awk -i inplace -v version="${pkgver}" -v release="${release_name}" "$replace_command" "${srcdir}/calamares-${pkgver}/data/eos/branding/endeavouros/branding.desc"\n}'
-replacement = needle[:-1] + '    python "$startdir/patch-calamares.py" "${srcdir}/calamares-${pkgver}"\n    awk -i inplace -v version="${pkgver}" -v release="${release_name}" "$replace_command" "${srcdir}/calamares-${pkgver}/data/eos/branding/forja/branding.desc"\n}'
+replacement = needle[:-1] + '    python "$startdir/patch-calamares.py" "${srcdir}/calamares-${pkgver}"\n    awk -i inplace -v version="${pkgver}" -v release="${release_name}" "$replace_command" "${srcdir}/calamares-${pkgver}/data/eos/branding/venom/branding.desc"\n}'
 if needle not in source:
-    raise SystemExit("Não foi possível inserir a identidade Forja no prepare() do PKGBUILD.")
+    raise SystemExit("Não foi possível inserir a identidade VENOM no prepare() do PKGBUILD.")
 if "-DCMAKE_BUILD_TYPE=Release" not in source:
     raise SystemExit("A receita Calamares não foi alterada para Release.")
 path.write_text(source.replace(needle, replacement, 1))
@@ -414,7 +414,7 @@ log "Preparando framework EndeavourOS"
 
 log "Wallpaper monocromático preparado antes de executar prepare.sh"
 
-log "Compilando ISO Forja OS. Esta etapa pode levar bastante tempo."
+log "Compilando ISO VENOM OS. Esta etapa pode levar bastante tempo."
 (
   cd "$EOS_DIR"
   sudo ./mkarchiso -v .

@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-IMAGE="forja-os-iso-builder"
+IMAGE="venom-os-iso-builder"
 
 if command -v docker >/dev/null 2>&1; then
   ENGINE="docker"
@@ -20,13 +20,13 @@ if [[ -z "$AVAILABLE_KIB" || "$AVAILABLE_KIB" -lt "$REQUIRED_KIB" ]]; then
   exit 1
 fi
 
-printf '[FORJA] Construindo ambiente Arch + repositórios EndeavourOS...\n'
+printf '[VENOM] Construindo ambiente Arch + repositórios EndeavourOS...\n'
 "$ENGINE" build \
   --build-arg BUILD_UID="$(id -u)" \
   --build-arg BUILD_GID="$(id -g)" \
   -t "$IMAGE" "$ROOT"
 
-printf '[FORJA] Iniciando compilação dentro do container...\n'
+printf '[VENOM] Iniciando compilação dentro do container...\n'
 "$ENGINE" run --rm --privileged \
   --user "$(id -u):$(id -g)" \
   -v "$ROOT:/workspace" \

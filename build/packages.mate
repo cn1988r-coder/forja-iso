@@ -33,7 +33,7 @@ lightdm-gtk-greeter
 polkit
 mate-polkit
 
-# Forja appearance
+# VENOM appearance
 materia-gtk-theme
 papirus-icon-theme
 dconf

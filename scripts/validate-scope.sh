@@ -28,7 +28,7 @@ fi
 grep -Fq 'Calamares' "$README" || fail "preservação do Calamares não registrada"
 grep -Fiq 'nenhuma ISO foi gerada' "$README" || fail "estado de compilação não está explícito"
 
-pass "escopo da Forja OS consistente"
+pass "escopo da VENOM OS consistente"
 pass "auditoria técnica do framework presente"
 bash "$ROOT/scripts/validate-build.sh"
 printf 'AVISO: esta checagem não compila nem testa uma ISO.\n'

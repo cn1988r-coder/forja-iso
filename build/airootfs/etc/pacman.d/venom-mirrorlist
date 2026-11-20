@@ -1,0 +1,2 @@
+# Configure the official VENOM server when hosting is ready.
+# Server = https://packages.example.invalid/venom/$arch

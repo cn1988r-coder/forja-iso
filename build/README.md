@@ -1,4 +1,4 @@
-# Build da Forja OS
+# Build da VENOM OS
 
 O caminho recomendado é o ambiente isolado Docker/Podman, baseado em Arch Linux
 com os repositórios EndeavourOS configurados a partir de revisões fixadas.
@@ -19,7 +19,7 @@ Na raiz do repositório:
 bash scripts/build-container.sh
 ```
 
-O script constrói a imagem de build e executa a compilação em container privilegiado. O sistema live usa MATE/LightDM e oferece um launcher próprio “Instalar Forja OS”, que chama o Calamares original do EndeavourOS no modo offline. O app Welcome do EndeavourOS foi retirado porque o fluxo atual só reconhece sessões KDE e XFCE. O cleaner do instalador remove o launcher live e o autologin do liveuser na instalação final, mantendo o LightDM habilitado para o usuário criado pelo Calamares.
+O script constrói a imagem de build e executa a compilação em container privilegiado. O sistema live usa MATE/LightDM e oferece um launcher próprio “Instalar VENOM OS”, que chama o Calamares original do EndeavourOS no modo offline. O app Welcome do EndeavourOS foi retirado porque o fluxo atual só reconhece sessões KDE e XFCE. O cleaner do instalador remove o launcher live e o autologin do liveuser na instalação final, mantendo o LightDM habilitado para o usuário criado pelo Calamares.
 O diretório `work/` permanece no projeto e a ISO será criada em
 `work/EndeavourOS-ISO/out/`.
 
@@ -32,7 +32,7 @@ Também é possível usar o script diretamente em um host Arch/EndeavourOS com
 repositórios EndeavourOS habilitados:
 
 ```bash
-bash scripts/build-forja-iso.sh
+bash scripts/build-venom-iso.sh
 ```
 
 ## Pacotes externos

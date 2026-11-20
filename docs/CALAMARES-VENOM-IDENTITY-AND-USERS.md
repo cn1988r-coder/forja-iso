@@ -1,8 +1,8 @@
-# Calamares: identidade Forja e etapa de usuários
+# Calamares: identidade VENOM e etapa de usuários
 
 ## Versão auditada
 
-A receita fixada em `scripts/build-forja-iso.sh` compila o fork do EndeavourOS Calamares
+A receita fixada em `scripts/build-venom-iso.sh` compila o fork do EndeavourOS Calamares
 `26.03.2.3`, com `WITH_QT6=ON`. A instalação offline seleciona explicitamente
 a etapa `usersq`, tanto na tela quanto na execução da instalação.
 
@@ -16,17 +16,17 @@ a etapa `usersq`, tanto na tela quanto na execução da instalação.
    QML ao validador C++, incluindo a regra de hostname com mínimo de dois
    caracteres.
 3. O QML Qt6 já tinha campos escuros, mas as cores foram ajustadas à paleta
-   Forja e os textos auxiliares receberam contraste mais claro.
-4. A receita upstream compilava com `CMAKE_BUILD_TYPE=Debug`. O build da Forja
+   VENOM e os textos auxiliares receberam contraste mais claro.
+4. A receita upstream compilava com `CMAKE_BUILD_TYPE=Debug`. O build da VENOM
    passa a usar `Release`.
 
 ## Identidade visual adicionada
 
-- Branding próprio em `/etc/calamares/branding/forja`.
-- Nome Forja OS, logotipo SVG próprio e paleta grafite, azul e laranja.
+- Branding próprio em `/etc/calamares/branding/venom`.
+- Nome VENOM OS, logotipo SVG próprio e paleta grafite, azul e laranja.
 - Estilos explícitos para botões normais, hover, pressionados e desativados,
   campos, listas, caixas de seleção e navegação.
-- A configuração offline passa a apontar para `branding: forja`.
+- A configuração offline passa a apontar para `branding: venom`.
 - Os componentes e módulos do fork upstream permanecem sendo utilizados.
 
 ## Sobre o erro “User inválido”
@@ -43,7 +43,7 @@ O script de adaptação foi executado contra uma árvore sintética com os arqui
 padrões esperados, e a lógica de inserção no `prepare()` do PKGBUILD foi verificada
 isoladamente. Isso testa o patch, não substitui a compilação da receita upstream.
 
-**Implementado no código-fonte da branch:** identidade visual Forja, ajuste de
+**Implementado no código-fonte da branch:** identidade visual VENOM, ajuste de
 configuração dos grupos, alinhamento das expressões de validação e build Release.
 
 **Ainda pendente:** executar a validação automatizada na branch, compilar o pacote
@@ -54,7 +54,7 @@ A etapa de usuários e o instalador não devem ser considerados aprovados até e
 testes de ponta a ponta passarem.
 
 
-## Fluxo simplificado aprovado para a Forja OS
+## Fluxo simplificado aprovado para a VENOM OS
 
 A interface do Calamares deve apresentar somente três etapas ao usuário:
 1. Dados da conta: nome completo, usuário, senha e confirmação, além do hostname no mesmo formulário.
@@ -63,7 +63,7 @@ A interface do Calamares deve apresentar somente três etapas ao usuário:
 
 Idioma e teclado são herdados da sessão Live e aplicados automaticamente durante a instalação, sem telas adicionais. Não apresentar seleção de desktop, pacotes, Netinstall ou modos específicos do EndeavourOS. O único ambiente instalado é MATE.
 
-A execução continua usando os módulos internos necessários: particionamento, montagem, cópia de `/run/archiso/bootmnt/arch/x86_64/airootfs.sfs`, configuração de usuário, sistema, LightDM e GRUB. Tanto com internet quanto sem internet, a origem instalada é sempre a imagem Forja da ISO. A conexão não pode trocar a origem para EndeavourOS nem iniciar uma instalação de pacotes de outro sistema.
+A execução continua usando os módulos internos necessários: particionamento, montagem, cópia de `/run/archiso/bootmnt/arch/x86_64/airootfs.sfs`, configuração de usuário, sistema, LightDM e GRUB. Tanto com internet quanto sem internet, a origem instalada é sempre a imagem VENOM da ISO. A conexão não pode trocar a origem para EndeavourOS nem iniciar uma instalação de pacotes de outro sistema.
 
 **Estado:** a ordem da interface foi ajustada no patcher para usuário → disco → resumo. Ainda é necessária compilação da ISO e validação em VM para comprovar que o fluxo completo funciona.
 
