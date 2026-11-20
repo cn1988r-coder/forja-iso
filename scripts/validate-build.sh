@@ -31,7 +31,7 @@ for script in "$ROOT"/scripts/*.sh "$ROOT"/build/profiledef.sh; do
 done
 
 # The dollar signs are literal Pacman variables in pacman.conf, not shell variables.
-grep -Fq "Server = https://geo.mirror.pkgbuild.com/\\$repo/os/\\$arch" "$ROOT/build/pacman.conf" || fail "mirror oficial Arch ausente"
+grep -Fq "Server = https://geo.mirror.pkgbuild.com/\$repo/os/\$arch" "$ROOT/build/pacman.conf" || fail "mirror oficial Arch ausente"
 grep -Fq 'LANG=pt_BR.UTF-8' "$ROOT/build/airootfs/etc/locale.conf" || fail "locale PT-BR ausente"
 grep -Fq 'pt_BR.UTF-8 UTF-8' "$ROOT/build/airootfs/etc/locale.gen" || fail "locale pt_BR não habilitado"
 grep -Fxq 'KEYMAP=br-abnt2' "$ROOT/build/airootfs/etc/vconsole.conf" || fail "teclado ABNT2 ausente"
