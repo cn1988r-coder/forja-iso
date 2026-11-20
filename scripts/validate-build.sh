@@ -125,7 +125,7 @@ grep -Fq 'MENU COLOR title        1;37;40 #ffffffff #00000000 std' "$ROOT/script
 grep -Fq 'splash.unlink()' "$ROOT/scripts/build-venom-iso.sh" || fail "splash gráfico upstream não será removido"
 grep -Fq 'auto-entries no' "$ROOT/scripts/build-venom-iso.sh" || fail "systemd-boot sem configuração neutra"
 grep -Fq 'quiet loglevel=3 vt.global_cursor_default=0' "$ROOT/scripts/build-venom-iso.sh" || fail "inicialização sem modo visual discreto"
-grep -Fq "'-comp' 'zstd' '-Xcompression-level' '19'" "$ROOT/scripts/build-venom-iso.sh" || fail "SquashFS não usa Zstandard nível 19 configurado para compressão da ISO"
+grep -Fq "'-comp' 'xz' '-Xbcj' 'x86' '-Xdict-size' '100%' '-b' '1M'" "$ROOT/scripts/build-venom-iso.sh" || fail "SquashFS não usa Zstandard nível 19 configurado para compressão da ISO"
 
 if grep -Eq 'requiredStorage|requiredRam|chrooted_cleaner_script[.]sh|python - PKGBUILD' "$ROOT/scripts/build-venom-iso.sh"; then
   fail "o script contém alterações não autorizadas no fluxo do Calamares"
