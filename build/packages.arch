@@ -2,6 +2,7 @@
 # This manifest is used by the online Calamares installer, not by EndeavourOS.
 base
 archlinux-keyring
+pacman-mirrorlist
 linux
 linux-firmware
 linux-headers
