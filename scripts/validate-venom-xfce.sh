@@ -35,7 +35,7 @@ for pkg in xfce4 xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 xfconf
 done
 grep -Fxq 'community-keyring' "$P/Packages-Root" || fail "chave da fonte de pacotes XFCE ausente"
 grep -Fxq 'community-livecd-key' "$P/Packages-Live" || fail "chave do ambiente Live ausente"
-grep -Fq 'pamac build --no-confirm iptvnator-bin' "$P/desktop-overlay/usr/local/bin/venom-install-iptvnator" || fail "instalação IPTVnator via Pamac ausente"
+grep -Fq 'pamac build --no-confirm iptvnator-bin ferdium-bin' "$P/desktop-overlay/usr/local/bin/venom-install-iptvnator" || fail "instalação IPTVnator e Ferdium via Pamac ausente"
 
 if grep -Eiq '^(mate|mate-extra|mate-media|marco|caja)([[:space:]]|$)' "$P"/Packages-*; then
   fail "pacotes MATE encontrados no perfil XFCE"
@@ -82,7 +82,7 @@ PY
 
 pass "perfil e sintaxe do VENOM OS XFCE"
 pass "estrutura, painel e configurações originais do XFCE preservados"
-pass "Firefox, Pamac e instalação de IPTVnator selecionados"
+pass "Firefox, Pamac, IPTVnator e Ferdium selecionados"
 pass "aplicativos extras e identidade visual do fornecedor removidos"
 pass "tema escuro e identidade VENOM OS configurados"
 pass "repositório antigo 404 removido"
