@@ -196,6 +196,11 @@ grep -Fq 'subject.user === "liveuser"' /etc/polkit-1/rules.d/49-forja-calamares.
 if calamares_marker not in s:
     raise SystemExit('Não foi possível localizar a instalação dos pacotes locais para ativar o Calamares offline.')
 s = s.replace(calamares_marker, calamares_marker + calamares_patch, 1)
+package_archive_marker = 'rm -rf "/root/packages/"\\n'
+package_archive_copy = 'mkdir -p "/usr/share/forja/packages"\\ncp /root/packages/shelly-git-*.pkg.tar.zst /root/packages/ferdium-bin-*.pkg.tar.zst /root/packages/iptvnator-bin-*.pkg.tar.zst /root/packages/bibata-cursor-theme-bin-*.pkg.tar.zst "/usr/share/forja/packages/"\\nrm -rf "/root/packages/"\\n'
+if package_archive_marker not in s:
+    raise SystemExit('Não foi possível preservar os pacotes próprios Forja para o instalador online.')
+s = s.replace(package_archive_marker, package_archive_copy, 1)
 os_marker = 'echo "---> Install locally built packages on ISO (place packages under airootfs/root/packages) --->"'
 os_patch = 'sed -i -e \'s/^NAME=.*/NAME="Forja OS"/\' -e \'s/^PRETTY_NAME=.*/PRETTY_NAME="Forja OS"/\' -e \'s/^ID=.*/ID=forja/\' -e \'s/^ID_LIKE=.*/ID_LIKE=arch/\' "/etc/os-release"\nif ! grep -q \'^ID_LIKE=\' "/etc/os-release"; then printf \'ID_LIKE=arch\n\' >> "/etc/os-release"; fi\n'
 if os_marker not in s:
