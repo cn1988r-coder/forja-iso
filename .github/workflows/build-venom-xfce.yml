@@ -1,0 +1,62 @@
+name: VENOM OS
+
+on:
+  push:
+    branches:
+      - feature/venom-community-xfce
+    paths:
+      - ".github/workflows/build-venom-xfce.yml"
+      - "manjaro/venom-xfce/**"
+      - "shared/pacman.conf"
+      - "scripts/validate-venom-xfce.sh"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: venom-os-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate VENOM OS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout VENOM OS
+        uses: actions/checkout@v4
+      - name: Validate VENOM OS profile
+        run: bash scripts/validate-venom-xfce.sh
+      - name: Check whitespace errors
+        run: git diff --check
+
+  build:
+    name: Compile VENOM OS
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout VENOM OS
+        uses: actions/checkout@v4
+      - name: Compile VENOM OS with official ISO tooling
+        id: venom-build
+        uses: manjaro/manjaro-iso-action@main
+        with:
+          iso-profiles-repo: https://github.com/cn1988r-coder/forja-iso
+          iso-profiles-branch: feature/venom-community-xfce
+          edition: venom-xfce
+          branch: stable
+          scope: full
+          kernel: linux618
+      - name: Publish VENOM OS ISO and checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: VENOM-OS-ISO
+          path: |
+            ${{ steps.venom-build.outputs.file-path }}
+            ${{ steps.venom-build.outputs.file-path }}.pkgs
+            ${{ steps.venom-build.outputs.file-path }}.sha1
+            ${{ steps.venom-build.outputs.file-path }}.sha256
+            ${{ steps.venom-build.outputs.file-path }}.sha512
+          if-no-files-found: error
+          retention-days: 3
