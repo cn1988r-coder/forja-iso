@@ -68,8 +68,8 @@ if "regularExpression: /[a-zA-Z0-9][-a-zA-Z0-9_]+/" in qml:
     raise SystemExit("Validação QML do hostname não foi ancorada.")
 
 
-# The online installer is a real Arch Linux netinstall. The offline installer
-# remains a separate image-based path for machines without internet.
+# Both installation modes deploy the exact VENOM OS filesystem shipped in this ISO.
+# Online mode then applies a full update from official Arch repositories.
 packages_arch = branding.parent / "packages.arch"
 packages_mate = branding.parent / "packages.mate"
 if not packages_arch.is_file() or not packages_mate.is_file():
@@ -135,7 +135,7 @@ hide-back-and-next-during-exec: true
 quit-at-end: false
 """
 
-settings_online_text = """# VENOM OS online: installs a clean Arch system from official Arch repositories.
+settings_online_text = """# VENOM OS online: deploys the VENOM image, then updates it from official Arch repositories.
 ---
 modules-search: [ local ]
 instances:
@@ -145,15 +145,6 @@ instances:
 - id: online
   module: packages
   config: packages_online.conf
-- id: venom_bootstrap
-  module: shellprocess
-  config: shellprocess_venom_bootstrap.conf
-- id: venom_stage_packages
-  module: shellprocess
-  config: shellprocess_venom_stage_packages.conf
-- id: venom_local_packages
-  module: shellprocess
-  config: shellprocess_venom_local_packages.conf
 - id: venom_sudoers
   module: shellprocess
   config: shellprocess_venom_sudoers.conf
@@ -174,18 +165,17 @@ sequence:
 - exec:
   - partition
   - mount
-  - shellprocess@venom_bootstrap
+  - unpackfs
   - machineid
   - locale
   - keyboard
   - localecfg
+  - fstab
+  - removeuser
   - usersq
   - shellprocess@venom_sudoers
   - networkcfg
-  - shellprocess@venom_stage_packages
   - packages@online
-  - shellprocess@venom_local_packages
-  - fstab
   - displaymanager
   - hwclock
   - shellprocess@venom_grub_defaults
@@ -218,7 +208,7 @@ packages_config.write_text(
     "backend: pacman\n"
     "skip_if_no_internet: false\n"
     "update_db: true\n"
-    "update_system: false\n"
+    "update_system: true\n"
     "pacman:\n"
     "  num_retries: 6\n"
     "  disable_download_timeout: true\n"
@@ -255,14 +245,6 @@ geoip:
   selector: "CountryCode"
 """)
 
-(modules / "shellprocess_venom_bootstrap.conf").write_text("""---
-dontChroot: true
-timeout: 3600
-verbose: true
-script:
-  - 'pacstrap -K -C /etc/pacman.conf ${ROOT} base linux linux-firmware archlinux-keyring pacman-mirrorlist sudo networkmanager'
-  - 'mkdir -p ${ROOT}/etc/pacman.d && cp /etc/pacman.conf ${ROOT}/etc/pacman.conf && cp /etc/pacman.d/mirrorlist ${ROOT}/etc/pacman.d/mirrorlist'
-""")
 (modules / "shellprocess_venom_sudoers.conf").write_text("""---
 dontChroot: false
 timeout: 30
@@ -273,23 +255,6 @@ script:
   - "chmod 0440 /etc/sudoers.d/10-venom-wheel"
   - "visudo -cf /etc/sudoers"
 """)
-(modules / "shellprocess_venom_stage_packages.conf").write_text("""---
-dontChroot: true
-timeout: 120
-verbose: true
-script:
-  - 'mkdir -p ${ROOT}/tmp/venom-packages'
-  - 'cp /usr/share/venom/packages/shelly-git-*.pkg.tar.zst /usr/share/venom/packages/ferdium-bin-*.pkg.tar.zst /usr/share/venom/packages/iptvnator-bin-*.pkg.tar.zst /usr/share/venom/packages/bibata-cursor-theme-bin-*.pkg.tar.zst ${ROOT}/tmp/venom-packages/'
-""")
-(modules / "shellprocess_venom_local_packages.conf").write_text("""---
-dontChroot: false
-timeout: 1800
-verbose: true
-script:
-  - 'pacman -U --noconfirm --needed /tmp/venom-packages/*.pkg.tar.zst'
-  - 'rm -rf /tmp/venom-packages'
-""")
-
 (modules / "shellprocess_venom_cleanup.conf").write_text("""---
 dontChroot: false
 timeout: 180
@@ -383,7 +348,7 @@ units:
 unpackfs = modules / "unpackfs.conf"
 if not unpackfs.exists() or "/run/archiso/bootmnt/arch/x86_64/airootfs.sfs" not in unpackfs.read_text():
     raise SystemExit("A origem da imagem VENOM no unpackfs.conf não foi encontrada.")
-for required in ("displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf", "shellprocess_venom_cleanup.conf", "shellprocess_venom_bootstrap.conf", "shellprocess_venom_sudoers.conf", "shellprocess_venom_stage_packages.conf", "shellprocess_venom_local_packages.conf", "shellprocess_venom_grub_defaults.conf", "packages_online.conf", "welcome_venom_online.conf"):
+for required in ("displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf", "removeuser.conf", "shellprocess_venom_cleanup.conf", "shellprocess_venom_sudoers.conf", "shellprocess_venom_grub_defaults.conf", "packages_online.conf", "welcome_venom_online.conf"):
     if not (modules / required).exists():
         raise SystemExit(f"Módulo necessário ausente: {required}")
 for config in (settings_offline, settings_online):
@@ -395,10 +360,16 @@ for config in (settings_offline, settings_online):
         raise SystemExit(f"Fluxo VENOM incompleto em {config.name}.")
 if "  - unpackfs" not in settings_offline.read_text():
     raise SystemExit("O instalador offline deve copiar a imagem da ISO.")
-if "  - unpackfs" in settings_online.read_text():
-    raise SystemExit("O instalador online não pode copiar o sistema Live/EndeavourOS.")
+if "  - unpackfs" not in settings_online.read_text():
+    raise SystemExit("O instalador online deve copiar a imagem VENOM OS da própria ISO.")
 if "  - packages@online" not in settings_online.read_text():
-    raise SystemExit("O instalador online não executa o instalador de pacotes Arch.")
+    raise SystemExit("O instalador online não atualiza a VENOM OS pelos repositórios Arch.")
+if "  - removeuser" not in settings_online.read_text():
+    raise SystemExit("O instalador online deve remover o usuário temporário da sessão Live.")
+if "update_system: true" not in packages_config.read_text():
+    raise SystemExit("O modo online deve atualizar a instalação VENOM já copiada.")
+if "pacstrap" in settings_online.read_text():
+    raise SystemExit("O modo online não pode criar um Arch genérico com pacstrap.")
 if "packages@online" in settings_offline.read_text():
     raise SystemExit("O instalador offline não pode depender de internet.")
 if "  - internet" not in welcome_config.read_text() or "    - internet" not in welcome_config.read_text():
