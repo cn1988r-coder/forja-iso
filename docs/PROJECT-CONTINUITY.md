@@ -140,3 +140,15 @@ Nunca apresentar intenção como implementação, nem implementação como teste
 - A correção agora acrescenta ao hook de preparação da imagem verificações dos três arquivos XDG autostart, dos executáveis correspondentes e da área de notificação em `/usr/share/mate-panel/layouts/default.layout`. O perfil dconf também define explicitamente `default-layout='default'` para novos perfis Live.
 - O validador estático exige que essas verificações permaneçam no script. Isso não prova que os ícones renderizam numa sessão gráfica, mas impede que uma futura compilação prossiga silenciosamente se faltar o autostart ou a área de notificação.
 - **Estado:** alterações gravadas nesta branch; nenhuma nova ISO foi compilada; nenhuma VM foi testada com essas alterações. A próxima validação autorizada deve executar o validador estático e, somente com autorização separada, compilar e testar o painel numa VM. Não declarar os ícones corrigidos até a confirmação visual em sessão MATE real.
+
+
+## Correção do daemon BlueZ em máquinas virtuais (2026-11-20)
+
+- A captura enviada pelo usuário mostra o Blueman informando: "Connection to BlueZ failed" e "BlueZ daemon is not running".
+- O manifesto já contém `bluez` e `blueman`, e o script já tentava habilitar `bluetooth.service`. Portanto, adicionar pacotes ou repetir apenas `systemctl enable` não resolvia a causa provável.
+- A documentação ArchWiki explica que o serviço BlueZ possui a condição `ConditionPathIsDirectory=/sys/class/bluetooth`; em VMs sem adaptador Bluetooth exposto, essa condição pode fazer o systemd ignorar o serviço.
+- **Correção no código:** adicionado drop-in `/etc/systemd/system/bluetooth.service.d/venom.conf` que limpa essa condição, permitindo que o daemon D-Bus BlueZ inicie mesmo sem controlador detectado. Se a VM não disponibilizar um adaptador, o Blueman ainda não poderá descobrir/disponibilizar dispositivos, mas não deverá falhar simplesmente porque o daemon foi ignorado.
+- O script de preparação agora desmascara e habilita o serviço, confirma a presença de `bluetoothd` e do unit file, e exige que o serviço esteja habilitado. O validador estático verifica esses requisitos.
+- **Pendente:** executar o validador estático e, após autorização explícita, compilar e testar a sessão Live. O teste de Bluetooth funcional exige adaptador real ou USB passthrough na VM.
+- **Não feito:** nenhuma ISO nova foi compilada; ISO #50 preservada.
+
