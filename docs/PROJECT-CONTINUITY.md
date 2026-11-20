@@ -4,6 +4,19 @@
 
 Este documento é a referência operacional para retomar o desenvolvimento sem depender de o usuário recontar o histórico. Deve ser consultado no início de cada sessão de trabalho e atualizado após mudanças relevantes, builds, decisões e testes.
 
+## Otimização do tamanho da ISO em 2026-11-20
+
+- Foi criada a branch isolada `optimize/venom-iso-size`, partindo do estado da build #50, para preparar a redução do tamanho sem alterar `main` nem a branch principal de estabilidade.
+- Diagnóstico confirmado nos logs da build #50: SquashFS de 3.731,72 MiB, filesystem descompactado de 10.526,9 MiB e ISO final de aproximadamente 4,7 GiB.
+- Alterações preparadas em `scripts/build-venom-iso.sh`: remoção de pacotes pesados não essenciais ao perfil MATE Live; remoção das dependências Qt WebEngine/Doxygen do Calamares (módulo webview já desativado); stripping de símbolos; exclusão do pacote shelly-git-debug; remoção dos arquivos de pacotes duplicados dentro da ISO; preservação apenas do cursor Bibata Modern Classic; compressão SquashFS XZ com filtro x86.
+- Os dois kernels e seus cabeçalhos continuam preservados: `linux`, `linux-headers`, `linux-lts` e `linux-lts-headers`. MATE, LightDM, Firefox, Ferdium, Shelly, IPTVnator, Materia Dark e Papirus também permanecem no escopo.
+- Documentação técnica: `docs/ISO-SIZE-OPTIMIZATION.md`.
+- Commit mais recente conhecido da branch de otimização: `530583b64e5921ecb6152839451ea38b041d960a`.
+- Nenhuma build foi iniciada nesta branch; a consulta ao Actions retornou zero execuções para ela. O workflow de ISO não inclui essa branch na lista de gatilhos de push.
+- **Não declarar redução de tamanho alcançada ainda.** As alterações não foram compiladas nem testadas. A meta de 2,5–3 GB é estimativa; medir somente após uma build futura. XZ pode aumentar o tempo de build e de inicialização Live.
+- Próximo passo, quando o usuário autorizar retomar a compilação: validar sintaxe e contratos estáticos, executar a build nesta branch isolada, comparar o tamanho real e testar boot MATE e os dois modos do Calamares em VM. Não mesclar na branch de estabilidade nem em `main` sem validação e autorização.
+
+
 ## Repositório e regras
 
 - Repositório oficial: `cn1988r-coder/forja-iso`. O nome `forja-iso` é legado técnico; não renomear sem autorização.
