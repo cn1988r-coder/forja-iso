@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
-Name=VENOM OS IPTVnator setup
-Comment=Install IPTVnator from the Arch User Repository on first login
+Name=VENOM OS application setup
+Comment=Install IPTVnator and Ferdium through Pamac AUR support on first login
 Exec=/bin/bash /usr/local/bin/venom-install-iptvnator
 OnlyShowIn=XFCE;
 X-GNOME-Autostart-enabled=true
