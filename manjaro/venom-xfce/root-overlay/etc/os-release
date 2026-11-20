@@ -1,0 +1,8 @@
+NAME="VENOM OS"
+PRETTY_NAME="VENOM OS"
+ID=venom
+ID_LIKE=manjaro
+ANSI_COLOR="0;38;2;0;170;255"
+HOME_URL="https://github.com/cn1988r-coder/forja-iso"
+SUPPORT_URL="https://github.com/cn1988r-coder/forja-iso"
+BUG_REPORT_URL="https://github.com/cn1988r-coder/forja-iso/issues"
