@@ -137,7 +137,7 @@ import pathlib, re, sys
 p = pathlib.Path(sys.argv[1])
 s = p.read_text()
 old = 'systemctl set-default multi-user.target'
-new = 'systemctl enable NetworkManager.service\nsystemctl enable bluetooth.service\nsystemctl enable lightdm.service\nsystemctl set-default graphical.target\ndconf update'
+new = 'systemctl enable NetworkManager.service\nsystemctl unmask bluetooth.service\nsystemctl enable bluetooth.service\ntest -x /usr/lib/bluetooth/bluetoothd\ntest -s /usr/lib/systemd/system/bluetooth.service\nsystemctl is-enabled --quiet bluetooth.service\nsystemctl enable lightdm.service\nsystemctl set-default graphical.target\ndconf update'
 if old not in s:
     raise SystemExit('Não foi possível localizar o ponto de ativação do alvo multi-user no script upstream.')
 s = s.replace(old, new, 1)
