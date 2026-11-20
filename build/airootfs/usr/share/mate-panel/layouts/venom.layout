@@ -8,8 +8,9 @@ expand=true
 orientation=bottom
 size=30
 
-[Object menu-bar]
-object-type=menu-bar
+[Object brisk-menu]
+object-type=applet
+applet-iid=BriskMenuFactory::BriskMenu
 toplevel-id=top
 pack-index=0
 locked=true
