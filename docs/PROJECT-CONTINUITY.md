@@ -11,7 +11,7 @@ Este documento é a referência operacional para retomar o desenvolvimento sem d
 - Alterações preparadas em `scripts/build-venom-iso.sh`: remoção de pacotes pesados não essenciais ao perfil MATE Live; remoção das dependências Qt WebEngine/Doxygen do Calamares (módulo webview já desativado); stripping de símbolos; exclusão do pacote shelly-git-debug; remoção dos arquivos de pacotes duplicados dentro da ISO; preservação apenas do cursor Bibata Modern Classic; compressão SquashFS XZ com filtro x86.
 - Os dois kernels e seus cabeçalhos continuam preservados: `linux`, `linux-headers`, `linux-lts` e `linux-lts-headers`. MATE, LightDM, Firefox, Ferdium, Shelly, IPTVnator, Materia Dark e Papirus também permanecem no escopo.
 - Documentação técnica: `docs/ISO-SIZE-OPTIMIZATION.md`.
-- Commit mais recente conhecido da branch de otimização: `530583b64e5921ecb6152839451ea38b041d960a`.
+- Consultar o HEAD atual de `optimize/venom-iso-size` no GitHub antes de retomar; a branch contém as alterações descritas em `docs/ISO-SIZE-OPTIMIZATION.md`.
 - Nenhuma build foi iniciada nesta branch; a consulta ao Actions retornou zero execuções para ela. O workflow de ISO não inclui essa branch na lista de gatilhos de push.
 - **Não declarar redução de tamanho alcançada ainda.** As alterações não foram compiladas nem testadas. A meta de 2,5–3 GB é estimativa; medir somente após uma build futura. XZ pode aumentar o tempo de build e de inicialização Live.
 - Próximo passo, quando o usuário autorizar retomar a compilação: validar sintaxe e contratos estáticos, executar a build nesta branch isolada, comparar o tamanho real e testar boot MATE e os dois modos do Calamares em VM. Não mesclar na branch de estabilidade nem em `main` sem validação e autorização.
