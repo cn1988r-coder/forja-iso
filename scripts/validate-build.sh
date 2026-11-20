@@ -139,7 +139,7 @@ grep -Fq 'partition.conf ainda depende do seletor de bootloader removido.' "$ROO
 grep -Fq 'availableFileSystemTypes:  ["ext4"]' "$ROOT/scripts/patch-calamares.py" || fail "ext4 não é o único sistema de arquivos selecionável"
 grep -Fq 'recommendedSize:    512MiB' "$ROOT/scripts/patch-calamares.py" || fail "tamanho recomendado da partição EFI não foi ajustado"
 grep -Fq '  - machineid' "$ROOT/scripts/patch-calamares.py" || fail "machine-id não será regenerado"
-grep -Fq 'Idioma e teclado devem ser herdados da imagem Live' "$ROOT/scripts/patch-calamares.py" || fail "configuração Live de idioma/teclado não está protegida"
+grep -Fq 'Idioma e teclado offline devem ser herdados da imagem Live' "$ROOT/scripts/patch-calamares.py" || fail "configuração offline de idioma/teclado não está protegida"
 grep -Fq 'efiBootloaderId: "Forja OS"' "$ROOT/scripts/patch-calamares.py" || fail "identificação do GRUB/EFI não é Forja OS"
 grep -Fq 'displaymanagers:' "$ROOT/scripts/patch-calamares.py" || fail "gerenciador de sessão fixo não foi configurado"
 grep -Fq 'O instalador online não pode copiar o sistema Live/EndeavourOS.' "$ROOT/scripts/patch-calamares.py" || fail "o instalador online ainda copia o sistema Live"
