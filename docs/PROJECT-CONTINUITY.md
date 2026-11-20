@@ -15,7 +15,7 @@ Atualizado em 20/11/2026.
 ## Repositório e fluxo de trabalho
 - Repositório de trabalho: cn1988r-coder/forja-iso. O nome é mantido por ser o repositório disponível para o desenvolvimento; não é o nome do sistema.
 - Branch autorizada: optimize/venom-iso-size.
-- HEAD de código verificado antes deste registro: 62382f80531b97e6bf4f163d5ab3662f1b333f13.
+- HEAD de código verificado neste registro: 770498f805309067d6e2104a70160646fae34301.
 - Não alterar main ou outras branches sem autorização expressa.
 - Não gerar ISO sem autorização expressa do usuário.
 - Registrar somente resultados efetivamente verificados.
