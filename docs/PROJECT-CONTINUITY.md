@@ -96,3 +96,17 @@ Atualizado em 20/11/2026.
 - Pacotes de NetworkManager, Blueman, BlueZ, PipeWire, WirePlumber e mate-media já constavam nos manifests; não foram duplicados nem substituídos.
 - Verificação realizada: branch optimize/venom-iso-size aponta para bab3513567d1addd4959ddd89dc4d7e541392219; os dois arquivos foram relidos do GitHub e os conteúdos confirmados.
 - Não executado: build de ISO, inicialização em VM, sessão gráfica MATE ou teste físico dos indicadores. Portanto, a presença visual e o funcionamento real dos três ícones ainda precisam de validação gráfica.
+
+## Auditoria de continuidade em 20/11/2026
+- Repositório verificado: cn1988r-coder/forja-iso.
+- Branch de trabalho autorizada: optimize/venom-iso-size. A branch main não foi alterada.
+- HEAD verificado durante a auditoria: 3d7bd7cedf8f7a8173fd980acaaebe3ab2ebbcb4.
+- A execução GitHub Actions #40 (run 44673298576), na branch antiga fix/forja-calamares-stability e commit 176355ffb49dcc59f5030842479222db93223049, terminou com failure. O job build-iso falhou na etapa mkarchiso porque o executável /usr/bin/calamares não existia. As etapas de hash e publicação foram ignoradas; a API confirmou zero artefatos. Nenhuma ISO ou hash foi produzido.
+- A execução #40 é histórica e não está ativa; não reiniciar nem repetir essa compilação sem autorização expressa.
+- As validações mais recentes na branch optimize/venom-iso-size também falharam. No run 44784518633, o validador compilou o protótipo C + GTK4, mas falhou no teste de documentação porque o README não contém literalmente a expressão esperada "C + GTK4". Isso é falha de validação documental, não prova de falha na compilação C.
+- Os commits e50768c566c767b7e2933f5466eb379ed0e5a7fd e bab3513567d1addd4959ddd89dc4d7e541392219 adicionaram o layout venom e selecionaram default-layout='venom'. A existência do NotificationAreaApplet no arquivo não comprova que os indicadores aparecem ou funcionam numa sessão gráfica. Nenhum teste MATE em VM foi realizado.
+- Direção solicitada mais recentemente pelo usuário nesta conversa: preparar o ambiente MATE tendo Manjaro como destino e usar como referência principal o segundo script de instalação MATE fornecido pelo usuário (script da Cláudia), preservando o layout completo, Brisk Menu, separadores e indicadores. Essa migração ainda NÃO está implementada na árvore do repositório; a árvore atual continua sendo Archiso/Arch Linux oficial.
+- Não transportar cegamente o script para uma ISO: ele foi escrito para instalar MATE num Manjaro já instalado, executa pacman -Syu, tenta compilar Brisk via AUR e cria temporariamente sudoers NOPASSWD:ALL. Esses comportamentos precisam ser separados do perfil de ISO e revisados com segurança, preservando a configuração visual pretendida.
+- A documentação oficial do Manjaro descreve o uso de manjaro-tools/buildiso e perfis iso-profiles, em vez de mkarchiso. A migração do pipeline e do perfil ainda está pendente.
+- Nenhuma alteração de código, nenhum commit de implementação, nenhuma compilação ISO e nenhuma alteração em main foram feitas durante esta auditoria.
+
