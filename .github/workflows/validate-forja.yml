@@ -30,7 +30,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git clone --depth 1 --branch 26.03.2.3 https://github.com/endeavouros-team/calamares.git "$RUNNER_TEMP/calamares"
+          git clone https://github.com/endeavouros-team/calamares.git "$RUNNER_TEMP/calamares"
+          git -C "$RUNNER_TEMP/calamares" checkout --detach c1aedc8f3abbaa4ecc94a819623884f41b22f087
           mkdir -p "$RUNNER_TEMP/branding"
           cp -a build/calamares/branding/forja "$RUNNER_TEMP/branding/forja"
           cp build/packages.arch "$RUNNER_TEMP/branding/packages.arch"
