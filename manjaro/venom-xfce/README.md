@@ -10,7 +10,7 @@ This is the Manjaro-based VENOM OS XFCE Community edition. Its desktop configura
 - Firefox and Pamac GTK.
 - Ferdium and IPTVnator are installed at first login through Pamac AUR support as `ferdium-bin` and `iptvnator-bin`.
 
-The profile installs the Community XFCE configuration and datetime packages, plus the required theme, icon, cursor and font packages. Upstream configuration licensing is retained in `UPSTREAM-LICENSES`.
+The profile vendors the selected upstream Community XFCE settings and XFWM4 decoration assets, retaining the upstream license. It installs the required GTK theme, icon, cursor and font packages without importing the upstream package's BigLinux-specific session hooks. Upstream configuration licensing is retained in `UPSTREAM-LICENSES`.
 
 ## Installer
 
