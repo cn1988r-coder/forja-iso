@@ -35,8 +35,7 @@ for pkg in xfce4 xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 xfconf
 done
 grep -Fxq 'community-keyring' "$P/Packages-Root" || fail "chave da fonte de pacotes XFCE ausente"
 grep -Fxq 'community-livecd-key' "$P/Packages-Live" || fail "chave do ambiente Live ausente"
-grep -Fxq 'yay' "$P/Packages-Root" || fail "yay ausente para a instalação AUR do IPTVnator"
-grep -Fq 'iptvnator-bin' "$P/desktop-overlay/usr/local/bin/venom-install-iptvnator" || fail "instalação IPTVnator ausente"
+grep -Fq 'pamac build --no-confirm iptvnator-bin' "$P/desktop-overlay/usr/local/bin/venom-install-iptvnator" || fail "instalação IPTVnator via Pamac ausente"
 
 if grep -Eiq '^(mate|mate-extra|mate-media|marco|caja)([[:space:]]|$)' "$P"/Packages-*; then
   fail "pacotes MATE encontrados no perfil XFCE"
