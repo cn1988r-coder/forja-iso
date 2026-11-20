@@ -1,11 +1,6 @@
 name: Build Manjaro VENOM MATE ISO
 
 on:
-  push:
-    branches:
-      - optimize/venom-iso-size
-    paths:
-      - ".github/workflows/build-manjaro-iso.yml"
   workflow_dispatch:
 
 permissions:
