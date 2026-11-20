@@ -15,7 +15,7 @@ Atualizado em 20/11/2026.
 ## Repositório e fluxo de trabalho
 - Repositório de trabalho: cn1988r-coder/forja-iso. O nome é mantido por ser o repositório disponível para o desenvolvimento; não é o nome do sistema.
 - Branch autorizada: optimize/venom-iso-size.
-- HEAD de código verificado neste registro: 770498f805309067d6e2104a70160646fae34301.
+- HEAD de código antes do registro desta correção: bab3513567d1addd4959ddd89dc4d7e541392219.
 - Não alterar main ou outras branches sem autorização expressa.
 - Não gerar ISO sem autorização expressa do usuário.
 - Registrar somente resultados efetivamente verificados.
@@ -86,3 +86,13 @@ Atualizado em 20/11/2026.
 - A autorização não inclui compilar ou publicar ISO. Build e publicação de ISO continuam exigindo autorização específica do usuário.
 - Limitação operacional: não existe execução contínua garantida depois que a conversa é fechada. O assistente só pode trabalhar quando uma sessão/tarefa efetivamente estiver em execução; não prometer trabalho noturno em segundo plano nem conclusão automática para o dia seguinte.
 - Não declarar a VENOM OS ou o instalador prontos sem evidência de compilação, testes e validação em VM.
+
+
+## Correção do painel MATE em 20/11/2026
+- Escopo: somente a configuração do painel e a área de notificação; nenhuma alteração no instalador, base, serviços de boot ou workflow de ISO.
+- Commit de implementação: e50768c566c767b7e2933f5466eb379ed0e5a7fd criou build/airootfs/usr/share/mate-panel/layouts/venom.layout.
+- Commit de implementação: bab3513567d1addd4959ddd89dc4d7e541392219 alterou build/airootfs/etc/dconf/db/local.d/00-venom para selecionar default-layout='venom'.
+- O layout explícito mantém a barra superior e inferior do MATE e inclui o applet NotificationAreaAppletFactory::NotificationArea na barra superior, onde os indicadores de NetworkManager, Bluetooth e volume podem aparecer; mantém relógio, lista de janelas e alternador de áreas de trabalho.
+- Pacotes de NetworkManager, Blueman, BlueZ, PipeWire, WirePlumber e mate-media já constavam nos manifests; não foram duplicados nem substituídos.
+- Verificação realizada: branch optimize/venom-iso-size aponta para bab3513567d1addd4959ddd89dc4d7e541392219; os dois arquivos foram relidos do GitHub e os conteúdos confirmados.
+- Não executado: build de ISO, inicialização em VM, sessão gráfica MATE ou teste físico dos indicadores. Portanto, a presença visual e o funcionamento real dos três ícones ainda precisam de validação gráfica.
