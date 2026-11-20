@@ -1,3 +1,43 @@
+# Auditoria de continuidade em 2026-11-20 08:40 BRT
+
+## Estado verificado nesta execução
+
+- Repositório: cn1988r-coder/forja-iso.
+- Branch de trabalho autorizada: optimize/venom-iso-size.
+- HEAD lido no início desta execução: 0f4c8258846bfdd65c611ebd1914186ce52052eb.
+- AGENTS.md foi lido integralmente. Suas regras de base Arch oficial, MATE + LightDM, instalador gráfico próprio, rejeição do Calamares e proibição de build ISO foram mantidas.
+- A tentativa anterior de registrar o estado em docs/PROJECT-CONTINUITY.md foi gravada: este documento já continha o bloco datado de 08:33 BRT e os resultados das builds #40, #50 e validação #1163.
+- Atenção: o restante deste arquivo ainda contém registros históricos que indicam fix/forja-calamares-stability como branch ativa e instruções antigas para testar Calamares. Essas instruções estão superadas por AGENTS.md e pelo bloco de estado mais recente; não devem orientar novas alterações.
+
+## Auditoria do pipeline atual
+
+Arquivos lidos diretamente na branch:
+
+- Dockerfile: parte de archlinux:latest, mas substitui a configuração de Pacman por uma versão do EndeavourOS, baixa a mirrorlist e importa chaves EndeavourOS, instala endeavouros-keyring e endeavouros-mirrorlist. Portanto, a base ainda não é Arch puro.
+- scripts/build-venom-iso.sh: clona endeavouros-team/EndeavourOS-ISO no commit fixado 90376d8f52ab19e19073eed33d6f36c46ec7c409, usa PKGBUILDs EndeavourOS, paths EndeavourOS-ISO, skeleton endeavouros-skel-liveuser, executa transformações Python e mantém instalação/configuração Calamares.
+- scripts/build-container.sh: ainda descreve/constrói ambiente Arch + repositórios EndeavourOS e executa o script legado.
+- .github/workflows/build-iso.yml: usa o Dockerfile legado, espera saída em work/EndeavourOS-ISO/out e mantém gatilhos de push em branches antigas. Nenhum workflow de ISO foi disparado nesta execução.
+- scripts/validate-build.sh: exige patch-calamares.py, branding/configuração/polkit/wrapper Calamares e referências específicas EndeavourOS. Está incompatível com as decisões atuais.
+- scripts/validate-scope.sh: exige que README documente dependência upstream EndeavourOS e preservação do Calamares; ao final chama o validador legado. Também está incompatível com as decisões atuais.
+- build/: ainda contém calamares/, listas packages.arch e packages.mate, e airootfs/; não existe ainda um perfil Archiso próprio em build/archiso.
+- Dockerfile e scripts não foram alterados nesta execução.
+
+## Referência oficial Archiso consultada
+
+A estrutura oficial atualmente publicada em archlinux/archiso/configs/releng contém airootfs/, efiboot/, grub/, syslinux/, packages.x86_64, pacman.conf e profiledef.sh. O profiledef.sh oficial define imagem SquashFS XZ e modos de boot BIOS/UEFI. Esta é a referência estrutural correta para construir o perfil VENOM, sem importar scripts ou identidade de outra distribuição:
+https://github.com/archlinux/archiso/tree/master/configs/releng
+
+## Resultado desta execução
+
+- Feito: conferidos HEAD, instruções do agente, documento de continuidade, pipeline, validadores, container e estrutura atual de build; identificadas as dependências EndeavourOS/Calamares que ainda bloqueiam a migração.
+- Pendente: criar o perfil independente em build/archiso; migrar container, scripts e workflows; substituir validadores legados; desenvolver o instalador gráfico próprio.
+- Bloqueios: não há evidência nesta execução de um ambiente remoto de compilação/VM acessível para testar boot ou instalação. A migração pode avançar com revisão estática e testes de componentes.
+- Não testado: nenhuma compilação de componentes, build ISO, boot Live ou instalação foi executada nesta execução.
+- Segurança: nenhuma ISO foi iniciada ou gerada; nenhuma branch além de optimize/venom-iso-size foi alterada.
+
+Próxima tarefa: desenhar e adicionar o perfil VENOM em build/archiso usando somente a estrutura oficial Archiso, após inventário dos arquivos e hooks realmente necessários. Não iniciar build ISO.
+
+---
 # Estado confirmado em 2026-11-20 08:33 BRT
 
 ## Retomada do projeto VENOM OS
