@@ -1,46 +1,59 @@
 # VENOM OS
 
-## Arquitetura
+## Definições do projeto
 
-- **Base:** Arch Linux oficial.
-- **Construção da ISO:** Archiso oficial, com perfil próprio em `build/archiso/`.
-- **Ambiente gráfico:** MATE como único desktop.
-- **Gerenciador de sessão:** LightDM.
-- **Aparência:** Materia Dark, Papirus, Bibata e Noto Sans, conforme os pacotes disponíveis.
-- **Identidade:** VENOM OS, visual monocromático escuro.
-- **Atualização normal do sistema:** Pacman dos repositórios oficiais Arch (`sudo pacman -Syu`).
-- **Repositório próprio:** VENON, independente do Pacman, acionado manualmente.
+- **Base:** EndeavourOS Linux.
+- **Instalador:** manter o Calamares do EndeavourOS, incluindo fork, módulos e configurações necessários.
+- **Ambiente gráfico:** MATE como único ambiente gráfico.
+- **Aparência:** Materia Dark, ícones Papirus e cursor Bibata.
+- **Área de trabalho:** fundo preto puro (#000000), sem wallpaper de terceiros ou do EndeavourOS.
+- **Aplicativos:** Firefox, Ferdium, Shelly e IPTVnator.
 
-## Regras do projeto
+## Regras
 
-- O sistema deve ser construído diretamente sobre Arch Linux.
-- Não incorporar distribuições derivadas, seus repositórios, chaves, scripts ou ferramentas.
-- O sistema Live e o instalado devem ser VENOM OS, com MATE e LightDM.
-- Não alterar a branch `main`.
-- Não declarar build, boot ou instalação validados sem evidência reproduzível.
+- Trabalhar somente neste repositório.
+- Não incluir outro ambiente gráfico nem aplicativos fora da lista definida.
+- Preservar os componentes funcionais do EndeavourOS, especialmente Calamares.
+- Não declarar compilação ou validação concluída sem evidência reproduzível.
 
-## Construção
+## Estrutura implementada
 
-Em Manjaro ou outra distribuição com Docker/Podman:
+- `Dockerfile`: ambiente de build Arch Linux com repositórios EndeavourOS.
+- `build/packages.mate`: seleção inicial de pacotes MATE, LightDM e aparência.
+- `build/airootfs/`: configurações dconf, LightDM e GTK para a sessão VENOM, greeter escuro com Materia/Papirus/Bibata e launcher próprio do instalador offline Calamares. O cleaner do instalador remove o launcher e o autologin live do sistema instalado.
+- `scripts/build-container.sh`: executa o build isolado via Docker/Podman.
+- `scripts/build-venom-iso.sh`: adapta o framework fixado, remove o Welcome KDE/XFCE e utilitários KDE, prepara o Calamares offline, constrói os pacotes locais (incluindo IPTVnator) e chama o mkarchiso.
+- `scripts/validate-build.sh`: validação estática de arquivos, revisões e sintaxe Bash.
+- `docs/ENDEAVOUROS-AUDIT.md`: auditoria do framework upstream.
+
+## Revisões upstream fixadas
+
+- EndeavourOS-ISO: `90376d8f52ab19e19073eed33d6f36c46ec7c409`.
+- PKGBUILDS EndeavourOS: `474a51d4c7cb6f82bfbb2e78a7ce9a321aa5eabd`.
+- Shelly-ALPM: `6840658b19d72205c38bd320c1cef6ff3076bc7c`.
+
+## Como compilar
+
+No Manjaro ou em outra distribuição com Docker/Podman instalado, execute na raiz:
 
 ```bash
 bash scripts/build-container.sh
 ```
 
-Em um host Arch Linux com os pacotes de build instalados:
+Requisitos: x86_64, internet, pelo menos 40 GiB livres no disco e 8 GiB de RAM recomendados. O container executa o build em Arch Linux com os repositórios EndeavourOS configurados.
+
+Também é possível compilar diretamente em EndeavourOS/Arch com os repositórios EndeavourOS:
 
 ```bash
 bash scripts/build-venom-iso.sh
 ```
 
-O perfil é preparado a partir dos arquivos oficiais instalados pelo pacote `archiso` em `/usr/share/archiso/configs/releng`, e então recebe o perfil e as personalizações próprias da VENOM. A compilação é feita pelo `mkarchiso` oficial. A configuração de Pacman do perfil contém somente os repositórios oficiais Arch.
+A ISO deve aparecer em `work/EndeavourOS-ISO/out/`.
 
-A ISO é gravada em `work/out/`.
+Ferdium, Shelly, IPTVnator e Bibata são construídos a partir de receitas externas. AUR é conteúdo comunitário, não binários oficiais. As revisões do framework e do Shelly são fixadas, mas as receitas AUR de Ferdium e Bibata são obtidas do HEAD no momento do build.
 
-## Estado real e bloqueios
+## Estado real
 
-**A migração do mecanismo de construção para Archiso direto está em andamento.** O perfil Archiso próprio, o container Arch e o script de build direto são a nova estrutura de construção.
+**A identidade VENOM do Calamares e ajustes na etapa de usuários foram adicionados à branch de trabalho. Ainda não foi executada uma compilação real dessas alterações, nem testes em VM. Nenhuma ISO está aprovada.**
 
-**A ISO ainda não foi compilada nem testada.** A integração final do Calamares independente, incluindo os fluxos online/offline que instalam a imagem completa da VENOM, ainda precisa ser concluída. Portanto, esta revisão do código não deve ser tratada como ISO pronta para instalação.
-
-Não foram executados build, testes automatizados, VM ou GitHub Actions nesta etapa.
+A validação automatizada verifica arquivos, escopo e sintaxe. Não comprova makepkg, mkarchiso, boot UEFI/BIOS, sessão MATE ou instalação completa pelo Calamares em máquina virtual.
