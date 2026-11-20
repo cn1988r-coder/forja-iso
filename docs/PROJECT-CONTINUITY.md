@@ -68,7 +68,7 @@ Completar o perfil Archiso e iniciar o esqueleto do instalador C + GTK4 sem disp
 - As 51 branches verificadas apontam para o commit limpo 3fde0b616228067c44594c4eb27207cfafef0a36. Permanecem nomes antigos em branches, inclusive seis com referências textuais à arquitetura anterior. A conexão GitHub disponível não oferece operação de exclusão ou renomeação de branch.
 - Ainda existem 8 releases antigos com imagens Manjaro MATE e Arch XFCE, e 8 tags correspondentes. A conexão disponível permite leitura, mas não oferece exclusão de releases ou refs de tags.
 - O histórico Git antigo continua acessível. A conexão não oferece operação para criar commit órfão/recriar o histórico sem pais, nem apagar referências históricas protegidas pela plataforma.
-- A árvore de arquivos atual foi auditada anteriormente: não há caminhos ou conteúdos atuais com referências a EndeavourOS ou Calamares.
+- A árvore de arquivos atual foi auditada novamente nesta revisão: não há caminhos, pacotes, configurações, scripts ou workflows do instalador legado.
 - Portanto, a limpeza da árvore atual e dos metadados editáveis de PR foi realizada, mas a remoção total de branches antigas, releases, tags e histórico depende de permissões/operações administrativas que não estão disponíveis nesta conexão. Não declarar o repositório integralmente livre de vestígios até essa etapa ser concluída.
 
 
