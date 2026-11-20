@@ -10,15 +10,15 @@ Atualizado em 20/11/2026.
 - Idioma: Português do Brasil (pt_BR.UTF-8).
 - Teclado: Brasil ABNT2.
 - Identidade visual: tema escuro próprio da VENOM OS.
-- Não incorporar instaladores, configurações, serviços, repositórios, chaves, mirrors ou componentes de outras distribuições.
+- Nenhum instalador, serviço, repositório, configuração ou componente de outra distribuição integra o sistema.
 
 ## Repositório e fluxo de trabalho
 - Repositório de trabalho: cn1988r-coder/forja-iso.
 - Branch autorizada: optimize/venom-iso-size.
+- HEAD verificado antes deste registro: 65764d0705792f0a706b42da2a44b8a5c662fa25.
 - Não alterar main ou outras branches sem autorização expressa.
-- Verificar o HEAD antes de cada alteração.
-- Registrar apenas resultados efetivamente verificados.
 - Não gerar ISO sem autorização expressa do usuário.
+- Registrar somente resultados efetivamente verificados.
 
 ## Instalador próprio
 - Tecnologia: C + GTK4, com backend separado.
@@ -34,19 +34,21 @@ Atualizado em 20/11/2026.
 ## Atualizações
 - Pacman administra o sistema e os aplicativos: sudo pacman -Syu.
 - VENON é independente do Pacman e acionado manualmente.
-- venon-upgrade apenas consulta e lista atualizações.
+- venon-upgrade apenas consulta e lista atualizações; nunca instala.
 - venon-update instala somente após confirmação explícita.
 - Backend, servidor e protocolo assinado do VENON ainda não estão implementados.
 
-## Estado técnico verificado
+## Estado técnico atual
 - A árvore atual contém um perfil Archiso inicial, ainda incompleto.
-- Os manifests atuais listam pacotes do Arch Linux e componentes MATE.
-- A interface C + GTK4 existe como protótipo; não é ainda um instalador funcional.
+- Os manifests listam pacotes do Arch Linux e componentes MATE.
+- O ambiente de validação é construído a partir de archlinux:latest.
+- A validação compila a interface C + GTK4, executa ShellCheck e valida a configuração.
+- A interface existente é somente um protótipo; não é um instalador funcional.
 - O botão de instalação permanece sem operações de escrita.
 - Não há backend de particionamento, formatação, cópia offline, criação de usuário ou instalação do GRUB.
 - O workflow de compilação ISO permanece bloqueado.
-- A auditoria de caminhos da branch atual não encontrou arquivos ou diretórios com nome Calamares.
-- A existência de commits anteriores no histórico Git não significa que os seus arquivos estejam presentes na árvore atual.
+- A auditoria da árvore atual não encontrou caminhos com nomes de componentes de instaladores externos.
+- Commits anteriores permanecem no histórico Git, mas seus arquivos removidos não integram a árvore atual.
 
 ## Próximas etapas
 1. Completar o perfil Archiso oficial.
