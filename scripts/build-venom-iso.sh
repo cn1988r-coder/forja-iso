@@ -48,7 +48,7 @@ target = pathlib.Path(sys.argv[1])
 mate = pathlib.Path(sys.argv[2]).read_text()
 # Keep the full VENOM desktop and both kernels, but remove heavyweight extras that are not required in the Live/installed image.
 # Nouveau + Mesa remain available; proprietary NVIDIA utilities can be installed later with Pacman if needed.
-remove = re.compile(r'^(endeavouros-(mirrorlist|keyring|branding)|eos-[a-z0-9-]+|ark|bluedevil|breeze.*|dolphin.*|endeavouros-konsole-colors|eos-apps-info|eos-log-tool|eos-packagelist|eos-quickstart|firewall-applet|ffmpegthumbs|gwenview|haruna|kate|kcalc|kde.*|kimageformats|kinfocenter|kio.*|konsole|kscreen|kwallet.*|kwayland.*|okular|partitionmanager|plasma.*|powerdevil|print-manager|reflector-simple|spectacle|sddm|welcome|xdg-desktop-portal-kde|base-devel|nvidia-open|nvidia-utils|nvidia-inst|nvidia-hook|noto-fonts-cjk|noto-fonts-extra|tesseract-data-eng|clonezilla|fsarchiver|gpart|gparted|grsync|hardinfo2|meld|fwupd|b43-fwcutter
+remove = re.compile(r'^(endeavouros-(mirrorlist|keyring|branding)|eos-[a-z0-9-]+|ark|bluedevil|breeze.*|dolphin.*|endeavouros-konsole-colors|eos-apps-info|eos-log-tool|eos-packagelist|eos-quickstart|firewall-applet|ffmpegthumbs|gwenview|haruna|kate|kcalc|kde.*|kimageformats|kinfocenter|kio.*|konsole|kscreen|kwallet.*|kwayland.*|okular|partitionmanager|plasma.*|powerdevil|print-manager|reflector-simple|spectacle|sddm|welcome|xdg-desktop-portal-kde|base-devel|nvidia-open|nvidia-utils|nvidia-inst|nvidia-hook|noto-fonts-cjk|noto-fonts-extra|tesseract-data-eng|clonezilla|fsarchiver|gpart|gparted|grsync|hardinfo2|meld|fwupd|b43-fwcutter)$')
 lines = []
 for line in target.read_text().splitlines():
     item = line.strip()
