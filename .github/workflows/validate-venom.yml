@@ -9,6 +9,7 @@ on:
       - "Dockerfile"
       - "README.md"
       - "build/**"
+      - "installer/**"
       - "scripts/**"
       - ".github/workflows/**"
   pull_request:
@@ -25,5 +26,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Instalar dependências GTK4
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config meson libgtk-4-dev
+      - name: Compilar interface do instalador
+        run: |
+          meson setup installer/build installer
+          meson compile -C installer/build
       - name: Validar escopo e configuração
         run: bash scripts/validate-scope.sh
