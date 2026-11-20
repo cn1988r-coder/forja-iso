@@ -241,7 +241,7 @@ timeout: 120
 verbose: true
 script:
   - 'mkdir -p ${ROOT}/tmp/forja-packages'
-  - 'cp /root/packages/shelly-git-*.pkg.tar.zst /root/packages/ferdium-bin-*.pkg.tar.zst /root/packages/iptvnator-bin-*.pkg.tar.zst /root/packages/bibata-cursor-theme-bin-*.pkg.tar.zst ${ROOT}/tmp/forja-packages/'
+  - 'cp /usr/share/forja/packages/shelly-git-*.pkg.tar.zst /usr/share/forja/packages/ferdium-bin-*.pkg.tar.zst /usr/share/forja/packages/iptvnator-bin-*.pkg.tar.zst /usr/share/forja/packages/bibata-cursor-theme-bin-*.pkg.tar.zst ${ROOT}/tmp/forja-packages/'
 """)
 (modules / "shellprocess_forja_local_packages.conf").write_text("""---
 dontChroot: false
@@ -259,7 +259,7 @@ verbose: true
 script:
   - 'if pacman -Q calamares >/dev/null 2>&1; then pacman -Rdd --noconfirm calamares; fi'
   - 'packages=$(pacman -Qq | grep -E "^(endeavouros-|eos-)" || true); if [ -n "$packages" ]; then pacman -Rdd --noconfirm $packages; fi'
-  - 'rm -rf /etc/calamares /usr/share/calamares /usr/lib/calamares /usr/share/endeavouros /usr/share/eos'
+  - 'rm -rf /etc/calamares /usr/share/calamares /usr/lib/calamares /usr/share/endeavouros /usr/share/eos /usr/share/forja/packages'
   - 'rm -f /etc/pacman.d/endeavouros-mirrorlist /usr/lib/endeavouros-release /etc/polkit-1/rules.d/49-forja-calamares.rules'
 """)
 
