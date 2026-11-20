@@ -29,6 +29,8 @@ required_files=(
 for file in "${required_files[@]}"; do
   [[ -f "$file" ]] || fail "arquivo necessário ausente: $file"
 done
+[[ -x "$ROOT/build/airootfs/usr/bin/venom-calamares" ]] || fail "wrapper gráfico do Calamares não tem permissão de execução no repositório"
+grep -Fq 'chmod 0755 "$EOS_DIR/airootfs/usr/bin/venom-calamares"' "$ROOT/scripts/build-venom-iso.sh" || fail "wrapper do Calamares não tem permissão de execução garantida no ambiente Live"
 
 bash -n "$ROOT/scripts/build-venom-iso.sh" || fail "erro de sintaxe no script de compilação"
 bash -n "$ROOT/scripts/build-container.sh" || fail "erro de sintaxe no wrapper Docker/Podman"
@@ -43,17 +45,17 @@ if not blocks:
 for index, block in enumerate(blocks, 1):
     compile(block, f"build-venom-iso.sh:python-block-{index}", "exec")
 print(f"OK: {len(blocks)} blocos Python embutidos válidos")
-lightdm_marker = 'python - "$EOS_DIR/run_before_squashfs.sh" <<' + chr(39) + 'PY' + chr(10)
+lightdm_marker = 'python - "$EOS_DIR/run_before_squashfs.sh" <<' + chr(39) + 'PY' + chr(39) + chr(10)
 if lightdm_marker not in source:
     raise SystemExit("Bloco LightDM não foi encontrado no script de build.")
 lightdm = source.split(lightdm_marker, 1)[1].split(chr(10) + "PY", 1)[0]
 if "import pathlib, re, sys" not in lightdm:
     raise SystemExit("Bloco LightDM usa re sem importar o módulo.")
-match = re.search(r"calamares_install_pattern = re\\.compile\\(\\s*(r'[^']+')", source)
+match = re.search(r"calamares_install_pattern = re\.compile\(\s*(r'[^']+')", source)
 if not match:
     raise SystemExit("Regex de pacotes locais do Calamares não foi encontrada.")
 pattern = re.compile(match.group(1)[1:-1])
-fixture = '  pacman -U --noconfirm --needed -- "/root/packages/"*".pkg.tar.zst"\\n'
+fixture = '  pacman -U --noconfirm --needed -- "/root/packages/"*".pkg.tar.zst"' + chr(10)
 if len(list(pattern.finditer(fixture))) != 1:
     raise SystemExit("Regex de pacotes locais não reconhece o comando upstream fixado.")
 print("OK: import re e regex de pacotes locais do Calamares")

@@ -16,6 +16,8 @@ Este documento é a referência operacional para retomar o desenvolvimento sem d
 
 ## Últimas compilações conhecidas
 
+- Build #45: [GitHub Actions](https://github.com/cn1988r-coder/forja-iso/actions/runs/44681763814), run ID `44681763814`, job ID `136106583379`, commit `6e78f7153f834fa041f8a31415f2d71d06f37621`; falhou em 2026-11-20 05:51:09 UTC durante o hook `run_before_squashfs.sh`, dentro da etapa `mkarchiso`. O pacote Calamares e `/usr/bin/calamares` estavam presentes e executáveis. A causa real foi `/usr/bin/venom-calamares` com modo `0644` (log: `-rw-r--r--`), enquanto o hook exige ambos os executáveis com bit de execução. Nenhuma ISO, SHA-256 ou artefato foi produzido.
+- Validação estática #1145: [GitHub Actions](https://github.com/cn1988r-coder/forja-iso/actions/runs/44681763890); falhou porque o marcador do bloco LightDM omitia a aspa final do delimitador `<<'PY'`. O fixture da regex também representava a quebra de linha incorretamente. Ambos foram corrigidos nesta revisão.
 - Build #44: [GitHub Actions](https://github.com/cn1988r-coder/forja-iso/actions/runs/44678493077).
 - Run ID: \`44678493077\`; job ID: \`136095951256\`.
 - Commit: \`201d494b2c706bfde24071053e053488935f532b\`.
@@ -56,7 +58,7 @@ O usuário autorizou corrigir a falha #43 e instalar os dois kernels, com LTS co
 - Pacman é o único gerenciador de atualizações normal do sistema e aplicativos, via `sudo pacman -Syu`.
 - Os kernels `linux` e `linux-lts`, quando instalados, serão atualizados pelo Pacman no fluxo normal. É necessário reiniciar para carregar o kernel novo.
 - VENON é independente do Pacman, não roda automaticamente e não participa do fluxo normal de atualização. `venon-upgrade` apenas consulta/lista atualizações; `venon-update` instala somente após confirmação explícita.
-- Base desejada a longo prazo: Arch Linux oficial puro. O estado atual ainda contém dependências do framework/repositórios EndeavourOS. Não iniciar migração sem autorização explícita.
+- Base desejada a longo prazo: Arch Linux oficial puro. O estado atual ainda contém dependências do framework/repositórios EndeavourOS. A migração para Arch puro já foi autorizada pelo usuário; iniciar somente após a build #45 estar encerrada e registrada, então revisar dependências e ferramentas uma a uma.
 
 ## Segurança
 
