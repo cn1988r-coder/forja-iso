@@ -2,6 +2,7 @@
 set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 P="$ROOT/manjaro/venom-xfce"
+X="$P/desktop-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml"
 fail(){ printf 'FALHA: %s\n' "$*" >&2; exit 1; }
 pass(){ printf 'OK: %s\n' "$*"; }
 
@@ -12,17 +13,24 @@ required=(
   "$P/desktop-overlay/etc/skel/.config/gtk-3.0/settings.ini"
   "$P/desktop-overlay/etc/skel/.config/autostart/venom-iptvnator-install.desktop"
   "$P/desktop-overlay/usr/local/bin/venom-install-iptvnator"
+  "$P/desktop-overlay/etc/skel/.config/xfce4/panel/docklike-2.rc"
+  "$P/desktop-overlay/etc/skel/.config/xfce4/helpers.rc"
   "$P/live-overlay/etc/issue"
   "$P/root-overlay/etc/os-release"
   "$P/root-overlay/etc/default/grub"
   "$P/root-overlay/etc/pamac.conf"
+  "$X/xfce4-panel.xml" "$X/xfce4-desktop.xml" "$X/xsettings.xml" "$X/xfwm4.xml"
+  "$X/xfce4-keyboard-shortcuts.xml" "$X/thunar.xml" "$X/xfce4-session.xml"
+  "$X/xfce4-notifyd.xml" "$X/xfce4-power-manager.xml" "$X/xfce4-screensaver.xml"
+  "$X/xfce4-settings-manager.xml" "$X/xfce4-taskmanager.xml" "$X/xfce4-terminal.xml"
+  "$P/desktop-overlay/usr/share/backgrounds/venom/venom-black.svg"
 )
 for f in "${required[@]}"; do [[ -s "$f" ]] || fail "arquivo obrigatório ausente: $f"; done
 
 bash -n "$P/profile.conf" || fail "sintaxe inválida em profile.conf"
 bash -n "$P/desktop-overlay/usr/local/bin/venom-install-iptvnator" || fail "sintaxe inválida no instalador IPTVnator"
 
-for pkg in xfce4 xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 xfconf thunar comm-xfce-config comm-xfce-datetime firefox pamac-gtk lightdm networkmanager; do
+for pkg in xfce4 xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 xfconf thunar xfce4-docklike-plugin firefox pamac-gtk lightdm networkmanager; do
   grep -Fxq "$pkg" "$P/Packages-Desktop" || fail "pacote XFCE/aplicativo selecionado ausente: $pkg"
 done
 for pkg in community-keyring community-release; do
@@ -35,7 +43,7 @@ grep -Fq 'iptvnator-bin' "$P/desktop-overlay/usr/local/bin/venom-install-iptvnat
 if grep -Eiq '^(mate|mate-extra|mate-media|marco|caja)([[:space:]]|$)' "$P"/Packages-*; then
   fail "pacotes MATE encontrados no perfil XFCE"
 fi
-if grep -Eiq '^(big-video-converter|biglinux-webapps|bigocrpdf|bigicons-papient|comm-wallpapers-xfce|comm-welcome|biglinux-driver-manager|biglinux-metapackage|biglinux-apps-rename|auto-tweaks-browser|tts-biglinux|brave-browser|libreoffice-fresh-pt-br|steam|rustdesk-bin)([[:space:]]|$)' "$P"/Packages-*; then
+if grep -Eiq '^(big-video-converter|biglinux-webapps|bigocrpdf|bigicons-papient|comm-wallpapers-xfce|comm-welcome|comm-xfce-config|biglinux-driver-manager|biglinux-metapackage|biglinux-apps-rename|auto-tweaks-browser|tts-biglinux|brave-browser|libreoffice-fresh-pt-br|steam|rustdesk-bin)([[:space:]]|$)' "$P"/Packages-*; then
   fail "aplicativo adicional/identidade visual do fornecedor ainda listado"
 fi
 if grep -Eiq 'calamares|biglinux|bigcommunity|repo\.biglinux\.com\.br' "$P"/Packages-* "$P/user-repos.conf" "$ROOT/shared/pacman.conf"; then
@@ -55,12 +63,30 @@ grep -Fq 'PRETTY_NAME="VENOM OS"' "$P/root-overlay/etc/os-release" || fail "nome
 grep -Fq 'GRUB_DISTRIBUTOR="VENOM OS"' "$P/root-overlay/etc/default/grub" || fail "identidade VENOM OS ausente no GRUB"
 grep -Fq 'gtk-theme-name=Adwaita-dark' "$P/desktop-overlay/etc/skel/.config/gtk-3.0/settings.ini" || fail "tema escuro ausente"
 grep -Fq 'gtk-icon-theme-name=Papirus-Dark' "$P/desktop-overlay/etc/skel/.config/gtk-3.0/settings.ini" || fail "ícones escuros ausentes"
+grep -Fq 'ThemeName" type="string" value="Adwaita-dark"' "$X/xsettings.xml" || fail "tema escuro XFCE ausente"
+grep -Fq 'IconThemeName" type="string" value="Papirus-Dark"' "$X/xsettings.xml" || fail "ícones escuros XFCE ausentes"
 grep -Fq 'EnableAUR' "$P/root-overlay/etc/pamac.conf" || fail "Pamac AUR não habilitado"
+grep -Fq 'WebBrowser=firefox' "$P/desktop-overlay/etc/skel/.config/xfce4/helpers.rc" || fail "Firefox não configurado como navegador padrão"
+grep -Fq '/usr/share/backgrounds/venom/venom-black.svg' "$X/xfce4-desktop.xml" || fail "papel de parede VENOM OS ausente"
+if grep -RniE 'biglinux|bigcommunity|Snowy\.jpg|brave-browser|libreoffice-writer|ashyterm|comm-menu-symbolic' "$P/desktop-overlay"; then
+  fail "identidade visual ou lançador de aplicativo removido ainda presente no XFCE"
+fi
+
+python3 - "$P" <<'PY'
+import pathlib, sys, xml.etree.ElementTree as ET
+root = pathlib.Path(sys.argv[1])
+xmls = list(root.rglob("*.xml")) + list(root.rglob("*.svg"))
+if not xmls:
+    raise SystemExit("FALHA: nenhum XML/SVG encontrado")
+for path in xmls:
+    ET.parse(path)
+print(f"OK: {len(xmls)} XML/SVG(s) bem formados")
+PY
 
 pass "perfil e sintaxe do VENOM OS XFCE"
-pass "XFCE e configuração original da sessão preservados"
+pass "estrutura, painel e configurações originais do XFCE preservados"
 pass "Firefox, Pamac e instalação de IPTVnator selecionados"
-pass "aplicativos extras e identidade visual do fornecedor removidos da seleção"
+pass "aplicativos extras e identidade visual do fornecedor removidos"
 pass "tema escuro e identidade VENOM OS configurados"
 pass "repositório antigo 404 removido"
 printf 'VALIDAÇÃO ESTÁTICA DO VENOM OS CONCLUÍDA.\n'
