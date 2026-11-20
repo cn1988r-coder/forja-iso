@@ -13,6 +13,7 @@ Este documento é a referência operacional para retomar o desenvolvimento sem d
 - Documentação técnica: `docs/ISO-SIZE-OPTIMIZATION.md`.
 - Consultar o HEAD atual de `optimize/venom-iso-size` no GitHub antes de retomar; a branch contém as alterações descritas em `docs/ISO-SIZE-OPTIMIZATION.md`.
 - Nenhuma build foi iniciada nesta branch; a consulta ao Actions retornou zero execuções para ela. O workflow de ISO não inclui essa branch na lista de gatilhos de push.
+- Na retomada de 2026-11-20, a revisão estática encontrou uma inconsistência: `scripts/validate-build.sh` ainda exigia Zstandard nível 19, enquanto o script de build já configurava SquashFS XZ. A verificação foi corrigida para exigir XZ com filtro x86, dicionário de 100% e bloco de 1 MiB; a mensagem de erro também foi alinhada. Commits: `1aadffe1c2c7d3b772c166e7cebc98329d7b4f54` e `429bdbfef663156c2154cba833e0216ce563ae5c`. A validação estática ainda não foi executada.
 - **Não declarar redução de tamanho alcançada ainda.** As alterações não foram compiladas nem testadas. A meta de 2,5–3 GB é estimativa; medir somente após uma build futura. XZ pode aumentar o tempo de build e de inicialização Live.
 - Próximo passo, quando o usuário autorizar retomar a compilação: validar sintaxe e contratos estáticos, executar a build nesta branch isolada, comparar o tamanho real e testar boot MATE e os dois modos do Calamares em VM. Não mesclar na branch de estabilidade nem em `main` sem validação e autorização.
 
