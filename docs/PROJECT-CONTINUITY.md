@@ -1,3 +1,49 @@
+# Continuidade VENOM OS em 2026-11-20 08:50 BRT
+
+## Retomada autônoma e bloqueio de compilação
+
+- Repositório: `cn1988r-coder/forja-iso`.
+- Branch autorizada: `optimize/venom-iso-size`.
+- HEAD verificado antes desta execução: `d3860f9530d9f5ea693f112e8063170c492b88c8`.
+- A automação existente foi atualizada para priorizar a retirada segura do Calamares e o desenvolvimento do instalador gráfico próprio em C + GTK4, mantendo todas as restrições de `AGENTS.md`.
+- A automação foi disparada manualmente nesta conversa. Uma nova revisão está agendada para amanhã, 21/11/2026, por volta das 19h BRT. O agendamento não representa execução contínua ou trabalho em intervalos horários.
+- **Compilação de ISO bloqueada:** `.github/workflows/build-iso.yml` foi alterado para aceitar somente dispatch manual e manter o job de compilação explicitamente desativado (`if: false`). Não há gatilho de push para build. A compilação só poderá ser reativada depois que o instalador próprio estiver implementado, passar pelas validações e o usuário autorizar expressamente a geração da ISO.
+- Commit desta proteção: `0b4a3f23c55570c213087881e8c28796fd49f189`.
+- Nenhuma ISO foi iniciada ou gerada nesta execução.
+
+## Estado técnico encontrado
+
+- O HEAD inicial ainda não contém instalador próprio funcional.
+- `build/packages.arch` e `build/packages.mate` ainda não definem dependências GTK4/instalador próprio.
+- `scripts/validate-build.sh` ainda exige wrapper, patch, branding, regras Polkit e referências Calamares, e tem comentários inconsistentes sobre Python.
+- `scripts/validate-scope.sh` ainda exige documentação de dependência EndeavourOS e preservação Calamares.
+- `Dockerfile` e `scripts/build-venom-iso.sh` ainda usam repositórios, framework, skeleton e caminhos EndeavourOS, além de lógica Calamares. Portanto, a remoção completa ainda não foi feita.
+- O workflow de validação mais recente no HEAD inicial falhou na etapa de definições do projeto porque o próprio validador identificou que o instalador gráfico próprio não foi implementado. Essa falha é esperada e não deve ser mascarada.
+
+## Feito nesta execução
+
+- Consultados o HEAD real, workflows e logs da validação; lidos integralmente `AGENTS.md`, validadores, manifesto de pacotes e workflow de build, além dos trechos relevantes da documentação e scripts.
+- Desativado o caminho de compilação de ISO no workflow, incluindo gatilhos automáticos de push e execução do job.
+- Atualizada a automação para focar em código do instalador, remoção gradual de Calamares e dependências EndeavourOS, testes estáticos e relatório verificável.
+
+## Pendente
+
+1. Inventariar e migrar o perfil live para Archiso oficial em `build/archiso`.
+2. Desacoplar container e scripts de build do EndeavourOS, sem disparar ISO.
+3. Projetar e implementar a aplicação C + GTK4 com backend separado e operações privilegiadas estritamente validadas.
+4. Implementar testes unitários e de integração com mocks/imagens descartáveis para detecção de disco, plano de particionamento, instalação offline, criação de usuário, GRUB e tratamento de falhas.
+5. Remover arquivos, pacotes, regras Polkit, wrappers e validadores Calamares somente após substitutos seguros e referências verificadas.
+6. Atualizar os validadores para as decisões arquiteturais atuais.
+
+## Bloqueios e não testado
+
+- Não há evidência de teste real de instalação em VM nesta execução.
+- Não foi compilado o instalador C/GTK4 nem executado teste de instalação.
+- Não foi gerada ISO; o workflow de ISO está intencionalmente bloqueado.
+- Não declarar o instalador funcional até testes de integração e instalação real em ambiente descartável.
+
+---
+
 # Auditoria de continuidade em 2026-11-20 08:40 BRT
 
 ## Estado verificado nesta execução
