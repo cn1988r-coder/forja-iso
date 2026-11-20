@@ -21,4 +21,4 @@ theme='Materia-dark'
 button-layout=':minimize,maximize,close'
 
 [org/mate/panel]
-default-layout='default'
+default-layout='venom'
