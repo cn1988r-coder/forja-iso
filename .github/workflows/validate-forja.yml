@@ -27,6 +27,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Testar patcher contra o Calamares upstream fixado
+        shell: bash
         run: |
           set -euo pipefail
           git clone --depth 1 --branch 26.03.2.3 https://github.com/endeavouros-team/calamares.git "$RUNNER_TEMP/calamares"
@@ -41,9 +42,7 @@ jobs:
           ! grep -q 'efiBootLoaderVar:' "$RUNNER_TEMP/calamares/data/eos/modules/partition.conf"
           grep -Fq 'availableFileSystemTypes:  ["ext4"]' "$RUNNER_TEMP/calamares/data/eos/modules/partition.conf"
           ! grep -q 'packages@online' "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
-          ! grep -Eq '  - (locale|keyboard|localecfg)
+          ! grep -Eq '  - (locale|keyboard|localecfg)$' "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
           grep -Fq 'action.id === "com.github.calamares.calamares"' build/airootfs/etc/polkit-1/rules.d/49-forja-calamares.rules
           ! grep -Eq 'packagechooser|netinstall|eos_pacman|pacstrap|eos_script' "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
- "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
-          grep -Fq 'action.id === "com.github.calamares.calamares"' build/airootfs/etc/polkit-1/rules.d/49-forja-calamares.rules
-          ! grep -Eq 'packagechooser|netinstall|eos_pacman|pacstrap|eos_script' "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
+          echo "OK: patcher aplicado ao Calamares upstream e verificações concluídas"
