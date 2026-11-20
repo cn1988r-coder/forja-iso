@@ -26,8 +26,13 @@ if [[ -z "$AUR_HELPER" ]]; then
 fi
 if [[ -n "$AUR_HELPER" ]]; then
     log "Instalando Brisk Menu e Bibata pelo AUR."
-    "$AUR_HELPER" -S --needed --noconfirm brisk-menu-git || \
+    if "$AUR_HELPER" -S --needed --noconfirm brisk-menu-git; then
+        log "Brisk Menu instalado; recarregando o layout VENOM preservando a área de notificação."
+        gsettings set org.mate.panel default-layout "'venom'" || true
+        mate-panel --reset & sleep 2
+    else
         warn "Brisk Menu não pôde ser instalado automaticamente."
+    fi
     "$AUR_HELPER" -S --needed --noconfirm bibata-cursor-theme-bin || \
         warn "Bibata não pôde ser instalado automaticamente."
 else
