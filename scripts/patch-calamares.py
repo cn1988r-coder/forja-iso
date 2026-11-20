@@ -137,6 +137,9 @@ instances:
 - id: online
   module: packages
   config: packages_online.conf
+- id: forja_bootstrap
+  module: shellprocess
+  config: shellprocess_forja_bootstrap.conf
 - id: forja_stage_packages
   module: shellprocess
   config: shellprocess_forja_stage_packages.conf
@@ -157,6 +160,7 @@ sequence:
 - exec:
   - partition
   - mount
+  - shellprocess@forja_bootstrap
   - machineid
   - locale
   - keyboard
@@ -235,6 +239,13 @@ geoip:
   selector: "CountryCode"
 """)
 
+(modules / "shellprocess_forja_bootstrap.conf").write_text("""---
+dontChroot: true
+timeout: 3600
+verbose: true
+script:
+  - 'pacstrap -K -C /etc/pacman.conf ${ROOT} base linux linux-firmware archlinux-keyring pacman-mirrorlist sudo networkmanager'
+""")
 (modules / "shellprocess_forja_stage_packages.conf").write_text("""---
 dontChroot: true
 timeout: 120
@@ -327,7 +338,7 @@ units:
 unpackfs = modules / "unpackfs.conf"
 if not unpackfs.exists() or "/run/archiso/bootmnt/arch/x86_64/airootfs.sfs" not in unpackfs.read_text():
     raise SystemExit("A origem da imagem Forja no unpackfs.conf não foi encontrada.")
-for required in ("displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf", "shellprocess_forja_cleanup.conf", "shellprocess_forja_stage_packages.conf", "shellprocess_forja_local_packages.conf", "packages_online.conf", "welcome_forja_online.conf"):
+for required in ("displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf", "shellprocess_forja_cleanup.conf", "shellprocess_forja_bootstrap.conf", "shellprocess_forja_stage_packages.conf", "shellprocess_forja_local_packages.conf", "packages_online.conf", "welcome_forja_online.conf"):
     if not (modules / required).exists():
         raise SystemExit(f"Módulo necessário ausente: {required}")
 for config in (settings_offline, settings_online):
