@@ -1,5 +1,6 @@
 gparted
 calamares
+polkit-gnome
 manjaro-live-systemd
 mkinitcpio-nfs-utils
 nbd
