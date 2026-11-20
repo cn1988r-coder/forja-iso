@@ -183,3 +183,15 @@ Nunca apresentar intenção como implementação, nem implementação como teste
 - **Painel MATE:** o layout explícito, o autostart de rede/Bluetooth e o applet nativo de volume continuam configurados, mas ainda não foram validados graficamente. A validação textual não comprova que os applets são carregados e exibidos.
 - **Estado real:** foram gravadas correções no código; não foi iniciada compilação. Não há prova de boot, renderização do wallpaper, exibição dos indicadores, funcionamento do Bluetooth ou instalação completa após essas alterações.
 - **Próximos bloqueios:** implementar o instalador próprio; revisar e testar o painel MATE com sessão gráfica; validar o BlueZ com e sem controlador Bluetooth; confirmar o wallpaper no desktop; executar o validador em CI; só então solicitar autorização separada para uma nova ISO.
+
+
+### Resultado da validação corretiva em CI
+
+- A workflow de validação foi habilitada para a branch `optimize/venom-iso-size`; a workflow de compilação ISO continua sem gatilho nessa branch.
+- A primeira execução revelou uma checagem antiga e incorreta do pacote Shelly: o validador esperava um comando `find` diferente daquele que o build realmente executa. A checagem foi alinhada ao comando real, sem alterar a etapa de empacotamento do Shelly.
+- A rasterização do wallpaper foi ajustada para usar `rsvg-convert`, fornecido por `librsvg`, explicitamente instalado no ambiente de compilação. O script também verifica a saída PNG e a resolução exata de 1920×1080.
+- Execução de validação #1159, run ID `44724054395`, commit `3bf31a413e4600a59b112d8e7db5b95a2609839a`: as verificações anteriores passaram e o validador interrompeu intencionalmente o processo porque o instalador gráfico próprio ainda não existe.
+- Execução #1161, run ID `44724169005`, commit `510612b157ed42be7536e2387f9c13690f1f5062`: os seis blocos Python embutidos foram compilados sem warnings; a verificação do patch Calamares e do fluxo visual passou; a execução terminou no bloqueio intencional do instalador próprio ausente.
+- **Não interpretar a falha controlada como erro de sintaxe:** o validador está impedindo que se gere outra ISO com o Calamares defeituoso. Ainda assim, o projeto não está pronto para build.
+- Últimos commits conhecidos desta correção: wallpaper SVG `55720ada4080b056a5696995fd5c5df3588ceec6`; rasterização `4dcc26421c019c80c061fcd22bf39a6169267b30`; limpeza de comentários/escapes `623fa236b24178040d111ba5476923831e726e5f`; validador e Shelly `3bf31a413e4600a59b112d8e7db5b95a2609839a`; dependência librsvg e contrato `510612b157ed42be7536e2387f9c13690f1f5062`.
+- HEAD anterior ao registro desta nota: `510612b157ed42be7536e2387f9c13690f1f5062`.
