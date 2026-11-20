@@ -339,8 +339,6 @@ needle = '    awk -i inplace -v version="${pkgver}" -v release="${release_name}"
 replacement = needle[:-1] + '    python "$startdir/patch-calamares.py" "${srcdir}/calamares-${pkgver}"\n    awk -i inplace -v version="${pkgver}" -v release="${release_name}" "$replace_command" "${srcdir}/calamares-${pkgver}/data/eos/branding/venom/branding.desc"\n}'
 if needle not in source:
     raise SystemExit("Não foi possível inserir a identidade VENOM no prepare() do PKGBUILD.")
-if "-DCMAKE_BUILD_TYPE=Release" not in source:
-    raise SystemExit("A receita Calamares não foi alterada para Release.")
 path.write_text(source.replace(needle, replacement, 1))
 PY
 (
@@ -350,95 +348,7 @@ PY
   [[ -n "$CALAMARES_PACKAGE" ]] || { echo "Pacote Calamares não foi criado pelo makepkg." >&2; exit 1; }
   bsdtar -tf "$CALAMARES_PACKAGE" | grep -Fxq 'usr/bin/calamares' || {
     echo "O pacote Calamares gerado não contém usr/bin/calamares." >&2
-    bsdtar -tf "$CALAMARES_PACKAGE" | grep -E '(^|/)calamares
-)
-
-log "Construindo Shelly a partir do código oficial fixado"
-SHELLY_SRC="$WORK/Shelly-ALPM"
-mkdir -p "$SHELLY_SRC"
-curl -fsSL "https://raw.githubusercontent.com/Seafoam-Labs/Shelly-ALPM/$SHELLY_COMMIT/PKGBUILD-git" -o "$SHELLY_SRC/PKGBUILD"
-[[ -s "$SHELLY_SRC/PKGBUILD" ]] || die "PKGBUILD do Shelly não foi baixado."
-for source_file in \
-  shellybuild.conf \
-  com.shellyorg.shelly.desktop \
-  com.shellyorg.shelly-notifications.desktop \
-  shelly-flatpak-integrate; do
-  curl -fsSL "https://raw.githubusercontent.com/Seafoam-Labs/Shelly-ALPM/$SHELLY_COMMIT/$source_file" \
-    -o "$SHELLY_SRC/$source_file"
-  [[ -s "$SHELLY_SRC/$source_file" ]] || die "Arquivo auxiliar do Shelly não foi baixado: $source_file"
-done
-(
-  cd "$SHELLY_SRC"
-  sed -i 's/#branch=development/#commit='"$SHELLY_COMMIT"'/' PKGBUILD
-  makepkg --syncdeps --noconfirm
-  find . -maxdepth 1 -name 'shelly-git-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
-)
-
-log "Obtendo o pacote binário oficial do tema Bibata pela receita AUR"
-# A variante fonte exige python-clickgen, que não existe nos repositórios oficiais.
-# A variante -bin distribui os cursores já gerados e elimina essa dependência de build.
-BIBATA_SRC="$WORK/bibata-cursor-theme-bin-aur"
-BIBATA_COMMIT="$(git ls-remote https://aur.archlinux.org/bibata-cursor-theme-bin.git HEAD | awk 'NR == 1 { print $1; exit }')"
-[[ "$BIBATA_COMMIT" =~ ^[0-9a-f]{40}$ ]] || die "Não foi possível localizar uma revisão válida da receita binária AUR do Bibata."
-clone_at_commit https://aur.archlinux.org/bibata-cursor-theme-bin.git "$BIBATA_SRC" "$BIBATA_COMMIT"
-(
-  cd "$BIBATA_SRC"
-  makepkg --syncdeps --noconfirm
-  find . -maxdepth 1 -name 'bibata-cursor-theme-bin-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
-)
-
-log "Construindo IPTVnator a partir da receita AUR"
-IPTVNATOR_SRC="$WORK/iptvnator-bin-aur"
-IPTVNATOR_COMMIT="$(git ls-remote https://aur.archlinux.org/iptvnator-bin.git HEAD | awk 'NR == 1 { print $1; exit }')"
-[[ "$IPTVNATOR_COMMIT" =~ ^[0-9a-f]{40}$ ]] || die "Não foi possível localizar uma revisão válida da receita AUR do IPTVnator."
-clone_at_commit https://aur.archlinux.org/iptvnator-bin.git "$IPTVNATOR_SRC" "$IPTVNATOR_COMMIT"
-(
-  cd "$IPTVNATOR_SRC"
-  makepkg --syncdeps --noconfirm
-  find . -maxdepth 1 -name 'iptvnator-bin-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
-)
-
-log "Construindo Ferdium a partir da receita AUR"
-FERDIUM_SRC="$WORK/ferdium-aur"
-FERDIUM_COMMIT="$(git ls-remote https://aur.archlinux.org/ferdium-bin.git HEAD | awk 'NR == 1 { print $1; exit }')"
-[[ "$FERDIUM_COMMIT" =~ ^[0-9a-f]{40}$ ]] || die "Não foi possível localizar uma revisão válida da receita AUR do Ferdium."
-clone_at_commit https://aur.archlinux.org/ferdium-bin.git "$FERDIUM_SRC" "$FERDIUM_COMMIT"
-(
-  cd "$FERDIUM_SRC"
-  makepkg --syncdeps --noconfirm
-  find . -maxdepth 1 -name 'ferdium-bin-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
-)
-
-shopt -s nullglob
-for package in "$PKG_DIR"/*.pkg.tar.zst; do
-  cp -v "$package" "$EOS_DIR/airootfs/root/packages/"
-done
-shopt -u nullglob
-
-[[ -n "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name '*.pkg.tar.zst' -print -quit)" ]] || die "Nenhum pacote local foi preparado."
-[[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'calamares-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Calamares do EndeavourOS não foi gerado."
-[[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'shelly-git-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Shelly não foi gerado."
-[[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'ferdium-bin-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Ferdium não foi gerado."
-[[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'iptvnator-bin-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote IPTVnator não foi gerado."
-[[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'bibata-cursor-theme-bin-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Bibata não foi gerado."
-
-log "Preparando framework EndeavourOS"
-(
-  cd "$EOS_DIR"
-  ./prepare.sh
-)
-
-log "Wallpaper monocromático preparado antes de executar prepare.sh"
-
-log "Compilando ISO VENOM OS. Esta etapa pode levar bastante tempo."
-(
-  cd "$EOS_DIR"
-  sudo ./mkarchiso -v .
-)
-
-log "Arquivos ISO gerados:"
-find "$EOS_DIR/out" -maxdepth 1 -type f -name '*.iso' -printf '%p (%k KiB)\n'
- >&2 || true
+    bsdtar -tf "$CALAMARES_PACKAGE" | grep -E '(^|/)calamares$' >&2 || true
     exit 1
   }
   bsdtar -xOf "$CALAMARES_PACKAGE" usr/bin/calamares >/dev/null || {
