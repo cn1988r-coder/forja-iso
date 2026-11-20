@@ -14,6 +14,16 @@ Este documento é a referência operacional para retomar o desenvolvimento sem d
 - Nunca fazer push enquanto uma compilação estiver ativa. A workflow de ISO usa `concurrency.cancel-in-progress: true`, então um novo push pode cancelar uma execução anterior.
 - Não declarar uma ISO pronta apenas porque a workflow passou. Exigir artefato, SHA-256 e testes de boot/instalação em VM.
 
+## Retomada em 2026-11-20 após a compilação #48
+
+- Build #48: [GitHub Actions](https://github.com/cn1988r-coder/forja-iso/actions/runs/44690575457), run ID `44690575457`, job ID `136135115857`, commit `736242cdce6de7ea574c25b1a8824dc25a70a655`; encerrada com falha durante `mkarchiso`. Nenhuma ISO, SHA-256 ou artefato foi produzido.
+- O log confirma que o pacote Calamares foi instalado e `/usr/bin/calamares` estava executável. A falha da verificação ocorreu porque `/usr/bin/venom-calamares` estava com modo `0644`, sem permissão de execução, embora o script externo já ajustasse o modo antes do hook. A instalação do pacote local no hook restaurou/perdeu o modo do wrapper.
+- Correção aplicada após a instalação local do pacote Calamares: o hook agora executa `chmod 0755 /usr/bin/venom-calamares` antes de validar os dois executáveis. Commit: `52eb21af58082ccd8384de5394e021caf5a1581c`.
+- Validação #1150: [GitHub Actions](https://github.com/cn1988r-coder/forja-iso/actions/runs/44690583329), run ID `44690583329`, job ID `136135142329`, commit `1331eaf32b2b33b25099e1ec18229b553cc14b8c`; falhou em `scripts/validate-build.sh`. A extração dos heredocs Python funcionava, mas o validador aplicava `ast.parse` ao arquivo Bash inteiro, incluindo a instrução `chmod 0755`, causando SyntaxError.
+- Correção aplicada: o AST agora analisa somente o bloco Python LightDM já extraído, onde está declarada a regex de instalação do Calamares. Commit: `43b58c90fd548b6d951a87e947ef6f19a2359f62`.
+- As duas correções foram gravadas na branch autorizada. Ainda não foram validadas por uma nova execução de CI/build; não presumir sucesso. Verificar workflows disparados pelos commits e aguardar conclusão antes de novas alterações.
+- A branch continua `fix/forja-calamares-stability`; `main` não foi alterada. Nenhuma ISO aprovada.
+
 ## Retomada em 2026-11-20 após a compilação #47
 
 - Build #47: [GitHub Actions](https://github.com/cn1988r-coder/forja-iso/actions/runs/44687736973), run ID `44687736973`, job ID `136125966837`, commit `cb3ae60d7061d7815f664bc66acc2773e1494835`; encerrada com falha.
