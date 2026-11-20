@@ -14,6 +14,16 @@ Este documento é a referência operacional para retomar o desenvolvimento sem d
 - Nunca fazer push enquanto uma compilação estiver ativa. A workflow de ISO usa `concurrency.cancel-in-progress: true`, então um novo push pode cancelar uma execução anterior.
 - Não declarar uma ISO pronta apenas porque a workflow passou. Exigir artefato, SHA-256 e testes de boot/instalação em VM.
 
+## Retomada em 2026-11-20 após a compilação #47
+
+- Build #47: [GitHub Actions](https://github.com/cn1988r-coder/forja-iso/actions/runs/44687736973), run ID `44687736973`, job ID `136125966837`, commit `cb3ae60d7061d7815f664bc66acc2773e1494835`; encerrada com falha.
+- A compilação do ambiente Arch/EndeavourOS e a preparação dos pacotes foram concluídas. A etapa `mkarchiso` não chegou a iniciar. Nenhuma ISO, SHA-256 ou artefato foi produzido.
+- Causa confirmada no log: a checagem externa executada logo após `prepare.sh` exigia `airootfs/usr/bin/calamares`. Porém, no commit fixado, o `prepare.sh` upstream apenas prepara a árvore `airootfs`, comenta o pacote remoto Calamares e compila o esqueleto do usuário; o pacote Calamares local é instalado mais tarde pelo hook `run_before_squashfs.sh`. Portanto, a checagem estava no estágio errado. A própria rotina injetada no hook já verifica o pacote instalado e o executável depois de `pacman -U`.
+- Correção aplicada nesta retomada: a checagem externa passa a validar somente a presença e a permissão do wrapper VENOM, enquanto a validação do binário Calamares permanece dentro do hook, após a instalação do pacote local.
+- Validação estática #1147: [GitHub Actions](https://github.com/cn1988r-coder/forja-iso/actions/runs/44687736924), job ID `136125966668`; falhou no próprio validador Python ao extrair e recompilar a expressão regular a partir do código-fonte. A checagem foi reescrita para obter a string literal por meio da AST do Python, evitando a extração frágil por regex.
+- Após estas correções, ainda é necessário executar a validação estática e uma nova compilação. Nenhum resultado novo foi presumido.
+- A branch permanece `fix/forja-calamares-stability`; `main` não foi alterada. A PR #20 continua aberta e não foi modificada.
+
 ## Últimas compilações conhecidas
 
 - Build #45: [GitHub Actions](https://github.com/cn1988r-coder/forja-iso/actions/runs/44681763814), run ID `44681763814`, job ID `136106583379`, commit `6e78f7153f834fa041f8a31415f2d71d06f37621`; falhou em 2026-11-20 05:51:09 UTC durante o hook `run_before_squashfs.sh`, dentro da etapa `mkarchiso`. O pacote Calamares e `/usr/bin/calamares` estavam presentes e executáveis. A causa real foi `/usr/bin/venom-calamares` com modo `0644` (log: `-rw-r--r--`), enquanto o hook exige ambos os executáveis com bit de execução. Nenhuma ISO, SHA-256 ou artefato foi produzido.
