@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=VENOM OS IPTVnator setup
+Comment=Install IPTVnator from the Arch User Repository on first login
+Exec=/usr/local/bin/venom-install-iptvnator
+OnlyShowIn=XFCE;
+X-GNOME-Autostart-enabled=true
