@@ -24,7 +24,7 @@ command -v sudo >/dev/null || die "sudo não encontrado."
 mkdir -p "$WORK" "$PKG_DIR"
 
 log "Instalando dependências de compilação"
-sudo pacman -S --needed --noconfirm archiso git curl squashfs-tools imagemagick base-devel python
+sudo pacman -S --needed --noconfirm archiso git curl squashfs-tools imagemagick librsvg base-devel python
 export MAKEFLAGS="-j$(nproc)"
 
 clone_at_commit() {
@@ -117,7 +117,7 @@ VENOM_WALLPAPER_SVG="$ROOT/build/airootfs/usr/share/backgrounds/venom/venom-wall
 VENOM_WALLPAPER="$ROOT/build/airootfs/usr/share/backgrounds/venom/venom-wallpaper.png"
 mkdir -p "$(dirname "$VENOM_WALLPAPER")" "$EOS_DIR/airootfs/root"
 [[ -s "$VENOM_WALLPAPER_SVG" ]] || die "Arte vetorial do wallpaper VENOM não encontrada."
-magick -background none "$VENOM_WALLPAPER_SVG" "$VENOM_WALLPAPER"
+rsvg-convert -w 1920 -h 1080 -o "$VENOM_WALLPAPER" "$VENOM_WALLPAPER_SVG"
 [[ -s "$VENOM_WALLPAPER" ]] || die "Não foi possível rasterizar o wallpaper gráfico da VENOM OS."
 identify -format '%wx%h' "$VENOM_WALLPAPER" | grep -Fxq '1920x1080' || die "Wallpaper VENOM gerado com resolução incorreta."
 cp "$VENOM_WALLPAPER" "$EOS_DIR/airootfs/root/livewall.png"
