@@ -1,23 +1,48 @@
 #!/usr/bin/env bash
-# Aplicação das configurações MATE do script manjaro-mate-dark-complete.sh
-# Adaptado para Arch Linux oficial e para o primeiro login da VENOM OS.
+# Implementação VENOM do manjaro-mate-dark-complete.sh.
+# Executado no primeiro login gráfico do usuário, nunca durante o build como root.
 set -Eeuo pipefail
 
 log() { printf '[VENOM MATE] %s\n' "$*"; }
 warn() { printf '[VENOM MATE] AVISO: %s\n' "$*" >&2; }
 
-[[ "${EUID}" -ne 0 ]] || { warn "Este script deve ser executado pelo usuário da sessão gráfica."; exit 1; }
-command -v gsettings >/dev/null 2>&1 || { warn "gsettings não encontrado; sessão MATE ainda não está pronta."; exit 0; }
+[[ "$EUID" -ne 0 ]] || { warn "Execute como usuário normal."; exit 1; }
+command -v gsettings >/dev/null 2>&1 || { warn "Sessão MATE indisponível; tente novamente após entrar no desktop."; exit 0; }
 
-# Tema, ícones, cursor e preferência por aplicações escuras.
+# Instalação AUR equivalente às etapas Brisk Menu e Bibata do script original.
+AUR_HELPER=""
+command -v yay >/dev/null 2>&1 && AUR_HELPER="yay"
+if [[ -z "$AUR_HELPER" ]] && command -v paru >/dev/null 2>&1; then AUR_HELPER="paru"; fi
+if [[ -z "$AUR_HELPER" ]]; then
+    log "Preparando ferramentas para instalar os componentes AUR."
+    if ! command -v git >/dev/null 2>&1 || ! command -v makepkg >/dev/null 2>&1; then
+        sudo pacman -S --needed --noconfirm git base-devel
+    fi
+    tmp_dir="$(mktemp -d)"
+    trap 'rm -rf "$tmp_dir"' EXIT
+    git clone https://aur.archlinux.org/yay-bin.git "$tmp_dir/yay-bin"
+    (cd "$tmp_dir/yay-bin" && makepkg -si --noconfirm)
+    command -v yay >/dev/null 2>&1 && AUR_HELPER="yay"
+fi
+if [[ -n "$AUR_HELPER" ]]; then
+    log "Instalando Brisk Menu e Bibata pelo AUR."
+    "$AUR_HELPER" -S --needed --noconfirm brisk-menu-git || \
+        warn "Brisk Menu não pôde ser instalado automaticamente."
+    "$AUR_HELPER" -S --needed --noconfirm bibata-cursor-theme-bin || \
+        warn "Bibata não pôde ser instalado automaticamente."
+else
+    warn "Nenhum helper AUR disponível; Brisk Menu e Bibata ficaram pendentes."
+fi
+
 set_setting() {
     local schema="$1" key="$2" value="$3"
     if gsettings list-schemas | grep -Fxq "$schema"; then
-        gsettings set "$schema" "$key" "$value" || warn "Não foi possível aplicar $schema.$key"
+        gsettings set "$schema" "$key" "$value" || warn "Falha ao aplicar $schema.$key"
     else
         warn "Schema indisponível: $schema"
     fi
 }
+
 log "Aplicando Materia Dark, Papirus-Dark e Bibata."
 set_setting org.mate.interface gtk-theme "'Materia-dark'"
 set_setting org.mate.Marco.general theme "'Materia-dark'"
@@ -27,23 +52,18 @@ set_setting org.mate.peripherals-mouse cursor-theme "'Bibata-Modern-Classic'"
 set_setting org.mate.peripherals-mouse cursor-size "24"
 set_setting org.mate.interface gtk-application-prefer-dark-theme "true"
 
-# Preserva o layout VENOM existente, incluindo rede, Bluetooth e volume.
-# Não redefine default-layout para 'manjaro' nem executa mate-panel --reset.
+# Mantém o layout VENOM já validado, com os indicadores de rede, Bluetooth e volume.
+# Não troca para o layout Manjaro nem executa mate-panel --reset.
 
-# Wallpaper 4K da Lua do script original.
 wall_dir="${XDG_DATA_HOME:-$HOME/.local/share}/wallpapers"
 wall_file="$wall_dir/moon-grey-4k.jpg"
 wall_url="https://wallpapers.com/images/wallpapers/magnificavista-de-uma-lua-cheia-no-ceu-noturno-4q7f0ei1u5yvrwp0.jpg"
 mkdir -p "$wall_dir"
 if [[ ! -s "$wall_file" ]]; then
-    if command -v curl >/dev/null 2>&1; then
-        log "Baixando wallpaper original da Lua."
-        if ! curl --fail --location --retry 3 --connect-timeout 15 "$wall_url" --output "$wall_file"; then
-            rm -f "$wall_file"
-            warn "Download do wallpaper falhou; será tentado novamente no próximo login."
-        fi
-    else
-        warn "curl não está instalado; wallpaper não foi baixado."
+    log "Baixando wallpaper 4K original da Lua."
+    if ! curl --fail --location --retry 3 --connect-timeout 15 "$wall_url" --output "$wall_file"; then
+        rm -f "$wall_file"
+        warn "Download do wallpaper falhou; será tentado novamente no próximo login."
     fi
 fi
 if [[ -s "$wall_file" ]]; then
@@ -53,13 +73,11 @@ if [[ -s "$wall_file" ]]; then
     elif gsettings list-schemas | grep -Fxq org.mate.background; then
         gsettings set org.mate.background picture-filename "'$wall_file'" || true
     else
-        warn "Schema de papel de parede do MATE não encontrado."
+        warn "Schema de papel de parede MATE não encontrado."
     fi
 fi
 
-# Ajuste do Brisk Menu somente quando o applet e seu schema já estiverem presentes.
 if gsettings list-schemas | grep -Fxq com.solus-project.brisk-menu; then
     gsettings set com.solus-project.brisk-menu label-visible false || true
 fi
-
-log "Configuração da sessão MATE concluída."
+log "Configuração MATE finalizada."
