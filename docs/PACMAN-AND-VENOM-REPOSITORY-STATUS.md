@@ -2,35 +2,34 @@
 
 Registro atualizado em 20/11/2026.
 
-## Arquitetura obrigatória
+## Arquitetura
 
 - O Pacman oficial é o único gerenciador de atualizações normais do sistema e dos aplicativos Arch.
 - A atualização geral é feita pelo usuário com `sudo pacman -Syu`.
-- A configuração global `/etc/pacman.conf` contém somente os repositórios oficiais Arch.
+- A configuração global do Pacman utiliza somente os repositórios oficiais Arch.
 - VENON é um mecanismo próprio, totalmente independente do Pacman.
-- VENON não chama `pacman` ou `pacman-key`, não usa configuração isolada do Pacman e não altera o banco de pacotes do Pacman.
+- VENON não chama `pacman` ou `pacman-key`, não altera o banco de pacotes do Pacman e não participa das atualizações normais.
 - Nenhum serviço ou timer ativa VENON automaticamente.
 
 ## Comandos definitivos
 
-- `venon-update`: consulta e lista atualizações VENON disponíveis. Não instala.
-- `venon-upgrade`: baixa e instala atualizações VENON após confirmação explícita.
+- `venon-upgrade`: consulta e lista atualizações VENON disponíveis. Não instala.
+- `venon-update`: baixa e instala atualizações VENON somente após confirmação explícita.
 
-## Correções feitas no código
+## Estado atual
 
-- Removido o cliente legado `/usr/bin/venom`, que utilizava Pacman e pacman-key.
-- Removidos `/etc/venom/pacman.conf`, o arquivo de fingerprint legado e a mirrorlist VENOM colocada em `/etc/pacman.d`.
-- Adicionados os comandos `/usr/bin/venon-update` e `/usr/bin/venon-upgrade`.
-- Atualizado o script de preparação da ISO para instalar somente os dois comandos novos.
-- Atualizada a documentação para não descrever o menu antigo nem uma falsa integração com Pacman.
-- Atualizado o validador estático para rejeitar a presença do cliente/configuração antigos e qualquer chamada ao Pacman dentro dos comandos VENON.
+Os dois comandos estão presentes como bloqueios seguros. Eles não consultam nem instalam pacotes, pois o mecanismo independente VENON ainda não foi implementado.
 
-## Limite operacional explícito
+Ainda faltam hospedagem, protocolo de metadados assinados, chave pública própria, verificação criptográfica independente, formato de pacote e mecanismo seguro de instalação e recuperação.
 
-Os dois comandos estão presentes como bloqueios seguros. Eles não consultam nem instalam pacotes ainda, porque a infraestrutura independente VENON será construída em etapa posterior, depois da instalação e validação da VENOM OS. Até essa infraestrutura existir, os comandos encerram sem modificar o sistema.
+## Critério para habilitação
 
-Ainda faltam hospedagem, protocolo de metadados assinados, chave pública própria, verificação criptográfica independente, formato de pacote e instalador próprio. Não declarar VENON operacional antes de implementar e testar esses componentes.
+O VENON só poderá ser ativado depois de implementar e testar:
+- repositório HTTPS próprio;
+- metadados assinados por chave VENON independente;
+- verificação criptográfica sem Pacman ou pacman-key;
+- formato de pacote próprio com hashes, permissões e regras de instalação e remoção;
+- mecanismo de recuperação contra interrupções e conflitos;
+- confirmação explícita antes de aplicar atualizações.
 
-## Validação
-
-Nenhuma validação automatizada, compilação, workflow ou instalação foi executada nesta alteração.
+Não usar VENON para administrar pacotes Arch ou dependências do sistema. Essas tarefas permanecem exclusivamente com o Pacman.
