@@ -94,6 +94,9 @@ instances:
 - id: forja_sudoers
   module: shellprocess
   config: shellprocess_forja_sudoers.conf
+- id: forja_grub_defaults
+  module: shellprocess
+  config: shellprocess_forja_grub_defaults.conf
 - id: forja_cleanup
   module: shellprocess
   config: shellprocess_forja_cleanup.conf
@@ -154,6 +157,9 @@ instances:
 - id: forja_sudoers
   module: shellprocess
   config: shellprocess_forja_sudoers.conf
+- id: forja_grub_defaults
+  module: shellprocess
+  config: shellprocess_forja_grub_defaults.conf
 - id: forja_cleanup
   module: shellprocess
   config: shellprocess_forja_cleanup.conf
