@@ -248,6 +248,7 @@ install_match = calamares_install_matches[0]
 s = calamares_install_pattern.sub(
     lambda match: install_match.group('indent')
     + 'pacman -U --noconfirm -- "/root/packages/"*".pkg.tar.zst"\n'
+    + "chmod 0755 /usr/bin/venom-calamares\\n"
     + calamares_patch,
     s,
     count=1,
