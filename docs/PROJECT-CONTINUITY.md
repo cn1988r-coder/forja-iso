@@ -152,3 +152,12 @@ Nunca apresentar intenção como implementação, nem implementação como teste
 - **Pendente:** executar o validador estático e, após autorização explícita, compilar e testar a sessão Live. O teste de Bluetooth funcional exige adaptador real ou USB passthrough na VM.
 - **Não feito:** nenhuma ISO nova foi compilada; ISO #50 preservada.
 
+
+
+## Ajuste da ordem de validação dos applets MATE (2026-11-20)
+
+- Na revisão da alteração anterior, foi identificado um erro de ordem: `check_session_applet` era chamado antes de os lançadores personalizados da VENOM serem escritos. Isso fazia a preparação depender da existência prévia de arquivos upstream específicos, embora o próprio script substituísse esses arquivos logo depois.
+- Correção aplicada em `scripts/build-venom-iso.sh`: os três lançadores personalizados são gravados primeiro; em seguida, o script verifica a existência de cada arquivo, o executável correspondente e a linha `Exec`.
+- Commit: `38d452ad06e68d324a73ec82277744f22f830e0c`.
+- **Pendente:** executar o validador estático; confirmar em sessão Live MATE que os três indicadores aparecem e respondem. Nenhuma ISO nova foi compilada.
+- **Importante:** a branch ainda contém a integração antiga do Calamares. Isso não está aprovado como instalador final e conflita com a decisão de desenvolver um instalador gráfico próprio em Python. Não apresentar Calamares como solução concluída.
