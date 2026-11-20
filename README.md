@@ -21,7 +21,7 @@ O VENON é um mecanismo separado, manual e independente do Pacman:
 O backend, o servidor e o protocolo assinado do VENON ainda não estão implementados. Os comandos atuais permanecem bloqueios seguros e não alteram o sistema.
 
 ## Instalador
-O instalador próprio será desenvolvido em C + GTK4, com interface totalmente gráfica e instalação offline a partir da própria mídia. Ainda não está implementado nem validado.
+A estrutura inicial da interface GTK4 em C foi criada em `installer/`. Ela enumera discos e apresenta seleção de modo, mas ainda é apenas um protótipo visual: o backend de instalação não existe e o botão de instalação permanece bloqueado. Não instalar em discos reais.
 
 ## Estrutura
 - `build/`: perfil Archiso em preparação, pacotes e configuração do sistema live.
