@@ -1,0 +1,4 @@
+# Manjaro live-session support. Deliberately no third-party installer.
+manjaro-live-skel
+manjaro-live-systemd
+squashfs-tools
