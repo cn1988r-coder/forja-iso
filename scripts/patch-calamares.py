@@ -307,16 +307,6 @@ displaymanagers:
 basicSetup: false
 sysconfigSetup: false
 """)
-(modules / "shellprocess_forja_cleanup.conf").write_text("""---
-dontChroot: false
-timeout: 180
-verbose: true
-script:
-  - "if pacman -Q calamares >/dev/null 2>&1; then pacman -Rdd --noconfirm calamares; fi"
-  - "packages=\\\"$(pacman -Qq | grep -E '^(endeavouros-|eos-)' || true)\\\"; if [ -n \\\"$packages\\\" ]; then pacman -Rdd --noconfirm $packages; fi"
-  - "rm -rf /etc/calamares /usr/share/calamares /usr/lib/calamares /usr/share/endeavouros /usr/share/eos"
-  - "rm -f /etc/pacman.d/endeavouros-mirrorlist /usr/lib/endeavouros-release /etc/polkit-1/rules.d/49-forja-calamares.rules"
-""")
 (modules / "services-systemd.conf").write_text("""---
 units:
   - name: "NetworkManager.service"
