@@ -15,8 +15,8 @@ A VENOM OS é uma distribuição independente baseada no Arch Linux oficial.
 O Pacman administra o sistema e os aplicativos: `sudo pacman -Syu`.
 
 O VENON é um mecanismo separado, manual e independente do Pacman:
-- `venom-upgrade`: consulta e lista atualizações disponíveis, sem instalar.
-- `venom-update`: instala atualizações VENOM somente após confirmação explícita.
+- `venon-upgrade`: consulta e lista atualizações disponíveis, sem instalar.
+- `venon-update`: instala atualizações VENON somente após confirmação explícita.
 
 O backend, o servidor e o protocolo assinado do VENON ainda não estão implementados. Os comandos atuais permanecem bloqueios seguros e não alteram o sistema.
 
