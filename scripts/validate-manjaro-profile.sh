@@ -2,8 +2,8 @@
 set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROFILE="$ROOT/manjaro/venom-mate"
-fail() { printf 'FALHA: %s\\n' "$*" >&2; exit 1; }
-pass() { printf 'OK: %s\\n' "$*"; }
+fail() { printf 'FALHA: %s\n' "$*" >&2; exit 1; }
+pass() { printf 'OK: %s\n' "$*"; }
 
 for f in profile.conf Packages-Root Packages-Desktop Packages-Live Packages-Mhwd; do
   [[ -s "$PROFILE/$f" ]] || fail "arquivo de perfil ausente: $f"
