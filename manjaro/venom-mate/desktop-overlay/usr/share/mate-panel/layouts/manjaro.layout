@@ -15,6 +15,14 @@ toplevel-id=top
 pack-index=0
 locked=true
 
+[Object volume-control]
+object-type=applet
+applet-iid=GvcAppletFactory::GvcApplet
+toplevel-id=top
+pack-type=end
+pack-index=0
+locked=true
+
 [Object notification-area]
 object-type=applet
 applet-iid=NotificationAreaAppletFactory::NotificationArea
