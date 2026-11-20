@@ -19,3 +19,6 @@ idle-delay=uint32 0
 [org/mate/marco/general]
 theme='Materia-dark'
 button-layout=':minimize,maximize,close'
+
+[org/mate/panel]
+default-layout='default'
