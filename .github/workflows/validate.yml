@@ -2,7 +2,7 @@ name: Validar projeto
 
 on:
   push:
-    branches: [main]
+    branches: [main, fix/forja-calamares-stability]
   pull_request:
     branches: [main]
   workflow_dispatch:
