@@ -19,6 +19,7 @@ required_files=(
   "$ROOT/build/packages.arch"
   "$ROOT/build/airootfs/etc/dconf/profile/user"
   "$ROOT/build/airootfs/etc/dconf/db/local.d/00-venom"
+  "$ROOT/build/airootfs/usr/share/backgrounds/venom/venom-wallpaper.svg"
   "$ROOT/build/airootfs/etc/lightdm/lightdm.conf.d/10-venom-live.conf"
   "$ROOT/build/airootfs/etc/lightdm/lightdm-gtk-greeter.conf"
   "$ROOT/build/airootfs/etc/skel/.config/gtk-3.0/settings.ini"
@@ -235,7 +236,9 @@ grep -Fxq 'materia-gtk-theme' "$ROOT/build/packages.mate" || fail "Materia ausen
 grep -Fxq 'papirus-icon-theme' "$ROOT/build/packages.mate" || fail "Papirus ausente"
 grep -Fq "picture-filename='/usr/share/backgrounds/venom/venom-wallpaper.png'" "$ROOT/build/airootfs/etc/dconf/db/local.d/00-venom" || fail "wallpaper padrão VENOM ausente"
 grep -Fq "picture-options='zoom'" "$ROOT/build/airootfs/etc/dconf/db/local.d/00-venom" || fail "ajuste do wallpaper MATE ausente"
-grep -Fq "magick -size 1920x1080 xc:" "$ROOT/scripts/build-venom-iso.sh" || fail "geração do wallpaper preto VENOM ausente"
+grep -Fq 'magick -background none "$VENOM_WALLPAPER_SVG" "$VENOM_WALLPAPER"' "$ROOT/scripts/build-venom-iso.sh" || fail "arte vetorial não é convertida para o wallpaper Live"
+grep -Fq "identify -format '%wx%h' \"\$VENOM_WALLPAPER\" | grep -Fxq '1920x1080'" "$ROOT/scripts/build-venom-iso.sh" || fail "resolução do wallpaper não é validada"
+if grep -Fq "xc:'#101010'" "$ROOT/scripts/build-venom-iso.sh"; then fail "wallpaper ainda é gerado como um quadro preto liso"; fi
 grep -Fq 'install -Dm644 /etc/pacman.d/mirrorlist "$EOS_DIR/airootfs/etc/pacman.d/mirrorlist"' "$ROOT/scripts/build-venom-iso.sh" || fail "mirrorlist Arch não é incorporada à ISO"
 grep -Fq "grep -Eiq 'endeavouros' /etc/pacman.d/mirrorlist" "$ROOT/scripts/build-venom-iso.sh" || fail "mirrorlist final não é protegida contra servidores EndeavourOS"
 grep -Fq 'cp "$VENOM_WALLPAPER" "$EOS_DIR/airootfs/root/livewall.png"' "$ROOT/scripts/build-venom-iso.sh" || fail "wallpaper não substitui o fundo gerado pelo prepare.sh"
@@ -257,27 +260,13 @@ fi
 grep -Fq 'venon-update' "$ROOT/scripts/build-venom-iso.sh" || fail "comando venon-update não é preparado para a imagem"
 grep -Fq 'venon-upgrade' "$ROOT/scripts/build-venom-iso.sh" || fail "comando venon-upgrade não é preparado para a imagem"
 
-pass "arquivos e escopo do build presentes"
-pass "sintaxe Bash e blocos Python do compilador válidos"
-printf 'AVISO: esta validação estática não executa makepkg, mkarchiso ou testes de VM.\n'
-grep -Fq 'rate-mirrors$|reflector-simple$|welcome$|iso-create-ml$' "$ROOT/scripts/patch-calamares.py" || fail "ferramentas EndeavourOS não são removidas do destino offline"
-grep -Fq '/etc/polkit-1/rules.d/49-venom-calamares.rules' "$ROOT/scripts/patch-calamares.py" || fail "regra temporária Polkit não será removida do sistema instalado"
-grep -Fq 'rm -f /etc/pacman.d/endeavouros-mirrorlist' "$ROOT/scripts/patch-calamares.py" || fail "mirrorlist EndeavourOS não será removida do sistema instalado"
-
-if grep -Eq 'endeavouros|eos-' "$ROOT/build/packages.mate"; then
-  fail "pacotes EndeavourOS encontrados no perfil final"
+# Hard stop: the legacy Calamares installer is known to close in the Live session.
+# Do not permit another ISO until the independent graphical Python installer exists.
+if [[ ! -x "$ROOT/build/airootfs/usr/bin/venom-installer" ]]; then
+  fail "BUILD BLOQUEADA: instalador gráfico próprio da VENOM OS ainda não foi implementado e validado."
 fi
-grep -Fxq 'materia-gtk-theme' "$ROOT/build/packages.mate" || fail "Materia ausente"
-grep -Fxq 'papirus-icon-theme' "$ROOT/build/packages.mate" || fail "Papirus ausente"
-grep -Fq "picture-filename='/usr/share/backgrounds/venom/venom-wallpaper.png'" "$ROOT/build/airootfs/etc/dconf/db/local.d/00-venom" || fail "wallpaper padrão VENOM ausente"
-grep -Fq "picture-options='zoom'" "$ROOT/build/airootfs/etc/dconf/db/local.d/00-venom" || fail "ajuste do wallpaper MATE ausente"
-grep -Fq 'magick -size 1920x1080 xc:'"'"'#101010'"'"' "$VENOM_WALLPAPER"' "$ROOT/scripts/build-venom-iso.sh" || fail "geração do wallpaper preto VENOM ausente"
-grep -Fq 'install -Dm644 /etc/pacman.d/mirrorlist "$EOS_DIR/airootfs/etc/pacman.d/mirrorlist"' "$ROOT/scripts/build-venom-iso.sh" || fail "mirrorlist Arch não é incorporada à ISO"
-grep -Fq 'grep -Eiq '\''endeavouros'\'' /etc/pacman.d/mirrorlist' "$ROOT/scripts/build-venom-iso.sh" || fail "mirrorlist final não é protegida contra servidores EndeavourOS"
-grep -Fq 'cp "$VENOM_WALLPAPER" "$EOS_DIR/airootfs/root/livewall.png"' "$ROOT/scripts/build-venom-iso.sh" || fail "wallpaper não substitui o fundo gerado pelo prepare.sh"
-
-if grep -Eiq '^(plasma|kde|sddm|dolphin|konsole)(-|$)' "$ROOT/build/packages.mate"; then
-  fail "pacotes KDE encontrados na lista MATE"
+if grep -Eiq 'calamares|venom-calamares' "$ROOT/scripts/build-venom-iso.sh"; then
+  fail "BUILD BLOQUEADA: o fluxo antigo do Calamares ainda está ativo."
 fi
 
 pass "arquivos e escopo do build presentes"
