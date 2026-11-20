@@ -57,7 +57,7 @@ grep -Fq 'gtk-theme-name=Adwaita-dark' "$P/desktop-overlay/etc/skel/.config/gtk-
 grep -Fq 'gtk-icon-theme-name=Papirus-Dark' "$P/desktop-overlay/etc/skel/.config/gtk-3.0/settings.ini" || fail "Papirus escuro/azul ausente"
 grep -Fq 'gtk-cursor-theme-name=Bibata-Modern-Classic' "$P/desktop-overlay/etc/skel/.config/gtk-3.0/settings.ini" || fail "Bibata ausente"
 
-if grep -RniE 'BigLinux|BigCommunity|coruja|owl|xfce|xfwm|thunar|sddm|plasma' "$P"/desktop-overlay "$P"/live-overlay "$P"/root-overlay; then
+if grep -RnE 'BigLinux|BigCommunity|coruja|owl|xfce|xfwm|thunar|sddm|plasma' "$P"/desktop-overlay "$P"/live-overlay "$P"/root-overlay; then
   fail "referência visual/desktop antigo encontrada nos overlays"
 fi
 
