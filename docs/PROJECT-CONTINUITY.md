@@ -17,6 +17,17 @@ Atualizado em 20/11/2026.
 - VENON é independente do Pacman e só funciona por comandos manuais após confirmação.
 - Nenhuma compilação de ISO sem autorização expressa do usuário.
 
+## Política permanente de uso do GitHub e retenção de ISOs
+- O GitHub é somente infraestrutura temporária de desenvolvimento, validação e compilação da VENOM OS. Não é depósito, arquivo histórico de imagens, hospedagem permanente ou biblioteca de releases.
+- Não manter nenhuma ISO no repositório, em Releases, em tags, em commits, em pastas versionadas ou em qualquer outro armazenamento permanente do projeto.
+- Não criar Releases permanentes. A área Releases deve permanecer sem publicações após a limpeza das publicações antigas.
+- Uma ISO só pode ser gerada mediante autorização expressa do usuário. Quando autorizada, a compilação e a disponibilização do arquivo serão temporárias e destinadas exclusivamente ao download pelo usuário.
+- Após o usuário confirmar que baixou e recebeu a ISO, excluir a publicação temporária e todos os artefatos/arquivos temporários correspondentes que estiverem sob controle do projeto. Não excluir antes da confirmação do usuário.
+- Não iniciar outra compilação enquanto a entrega anterior não tiver sido confirmada e os artefatos temporários anteriores tiverem sido removidos.
+- Ao terminar cada ciclo, verificar que não restaram Releases, artefatos de workflow ou arquivos ISO armazenados no repositório. O objetivo é não deixar nenhuma ISO publicada ou armazenada no GitHub.
+- Se a conexão/ferramenta disponível não permitir excluir uma Release, tag ou artefato, informar a limitação claramente e não afirmar que a limpeza foi feita. A publicação não deve ser considerada concluída até que a exclusão seja verificada.
+- As oito Releases antigas identificadas na auditoria de 20/11/2026 são resíduos históricos indevidos e permanecem pendentes de exclusão. Não devem ser tratadas como releases válidas da VENOM OS.
+
 ## Limpeza executada nesta revisão
 - Removidos os arquivos do instalador legado e suas regras de autorização.
 - Removidos os diretórios de branding e configuração do instalador de terceiros.
@@ -40,6 +51,7 @@ Atualizado em 20/11/2026.
 3. Corrigir e testar individualmente os indicadores de rede, Bluetooth e volume/áudio numa sessão MATE real.
 4. Criar testes unitários e de integração para particionamento, instalação offline, usuário e GRUB.
 5. Validar o sistema live e a instalação numa VM descartável, somente depois da implementação.
+6. Excluir as oito Releases antigas e as respectivas tags, assim que houver acesso administrativo capaz de executar e verificar essa exclusão.
 
 ### Não testado
 - Nenhuma ISO foi compilada.
@@ -49,8 +61,7 @@ Atualizado em 20/11/2026.
 - O perfil Archiso ainda não está pronto para compilação.
 
 ## Próximo passo
-Completar o perfil Archiso e iniciar o esqueleto do instalador C + GTK4 sem disparar qualquer build de ISO.
-
+Completar o perfil Archiso e iniciar o esqueleto do instalador C + GTK4 sem disparar qualquer build de ISO. Antes de qualquer entrega futura, garantir que o fluxo temporário de publicação e exclusão esteja disponível e verificável.
 
 ## Auditoria de vestígios do repositório em 20/11/2026
 - Os PRs históricos #1, #2, #3 e #5 tiveram título e descrição substituídos por um aviso neutro de arquivamento. Os PRs #6, #17, #18 e #20 já haviam recebido o mesmo tratamento em revisão anterior.
