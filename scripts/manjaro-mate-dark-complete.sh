@@ -7,9 +7,9 @@
 set -euo pipefail
 
 VERDE='\033[0;32m'; AMARELO='\033[1;33m'; VERMELHO='\033[0;31m'; NC='\033[0m'
-info()  { echo -e "\${VERDE}[INFO]\${NC} $1"; }
-aviso() { echo -e "\${AMARELO}[AVISO]\${NC} $1"; }
-erro()  { echo -e "\${VERMELHO}[ERRO]\${NC} $1; exit 1; }
+info()  { echo -e "${VERDE}[INFO]${NC} $1"; }
+aviso() { echo -e "${AMARELO}[AVISO]${NC} $1"; }
+erro()  { echo -e "${VERMELHO}[ERRO]${NC} $1"; exit 1; }
 
 # ---------------------------------------------------------
 # 1. VERIFICAÇÃO
