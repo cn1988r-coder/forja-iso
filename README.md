@@ -1,33 +1,35 @@
 # VENOM OS
 
-A VENOM OS é uma distribuição independente baseada no Arch Linux oficial.
+A VENOM OS passa a usar **Manjaro Linux** como base, com desktop MATE e LightDM.
 
-## Definições
-- Base: Arch Linux oficial, usando exclusivamente os repositórios oficiais.
-- Desktop: MATE.
-- Login gráfico: LightDM.
-- Idioma: Português do Brasil.
+## Base e desktop
+- Distribuição base: Manjaro Linux, repositórios oficiais Manjaro.
+- Perfil próprio: `manjaro/venom-mate`, construído pelo `manjaro-tools/buildiso` oficial.
+- Desktop: MATE + MATE Extra.
+- Gerenciador de login: LightDM.
+- Idioma padrão: Português do Brasil.
 - Teclado padrão: Brasil ABNT2.
-- Aparência: identidade escura monocromática VENOM, Materia Dark, Papirus e Bibata.
-- Aplicativos planejados: Firefox, Ferdium, Shelly e IPTVnator.
+- O perfil não inclui Calamares nem Endeavouros.
+
+## Configuração MATE do DeepSeek
+O arquivo original `scripts/manjaro-mate-dark-complete.sh` é mantido como fornecido. A mesma cópia é colocada no sistema gerado em `/usr/local/bin/manjaro-mate-dark-complete.sh`, com verificação automática de igualdade byte a byte.
+
+No menu do MATE existe o atalho **Configurar MATE**. Ele abre um terminal e executa o script original, permitindo que os comandos sudo do script solicitem autenticação quando necessário. O script não é executado silenciosamente no primeiro login.
+
+## Construção
+- Workflow: `.github/workflows/build-manjaro-iso.yml`.
+- Ferramenta de construção: ação oficial `manjaro/manjaro-iso-action`, baseada em `manjaro-tools/buildiso` e nos perfis Manjaro.
+- Perfil: `venom-mate`.
+- Canal: `stable`.
+- Kernel: `linux618`.
+- Artefato ISO temporário do GitHub Actions: retenção de 3 dias.
+
+## Limite atual
+O perfil gera uma sessão live MATE para validar o desktop e o script. Ele **não contém instalador**: Calamares foi excluído e o instalador próprio VENOM ainda não possui backend funcional. Portanto, esta imagem não deve ser tratada como instalável em disco até o instalador próprio ser implementado e testado.
 
 ## Atualizações
 O Pacman administra o sistema e os aplicativos: `sudo pacman -Syu`.
 
-O VENON é um mecanismo separado, manual e independente do Pacman:
+O VENON continua sendo um mecanismo separado, manual e independente do Pacman:
 - `venon-upgrade`: consulta e lista atualizações disponíveis, sem instalar.
 - `venon-update`: instala atualizações VENON somente após confirmação explícita.
-
-O backend, o servidor e o protocolo assinado do VENON ainda não estão implementados. Os comandos atuais permanecem bloqueios seguros e não alteram o sistema.
-
-## Instalador
-A estrutura inicial da interface do instalador próprio, desenvolvida em **C + GTK4**, está em `installer/`. Ela enumera discos e apresenta seleção de modo, mas ainda é somente um protótipo visual: o backend de instalação não existe e o botão de instalação permanece bloqueado. Não instalar em discos reais.
-
-## Estrutura
-- `build/`: perfil Archiso em preparação, pacotes e configuração do sistema live.
-- `scripts/build-venom-iso.sh`: permanece bloqueado até implementação/validação do instalador e autorização expressa.
-- `scripts/validate-build.sh`: validações estáticas, sem gerar ISO.
-- `docs/PROJECT-CONTINUITY.md`: estado técnico e histórico de continuidade.
-
-## Estado
-Nenhuma ISO foi compilada ou aprovada nesta etapa. A base Archiso e o instalador ainda exigem implementação e validação.
