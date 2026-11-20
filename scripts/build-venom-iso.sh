@@ -451,7 +451,16 @@ log "Preparando framework EndeavourOS"
   ./prepare.sh
 )
 
-log "Wallpaper monocromático preparado antes de executar prepare.sh"
+# prepare.sh may reinstall the live filesystem and reset file modes.
+# Restore the launcher permission only after that stage, immediately before mkarchiso.
+log "Validando executáveis do instalador Calamares após prepare.sh"
+CALAMARES_BIN="$EOS_DIR/airootfs/usr/bin/calamares"
+VENOM_LAUNCHER="$EOS_DIR/airootfs/usr/bin/venom-calamares"
+[[ -f "$CALAMARES_BIN" && -x "$CALAMARES_BIN" ]] || die "Executável Calamares ausente ou sem permissão no airootfs: $CALAMARES_BIN"
+[[ -f "$VENOM_LAUNCHER" ]] || die "Wrapper VENOM do Calamares ausente no airootfs: $VENOM_LAUNCHER"
+chmod 0755 "$VENOM_LAUNCHER"
+[[ -x "$VENOM_LAUNCHER" ]] || die "Wrapper VENOM do Calamares continua sem permissão de execução: $VENOM_LAUNCHER"
+log "Calamares e wrapper VENOM confirmados como executáveis no airootfs"
 
 log "Compilando ISO VENOM OS. Esta etapa pode levar bastante tempo."
 (
