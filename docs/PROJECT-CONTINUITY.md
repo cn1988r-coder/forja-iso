@@ -129,3 +129,13 @@ Nunca apresentar intenção como implementação, nem implementação como teste
 - Nenhuma build estava ativa no momento da correção. A correção ainda precisa passar pela validação estática e por uma nova compilação real. Não declarar a falha resolvida até que o novo hook seja executado e a build avance.
 - Validação #1152 e #1153: ambas concluídas com sucesso, nos commits `43b58c90fd548b6d951a87e947ef6f19a2359f62` e `ef665c984cacbacdc075fc891c4d1066283053cf`, respectivamente. Elas validam o código nos respectivos commits, mas não validam a correção posterior `8814361`.
 - Branch de trabalho permanece `fix/forja-calamares-stability`; `main` não foi alterada. A PR #20 não foi modificada. Próximo passo: acompanhar a validação e a build disparadas pelo commit `8814361`, sem novas alterações enquanto qualquer build estiver ativa.
+
+
+## Correção dos indicadores do painel MATE: causa e controles
+
+- A ISO #50 foi compilada no commit `88143611d80214fd5b945c9346b352ce8e14f47d`. A lista `build/packages.mate` desse commit continha `blueman`, mas **não** continha `network-manager-applet` nem `mate-media`. Portanto, a ISO #50 não tinha os três componentes necessários que depois foram adicionados para rede, Bluetooth e volume. A presença de `blueman` isoladamente também não garantia o serviço BlueZ nem o indicador no painel.
+- Na branch `optimize/venom-iso-size`, os pacotes `network-manager-applet`, `mate-media`, `blueman`, `bluez`, `bluez-utils` e o conjunto de áudio PipeWire/WirePlumber já constam do manifesto. Isso é uma correção de manifesto, ainda não uma validação da ISO.
+- A validação anterior era insuficiente: verificava apenas os nomes dos pacotes e a habilitação de serviços. Não verificava os arquivos reais de autostart instalados nem a presença da área de notificação no layout MATE.
+- A correção agora acrescenta ao hook de preparação da imagem verificações dos três arquivos XDG autostart, dos executáveis correspondentes e da área de notificação em `/usr/share/mate-panel/layouts/default.layout`. O perfil dconf também define explicitamente `default-layout='default'` para novos perfis Live.
+- O validador estático exige que essas verificações permaneçam no script. Isso não prova que os ícones renderizam numa sessão gráfica, mas impede que uma futura compilação prossiga silenciosamente se faltar o autostart ou a área de notificação.
+- **Estado:** alterações gravadas nesta branch; nenhuma nova ISO foi compilada; nenhuma VM foi testada com essas alterações. A próxima validação autorizada deve executar o validador estático e, somente com autorização separada, compilar e testar o painel numa VM. Não declarar os ícones corrigidos até a confirmação visual em sessão MATE real.
