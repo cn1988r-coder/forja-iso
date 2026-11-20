@@ -236,7 +236,8 @@ grep -Fxq 'materia-gtk-theme' "$ROOT/build/packages.mate" || fail "Materia ausen
 grep -Fxq 'papirus-icon-theme' "$ROOT/build/packages.mate" || fail "Papirus ausente"
 grep -Fq "picture-filename='/usr/share/backgrounds/venom/venom-wallpaper.png'" "$ROOT/build/airootfs/etc/dconf/db/local.d/00-venom" || fail "wallpaper padrão VENOM ausente"
 grep -Fq "picture-options='zoom'" "$ROOT/build/airootfs/etc/dconf/db/local.d/00-venom" || fail "ajuste do wallpaper MATE ausente"
-grep -Fq 'magick -background none "$VENOM_WALLPAPER_SVG" "$VENOM_WALLPAPER"' "$ROOT/scripts/build-venom-iso.sh" || fail "arte vetorial não é convertida para o wallpaper Live"
+grep -Fq 'rsvg-convert -w 1920 -h 1080 -o "$VENOM_WALLPAPER" "$VENOM_WALLPAPER_SVG"' "$ROOT/scripts/build-venom-iso.sh" || fail "arte vetorial não é convertida para o wallpaper Live"
+grep -Fq 'librsvg' "$ROOT/scripts/build-venom-iso.sh" || fail "dependência de renderização SVG ausente no ambiente de build"
 grep -Fq "identify -format '%wx%h' \"\$VENOM_WALLPAPER\" | grep -Fxq '1920x1080'" "$ROOT/scripts/build-venom-iso.sh" || fail "resolução do wallpaper não é validada"
 if grep -Fq "xc:'#101010'" "$ROOT/scripts/build-venom-iso.sh"; then fail "wallpaper ainda é gerado como um quadro preto liso"; fi
 grep -Fq 'install -Dm644 /etc/pacman.d/mirrorlist "$EOS_DIR/airootfs/etc/pacman.d/mirrorlist"' "$ROOT/scripts/build-venom-iso.sh" || fail "mirrorlist Arch não é incorporada à ISO"
