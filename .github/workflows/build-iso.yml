@@ -3,7 +3,7 @@ name: Compilar ISO VENOM OS
 on:
   workflow_dispatch:
   push:
-    branches: [main, fix/venom-calamares-stability]
+    branches: [main, fix/venom-calamares-stability, fix/forja-calamares-stability]
     paths:
       - "Dockerfile"
       - "scripts/build-venom-iso.sh"
