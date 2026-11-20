@@ -1,14 +1,14 @@
 # VENOM OS
 
-This profile keeps the original XFCE session structure, including its session configuration and date/time integration packages. It removes the extra bundled applications and visual identity of the upstream distribution.
+This profile preserves the original XFCE panel layout, docklike panel, Whisker menu, workspace settings, keyboard shortcuts, Thunar settings, window-manager preferences, and XFCE session defaults. Those configuration files are carried in the VENOM OS overlay with vendor artwork, icons, launchers, and wallpaper references removed or replaced.
 
-Selected applications retained:
+Retained applications:
 - Firefox
 - Pamac GTK
 - IPTVnator, installed on first login as `iptvnator-bin` from the AUR
 
-The dark theme remains enabled. The current signed XFCE support repository is used only for the XFCE session configuration packages and required keyring/release integration. No old repository URL is used.
+The dark theme remains enabled. The current signed package source is used for the XFCE panel plugin and required trust package only. No obsolete repository URL is configured.
 
-The final system identity, validation job, compilation job, and artifact are named VENOM OS.
+The system identity, validation job, compilation job, and artifact use only the name VENOM OS.
 
 This test ISO does not include Calamares. The final VENOM OS installer remains a separate project component.
