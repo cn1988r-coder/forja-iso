@@ -1,34 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-IMAGE="venom-os-iso-builder"
-
-if command -v docker >/dev/null 2>&1; then
-  ENGINE="docker"
-elif command -v podman >/dev/null 2>&1; then
-  ENGINE="podman"
-else
-  printf 'ERRO: instale Docker ou Podman para usar o ambiente de compilação isolado.\n' >&2
-  exit 1
-fi
-
-AVAILABLE_KIB="$(df -Pk "$ROOT" | awk 'NR==2 {print $4}')"
-REQUIRED_KIB=$((40 * 1024 * 1024))
-if [[ -z "$AVAILABLE_KIB" || "$AVAILABLE_KIB" -lt "$REQUIRED_KIB" ]]; then
-  printf 'ERRO: são necessários pelo menos 40 GiB livres no disco do projeto.\n' >&2
-  exit 1
-fi
-
-printf '[VENOM] Construindo ambiente Arch + repositórios EndeavourOS...\n'
-"$ENGINE" build \
-  --build-arg BUILD_UID="$(id -u)" \
-  --build-arg BUILD_GID="$(id -g)" \
-  -t "$IMAGE" "$ROOT"
-
-printf '[VENOM] Iniciando compilação dentro do container...\n'
-"$ENGINE" run --rm --privileged \
-  --user "$(id -u):$(id -g)" \
-  -v "$ROOT:/workspace" \
-  -w /workspace \
-  "$IMAGE"
+IMAGE="venom-os-validator"
+if command -v docker >/dev/null 2>&1; then ENGINE=docker; elif command -v podman >/dev/null 2>&1; then ENGINE=podman; else printf 'ERRO: Docker ou Podman não encontrado.\n' >&2; exit 1; fi
+printf '[VENOM] Construindo ambiente baseado somente no Arch Linux oficial.\n'
+"$ENGINE" build -t "$IMAGE" "$ROOT"
+printf '[VENOM] Executando somente validações estáticas. Nenhuma ISO será gerada.\n'
+"$ENGINE" run --rm -v "$ROOT:/workspace:ro" -w /workspace "$IMAGE"

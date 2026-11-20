@@ -1,35 +1,11 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
+set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-README="$ROOT/README.md"
-AUDIT="$ROOT/docs/ENDEAVOUROS-AUDIT.md"
-
 fail() { printf 'FALHA: %s\n' "$*" >&2; exit 1; }
-pass() { printf 'OK: %s\n' "$*"; }
-
-[[ -f "$README" ]] || fail "README.md ausente"
-[[ -f "$AUDIT" ]] || fail "auditoria do framework EndeavourOS ausente"
-
-grep -Fq 'Base técnica:** Arch Linux' "$README" || fail "base Arch Linux não registrada"
-grep -Fq 'componentes upstream do EndeavourOS' "$README" || fail "dependência upstream do framework não está documentada"
-grep -Fq 'MATE como único ambiente gráfico' "$README" || fail "MATE único não registrado"
-grep -Fq 'Materia Dark' "$README" || fail "Materia Dark não registrado"
-grep -Fq 'Papirus' "$README" || fail "Papirus não registrado"
-grep -Fq 'Bibata' "$README" || fail "Bibata não registrado"
-grep -Fq 'identidade escura monocromática' "$README" || fail "identidade monocromática não registrada"
-grep -Fq 'Firefox' "$README" || fail "Firefox não registrado"
-grep -Fq 'Ferdium' "$README" || fail "Ferdium não registrado"
-grep -Fq 'Shelly' "$README" || fail "Shelly não registrado"
-
-if grep -Eiq 'Shellia|eos-settings-plasma|KDE Plasma' "$README"; then
-  fail "README contém nome antigo ou desktop conflitante"
-fi
-
-grep -Fq 'Calamares' "$README" || fail "preservação do Calamares não registrada"
-grep -Fiq 'Nenhuma ISO foi aprovada' "$README" || fail "estado de validação da ISO não está explícito"
-
-pass "escopo da VENOM OS consistente"
-pass "auditoria técnica do framework presente"
+grep -Fq 'Arch Linux oficial' "$ROOT/README.md" || fail "base Arch Linux oficial não documentada"
+grep -Fq 'MATE' "$ROOT/README.md" || fail "desktop MATE não documentado"
+grep -Fq 'LightDM' "$ROOT/README.md" || fail "LightDM não documentado"
+grep -Fq 'Português do Brasil' "$ROOT/README.md" || fail "idioma padrão não documentado"
+grep -Fq 'Brasil ABNT2' "$ROOT/README.md" || fail "teclado padrão não documentado"
+grep -Fq 'C + GTK4' "$ROOT/README.md" || fail "tecnologia do instalador não documentada"
 bash "$ROOT/scripts/validate-build.sh"
-printf 'AVISO: esta checagem não compila nem testa uma ISO.\n'

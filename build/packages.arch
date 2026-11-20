@@ -1,5 +1,4 @@
-# VENOM OS base packages from the official Arch Linux repositories.
-# This manifest is used by the online Calamares installer, not by EndeavourOS.
+# Pacotes base da VENOM OS, provenientes dos repositórios oficiais Arch Linux.
 base
 archlinux-keyring
 pacman-mirrorlist

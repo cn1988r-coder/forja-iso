@@ -1,50 +1,14 @@
-# Build da VENOM OS
+# Perfil de sistema da VENOM OS
 
-O caminho recomendado é o ambiente isolado Docker/Podman, baseado em Arch Linux
-com os repositórios EndeavourOS configurados a partir de revisões fixadas.
+Este diretório contém a configuração mantida pelo projeto para a futura mídia VENOM OS, baseada no Archiso oficial e nos repositórios oficiais do Arch Linux.
 
-## Requisitos do computador
+## Estado atual
+O perfil está em preparação. A presença de manifests e arquivos de configuração não significa que a mídia esteja pronta para compilação. Ainda faltam os componentes completos de boot do perfil Archiso e o instalador próprio C + GTK4.
 
-- Docker ou Podman instalado.
-- Arquitetura x86_64.
-- Pelo menos 40 GiB livres no disco do projeto.
-- Conexão com a internet.
-- Memória recomendada: 8 GiB ou mais.
-
-## Compilar no Manjaro ou em outra distribuição
-
-Na raiz do repositório:
-
-```bash
-bash scripts/build-container.sh
-```
-
-O script constrói a imagem de build e executa a compilação em container privilegiado. O sistema live usa MATE/LightDM e oferece um launcher próprio “Instalar VENOM OS”, que chama o Calamares original do EndeavourOS no modo offline. O app Welcome do EndeavourOS foi retirado porque o fluxo atual só reconhece sessões KDE e XFCE. O cleaner do instalador remove o launcher live e o autologin do liveuser na instalação final, mantendo o LightDM habilitado para o usuário criado pelo Calamares.
-O diretório `work/` permanece no projeto e a ISO será criada em
-`work/EndeavourOS-ISO/out/`.
-
-O container usa revisões fixadas do framework EndeavourOS e da lista de pacotes
-oficial. O usuário de build interno tem sudo restrito ao container, não ao host.
-
-## Build direto em EndeavourOS/Arch
-
-Também é possível usar o script diretamente em um host Arch/EndeavourOS com
-repositórios EndeavourOS habilitados:
-
-```bash
-bash scripts/build-venom-iso.sh
-```
-
-## Pacotes externos
-
-Ferdium, Shelly e Bibata são construídos a partir de receitas externas. O
-AUR contém receitas comunitárias, não binários oficiais. As revisões do
-framework e do Shelly são fixadas; as receitas AUR de Ferdium e Bibata são
-obtidas do HEAD no momento da compilação.
-
-## Estado de validação
-
-A estrutura e a sintaxe do build são verificadas pelo GitHub Actions. Isso não
-prova que os pacotes compilaram nem que a ISO inicializa. A ISO só poderá ser
-marcada como validada depois de uma compilação real e testes de boot, sessão
-MATE e instalação do Calamares em máquina virtual.
+## Regras
+- Não adicionar repositórios, chaves, mirrors, pacotes ou serviços de outras distribuições.
+- Usar somente os repositórios oficiais do Arch Linux.
+- Manter MATE + LightDM.
+- Usar Português do Brasil e teclado Brasil ABNT2.
+- Não iniciar compilação de ISO sem autorização expressa do usuário.
+- Não declarar instalação funcional sem testes reais em VM descartável.

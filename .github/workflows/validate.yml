@@ -2,21 +2,22 @@ name: Validar projeto
 
 on:
   push:
-    branches: [main, fix/forja-calamares-stability, optimize/venom-iso-size]
+    branches:
+      - main
+      - optimize/venom-iso-size
   pull_request:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  validar-escopo-e-build:
+  validar:
     runs-on: ubuntu-latest
     steps:
-      - name: Baixar repositório
+      - name: Checkout
         uses: actions/checkout@v4
-      - name: Validar definições do projeto
+      - name: Validar escopo e configuração
         run: bash scripts/validate-scope.sh
-      - name: Validar estrutura e sintaxe do build
-        run: bash scripts/validate-build.sh

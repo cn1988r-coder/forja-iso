@@ -1,44 +1,33 @@
 # VENOM OS
 
-## Definições do projeto
+A VENOM OS é uma distribuição independente baseada no Arch Linux oficial.
 
-- **Base técnica:** Arch Linux, com componentes upstream do EndeavourOS ainda usados no processo de geração da ISO.
-- **Atualizações do sistema:** exclusivamente pelo Pacman oficial, com `sudo pacman -Syu`.
-- **Repositório próprio:** VENON, independente do Pacman e acionado somente por comandos manuais.
-- **Ambiente gráfico:** MATE como único ambiente gráfico, com LightDM.
-- **Aparência:** Materia Dark, ícones Papirus e cursor Bibata.
-- **Área de trabalho:** identidade escura monocromática.
-- **Aplicativos:** Firefox, Ferdium, Shelly e IPTVnator.
+## Definições
+- Base: Arch Linux oficial, usando exclusivamente os repositórios oficiais.
+- Desktop: MATE.
+- Login gráfico: LightDM.
+- Idioma: Português do Brasil.
+- Teclado padrão: Brasil ABNT2.
+- Aparência: identidade escura monocromática VENOM, Materia Dark, Papirus e Bibata.
+- Aplicativos planejados: Firefox, Ferdium, Shelly e IPTVnator.
 
-## Separação Pacman / VENON
+## Atualizações
+O Pacman administra o sistema e os aplicativos: `sudo pacman -Syu`.
 
-O Pacman administra o sistema operacional e os aplicativos provenientes dos repositórios oficiais Arch. A configuração global do Pacman não deve conter o repositório VENON.
+O VENON é um mecanismo separado, manual e independente do Pacman:
+- `venon-upgrade`: consulta e lista atualizações disponíveis, sem instalar.
+- `venon-update`: instala atualizações VENON somente após confirmação explícita.
 
-O VENON terá mecanismo, metadados, verificação de integridade e instalação próprios. Não pode executar `pacman`, `pacman-key`, usar uma configuração isolada do Pacman ou participar da atualização geral do sistema.
-
-Comandos definitivos:
-
-- `venon-update`: consulta e lista atualizações disponíveis no repositório VENON, sem instalar.
-- `venon-upgrade`: baixa e instala atualizações VENON somente após confirmação explícita.
-
-Os dois comandos são manuais. Nenhum serviço, timer ou inicialização automática ativa o VENON.
-
-**Estado atual:** os comandos estão presentes como bloqueios seguros, mas o servidor, o protocolo de metadados assinados e o instalador independente ainda não foram implementados. Até lá, eles informam que o serviço não está configurado e não alteram o sistema. Não anunciar o repositório como operacional.
+O backend, o servidor e o protocolo assinado do VENON ainda não estão implementados. Os comandos atuais permanecem bloqueios seguros e não alteram o sistema.
 
 ## Instalador
+O instalador próprio será desenvolvido em C + GTK4, com interface totalmente gráfica e instalação offline a partir da própria mídia. Ainda não está implementado nem validado.
 
-- **Calamares:** instalador gráfico da VENOM OS, com fluxos online e offline planejados para instalar a própria imagem do sistema presente na ISO.
+## Estrutura
+- `build/`: perfil Archiso em preparação, pacotes e configuração do sistema live.
+- `scripts/build-venom-iso.sh`: permanece bloqueado até implementação/validação do instalador e autorização expressa.
+- `scripts/validate-build.sh`: validações estáticas, sem gerar ISO.
+- `docs/PROJECT-CONTINUITY.md`: estado técnico e histórico de continuidade.
 
-## Estrutura do projeto
-
-- `Dockerfile`: ambiente de compilação.
-- `build/packages.mate`: seleção de pacotes MATE, LightDM e aparência.
-- `build/airootfs/`: configuração da sessão Live e comandos VENON.
-- `scripts/build-container.sh`: ambiente isolado via Docker/Podman.
-- `scripts/build-venom-iso.sh`: preparação e geração da ISO.
-- `scripts/validate-build.sh`: verificações estáticas, sem compilar ou iniciar a ISO.
-- `docs/ENDEAVOUROS-AUDIT.md`: auditoria dos componentes upstream utilizados.
-
-## Estado de validação
-
-Nenhuma ISO foi aprovada por compilação e instalação reais. Alterações de código e verificações estáticas não comprovam funcionamento do instalador, do hardware ou das atualizações.
+## Estado
+Nenhuma ISO foi compilada ou aprovada nesta etapa. A base Archiso e o instalador ainda exigem implementação e validação.

@@ -1,5 +1,4 @@
-# MATE desktop and session
-# Keep both standard and LTS kernels available in the Live image.
+# Desktop MATE e sessão da VENOM OS.
 linux
 linux-headers
 linux-lts
@@ -38,18 +37,13 @@ atril
 eom
 engrampa
 pluma
-
 xorg-server
 xorg-xauth
 xorg-xrandr
-
-# Display manager
 lightdm
 lightdm-gtk-greeter
 polkit
 mate-polkit
-
-# VENOM appearance
 materia-gtk-theme
 papirus-icon-theme
 dconf
