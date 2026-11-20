@@ -174,6 +174,31 @@ if [[ ! -s /etc/pacman.conf || ! -s /etc/pacman.d/mirrorlist ]] || ! grep -Eq '^
   echo "The Live environment does not have an active official Arch mirrorlist." >&2
   exit 1
 fi
+# Verify the actual installed session integration, not merely package names.
+check_session_applet() {
+  local desktop_file="$1" executable="$2"
+  [[ -s "$desktop_file" ]] || {
+    echo "MATE session autostart file is missing: $desktop_file" >&2
+    exit 1
+  }
+  command -v "$executable" >/dev/null 2>&1 || {
+    echo "MATE session applet executable is missing: $executable" >&2
+    exit 1
+  }
+  grep -Eq "^Exec=([^[:space:]]*/)?${executable}([[:space:]]|$)" "$desktop_file" || {
+    echo "MATE session autostart does not launch $executable: $desktop_file" >&2
+    exit 1
+  }
+}
+check_session_applet /etc/xdg/autostart/nm-applet.desktop nm-applet
+check_session_applet /etc/xdg/autostart/blueman.desktop blueman-applet
+check_session_applet /etc/xdg/autostart/mate-volume-control-status-icon.desktop mate-volume-control-status-icon
+if [[ ! -s /usr/share/mate-panel/layouts/default.layout ]] ||
+   ! grep -Fq 'NotificationAreaAppletFactory::NotificationArea' /usr/share/mate-panel/layouts/default.layout; then
+  echo "MATE default panel layout has no notification area for network, Bluetooth and audio icons." >&2
+  exit 1
+fi
+# Default layout is seeded through dconf for a fresh liveuser profile.
 # Default launcher is the real Arch online installer. Keep a separate offline profile.
 cp -a /etc/calamares /etc/calamares-online
 install -m 0644 /etc/calamares/settings_online.conf /etc/calamares-online/settings.conf
