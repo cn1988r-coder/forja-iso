@@ -12,6 +12,10 @@ This is the Manjaro-based VENOM OS XFCE Community edition. Its desktop configura
 
 The profile vendors the selected upstream Community XFCE settings and XFWM4 decoration assets, retaining the upstream license. It installs the required GTK theme, icon, cursor and font packages without importing the upstream package's BigLinux-specific session hooks. Upstream configuration licensing is retained in `UPSTREAM-LICENSES`.
 
+## Live session login
+
+The Manjaro profile sets `autologin="true"`, which enables automatic login for the Live session. This is a profile-level LiveCD setting and is not copied into the installed system overlays. The installed system retains the normal LightDM login screen.
+
 ## Installer
 
 Calamares is included in the Live session. Its Manjaro installation sequence is configured in `live-overlay/etc/calamares/settings.conf`, with VENOM OS branding under `live-overlay/etc/calamares/branding/venom`. The application menu contains **Install VENOM OS**. MHWD integration is enabled in the profile.
