@@ -69,26 +69,27 @@ gsettings set org.mate.peripherals-mouse cursor-size 24
 gsettings set org.mate.interface gtk-application-prefer-dark-theme true
 
 # ---------------------------------------------------------
-# 6. WALLPAPER 4K DA LUA
+# 6. WALLPAPER 4K DA LUA (vem no pacote)
 # ---------------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WALL_SRC="$SCRIPT_DIR/wallpapers/moon-grey-4k.jpg"
 WALL_DIR="$HOME/.local/share/wallpapers"
 WALL_FILE="$WALL_DIR/moon-grey-4k.jpg"
+
 mkdir -p "$WALL_DIR"
 
-info "Baixando wallpaper 4K da Lua (cinza/preto)..."
-# Imagem 4680x2160, tons de cinza/preto, compatível com 4K [citation:1]
-WALL_URL="https://wallpapers.com/images/wallpapers/magnificavista-de-uma-lua-cheia-no-ceu-noturno-4q7f0ei1u5yvrwp0.jpg"
-
-if [[ ! -f "$WALL_FILE" ]]; then
-    curl -L -o "$WALL_FILE" "$WALL_URL" || erro "Falha ao baixar wallpaper."
+if [[ -f "$WALL_SRC" ]]; then
+    cp "$WALL_SRC" "$WALL_FILE"
+    info "Wallpaper copiado do pacote."
 else
-    info "Wallpaper já existe, mantendo."
+    aviso "Wallpaper não encontrado no pacote, baixando..."
+    curl -L -o "$WALL_FILE" \
+        "https://wallpapers.com/images/wallpapers/magnificavista-de-uma-lua-cheia-no-ceu-noturno-4q7f0ei1u5yvrwp0.jpg"
 fi
 
 info "Aplicando wallpaper..."
-# MATE moderno usa gsettings [citation:4][citation:9]
-gsettings set org.mate.desktop.background picture-uri "file://$WALL_FILE" 2>/dev/null || \
-    gsettings set org.mate.background picture-filename "$WALL_FILE" 2>/dev/null || \
+gsettings set org.mate.background picture-filename "$WALL_FILE" 2>/dev/null || \
+    gsettings set org.mate.desktop.background picture-uri "file://$WALL_FILE" 2>/dev/null || \
     aviso "Não foi possível aplicar o wallpaper automaticamente."
 
 # ---------------------------------------------------------
