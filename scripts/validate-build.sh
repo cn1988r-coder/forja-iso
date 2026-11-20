@@ -93,7 +93,7 @@ grep -Fq 'branding: forja' "$ROOT/scripts/patch-calamares.py" || fail "configura
 python - "$ROOT/scripts/patch-calamares.py" <<'PY'
 import pathlib, sys
 source = pathlib.Path(sys.argv[1]).read_text()
-sequence = "  - usersq\\n  - partition\\n  - summary"
+sequence = chr(10).join(["  - usersq", "  - partition", "  - summary"])
 if sequence not in source:
     raise SystemExit("Telas do Calamares não seguem usuário, disco e resumo.")
 print("OK: fluxo visual usuário -> disco -> resumo")
