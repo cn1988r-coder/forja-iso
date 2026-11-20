@@ -112,13 +112,16 @@ rm -rf "$SKEL/.config/kdedefaults" "$SKEL/.config/plasma"* "$SKEL/.local/share/p
 find "$SKEL/.config" -maxdepth 1 -type f \( -name 'balo*' -o -name 'kcm*' -o -name 'kde*' -o -name 'kscreen*' -o -name 'ksmserverrc' -o -name 'ksplashrc' -o -name 'kwalletrc' -o -name 'kxkbrc' -o -name 'plasma*' -o -name 'powerdevilrc' -o -name 'powermanagementprofilesrc' -o -name 'systemsettingsrc' \) -delete
 mkdir -p "$EOS_DIR/airootfs/root/packages"
 
-log "Preparando wallpaper preto monocromático da VENOM OS"
+log "Gerando wallpaper gráfico monocromático da VENOM OS"
+VENOM_WALLPAPER_SVG="$ROOT/build/airootfs/usr/share/backgrounds/venom/venom-wallpaper.svg"
 VENOM_WALLPAPER="$ROOT/build/airootfs/usr/share/backgrounds/venom/venom-wallpaper.png"
 mkdir -p "$(dirname "$VENOM_WALLPAPER")" "$EOS_DIR/airootfs/root"
-magick -size 1920x1080 xc:'#101010' "$VENOM_WALLPAPER"
+[[ -s "$VENOM_WALLPAPER_SVG" ]] || die "Arte vetorial do wallpaper VENOM não encontrada."
+magick -background none "$VENOM_WALLPAPER_SVG" "$VENOM_WALLPAPER"
+[[ -s "$VENOM_WALLPAPER" ]] || die "Não foi possível rasterizar o wallpaper gráfico da VENOM OS."
+identify -format '%wx%h' "$VENOM_WALLPAPER" | grep -Fxq '1920x1080' || die "Wallpaper VENOM gerado com resolução incorreta."
 cp "$VENOM_WALLPAPER" "$EOS_DIR/airootfs/root/livewall.png"
 cp "$VENOM_WALLPAPER" "$EOS_DIR/airootfs/root/endeavouros-wallpaper.png"
-[[ -s "$VENOM_WALLPAPER" ]] || die "Não foi possível gerar o wallpaper monocromático da VENOM OS."
 
 log "Removendo etapa específica de configuração KDE do prepare.sh"
 python - "$EOS_DIR/prepare.sh" <<'PY'
