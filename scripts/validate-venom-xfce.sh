@@ -61,6 +61,8 @@ fi
 grep -Fq 'label="VENOM_OS_XFCE_1.0"' "$P/profile.conf" || fail "rótulo VENOM OS XFCE 1.0 ausente"
 grep -Fq 'hostname="venom"' "$P/profile.conf" || fail "hostname VENOM ausente"
 grep -Fq 'displaymanager="lightdm"' "$P/profile.conf" || fail "LightDM não selecionado"
+grep -Fq 'autologin="true"' "$P/profile.conf" || fail "autologin do Live não habilitado no perfil Manjaro"
+if grep -R -Eiq 'autologin-user=|autologin="true"' "$D" "$R"; then fail "autologin foi incluído no sistema instalado; deve existir somente no Live"; fi
 grep -Fq 'mhwd_used="true"' "$P/profile.conf" || fail "integração MHWD do instalador não habilitada"
 grep -Fq '[community-stable]' "$P/user-repos.conf" || fail "repositório Community Stable não configurado"
 grep -Fq 'https://repo.communitybig.org/community-stable/$arch' "$P/user-repos.conf" || fail "URL Community Stable ausente"
