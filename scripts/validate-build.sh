@@ -16,6 +16,7 @@ required_files=(
   "$ROOT/Dockerfile"
   "$ROOT/.dockerignore"
   "$ROOT/build/packages.mate"
+  "$ROOT/build/packages.arch"
   "$ROOT/build/airootfs/etc/dconf/profile/user"
   "$ROOT/build/airootfs/etc/dconf/db/local.d/00-forja"
   "$ROOT/build/airootfs/etc/lightdm/lightdm.conf.d/10-forja-live.conf"
@@ -148,6 +149,9 @@ grep -Fq 'update_db: true' "$ROOT/scripts/patch-calamares.py" || fail "o instala
 grep -Fq 'networkmanager' "$ROOT/build/packages.arch" || fail "NetworkManager ausente do sistema Arch da Forja"
 grep -Fxq 'pacman-mirrorlist' "$ROOT/build/packages.arch" || fail "mirrorlist oficial Arch ausente do instalador online"
 grep -Fq 'shellprocess_forja_stage_packages.conf' "$ROOT/scripts/patch-calamares.py" || fail "pacotes próprios Forja não são preparados para instalação"
+grep -Fq '/usr/share/forja/packages/shelly-git-*.pkg.tar.zst' "$ROOT/scripts/patch-calamares.py" || fail "arquivos AUR Forja não são lidos do caminho persistente da ISO"
+grep -Fq 'package_archive_copy =' "$ROOT/scripts/build-forja-iso.sh" || fail "pacotes AUR não são preservados antes da limpeza da imagem Live"
+if grep -Eiq '^(endeavouros-|eos-)' "$ROOT/build/packages.arch"; then fail "manifesto online contém pacotes EndeavourOS"; fi
 grep -Fq 'shelly-git-*.pkg.tar.zst' "$ROOT/scripts/patch-calamares.py" || fail "Shelly não será instalado no fluxo online"
 grep -Fq 'shellprocess@forja_cleanup' "$ROOT/scripts/patch-calamares.py" || fail "limpeza final da instalação Forja ausente"
 grep -Fq 'pacman -Q calamares' "$ROOT/scripts/patch-calamares.py" || fail "remoção de Calamares não é condicional no sistema instalado"
