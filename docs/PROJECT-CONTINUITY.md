@@ -70,3 +70,17 @@ Completar o perfil Archiso e iniciar o esqueleto do instalador C + GTK4 sem disp
 - O histórico Git antigo continua acessível. A conexão não oferece operação para criar commit órfão/recriar o histórico sem pais, nem apagar referências históricas protegidas pela plataforma.
 - A árvore de arquivos atual foi auditada anteriormente: não há caminhos ou conteúdos atuais com referências a EndeavourOS ou Calamares.
 - Portanto, a limpeza da árvore atual e dos metadados editáveis de PR foi realizada, mas a remoção total de branches antigas, releases, tags e histórico depende de permissões/operações administrativas que não estão disponíveis nesta conexão. Não declarar o repositório integralmente livre de vestígios até essa etapa ser concluída.
+
+
+## Retomada do instalador em 20/11/2026
+- HEAD de início desta retomada: 160c4c4eaebae08a326a671c3c530fdf6d9420ce.
+- Causa confirmada do atraso: a limpeza anterior removeu os componentes do instalador herdado e deixou somente a especificação. Não havia implementação própria C/GTK4 no repositório.
+- Criado `installer/src/main.c`: protótipo inicial da interface GTK4, com detecção informativa de discos via lsblk, escolha visual de disco e modo automático/personalizado.
+- Criado `installer/meson.build` e `installer/README.md`.
+- O botão de instalação está deliberadamente bloqueado. O protótipo não particiona, formata nem grava em discos.
+- Dockerfile atualizado com Meson/Ninja; workflows de validação agora tentam compilar a interface em runner Ubuntu com GTK4; validação estática passou a exigir os arquivos do protótipo.
+- README atualizado para não descrever o instalador como inexistente, mas deixar explícito que ainda não é funcional.
+- Commits desta etapa: cb4cde8, c58e2ed, 247a937, ec5e0f7, 7f85cf5, 9c78577, 0030feb, 2924b5a (na ordem de criação; cada um na branch autorizada).
+- Ainda não há backend privilegiado, particionamento, instalação offline, criação de usuário, configuração de GRUB, progresso real ou logs operacionais. O protótipo não pode ser usado para instalar o sistema.
+- A compilação CI foi configurada, mas seu resultado precisa ser consultado antes de afirmar que o código compila.
+- Prazo desejado pelo usuário: sistema com instalador utilizável amanhã. Não prometer esse prazo como garantido; priorizar implementação e testes reais em VM descartável. Não habilitar operações destrutivas nem compilar ISO sem autorização expressa.
