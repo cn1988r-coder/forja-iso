@@ -167,7 +167,7 @@ grep -Fq '  - unpackfs' "$ROOT/scripts/patch-calamares.py" || fail "o instalador
 grep -Fq 'update_system: true' "$ROOT/scripts/patch-calamares.py" || fail "o instalador online não atualiza o sistema VENOM copiado"
 grep -Fq 'package_archive_copy =' "$ROOT/scripts/build-venom-iso.sh" || fail "pacotes AUR não são preservados antes da limpeza da imagem Live"
 if grep -Eiq '^(endeavouros-|eos-)' "$ROOT/build/packages.arch"; then fail "manifesto online contém pacotes EndeavourOS"; fi
-grep -Fq 'shelly-git-*.pkg.tar.zst' "$ROOT/scripts/patch-calamares.py" || fail "Shelly não será instalado no fluxo online"
+grep -Fq "find . -maxdepth 1 -name 'shelly-git-*.pkg.tar.zst' -exec cp -v {} \"\$PKG_DIR/\" \\;" "$ROOT/scripts/build-venom-iso.sh" || fail "pacote Shelly não é incorporado à imagem Live da VENOM"
 grep -Fq 'shellprocess@venom_cleanup' "$ROOT/scripts/patch-calamares.py" || fail "limpeza final da instalação VENOM ausente"
 grep -Fq 'pacman -Q calamares' "$ROOT/scripts/patch-calamares.py" || fail "remoção de Calamares não é condicional no sistema instalado"
 grep -Fq 'rate-mirrors$|reflector-simple$|welcome$|iso-create-ml$' "$ROOT/scripts/patch-calamares.py" || fail "ferramentas EndeavourOS não são removidas do destino offline"
