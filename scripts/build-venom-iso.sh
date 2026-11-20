@@ -190,10 +190,6 @@ check_session_applet() {
     exit 1
   }
 }
-check_session_applet /etc/xdg/autostart/nm-applet.desktop nm-applet
-check_session_applet /etc/xdg/autostart/blueman.desktop blueman-applet
-check_session_applet /etc/xdg/autostart/mate-volume-control-status-icon.desktop mate-volume-control-status-icon
-
 # Replace upstream autostart entries with explicit MATE-only launchers.
 # This avoids relying on desktop-environment filters shipped by package defaults.
 install -d -m 0755 /etc/xdg/autostart
@@ -225,6 +221,10 @@ X-MATE-Autostart-enabled=true
 NoDisplay=true
 DESKTOP
 chmod 0644 /etc/xdg/autostart/nm-applet.desktop /etc/xdg/autostart/blueman.desktop /etc/xdg/autostart/mate-volume-control-status-icon.desktop
+# Validate the launchers after writing them, not the upstream files they replace.
+check_session_applet /etc/xdg/autostart/nm-applet.desktop nm-applet
+check_session_applet /etc/xdg/autostart/blueman.desktop blueman-applet
+check_session_applet /etc/xdg/autostart/mate-volume-control-status-icon.desktop mate-volume-control-status-icon
 # Do not let an inherited liveuser dconf database override the system MATE panel layout.
 rm -f /home/liveuser/.config/dconf/user
 
