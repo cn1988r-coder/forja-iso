@@ -52,7 +52,7 @@ lightdm = source.split(lightdm_marker, 1)[1].split(chr(10) + "PY", 1)[0]
 if "import pathlib, re, sys" not in lightdm:
     raise SystemExit("Bloco LightDM usa re sem importar o módulo.")
 
-tree = ast.parse(source)
+tree = ast.parse(lightdm)
 pattern_text = None
 for node in ast.walk(tree):
     if not isinstance(node, ast.Assign):
