@@ -114,6 +114,7 @@ sequence:
   - networkcfg
   - displaymanager
   - hwclock
+  - shellprocess@forja_grub_defaults
   - bootloader
   - services-systemd
   - preservefiles
@@ -181,6 +182,7 @@ sequence:
   - fstab
   - displaymanager
   - hwclock
+  - shellprocess@forja_grub_defaults
   - bootloader
   - services-systemd
   - preservefiles
@@ -337,6 +339,24 @@ displaymanagers:
 basicSetup: false
 sysconfigSetup: false
 """)
+(modules / "shellprocess_forja_grub_defaults.conf").write_text("""---
+dontChroot: false
+timeout: 30
+verbose: true
+script:
+  - 'install -d -m 0755 /etc/default'
+  - 'cat > /etc/default/grub <<\'GRUB\''
+  - 'GRUB'
+  - 'GRUB_DEFAULT=0'
+  - 'GRUB_TIMEOUT=5'
+  - 'GRUB_DISTRIBUTOR="Forja OS"'
+  - 'GRUB_CMDLINE_LINUX_DEFAULT="quiet loglevel=3"'
+  - 'GRUB_CMDLINE_LINUX=""'
+  - 'GRUB_DISABLE_SUBMENU=true'
+  - 'GRUB_DISABLE_RECOVERY=true'
+  - 'GRUB_EARLY_INITRD_LINUX_STOCK=""'
+  - 'GRUB'
+""")
 (modules / "services-systemd.conf").write_text("""---
 units:
   - name: "NetworkManager.service"
@@ -357,7 +377,7 @@ units:
 unpackfs = modules / "unpackfs.conf"
 if not unpackfs.exists() or "/run/archiso/bootmnt/arch/x86_64/airootfs.sfs" not in unpackfs.read_text():
     raise SystemExit("A origem da imagem Forja no unpackfs.conf não foi encontrada.")
-for required in ("displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf", "shellprocess_forja_cleanup.conf", "shellprocess_forja_bootstrap.conf", "shellprocess_forja_sudoers.conf", "shellprocess_forja_stage_packages.conf", "shellprocess_forja_local_packages.conf", "packages_online.conf", "welcome_forja_online.conf"):
+for required in ("displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf", "shellprocess_forja_cleanup.conf", "shellprocess_forja_bootstrap.conf", "shellprocess_forja_sudoers.conf", "shellprocess_forja_stage_packages.conf", "shellprocess_forja_local_packages.conf", "shellprocess_forja_grub_defaults.conf", "packages_online.conf", "welcome_forja_online.conf"):
     if not (modules / required).exists():
         raise SystemExit(f"Módulo necessário ausente: {required}")
 for config in (settings_offline, settings_online):
