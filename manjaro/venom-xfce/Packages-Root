@@ -65,6 +65,3 @@ which
 wpa_supplicant
 xfsprogs
 community-keyring
-yay
-git
-base-devel
