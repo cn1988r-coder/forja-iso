@@ -160,7 +160,30 @@ if grep -Eiq '^(endeavouros-|eos-)' "$ROOT/build/packages.arch"; then fail "mani
 grep -Fq 'shelly-git-*.pkg.tar.zst' "$ROOT/scripts/patch-calamares.py" || fail "Shelly não será instalado no fluxo online"
 grep -Fq 'shellprocess@forja_cleanup' "$ROOT/scripts/patch-calamares.py" || fail "limpeza final da instalação Forja ausente"
 grep -Fq 'pacman -Q calamares' "$ROOT/scripts/patch-calamares.py" || fail "remoção de Calamares não é condicional no sistema instalado"
-grep -Fq 'grep -E "^(endeavouros-|eos-)"' "$ROOT/scripts/patch-calamares.py" || fail "pacotes EndeavourOS não são removidos do destino offline"
+grep -Fq 'rate-mirrors$|reflector-simple$|welcome$|iso-create-ml
+grep -Fq '/etc/polkit-1/rules.d/49-forja-calamares.rules' "$ROOT/scripts/patch-calamares.py" || fail "regra temporária Polkit não será removida do sistema instalado"
+grep -Fq 'rm -f /etc/pacman.d/endeavouros-mirrorlist' "$ROOT/scripts/patch-calamares.py" || fail "mirrorlist EndeavourOS não será removida do sistema instalado"
+
+if grep -Eq 'endeavouros|eos-' "$ROOT/build/packages.mate"; then
+  fail "pacotes EndeavourOS encontrados no perfil final"
+fi
+grep -Fxq 'materia-gtk-theme' "$ROOT/build/packages.mate" || fail "Materia ausente"
+grep -Fxq 'papirus-icon-theme' "$ROOT/build/packages.mate" || fail "Papirus ausente"
+grep -Fq "picture-filename='/usr/share/backgrounds/forja/forja-wallpaper.png'" "$ROOT/build/airootfs/etc/dconf/db/local.d/00-forja" || fail "wallpaper padrão Forja ausente"
+grep -Fq "picture-options='zoom'" "$ROOT/build/airootfs/etc/dconf/db/local.d/00-forja" || fail "ajuste do wallpaper MATE ausente"
+grep -Fq 'magick -size 1920x1080 xc:'"'"'#101010'"'"' "$FORJA_WALLPAPER"' "$ROOT/scripts/build-forja-iso.sh" || fail "geração do wallpaper preto Forja ausente"
+grep -Fq 'install -Dm644 /etc/pacman.d/mirrorlist "$EOS_DIR/airootfs/etc/pacman.d/mirrorlist"' "$ROOT/scripts/build-forja-iso.sh" || fail "mirrorlist Arch não é incorporada à ISO"
+grep -Fq 'grep -Eiq '\''endeavouros'\'' /etc/pacman.d/mirrorlist' "$ROOT/scripts/build-forja-iso.sh" || fail "mirrorlist final não é protegida contra servidores EndeavourOS"
+grep -Fq 'cp "$FORJA_WALLPAPER" "$EOS_DIR/airootfs/root/livewall.png"' "$ROOT/scripts/build-forja-iso.sh" || fail "wallpaper não substitui o fundo gerado pelo prepare.sh"
+
+if grep -Eiq '^(plasma|kde|sddm|dolphin|konsole)(-|$)' "$ROOT/build/packages.mate"; then
+  fail "pacotes KDE encontrados na lista MATE"
+fi
+
+pass "arquivos e escopo do build presentes"
+pass "sintaxe Bash e blocos Python do compilador válidos"
+printf 'AVISO: esta validação estática não executa makepkg, mkarchiso ou testes de VM.\n'
+ "$ROOT/scripts/patch-calamares.py" || fail "ferramentas EndeavourOS não são removidas do destino offline"
 grep -Fq '/etc/polkit-1/rules.d/49-forja-calamares.rules' "$ROOT/scripts/patch-calamares.py" || fail "regra temporária Polkit não será removida do sistema instalado"
 grep -Fq 'rm -f /etc/pacman.d/endeavouros-mirrorlist' "$ROOT/scripts/patch-calamares.py" || fail "mirrorlist EndeavourOS não será removida do sistema instalado"
 
