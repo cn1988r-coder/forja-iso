@@ -220,6 +220,81 @@ OnlyShowIn=MATE;
 X-MATE-Autostart-enabled=true
 NoDisplay=true
 DESKTOP
+
+# Install a deterministic MATE panel layout after the desktop packages are installed.
+# The top panel contains a real separator, the notification area (network/Bluetooth
+# tray icons), the native MATE volume applet, and the clock.
+install -d -m 0755 /usr/share/mate-panel/layouts
+cat > /usr/share/mate-panel/layouts/default.layout <<'LAYOUT'
+[Toplevel top]
+expand=true
+orientation=top
+size=28
+
+[Toplevel bottom]
+expand=true
+orientation=bottom
+size=28
+
+[Object menu-bar]
+object-type=menu-bar
+toplevel-id=top
+pack-index=0
+locked=true
+
+[Object separator]
+object-type=separator
+toplevel-id=top
+pack-index=1
+locked=true
+
+[Object notification-area]
+object-type=applet
+applet-iid=NotificationAreaAppletFactory::NotificationArea
+toplevel-id=top
+pack-type=end
+pack-index=2
+locked=true
+
+[Object volume-control]
+object-type=applet
+applet-iid=GvcAppletFactory::GvcApplet
+toplevel-id=top
+pack-type=end
+pack-index=1
+locked=true
+
+[Object clock]
+object-type=applet
+applet-iid=ClockAppletFactory::ClockApplet
+toplevel-id=top
+pack-type=end
+pack-index=0
+locked=true
+
+[Object show-desktop]
+object-type=applet
+applet-iid=WnckletFactory::ShowDesktopApplet
+toplevel-id=bottom
+pack-index=0
+locked=true
+
+[Object window-list]
+object-type=applet
+applet-iid=WnckletFactory::WindowListApplet
+toplevel-id=bottom
+pack-index=1
+locked=true
+
+[Object workspace-switcher]
+object-type=applet
+applet-iid=WnckletFactory::WorkspaceSwitcherApplet
+toplevel-id=bottom
+pack-type=end
+pack-index=0
+locked=true
+LAYOUT
+
 chmod 0644 /etc/xdg/autostart/nm-applet.desktop /etc/xdg/autostart/blueman.desktop /etc/xdg/autostart/mate-volume-control-status-icon.desktop
 # Validate the launchers after writing them, not the upstream files they replace.
 check_session_applet /etc/xdg/autostart/nm-applet.desktop nm-applet
@@ -229,8 +304,10 @@ check_session_applet /etc/xdg/autostart/mate-volume-control-status-icon.desktop 
 rm -f /home/liveuser/.config/dconf/user
 
 if [[ ! -s /usr/share/mate-panel/layouts/default.layout ]] ||
-   ! grep -Fq 'NotificationAreaAppletFactory::NotificationArea' /usr/share/mate-panel/layouts/default.layout; then
-  echo "MATE default panel layout has no notification area for network, Bluetooth and audio icons." >&2
+   ! grep -Fq 'NotificationAreaAppletFactory::NotificationArea' /usr/share/mate-panel/layouts/default.layout ||
+   ! grep -Fq '[Object separator]' /usr/share/mate-panel/layouts/default.layout ||
+   ! grep -Fq 'GvcAppletFactory::GvcApplet' /usr/share/mate-panel/layouts/default.layout; then
+  echo "VENOM MATE panel layout is missing the notification area, separator or native volume applet." >&2
   exit 1
 fi
 for desktop in nm-applet.desktop blueman.desktop mate-volume-control-status-icon.desktop; do
