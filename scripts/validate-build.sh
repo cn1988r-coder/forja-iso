@@ -51,6 +51,8 @@ grep -Fq 'raw.githubusercontent.com/Seafoam-Labs/Shelly-ALPM/' "$ROOT/scripts/bu
 grep -Fq 'makepkg --syncdeps --noconfirm' "$ROOT/scripts/build-forja-iso.sh" || fail "PKGBUILD original do Calamares não é compilado"
 grep -Fq 'install -m 0644 /etc/calamares/settings_online.conf /etc/calamares/settings.conf' "$ROOT/scripts/build-forja-iso.sh" || fail "configuração online não é o padrão do instalador"
 grep -Fq 'calamares -c /etc/calamares-online' "$ROOT/scripts/build-forja-iso.sh" || fail "atalho principal não inicia o instalador online"
+grep -Fq 'Name=Install Forja OS (online)' "$ROOT/scripts/build-forja-iso.sh" || fail "atalho online não identifica a Forja OS"
+grep -Fq 'Name[pt_BR]=Instalar Forja OS (online)' "$ROOT/scripts/build-forja-iso.sh" || fail "atalho online não está identificado em português"
 grep -Fq 'calamares -c /etc/calamares-offline' "$ROOT/scripts/build-forja-iso.sh" || fail "atalho offline separado não foi criado"
 grep -Fq 'Exec=pkexec calamares' "$ROOT/scripts/build-forja-iso.sh" || fail "atalho gráfico não inicia o Calamares diretamente"
 grep -Fq 'action.id === "com.github.calamares.calamares"' "$ROOT/build/airootfs/etc/polkit-1/rules.d/49-forja-calamares.rules" || fail "regra Polkit não autoriza a ação correta do Calamares"
