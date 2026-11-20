@@ -2,17 +2,18 @@
 
 ## Correção dos indicadores do painel MATE em 2026-11-20
 
-- Durante o teste da ISO #50, o usuário informou que os indicadores de rede, Bluetooth e volume não apareciam no painel MATE.
-- Revisão do perfil Live na branch `optimize/venom-iso-size` confirmou que `network-manager-applet` e `mate-media` não estavam em `build/packages.mate`. O pacote `blueman` já estava listado, mas os pacotes `bluez` e `bluez-utils` não estavam explicitamente incluídos.
-- Correção preparada no perfil Live: adicionar `network-manager-applet`, `mate-media`, `bluez`, `bluez-utils` e a pilha de áudio `pipewire`, `pipewire-alsa`, `pipewire-pulse`, `pipewire-jack`, `wireplumber`, `alsa-utils` e `rtkit`. O script já habilita `NetworkManager.service` e `bluetooth.service`; esses serviços continuam habilitados.
-- O validador estático foi ampliado para exigir os pacotes dos indicadores e verificar a ativação do serviço Bluetooth.
-- Esta correção altera somente a branch isolada `optimize/venom-iso-size`; não modifica `main` nem `fix/forja-calamares-stability`.
-- **Não testado:** a correção ainda não foi compilada nem verificada em sessão Live. A ISO #50 existente não muda. Não iniciar build sem autorização explícita do usuário.
-- **Próximo passo:** executar a validação estática e, após autorização, compilar nova ISO e testar visualmente os três indicadores na sessão MATE Live e no sistema instalado.
+- A ISO #50 foi testada pelo usuário e mostrou o relógio/calendário, mas não os indicadores de rede, Bluetooth e volume na área de notificação do painel superior.
+- A causa da ausência de rede e volume na ISO #50 é confirmada: o manifesto daquela compilação não incluía `network-manager-applet` nem `mate-media`. Bluetooth ainda exige BlueZ e o applet Blueman.
+- Na branch `optimize/venom-iso-size`, o manifesto já inclui `network-manager-applet`, `mate-media`, `blueman`, `bluez`, `bluez-utils` e PipeWire/WirePlumber. Isso, isoladamente, não prova que os ícones apareçam.
+- Correção adicional preparada no hook pós-instalação dos pacotes: substituir os três arquivos XDG de autostart por entradas explícitas para MATE (`nm-applet`, `blueman-applet` e `mate-volume-control-status-icon`), verificar os arquivos e executáveis e manter a área de notificação no layout padrão do painel.
+- O hook também remove o banco dconf de usuário herdado de `liveuser`, se existir, para impedir que configurações anteriores da sessão Live se sobreponham ao banco de sistema VENOM que define `default-layout='default'`.
+- Os nomes dos arquivos XDG foram conferidos nas listas oficiais dos pacotes Arch Linux: `network-manager-applet`, `mate-media` e `blueman`. Referências: <https://archlinux.org/packages/extra/x86_64/network-manager-applet/files/>, <https://archlinux.org/packages/extra/x86_64/mate-media/files/> e <https://archlinux.org/packages/extra/x86_64/blueman/files/>.
+- Referência adicional: o manual do MATE descreve a Notification Area como applet do painel, e o issue #1493 do mate-panel registra casos em que a área de notificação não fica visível mesmo configurada. Isso reforça que presença de pacotes não equivale a integração visual funcional.
+- **Feito no código:** entradas de autostart MATE explícitas, remoção do banco dconf herdado e verificações correspondentes adicionadas ao script/validador.
+- **Pendente:** executar a validação estática e revisar o resultado. Depois, somente com autorização do usuário, compilar e verificar os três ícones em uma sessão Live MATE real.
+- **Não testado:** nenhuma nova ISO foi compilada; nenhuma sessão Live foi iniciada após essas mudanças. A ISO #50 permanece inalterada. Não iniciar build sem autorização explícita.
 
 Última atualização: 2026-11-20
-
-Este documento é a referência operacional para retomar o desenvolvimento sem depender de o usuário recontar o histórico. Deve ser consultado no início de cada sessão de trabalho e atualizado após mudanças relevantes, builds, decisões e testes.
 
 ## Otimização do tamanho da ISO em 2026-11-20
 
