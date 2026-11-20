@@ -80,7 +80,7 @@ jobs:
               raise SystemExit("Ordem incorreta: bootstrap Arch, usuário, rede, pacotes Forja e bootloader.")
           print("OK: sequência online executa bootstrap Arch antes da instalação dos pacotes Forja")
           PY
-          grep -Fq 'rate-mirrors$|reflector-simple$|welcome$|iso-create-ml
+          grep -Fq 'rate-mirrors$|reflector-simple$|welcome$|iso-create-ml$' "$EOS/modules/shellprocess_forja_cleanup.conf"
 
           grep -Fxq 'efiBootLoader: "grub"' "$EOS/modules/bootloader.conf"
           ! grep -q 'efiBootLoaderVar:' "$EOS/modules/partition.conf"
