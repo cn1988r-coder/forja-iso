@@ -7,6 +7,10 @@ A VENOM OS passa a usar **Manjaro Linux** como base, com desktop MATE e LightDM.
 - Perfil próprio: `manjaro/venom-mate`, construído pelo `manjaro-tools/buildiso` oficial.
 - Desktop: MATE + MATE Extra.
 - Gerenciador de login: LightDM.
+- Rede/Wi-Fi: NetworkManager e nm-applet na bandeja do sistema.
+- Bluetooth: BlueZ e Blueman com ícone de bandeja.
+- Áudio: PipeWire, WirePlumber e applet de volume MATE no painel.
+- O perfil inclui explicitamente o applet de volume MATE e a bandeja de sistema no layout do painel.
 - Idioma padrão: Português do Brasil.
 - Teclado padrão: Brasil ABNT2.
 - O perfil não inclui Calamares nem Endeavouros.
