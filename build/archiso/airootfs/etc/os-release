@@ -1,0 +1,6 @@
+NAME="VENOM OS"
+PRETTY_NAME="VENOM OS"
+ID=venom
+ID_LIKE=arch
+BUILD_ID=rolling
+ANSI_COLOR="0;90"

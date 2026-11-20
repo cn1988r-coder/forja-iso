@@ -3,422 +3,83 @@ set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WORK="${ROOT}/work"
-EOS_DIR="${WORK}/EndeavourOS-ISO"
-PKG_DIR="${WORK}/packages"
-EOS_COMMIT="90376d8f52ab19e19073eed33d6f36c46ec7c409"
-PKGBUILDS_COMMIT="474a51d4c7cb6f82bfbb2e78a7ce9a321aa5eabd"
-SHELLY_COMMIT="6840658b19d72205c38bd320c1cef6ff3076bc7c"
+PROFILE="${WORK}/venom-profile"
+OUTPUT="${WORK}/out"
+ARCHISO_RELENG="/usr/share/archiso/configs/releng"
 
 log() { printf '\n[VENOM] %s\n' "$*"; }
 die() { printf '\n[ERRO] %s\n' "$*" >&2; exit 1; }
-trap 'die "Falha na linha $LINENO. Consulte a mensagem acima."' ERR
 
-[[ "$(uname -m)" == x86_64 ]] || die "A compilação atual exige x86_64."
-[[ -f /etc/arch-release ]] || die "Use EndeavourOS ou Arch Linux com os repositórios EndeavourOS habilitados."
-[[ $EUID -ne 0 ]] || die "Execute como usuário normal. O script usa sudo apenas nas etapas necessárias."
-command -v git >/dev/null || die "Instale git."
-command -v curl >/dev/null || die "Instale curl."
-command -v makepkg >/dev/null || die "makepkg não encontrado. Use um host Arch/EndeavourOS."
-command -v sudo >/dev/null || die "sudo não encontrado."
+[[ "$(uname -m)" == x86_64 ]] || die "A ISO atual é destinada a x86_64."
+[[ $EUID -ne 0 ]] || die "Execute como usuário normal; sudo será usado somente no mkarchiso."
+command -v git >/dev/null || die "git não encontrado."
+command -v magick >/dev/null || die "ImageMagick não encontrado."
+command -v mkarchiso >/dev/null || die "Instale o pacote oficial archiso."
+[[ -d "$ARCHISO_RELENG" ]] || die "Perfil releng do Archiso não encontrado em $ARCHISO_RELENG."
 
-mkdir -p "$WORK" "$PKG_DIR"
+log "Preparando perfil VENOM a partir do perfil oficial Archiso"
+rm -rf "$PROFILE"
+mkdir -p "$PROFILE" "$OUTPUT"
+cp -a "$ARCHISO_RELENG/." "$PROFILE/"
+cp -a "$ROOT/build/archiso/." "$PROFILE/"
 
-log "Instalando dependências de compilação"
-sudo pacman -S --needed --noconfirm archiso git curl squashfs-tools imagemagick base-devel python
-export MAKEFLAGS="-j$(nproc)"
+log "Montando a seleção de pacotes exclusivamente dos manifestos VENOM/Arch"
+{
+  cat "$ROOT/build/packages.arch"
+  cat "$ROOT/build/packages.mate"
+  printf '%s\n' \
+    archiso mkinitcpio-archiso syslinux grub efibootmgr dosfstools \
+    squashfs-tools networkmanager lightdm lightdm-gtk-greeter \
+    mate-session-manager mate-panel mate-control-center caja marco \
+    mate-settings-daemon mate-terminal mate-themes mate-applets \
+    mate-notification-daemon mate-power-manager mate-screensaver \
+    mate-system-monitor mate-utils atril eom engrampa pluma \
+    materia-gtk-theme papirus-icon-theme dconf noto-fonts
+} | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' | sort -u > "$PROFILE/packages.x86_64"
 
-clone_at_commit() {
-  local url="$1" dir="$2" commit="$3"
-  if [[ ! -d "$dir/.git" ]]; then
-    git clone "$url" "$dir"
-  fi
-  git -C "$dir" fetch --all --tags
-  git -C "$dir" checkout --detach "$commit"
-  git -C "$dir" reset --hard "$commit"
-  git -C "$dir" clean -fdx
-}
+log "Aplicando configurações MATE, LightDM e identidade VENOM"
+install -Dm644 "$ROOT/build/airootfs/etc/dconf/db/local.d/00-venom" \
+  "$PROFILE/airootfs/etc/dconf/db/local.d/00-venom"
+install -Dm644 "$ROOT/build/airootfs/etc/dconf/profile/user" \
+  "$PROFILE/airootfs/etc/dconf/profile/user"
+install -Dm644 "$ROOT/build/airootfs/etc/lightdm/lightdm-gtk-greeter.conf" \
+  "$PROFILE/airootfs/etc/lightdm/lightdm-gtk-greeter.conf"
+install -Dm644 "$ROOT/build/airootfs/etc/lightdm/lightdm.conf.d/10-venom-live.conf" \
+  "$PROFILE/airootfs/etc/lightdm/lightdm.conf.d/10-venom-live.conf"
+install -Dm644 "$ROOT/build/airootfs/etc/skel/.config/gtk-3.0/settings.ini" \
+  "$PROFILE/airootfs/etc/skel/.config/gtk-3.0/settings.ini"
+install -Dm644 "$ROOT/build/airootfs/etc/skel/.config/gtk-4.0/settings.ini" \
+  "$PROFILE/airootfs/etc/skel/.config/gtk-4.0/settings.ini"
+install -Dm644 "$PROFILE/pacman.conf" "$PROFILE/airootfs/etc/pacman.conf"
+install -Dm644 "$ROOT/build/archiso/airootfs/etc/os-release" \
+  "$PROFILE/airootfs/etc/os-release"
+install -Dm644 "$ROOT/build/archiso/airootfs/etc/hostname" \
+  "$PROFILE/airootfs/etc/hostname"
+install -Dm644 "$ROOT/build/archiso/airootfs/etc/systemd/system/venom-live-user.service" \
+  "$PROFILE/airootfs/etc/systemd/system/venom-live-user.service"
+install -Dm755 "$ROOT/build/archiso/airootfs/usr/local/bin/venom-live-user-setup" \
+  "$PROFILE/airootfs/usr/local/bin/venom-live-user-setup"
+mkdir -p "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants" \
+         "$PROFILE/airootfs/etc/systemd/system/graphical.target.wants"
+ln -sfn ../venom-live-user.service \
+  "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants/venom-live-user.service"
+ln -sfn /usr/lib/systemd/system/lightdm.service \
+  "$PROFILE/airootfs/etc/systemd/system/graphical.target.wants/lightdm.service"
 
-log "Obtendo framework EndeavourOS fixado em $EOS_COMMIT"
-clone_at_commit https://github.com/endeavouros-team/EndeavourOS-ISO.git "$EOS_DIR" "$EOS_COMMIT"
+log "Gerando fundo monocromático da VENOM OS"
+install -d "$PROFILE/airootfs/usr/share/backgrounds/venom"
+magick -size 1920x1080 xc:'#000000' \
+  "$PROFILE/airootfs/usr/share/backgrounds/venom/venom-wallpaper.png"
 
-log "Preparando lista fixa de pacotes VENOM OS com MATE, Firefox e aplicativos próprios"
-python - "$EOS_DIR/packages.x86_64" "$ROOT/build/packages.mate" <<'PY'
-import pathlib, re, sys
-target = pathlib.Path(sys.argv[1])
-mate = pathlib.Path(sys.argv[2]).read_text()
-remove = re.compile(r'^(endeavouros-(mirrorlist|keyring|branding)|eos-[a-z0-9-]+|ark|bluedevil|breeze.*|dolphin.*|endeavouros-konsole-colors|eos-apps-info|eos-log-tool|eos-packagelist|eos-quickstart|firewall-applet|ffmpegthumbs|gwenview|haruna|kate|kcalc|kde.*|kimageformats|kinfocenter|kio.*|konsole|kscreen|kwallet.*|kwayland.*|okular|partitionmanager|plasma.*|powerdevil|print-manager|reflector-simple|spectacle|sddm|welcome|xdg-desktop-portal-kde)$')
-lines = []
-for line in target.read_text().splitlines():
-    item = line.strip()
-    if item and not item.startswith('#') and remove.match(item):
-        continue
-    lines.append(line)
-existing = {x.strip() for x in lines}
-for line in mate.splitlines():
-    item = line.strip()
-    if item and not item.startswith('#') and item not in existing:
-        lines.append(item)
-        existing.add(item)
-target.write_text('\n'.join(lines).rstrip() + '\n')
-PY
-
-log "Aplicando identidade visual e configurações MATE"
-cp -a "$ROOT/build/airootfs/." "$EOS_DIR/airootfs/"
-# Ensure the VENOM repository client is executable in the generated live and installed system.
-chmod 0755 "$EOS_DIR/airootfs/usr/bin/venom"
-# The VENOM live and installed system must use Arch repositories only.
-mkdir -p "$EOS_DIR/airootfs/etc"
-cat > "$EOS_DIR/airootfs/etc/pacman.conf" <<'PACMANCONF'
-[options]
-Architecture = auto
-Color
-VerbosePkgLists
-ParallelDownloads = 5
-SigLevel = Required DatabaseOptional
-LocalFileSigLevel = Optional
-
-[core]
-Include = /etc/pacman.d/mirrorlist
-
-[extra]
-Include = /etc/pacman.d/mirrorlist
-
-[multilib]
-Include = /etc/pacman.d/mirrorlist
-PACMANCONF
-# Ship the build host's Arch Linux mirrorlist into the live and installed image.
-# The final system must never inherit EndeavourOS mirrors.
-[[ -s /etc/pacman.d/mirrorlist ]] || die "Mirrorlist oficial do Arch Linux não encontrada no ambiente de compilação."
-if grep -Eiq 'endeavouros' /etc/pacman.d/mirrorlist; then
-  die "A mirrorlist do ambiente contém servidores EndeavourOS; use uma mirrorlist Arch Linux."
+log "Conferindo se o perfil não contém repositórios externos ao Arch"
+if grep -Eiq 'endeavouros|eos-' "$PROFILE/pacman.conf" "$PROFILE/packages.x86_64"; then
+  die "Foi encontrada referência ou pacote da distribuição anterior no perfil."
 fi
-grep -Eq '^Server[[:space:]]*=' /etc/pacman.d/mirrorlist || die "A mirrorlist do Arch Linux não contém servidores ativos."
-install -Dm644 /etc/pacman.d/mirrorlist "$EOS_DIR/airootfs/etc/pacman.d/mirrorlist"
-# GTK settings belong to the EndeavourOS liveuser skeleton package, not the base airootfs /etc/skel.
-# Keeping a second copy here makes pacman reject endeavouros-skel-liveuser with file conflicts.
-rm -f "$EOS_DIR/airootfs/etc/skel/.config/gtk-3.0/settings.ini"
-rm -f "$EOS_DIR/airootfs/etc/skel/.config/gtk-4.0/settings.ini"
-SKEL="$EOS_DIR/airootfs/root/endeavouros-skel-liveuser/src/etc/skel"
-mkdir -p "$SKEL/.config/gtk-3.0" "$SKEL/.config/gtk-4.0"
-cp "$ROOT/build/airootfs/etc/skel/.config/gtk-3.0/settings.ini" "$SKEL/.config/gtk-3.0/settings.ini"
-cp "$ROOT/build/airootfs/etc/skel/.config/gtk-4.0/settings.ini" "$SKEL/.config/gtk-4.0/settings.ini"
-rm -rf "$SKEL/.config/kdedefaults" "$SKEL/.config/plasma"* "$SKEL/.local/share/plasma" "$SKEL/.local/share/konsole" "$SKEL/.local/etc/xdg/kdeglobals"
-find "$SKEL/.config" -maxdepth 1 -type f \( -name 'balo*' -o -name 'kcm*' -o -name 'kde*' -o -name 'kscreen*' -o -name 'ksmserverrc' -o -name 'ksplashrc' -o -name 'kwalletrc' -o -name 'kxkbrc' -o -name 'plasma*' -o -name 'powerdevilrc' -o -name 'powermanagementprofilesrc' -o -name 'systemsettingsrc' \) -delete
-mkdir -p "$EOS_DIR/airootfs/root/packages"
+grep -Eq '^\[core\]$' "$PROFILE/pacman.conf" || die "Repositório core do Arch ausente."
+grep -Eq '^\[extra\]$' "$PROFILE/pacman.conf" || die "Repositório extra do Arch ausente."
 
-log "Preparando wallpaper preto monocromático da VENOM OS"
-VENOM_WALLPAPER="$ROOT/build/airootfs/usr/share/backgrounds/venom/venom-wallpaper.png"
-mkdir -p "$(dirname "$VENOM_WALLPAPER")" "$EOS_DIR/airootfs/root"
-magick -size 1920x1080 xc:'#101010' "$VENOM_WALLPAPER"
-cp "$VENOM_WALLPAPER" "$EOS_DIR/airootfs/root/livewall.png"
-cp "$VENOM_WALLPAPER" "$EOS_DIR/airootfs/root/endeavouros-wallpaper.png"
-[[ -s "$VENOM_WALLPAPER" ]] || die "Não foi possível gerar o wallpaper monocromático da VENOM OS."
+log "Compilando a ISO VENOM OS com mkarchiso"
+sudo mkarchiso -v -w "$WORK/mkarchiso-work" -o "$OUTPUT" "$PROFILE"
 
-log "Removendo etapa específica de configuração KDE do prepare.sh"
-python - "$EOS_DIR/prepare.sh" <<'PY'
-import pathlib, re, sys
-p = pathlib.Path(sys.argv[1])
-s = p.read_text()
-s = re.sub(r'(?s)# add date to wallpaper.*?a[i]rootfs/root/livewall\.png\n', '# VENOM OS: fundo preto puro, sem data sobreposta.\n', s, count=1)
-s = re.sub(r'(?m)^wget -qN .*endeavouros-wallpaper\.png.*\n', '', s)
-s = re.sub(r'(?m)^get_pkg "eos-settings-plasma"\s*$', '# KDE settings package intentionally omitted for VENOM OS.', s)
-p.write_text(s)
-PY
-
-log "Configurando LightDM, removendo sobras KDE e alvo gráfico"
-python - "$EOS_DIR/run_before_squashfs.sh" <<'PY'
-import pathlib, sys
-p = pathlib.Path(sys.argv[1])
-s = p.read_text()
-old = 'systemctl set-default multi-user.target'
-new = 'systemctl enable NetworkManager.service\nsystemctl enable bluetooth.service\nsystemctl enable lightdm.service\nsystemctl set-default graphical.target\ndconf update'
-if old not in s:
-    raise SystemExit('Não foi possível localizar o ponto de ativação do alvo multi-user no script upstream.')
-s = s.replace(old, new, 1)
-kde_root_theme = 'echo "---> setup theming for root user --->"\ncp -a "/root/root-theme" "/root/.config"\nrm -R "/root/root-theme"\n'
-if kde_root_theme not in s:
-    raise SystemExit('Não foi possível localizar o bloco de tema KDE do usuário root.')
-s = s.replace(kde_root_theme, '')
-motd_marker = 'echo "---> Add builddate to motd --->"'
-if motd_marker not in s:
-    raise SystemExit('Não foi possível localizar a etapa do motd.')
-s = s.replace(motd_marker, 'printf "VENOM OS\\nBase Arch Linux\\n" > "/usr/lib/venom-release"\n' + motd_marker, 1)
-calamares_marker = 'pacman -U --noconfirm --needed -- "/root/packages/"*".pkg.tar.zst"\n'
-calamares_patch = """if [[ ! -r /etc/calamares/settings_offline.conf || ! -r /etc/calamares/settings_online.conf ]]; then
-  echo "Calamares VENOM online/offline settings are missing." >&2
-  exit 1
-fi
-if [[ ! -x /usr/bin/calamares ]]; then
-  echo "Calamares executable is missing: /usr/bin/calamares" >&2
-  exit 1
-fi
-if ! command -v pacstrap >/dev/null 2>&1; then
-  echo "Arch pacstrap is missing from the Live environment." >&2
-  exit 1
-fi
-if [[ ! -s /etc/pacman.conf || ! -s /etc/pacman.d/mirrorlist ]] || ! grep -Eq '^Server[[:space:]]*=' /etc/pacman.d/mirrorlist; then
-  echo "The Live environment does not have an active official Arch mirrorlist." >&2
-  exit 1
-fi
-# Default launcher is the real Arch online installer. Keep a separate offline profile.
-cp -a /etc/calamares /etc/calamares-online
-install -m 0644 /etc/calamares/settings_online.conf /etc/calamares-online/settings.conf
-cp -a /etc/calamares /etc/calamares-offline
-install -m 0644 /etc/calamares/settings_offline.conf /etc/calamares-offline/settings.conf
-install -m 0644 /etc/calamares/settings_online.conf /etc/calamares/settings.conf
-if [[ ! -f /home/liveuser/.local/share/applications/calamares.desktop ]]; then
-  echo "Calamares live-session desktop entry is missing: /home/liveuser/.local/share/applications/calamares.desktop" >&2
-  exit 1
-fi
-sed -i \
-  -e 's|^Name=Install System$|Name=Install VENOM OS (online)|' \
-  -e 's|^Name\[pt_BR\]=Sistema de Instalação$|Name[pt_BR]=Instalar VENOM OS (online)|' \
-  -e 's|^GenericName=System Installer$|GenericName=VENOM OS Online Installer|' \
-  -e 's|^GenericName\[pt_BR\]=Instalador de Sistema$|GenericName[pt_BR]=Instalador online da VENOM OS|' \
-  -e 's|^Comment=Calamares — System Installer$|Comment=Install VENOM OS using official Arch Linux repositories|' \
-  -e 's|^Comment\[pt_BR\]=Calamares — Instalador de Sistema$|Comment[pt_BR]=Instala a VENOM OS pelos repositórios oficiais do Arch Linux|' \
-  -e 's|^TryExec=eos-welcome$|TryExec=calamares|' \
-  -e 's|^Exec=eos-welcome$|Exec=pkexec calamares -c /etc/calamares-online|' \
-  /home/liveuser/.local/share/applications/calamares.desktop
-grep -Fxq 'TryExec=calamares' /home/liveuser/.local/share/applications/calamares.desktop || {
-  echo "Calamares desktop entry has an invalid TryExec value." >&2
-  exit 1
-}
-grep -Fxq 'Name=Install VENOM OS (online)' /home/liveuser/.local/share/applications/calamares.desktop || {
-  echo "Calamares online launcher is not branded as VENOM OS." >&2
-  exit 1
-}
-grep -Fxq 'Name[pt_BR]=Instalar VENOM OS (online)' /home/liveuser/.local/share/applications/calamares.desktop || {
-  echo "Calamares online launcher has no VENOM OS Portuguese label." >&2
-  exit 1
-}
-grep -Fxq 'Exec=pkexec calamares -c /etc/calamares-online' /home/liveuser/.local/share/applications/calamares.desktop || {
-  echo "Calamares online desktop entry has an invalid Exec value." >&2
-  exit 1
-}
-cat > /home/liveuser/.local/share/applications/venom-installer-offline.desktop <<'DESKTOP'
-[Desktop Entry]
-Type=Application
-Name=Instalar VENOM OS (offline)
-Name[pt_BR]=Instalar VENOM OS (offline)
-Comment=Instala a VENOM OS usando a imagem incluída na ISO
-Exec=pkexec calamares -c /etc/calamares-offline
-TryExec=calamares
-Icon=calamares
-Terminal=false
-Categories=System;
-DESKTOP
-chown liveuser:liveuser /home/liveuser/.local/share/applications/venom-installer-offline.desktop
-if [[ ! -f /etc/polkit-1/rules.d/49-venom-calamares.rules ]]; then
-  echo "Restricted live-session Polkit rule for Calamares is missing." >&2
-  exit 1
-fi
-grep -Fq 'action.id === "com.github.calamares.calamares"' /etc/polkit-1/rules.d/49-venom-calamares.rules || {
-  echo "Calamares Polkit action ID is not authorized by the live rule." >&2
-  exit 1
-}
-grep -Fq 'subject.user === "liveuser"' /etc/polkit-1/rules.d/49-venom-calamares.rules || {
-  echo "Calamares Polkit rule is not restricted to liveuser." >&2
-  exit 1
-}
-"""
-if calamares_marker not in s:
-    raise SystemExit('Não foi possível localizar a instalação dos pacotes locais para ativar o Calamares offline.')
-s = s.replace(calamares_marker, calamares_marker + calamares_patch, 1)
-package_archive_marker = 'rm -rf "/root/packages/"\n'
-package_archive_copy = 'mkdir -p "/usr/share/venom/packages"\ncp /root/packages/shelly-git-*.pkg.tar.zst /root/packages/ferdium-bin-*.pkg.tar.zst /root/packages/iptvnator-bin-*.pkg.tar.zst /root/packages/bibata-cursor-theme-bin-*.pkg.tar.zst "/usr/share/venom/packages/"\nrm -rf "/root/packages/"\n'
-if package_archive_marker not in s:
-    raise SystemExit('Não foi possível preservar os pacotes próprios VENOM para o instalador online.')
-s = s.replace(package_archive_marker, package_archive_copy, 1)
-os_marker = 'echo "---> Install locally built packages on ISO (place packages under airootfs/root/packages) --->"'
-os_patch = 'sed -i -e \'s/^NAME=.*/NAME="VENOM OS"/\' -e \'s/^PRETTY_NAME=.*/PRETTY_NAME="VENOM OS"/\' -e \'s/^ID=.*/ID=venom/\' -e \'s/^ID_LIKE=.*/ID_LIKE=arch/\' "/etc/os-release"\nif ! grep -q \'^ID_LIKE=\' "/etc/os-release"; then printf \'ID_LIKE=arch\n\' >> "/etc/os-release"; fi\n'
-if os_marker not in s:
-    raise SystemExit('Não foi possível localizar a etapa de pacotes locais.')
-s = s.replace(os_marker, os_patch + os_marker, 1)
-
-# Remove EndeavourOS-only operations from the live-image preparation stage.
-s = s.replace('pacman-key --populate archlinux endeavouros', 'pacman-key --populate archlinux')
-s = s.replace('cat "/usr/lib/endeavouros-release" >> "/etc/motd"', 'printf "VENOM OS\\nBase Arch Linux\\n" > "/etc/motd"')
-s = s.replace('mv "/root/livewall.png" "/usr/share/endeavouros/backgrounds/endeavouros-wallpaper.png"', 'mkdir -p "/usr/share/backgrounds/venom"\nmv "/root/livewall.png" "/usr/share/backgrounds/venom/venom-wallpaper.png"')
-s = s.replace('mv "/root/endeavouros-wallpaper.png" "/etc/calamares/files/endeavouros-wallpaper.png"', 'mv "/root/endeavouros-wallpaper.png" "/etc/calamares/files/venom-wallpaper.png"')
-s = s.replace('pacman -Sw --noconfirm --cachedir "/usr/share/packages" grub eos-dracut kernel-install-for-dracut os-prober nvidia-open nvidia-hook nvidia-utils nvidia-inst broadcom-wl-dkms', 'true # VENOM installs the complete live image; no EndeavourOS package cache is required.')
-s = s.replace('echo "---> get needed packages for offline installs --->"\nmkdir -p "/usr/share/packages"\npacman -Syy\npacman -Sw --noconfirm --cachedir "/usr/share/packages" grub eos-dracut kernel-install-for-dracut os-prober nvidia-open nvidia-hook nvidia-utils nvidia-inst broadcom-wl-dkms', 'echo "---> VENOM OS uses the complete ISO filesystem for both installation modes --->"')
-s = s.replace('echo "---> Remove ranked mirrorlist, used for fetching offline packages replacing it with original from package --->"\nmv "/etc/pacman.d/mirrorlist-from-package" "/etc/pacman.d/mirrorlist"', 'echo "---> Arch Linux mirrorlist retained for future updates --->"\nrm -f "/etc/pacman.d/mirrorlist-from-package"')
-s = s.replace('systemctl set-default multi-user.target', 'systemctl enable lightdm.service\nsystemctl set-default graphical.target\ndconf update')
-s = s.replace('sed -i \'s/EndeavourOS/VENOM OS/g\' "/usr/lib/endeavouros-release"', 'rm -f "/usr/lib/endeavouros-release"; printf "VENOM OS" > "/usr/lib/venom-release"')
-p.write_text(s)
-PY
-rm -rf "$EOS_DIR/airootfs/root/root-theme"
-
-log "Aplicando identidade VENOM OS aos menus de inicialização"
-python - "$EOS_DIR" <<'PY'
-import pathlib, sys
-root = pathlib.Path(sys.argv[1])
-for rel in ("efiboot", "syslinux"):
-    base = root / rel
-    for path in base.rglob("*"):
-        if not path.is_file():
-            continue
-        try:
-            content = path.read_text()
-        except (UnicodeDecodeError, OSError):
-            continue
-        content = content.replace("EndeavourOS", "VENOM OS")
-        if path.name == "archiso_head.cfg":
-            lines = []
-            for line in content.splitlines():
-                if line.strip().startswith("MENU BACKGROUND"):
-                    continue
-                if line.strip().startswith("MENU TITLE"):
-                    line = "MENU TITLE VENOM OS"
-                if line.strip().startswith("MENU COLOR title"):
-                    line = "MENU COLOR title        1;37;40 #ffffffff #00000000 std"
-                lines.append(line)
-            content = "\n".join(lines).rstrip() + "\n"
-        if path.name == "loader.conf":
-            content = "default archiso-x86_64-linux.conf\ntimeout 3\nconsole-mode max\neditor no\nauto-entries no\nauto-firmware no\n"
-        if path.name.startswith("archiso-x86_64-linux"):
-            content = content.rstrip() + " quiet loglevel=3 vt.global_cursor_default=0\n"
-        if path.name == "archiso_sys.cfg":
-            content = content.replace("TIMEOUT 150", "TIMEOUT 30")
-        path.write_text(content)
-splash = root / "syslinux" / "splash.png"
-if splash.exists():
-    splash.unlink()
-PY
-
-log "Definindo identificação da ISO"
-python - "$EOS_DIR/profiledef.sh" <<'PY'
-import pathlib, re, sys
-p = pathlib.Path(sys.argv[1])
-s = p.read_text()
-s = s.replace('iso_name="EndeavourOS_Triton"', 'iso_name="VENOMOS_MATE"')
-s = s.replace('iso_label="EOS_$(date +%Y%m)"', 'iso_label="VENOM_$(date +%Y%m)"')
-s = s.replace('iso_publisher="EndeavourOS <https://endeavouros.com>"', 'iso_publisher="VENOM OS"')
-s = s.replace('iso_application="EndeavourOS Live/Rescue CD"', 'iso_application="VENOM OS Live/Install"')
-# Zstandard favors fast decompression during Live startup over the smaller, slower XZ image.
-s, count = re.subn(
-    r"(?m)^airootfs_image_tool_options=.*$",
-    "airootfs_image_tool_options=('-comp' 'zstd' '-Xcompression-level' '19' '-b' '1M')",
-    s,
-    count=1,
-)
-if count != 1:
-    raise SystemExit("Não foi possível configurar SquashFS com Zstandard para inicialização rápida.")
-p.write_text(s)
-PY
-
-log "Construindo Calamares upstream com fluxo de instalação VENOM OS"
-CALAMARES_SRC="$WORK/calamares-pkg"
-mkdir -p "$CALAMARES_SRC"
-curl -fsSL "https://raw.githubusercontent.com/endeavouros-team/PKGBUILDS/$PKGBUILDS_COMMIT/calamares/PKGBUILD" -o "$CALAMARES_SRC/PKGBUILD"
-[[ -s "$CALAMARES_SRC/PKGBUILD" ]] || die "PKGBUILD original do Calamares não foi baixado."
-cp "$ROOT/scripts/patch-calamares.py" "$CALAMARES_SRC/patch-calamares.py"
-mkdir -p "$CALAMARES_SRC/branding"
-cp -a "$ROOT/build/calamares/branding/venom" "$CALAMARES_SRC/branding/venom"
-cp "$ROOT/build/packages.arch" "$CALAMARES_SRC/branding/packages.arch"
-cp "$ROOT/build/packages.mate" "$CALAMARES_SRC/branding/packages.mate"
-python - "$CALAMARES_SRC/PKGBUILD" <<'PY'
-import pathlib, sys
-path = pathlib.Path(sys.argv[1])
-source = path.read_text()
-source = source.replace("-DCMAKE_BUILD_TYPE=Debug", "-DCMAKE_BUILD_TYPE=Release", 1)
-needle = '    awk -i inplace -v version="${pkgver}" -v release="${release_name}" "$replace_command" "${srcdir}/calamares-${pkgver}/data/eos/branding/endeavouros/branding.desc"\n}'
-replacement = needle[:-1] + '    python "$startdir/patch-calamares.py" "${srcdir}/calamares-${pkgver}"\n    awk -i inplace -v version="${pkgver}" -v release="${release_name}" "$replace_command" "${srcdir}/calamares-${pkgver}/data/eos/branding/venom/branding.desc"\n}'
-if needle not in source:
-    raise SystemExit("Não foi possível inserir a identidade VENOM no prepare() do PKGBUILD.")
-if "-DCMAKE_BUILD_TYPE=Release" not in source:
-    raise SystemExit("A receita Calamares não foi alterada para Release.")
-path.write_text(source.replace(needle, replacement, 1))
-PY
-(
-  cd "$CALAMARES_SRC"
-  makepkg --syncdeps --noconfirm
-  find . -maxdepth 1 -name 'calamares-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
-)
-
-log "Construindo Shelly a partir do código oficial fixado"
-SHELLY_SRC="$WORK/Shelly-ALPM"
-mkdir -p "$SHELLY_SRC"
-curl -fsSL "https://raw.githubusercontent.com/Seafoam-Labs/Shelly-ALPM/$SHELLY_COMMIT/PKGBUILD-git" -o "$SHELLY_SRC/PKGBUILD"
-[[ -s "$SHELLY_SRC/PKGBUILD" ]] || die "PKGBUILD do Shelly não foi baixado."
-for source_file in \
-  shellybuild.conf \
-  com.shellyorg.shelly.desktop \
-  com.shellyorg.shelly-notifications.desktop \
-  shelly-flatpak-integrate; do
-  curl -fsSL "https://raw.githubusercontent.com/Seafoam-Labs/Shelly-ALPM/$SHELLY_COMMIT/$source_file" \
-    -o "$SHELLY_SRC/$source_file"
-  [[ -s "$SHELLY_SRC/$source_file" ]] || die "Arquivo auxiliar do Shelly não foi baixado: $source_file"
-done
-(
-  cd "$SHELLY_SRC"
-  sed -i 's/#branch=development/#commit='"$SHELLY_COMMIT"'/' PKGBUILD
-  makepkg --syncdeps --noconfirm
-  find . -maxdepth 1 -name 'shelly-git-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
-)
-
-log "Obtendo o pacote binário oficial do tema Bibata pela receita AUR"
-# A variante fonte exige python-clickgen, que não existe nos repositórios oficiais.
-# A variante -bin distribui os cursores já gerados e elimina essa dependência de build.
-BIBATA_SRC="$WORK/bibata-cursor-theme-bin-aur"
-BIBATA_COMMIT="$(git ls-remote https://aur.archlinux.org/bibata-cursor-theme-bin.git HEAD | awk 'NR == 1 { print $1; exit }')"
-[[ "$BIBATA_COMMIT" =~ ^[0-9a-f]{40}$ ]] || die "Não foi possível localizar uma revisão válida da receita binária AUR do Bibata."
-clone_at_commit https://aur.archlinux.org/bibata-cursor-theme-bin.git "$BIBATA_SRC" "$BIBATA_COMMIT"
-(
-  cd "$BIBATA_SRC"
-  makepkg --syncdeps --noconfirm
-  find . -maxdepth 1 -name 'bibata-cursor-theme-bin-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
-)
-
-log "Construindo IPTVnator a partir da receita AUR"
-IPTVNATOR_SRC="$WORK/iptvnator-bin-aur"
-IPTVNATOR_COMMIT="$(git ls-remote https://aur.archlinux.org/iptvnator-bin.git HEAD | awk 'NR == 1 { print $1; exit }')"
-[[ "$IPTVNATOR_COMMIT" =~ ^[0-9a-f]{40}$ ]] || die "Não foi possível localizar uma revisão válida da receita AUR do IPTVnator."
-clone_at_commit https://aur.archlinux.org/iptvnator-bin.git "$IPTVNATOR_SRC" "$IPTVNATOR_COMMIT"
-(
-  cd "$IPTVNATOR_SRC"
-  makepkg --syncdeps --noconfirm
-  find . -maxdepth 1 -name 'iptvnator-bin-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
-)
-
-log "Construindo Ferdium a partir da receita AUR"
-FERDIUM_SRC="$WORK/ferdium-aur"
-FERDIUM_COMMIT="$(git ls-remote https://aur.archlinux.org/ferdium-bin.git HEAD | awk 'NR == 1 { print $1; exit }')"
-[[ "$FERDIUM_COMMIT" =~ ^[0-9a-f]{40}$ ]] || die "Não foi possível localizar uma revisão válida da receita AUR do Ferdium."
-clone_at_commit https://aur.archlinux.org/ferdium-bin.git "$FERDIUM_SRC" "$FERDIUM_COMMIT"
-(
-  cd "$FERDIUM_SRC"
-  makepkg --syncdeps --noconfirm
-  find . -maxdepth 1 -name 'ferdium-bin-*.pkg.tar.zst' -exec cp -v {} "$PKG_DIR/" \;
-)
-
-shopt -s nullglob
-for package in "$PKG_DIR"/*.pkg.tar.zst; do
-  cp -v "$package" "$EOS_DIR/airootfs/root/packages/"
-done
-shopt -u nullglob
-
-[[ -n "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name '*.pkg.tar.zst' -print -quit)" ]] || die "Nenhum pacote local foi preparado."
-[[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'calamares-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Calamares do EndeavourOS não foi gerado."
-[[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'shelly-git-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Shelly não foi gerado."
-[[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'ferdium-bin-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Ferdium não foi gerado."
-[[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'iptvnator-bin-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote IPTVnator não foi gerado."
-[[ -f "$EOS_DIR/airootfs/root/packages/$(basename "$(find "$EOS_DIR/airootfs/root/packages" -maxdepth 1 -name 'bibata-cursor-theme-bin-*.pkg.tar.zst' -print -quit)")" ]] || die "Pacote Bibata não foi gerado."
-
-log "Preparando framework EndeavourOS"
-(
-  cd "$EOS_DIR"
-  ./prepare.sh
-)
-
-log "Wallpaper monocromático preparado antes de executar prepare.sh"
-
-log "Compilando ISO VENOM OS. Esta etapa pode levar bastante tempo."
-(
-  cd "$EOS_DIR"
-  sudo ./mkarchiso -v .
-)
-
-log "Arquivos ISO gerados:"
-find "$EOS_DIR/out" -maxdepth 1 -type f -name '*.iso' -printf '%p (%k KiB)\n'
+log "ISO(s) gerada(s)"
+find "$OUTPUT" -maxdepth 1 -type f -name '*.iso' -printf '%f  %s bytes\n'

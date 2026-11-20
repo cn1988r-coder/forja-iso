@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+if ! id liveuser >/dev/null 2>&1; then
+  useradd --create-home --groups wheel,audio,video,storage,optical --shell /bin/bash liveuser
+fi
+
+passwd --delete liveuser
+install -d -o liveuser -g liveuser /home/liveuser
+cp -an /etc/skel/. /home/liveuser/
+chown -R liveuser:liveuser /home/liveuser
+dconf update

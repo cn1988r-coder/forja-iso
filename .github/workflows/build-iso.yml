@@ -2,23 +2,12 @@ name: Compilar ISO VENOM OS
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main, fix/venom-calamares-stability]
-    paths:
-      - "Dockerfile"
-      - "scripts/build-venom-iso.sh"
-      - "scripts/patch-calamares.py"
-      - "build/packages.arch"
-      - "build/packages.mate"
-      - "scripts/build-container.sh"
-      - "build/**"
-      - ".github/workflows/build-iso.yml"
 
 permissions:
   contents: read
 
 concurrency:
-  group: venom-os-iso-build-v2
+  group: venom-os-archiso-build
   cancel-in-progress: true
 
 jobs:
@@ -29,34 +18,24 @@ jobs:
       - name: Baixar repositório
         uses: actions/checkout@v4
 
-      - name: Diagnóstico inicial do runner
-        run: |
-          set -euxo pipefail
-          echo "Commit: $GITHUB_SHA"
-          echo "Workspace: $GITHUB_WORKSPACE"
-          df -h "$GITHUB_WORKSPACE"
-          free -h
-          nproc
-          docker version
-
-      - name: Construir ambiente Arch com repositórios EndeavourOS
+      - name: Construir ambiente Arch Linux
         run: |
           docker build --pull \
             --build-arg BUILD_UID="$(id -u)" \
             --build-arg BUILD_GID="$(id -g)" \
-            -t venom-os-iso-builder .
+            -t venom-os-archiso-builder .
 
-      - name: Compilar ISO com mkarchiso
+      - name: Compilar ISO com Archiso oficial
         run: |
           docker run --rm --privileged \
             -v "$GITHUB_WORKSPACE:/workspace" \
             -w /workspace \
-            venom-os-iso-builder
+            venom-os-archiso-builder
 
       - name: Verificar e calcular hash da ISO
         run: |
           shopt -s nullglob
-          isos=(work/EndeavourOS-ISO/out/*.iso)
+          isos=(work/out/*.iso)
           if (( ${#isos[@]} == 0 )); then
             echo "Nenhuma ISO foi gerada." >&2
             exit 1
@@ -67,9 +46,9 @@ jobs:
       - name: Publicar ISO e hash como artefatos
         uses: actions/upload-artifact@v4
         with:
-          name: venom-os-iso
+          name: venom-os-archiso
           path: |
-            work/EndeavourOS-ISO/out/*.iso
+            work/out/*.iso
             work/venom-iso-sha256.txt
           if-no-files-found: error
           retention-days: 1

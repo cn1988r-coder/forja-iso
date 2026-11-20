@@ -1,50 +1,32 @@
-# Build da VENOM OS
+# Construção da VENOM OS
 
-O caminho recomendado é o ambiente isolado Docker/Podman, baseado em Arch Linux
-com os repositórios EndeavourOS configurados a partir de revisões fixadas.
+A construção usa Arch Linux oficial e o pacote oficial `archiso`. Não são configurados repositórios, chaves ou mirrors de distribuições derivadas.
 
-## Requisitos do computador
+## Requisitos
 
-- Docker ou Podman instalado.
-- Arquitetura x86_64.
-- Pelo menos 40 GiB livres no disco do projeto.
-- Conexão com a internet.
-- Memória recomendada: 8 GiB ou mais.
+- Docker ou Podman para o método isolado, ou host Arch Linux.
+- x86_64.
+- Pelo menos 40 GiB livres.
+- Internet e 8 GiB de RAM recomendados.
 
-## Compilar no Manjaro ou em outra distribuição
-
-Na raiz do repositório:
+## Método isolado
 
 ```bash
 bash scripts/build-container.sh
 ```
 
-O script constrói a imagem de build e executa a compilação em container privilegiado. O sistema live usa MATE/LightDM e oferece um launcher próprio “Instalar VENOM OS”, que chama o Calamares original do EndeavourOS no modo offline. O app Welcome do EndeavourOS foi retirado porque o fluxo atual só reconhece sessões KDE e XFCE. O cleaner do instalador remove o launcher live e o autologin do liveuser na instalação final, mantendo o LightDM habilitado para o usuário criado pelo Calamares.
-O diretório `work/` permanece no projeto e a ISO será criada em
-`work/EndeavourOS-ISO/out/`.
+O Dockerfile usa a imagem `archlinux:latest`, atualiza o sistema pelo Pacman oficial e instala `archiso`. O script prepara o perfil VENOM e chama `mkarchiso`.
 
-O container usa revisões fixadas do framework EndeavourOS e da lista de pacotes
-oficial. O usuário de build interno tem sudo restrito ao container, não ao host.
+## Método direto em Arch Linux
 
-## Build direto em EndeavourOS/Arch
-
-Também é possível usar o script diretamente em um host Arch/EndeavourOS com
-repositórios EndeavourOS habilitados:
+Instale os pacotes de construção necessários pelos repositórios oficiais e execute:
 
 ```bash
 bash scripts/build-venom-iso.sh
 ```
 
-## Pacotes externos
+A ISO será criada em `work/out/`.
 
-Ferdium, Shelly e Bibata são construídos a partir de receitas externas. O
-AUR contém receitas comunitárias, não binários oficiais. As revisões do
-framework e do Shelly são fixadas; as receitas AUR de Ferdium e Bibata são
-obtidas do HEAD no momento da compilação.
+## Limite atual
 
-## Estado de validação
-
-A estrutura e a sintaxe do build são verificadas pelo GitHub Actions. Isso não
-prova que os pacotes compilaram nem que a ISO inicializa. A ISO só poderá ser
-marcada como validada depois de uma compilação real e testes de boot, sessão
-MATE e instalação do Calamares em máquina virtual.
+O perfil e o mecanismo de construção estão migrando para Archiso. A integração independente do Calamares e a instalação da imagem VENOM ainda não foram concluídas. Não existe ISO aprovada para instalação até que build real, boot e instalação sejam validados.
