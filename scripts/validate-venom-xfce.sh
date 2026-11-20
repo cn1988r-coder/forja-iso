@@ -87,7 +87,7 @@ grep -Fq 'PRETTY_NAME="VENOM OS"' "$R/etc/os-release" || fail "nome amigável n�
 grep -Fq 'GRUB_DISTRIBUTOR="VENOM OS"' "$R/etc/default/grub" || fail "identidade VENOM OS ausente no GRUB"
 grep -Fq 'EnableAUR' "$R/etc/pamac.conf" || fail "Pamac AUR não habilitado"
 grep -Fq 'Exec=nm-applet --indicator' "$D/etc/skel/.config/autostart/venom-network-applet.desktop" || fail "NetworkManager applet não inicia na sessão XFCE"
-grep -Fq 'button-icon" type="string" value="comm-menu-symbolic"' "$X/xfce4-panel.xml" || fail "ícone Community do menu Whisker ausente"
+grep -Fq 'button-icon" type="string" value="org.xfce.panel.applicationsmenu"' "$X/xfce4-panel.xml" || fail "ícone oficial do menu XFCE ausente"
 grep -Fq 'WebBrowser=firefox' "$D/etc/skel/.config/xfce4/helpers.rc" || fail "Firefox não configurado como navegador padrão"
 grep -Fq '/usr/share/backgrounds/venom/venom-black.svg' "$X/xfce4-desktop.xml" || fail "papel de parede VENOM ausente"
 
