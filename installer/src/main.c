@@ -49,7 +49,7 @@ static void refresh_disks(GtkButton *button, gpointer data) {
         gtk_string_list_append(items, line);
     }
     gtk_drop_down_set_model(GTK_DROP_DOWN(app->disk_list), G_LIST_MODEL(items));
-    if (gtk_string_list_get_n_items(items) == 0)
+    if (g_list_model_get_n_items(G_LIST_MODEL(items)) == 0)
         set_status(app, "Nenhum disco detectado. Verifique a conexão e atualize a lista.");
     else
         set_status(app, "Discos detectados. Confira cuidadosamente o modelo e o tamanho.");
