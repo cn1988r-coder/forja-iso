@@ -14,6 +14,11 @@ Atualizado em 20/11/2026.
 - Não incluir Calamares nem EndeavourOS.
 - A branch de trabalho permanece `optimize/venom-iso-size`; não alterar `main`.
 
+## ISO de referência preservada
+- A ISO Manjaro MATE #21 testada pelo usuário está identificada como `VENOM-MATE-21-DEEPSEEK-BASE`.
+- Registro completo do workflow, commit, artefato, SHA256 e regras de preservação: [`docs/REFERENCIA-ISO-21-DEEPSEEK.md`](REFERENCIA-ISO-21-DEEPSEEK.md).
+- Não confundir a ISO #21 original com builds posteriores que apliquem novos temas ou modificações.
+
 ## Script original do DeepSeek
 - Arquivo de origem: `scripts/manjaro-mate-dark-complete.sh`.
 - O conteúdo original foi preservado.
