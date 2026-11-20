@@ -8,6 +8,8 @@ pass() { printf 'OK: %s\n' "$*"; }
 for f in profile.conf Packages-Root Packages-Desktop Packages-Live Packages-Mhwd; do
   [[ -s "$PROFILE/$f" ]] || fail "arquivo de perfil ausente: $f"
 done
+[[ -s "$PROFILE/desktop-overlay/etc/venom-release" ]] || fail "identificação VENOM OS 1.0 ausente"
+grep -Fxq 'VENOM OS 1.0' "$PROFILE/desktop-overlay/etc/venom-release" || fail "versão da VENOM incorreta"
 [[ -s "$PROFILE/desktop-overlay/usr/local/bin/manjaro-mate-dark-complete.sh" ]] || fail "script original ausente do overlay"
 [[ -s "$PROFILE/desktop-overlay/usr/share/mate-panel/layouts/manjaro.layout" ]] || fail "layout Manjaro MATE ausente"
 [[ -s "$PROFILE/desktop-overlay/usr/share/applications/venom-mate-setup.desktop" ]] || fail "atalho do configurador ausente"
@@ -32,7 +34,9 @@ cmp -s "$ROOT/scripts/manjaro-mate-dark-complete.sh" "$PROFILE/desktop-overlay/u
 bash -n "$ROOT/scripts/manjaro-mate-dark-complete.sh" || fail "sintaxe do script original inválida"
 grep -Fq "manjaro-mate-settings" "$ROOT/scripts/manjaro-mate-dark-complete.sh" && fail "pacote MATE descontinuado ainda está no script" || true
 bash -n "$ROOT/scripts/build-venom-iso.sh" || fail "sintaxe do construtor inválida"
-! grep -Eiq 'calamares|archiso|endeavouros' "$PROFILE/Packages-Root" "$PROFILE/Packages-Desktop" "$PROFILE/Packages-Live" "$PROFILE/profile.conf" || fail "componente proibido no perfil ativo"
+! grep -Eiq 'archiso|endeavouros' "$PROFILE/Packages-Root" "$PROFILE/Packages-Desktop" "$PROFILE/Packages-Live" "$PROFILE/profile.conf" || fail "componente Archiso/EndeavourOS no perfil ativo"
+grep -Fxq 'calamares' "$PROFILE/Packages-Live" || fail "instalador oficial Calamares ausente da ISO live"
+grep -Fxq 'gparted' "$PROFILE/Packages-Live" || fail "GParted ausente da sessão live"
 grep -Fxq 'mate' "$PROFILE/Packages-Desktop" || fail "grupo MATE ausente"
 grep -Fxq 'mate-extra' "$PROFILE/Packages-Desktop" || fail "grupo MATE Extra ausente"
 grep -Fxq 'mate-media' "$PROFILE/Packages-Desktop" || fail "controle de volume MATE ausente"
@@ -45,8 +49,11 @@ grep -Fq 'applet-iid=GvcAppletFactory::GvcApplet' "$PROFILE/desktop-overlay/usr/
 grep -Fq 'applet-iid=NotificationAreaAppletFactory::NotificationArea' "$PROFILE/desktop-overlay/usr/share/mate-panel/layouts/manjaro.layout" || fail "bandeja de sistema ausente no painel"
 grep -Fxq 'lightdm' "$PROFILE/Packages-Desktop" || fail "LightDM ausente"
 grep -Fq 'displaymanager="lightdm"' "$PROFILE/profile.conf" || fail "LightDM não selecionado"
+grep -Fq 'efi_boot_loader="grub"' "$PROFILE/profile.conf" || fail "GRUB não selecionado para instalação UEFI"
 grep -Fq "enable_systemd=('bluetooth' 'NetworkManager' 'lightdm' 'systemd-timesyncd')" "$PROFILE/profile.conf" || fail "serviços de rede e Bluetooth não habilitados"
 grep -Fq 'Manjaro Linux' "$ROOT/README.md" || fail "base Manjaro não documentada"
-pass "perfil Manjaro MATE, LightDM e pacotes"
+pass "perfil Manjaro MATE, LightDM, GRUB e pacotes"
+pass "Calamares oficial incluído na sessão live da ISO"
+pass "identificação VENOM OS 1.0 presente"
 pass "script DeepSeek preservado byte a byte no overlay"
-pass "nenhum Calamares, Archiso ou EndeavourOS no perfil ativo"
+pass "nenhum Archiso ou EndeavourOS no perfil ativo"

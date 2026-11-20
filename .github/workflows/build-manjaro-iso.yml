@@ -1,4 +1,4 @@
-name: Build Manjaro VENOM MATE ISO
+name: Build VENOM OS 1.0 Manjaro MATE ISO
 
 on:
   push:
@@ -49,7 +49,7 @@ jobs:
       - name: Publish temporary build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: VENOM-OS-Manjaro-MATE-ISO
+          name: VENOM-OS-1.0-Manjaro-MATE-ISO
           path: |
             ${{ steps.manjaro-build.outputs.file-path }}
             ${{ steps.manjaro-build.outputs.file-path }}.pkgs
