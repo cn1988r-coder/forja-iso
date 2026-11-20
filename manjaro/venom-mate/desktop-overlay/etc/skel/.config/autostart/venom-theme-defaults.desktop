@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=VENOM Theme Defaults
+Comment=Aplica Materia Dark, Papirus-Dark e Bibata Modern Classic
+Exec=/usr/bin/bash /usr/local/bin/venom-theme-defaults
+OnlyShowIn=MATE;
+X-MATE-Autostart-enabled=true
+NoDisplay=true
