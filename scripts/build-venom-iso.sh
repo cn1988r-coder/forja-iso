@@ -246,7 +246,7 @@ install_match = calamares_install_matches[0]
 # reinstall the exact package payload even if pacman already considers it installed.
 s = calamares_install_pattern.sub(
     lambda match: install_match.group('indent')
-    + 'pacman -U --noconfirm -- "/root/packages/"*".pkg.tar.zst"\\n'
+    + 'pacman -U --noconfirm -- "/root/packages/"*".pkg.tar.zst"\n'
     + calamares_patch,
     s,
     count=1,

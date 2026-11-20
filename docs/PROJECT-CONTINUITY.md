@@ -14,19 +14,21 @@ Este documento é a referência operacional para retomar o desenvolvimento sem d
 - Nunca fazer push enquanto uma compilação estiver ativa. A workflow de ISO usa `concurrency.cancel-in-progress: true`, então um novo push pode cancelar uma execução anterior.
 - Não declarar uma ISO pronta apenas porque a workflow passou. Exigir artefato, SHA-256 e testes de boot/instalação em VM.
 
-## Última compilação conhecida
+## Últimas compilações conhecidas
 
-- Build #43: [GitHub Actions](https://github.com/cn1988r-coder/forja-iso/actions/runs/44677226774).
-- Run ID: `44677226774`; job ID: `136091830633`.
-- Commit: `0357b885d0496ad21691b09af3871764a5b6dcc1`.
-- Branch: `fix/forja-calamares-stability`.
-- Estado: `failure`, encerrada em 2026-11-20 04:53:34 UTC.
-- Erro registrado: `NameError: name 're' is not defined` no bloco Python que personaliza `run_before_squashfs.sh`, durante a configuração do LightDM.
-- A execução não chegou ao `mkarchiso`. Não há ISO nem hash produzido pela build #43.
-- A validação estática #1142 passou; a validação #1143 também passou após o commit de documentação. Nenhuma delas substitui compilação ou testes reais.
-- HEAD verificado antes desta atualização: `9b95f2687e4e9ab0f4eefb739034035975cdf548` (commit `docs: add permanent VENOM OS continuity record`).
+- Build #44: [GitHub Actions](https://github.com/cn1988r-coder/forja-iso/actions/runs/44678493077).
+- Run ID: \`44678493077\`; job ID: \`136095951256\`.
+- Commit: \`201d494b2c706bfde24071053e053488935f532b\`.
+- Branch: \`fix/forja-calamares-stability\`.
+- Estado: \`failure\`, encerrada em 2026-11-20 05:29:25 UTC.
+- Preparação do ambiente Arch/EndeavourOS concluída. A etapa \`mkarchiso\` não foi iniciada.
+- Erro real: o patch do script upstream concatenou o comando \`pacman -U\` com os caracteres literais \`\\n\`, em vez de inserir uma quebra de linha. O Bash reportou \`syntax error near unexpected token 'then'\` ao interpretar o \`if\` seguinte.
+- Nenhuma ISO, hash ou artefato foi produzido.
+- Validação estática #1144: [GitHub Actions](https://github.com/cn1988r-coder/forja-iso/actions/runs/44678493107), job ID \`136095951123\`, também falhou. O parser em \`scripts/validate-build.sh\` procurava o marcador do bloco LightDM com um separador literal incorreto e terminou em \`IndexError: list index out of range\`. A validação não chegou às verificações seguintes.
+- Build #43: [GitHub Actions](https://github.com/cn1988r-coder/forja-iso/actions/runs/44677226774), run ID \`44677226774\`, job ID \`136091830633\`, commit \`0357b885d0496ad21691b09af3871764a5b6dcc1\`; falhou antes do \`mkarchiso\` por \`NameError: name 're' is not defined\`. Nenhuma ISO ou hash foi produzido.
 
-## Correções aplicadas neste commit, aguardando validação e build
+
+## Correções registradas no commit 201d494, aguardando nova validação
 
 O usuário autorizou corrigir a falha #43 e instalar os dois kernels, com LTS como padrão:
 1. O bloco Python do LightDM agora importa `re`.

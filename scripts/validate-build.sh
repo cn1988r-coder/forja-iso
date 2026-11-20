@@ -43,7 +43,10 @@ if not blocks:
 for index, block in enumerate(blocks, 1):
     compile(block, f"build-venom-iso.sh:python-block-{index}", "exec")
 print(f"OK: {len(blocks)} blocos Python embutidos válidos")
-lightdm = source.split('python - "$EOS_DIR/run_before_squashfs.sh" <<\'PY\'\\n', 1)[1].split("\\nPY", 1)[0]
+lightdm_marker = 'python - "$EOS_DIR/run_before_squashfs.sh" <<' + chr(39) + 'PY' + chr(10)
+if lightdm_marker not in source:
+    raise SystemExit("Bloco LightDM não foi encontrado no script de build.")
+lightdm = source.split(lightdm_marker, 1)[1].split(chr(10) + "PY", 1)[0]
 if "import pathlib, re, sys" not in lightdm:
     raise SystemExit("Bloco LightDM usa re sem importar o módulo.")
 match = re.search(r"calamares_install_pattern = re\\.compile\\(\\s*(r'[^']+')", source)
