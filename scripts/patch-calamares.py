@@ -186,6 +186,7 @@ hide-back-and-next-during-exec: true
 quit-at-end: false
 """
 
+modules = source / "data/eos/modules"
 settings_offline = source / "data/eos/settings_offline.conf"
 settings_online = source / "data/eos/settings_online.conf"
 settings_offline.write_text(settings_offline_text)
@@ -323,7 +324,7 @@ units:
 unpackfs = modules / "unpackfs.conf"
 if not unpackfs.exists() or "/run/archiso/bootmnt/arch/x86_64/airootfs.sfs" not in unpackfs.read_text():
     raise SystemExit("A origem da imagem Forja no unpackfs.conf não foi encontrada.")
-for required in ("displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf", "shellprocess_forja_cleanup.conf"):
+for required in ("displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf", "shellprocess_forja_cleanup.conf", "shellprocess_forja_stage_packages.conf", "shellprocess_forja_local_packages.conf", "packages_online.conf", "welcome_forja_online.conf"):
     if not (modules / required).exists():
         raise SystemExit(f"Módulo necessário ausente: {required}")
 for config in (settings_offline, settings_online):
