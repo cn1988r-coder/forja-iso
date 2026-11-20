@@ -93,3 +93,15 @@ Em cada atualização, separar claramente:
 - **Não testado:** itens que existem no código, mas ainda não foram validados em execução/VM.
 
 Nunca apresentar intenção como implementação, nem implementação como teste aprovado.
+
+
+## Retomada após a compilação #49 em 2026-11-20
+
+- Build #49: [GitHub Actions](https://github.com/cn1988r-coder/forja-iso/actions/runs/44694305782), run ID `44694305782`, job ID `136147274184`, commit `52eb21af58082ccd8384de5394e021caf5a1581c`; encerrada com falha durante a etapa `mkarchiso`.
+- Progresso confirmado antes da falha: ambiente Arch/EndeavourOS construído; pacotes instalados; initramfs gerado; boot BIOS com SYSLINUX e UEFI com systemd-boot configurados; começou a criação do SquashFS.
+- Causa exata no log: o hook gerado continha `chmod 0755 /usr/bin/venom-calamares\\nif [[ ... ]]; then`. A sequência `\\n` foi escrita literalmente, sem quebra de linha, causando `/bin/bash: syntax error near unexpected token 'then'`. A etapa `mkarchiso` terminou com exit code 1. As etapas de verificação SHA-256 e publicação foram ignoradas. Nenhuma ISO ou artefato foi produzido.
+- Os avisos de firmware ausente para módulos opcionais (mlxsw_spectrum, nfp, qla*, bfa, aic94xx, wd719x, xhci_pci_renesas etc.) e os timeouts/HTTP 403 de alguns mirrors foram avisos durante o processo; não são a causa fatal registrada. A causa fatal foi a quebra de linha literal no hook.
+- Correção aplicada na branch autorizada: em `scripts/build-venom-iso.sh`, a string Python que injeta o comando chmod agora contém a sequência de escape correta para produzir uma quebra de linha real no script shell, em vez de inserir os caracteres literais `\\n`. Commit: `88143611d80214fd5b945c9346b352ce8e14f47d`.
+- Nenhuma build estava ativa no momento da correção. A correção ainda precisa passar pela validação estática e por uma nova compilação real. Não declarar a falha resolvida até que o novo hook seja executado e a build avance.
+- Validação #1152 e #1153: ambas concluídas com sucesso, nos commits `43b58c90fd548b6d951a87e947ef6f19a2359f62` e `ef665c984cacbacdc075fc891c4d1066283053cf`, respectivamente. Elas validam o código nos respectivos commits, mas não validam a correção posterior `8814361`.
+- Branch de trabalho permanece `fix/forja-calamares-stability`; `main` não foi alterada. A PR #20 não foi modificada. Próximo passo: acompanhar a validação e a build disparadas pelo commit `8814361`, sem novas alterações enquanto qualquer build estiver ativa.
