@@ -262,6 +262,8 @@ verbose: true
 script:
   - 'if pacman -Q calamares >/dev/null 2>&1; then pacman -Rdd --noconfirm calamares; fi'
   - 'packages=$(pacman -Qq | grep -E "^(endeavouros-|eos-|yay$|rate-mirrors$|reflector-simple$|welcome$|iso-create-ml$)" || true); if [ -n "$packages" ]; then pacman -Rdd --noconfirm $packages; fi'
+  - 'remaining=$(pacman -Qq | grep -E "^(endeavouros-|eos-)" || true); if [ -n "$remaining" ]; then printf "Pacotes EndeavourOS/EOS ainda instalados: %s\\n" "$remaining" >&2; exit 1; fi'
+  - 'if grep -Eiq "endeavouros|eos-" /etc/pacman.conf; then echo "Configuração de repositórios EndeavourOS/EOS encontrada." >&2; exit 1; fi'
   - 'rm -rf /etc/calamares /usr/share/calamares /usr/lib/calamares /usr/share/endeavouros /usr/share/eos /usr/share/venom/packages'
   - 'rm -f /etc/pacman.d/endeavouros-mirrorlist /usr/lib/endeavouros-release /etc/polkit-1/rules.d/49-venom-calamares.rules'
 """)
@@ -368,6 +370,9 @@ if "  - removeuser" not in settings_online.read_text():
     raise SystemExit("O instalador online deve remover o usuário temporário da sessão Live.")
 if "update_system: true" not in packages_config.read_text():
     raise SystemExit("O modo online deve atualizar a instalação VENOM já copiada.")
+cleanup_text = (modules / "shellprocess_venom_cleanup.conf").read_text()
+if "remaining=$(pacman -Qq | grep -E" not in cleanup_text or "grep -Eiq \"endeavouros|eos-\" /etc/pacman.conf" not in cleanup_text:
+    raise SystemExit("A limpeza final deve bloquear pacotes e repositórios EndeavourOS/EOS remanescentes.")
 if "pacstrap" in settings_online.read_text():
     raise SystemExit("O modo online não pode criar um Arch genérico com pacstrap.")
 if "packages@online" in settings_offline.read_text():
