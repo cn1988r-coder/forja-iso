@@ -90,9 +90,6 @@ sequence:
   - mount
   - unpackfs
   - machineid
-  - locale
-  - keyboard
-  - localecfg
   - fstab
   - removeuser
   - usersq
@@ -231,3 +228,8 @@ if 'efiBootLoader: "grub"' not in (modules / "bootloader.conf").read_text():
     raise SystemExit("GRUB não está definido como bootloader fixo.")
 if "packages@online" in settings_offline.read_text() or "packages@online" in settings_online.read_text():
     raise SystemExit("A instalação da imagem completa não pode depender de atualização de pacotes online.")
+for config in (settings_offline, settings_online):
+    data = config.read_text()
+    for inherited in ("  - locale\\n", "  - keyboard\\n", "  - localecfg\\n"):
+        if inherited in data:
+            raise SystemExit(f"Idioma e teclado devem ser herdados da imagem Live, não reconfigurados: {inherited.strip()}")
