@@ -193,11 +193,60 @@ check_session_applet() {
 check_session_applet /etc/xdg/autostart/nm-applet.desktop nm-applet
 check_session_applet /etc/xdg/autostart/blueman.desktop blueman-applet
 check_session_applet /etc/xdg/autostart/mate-volume-control-status-icon.desktop mate-volume-control-status-icon
+
+# Replace upstream autostart entries with explicit MATE-only launchers.
+# This avoids relying on desktop-environment filters shipped by package defaults.
+install -d -m 0755 /etc/xdg/autostart
+cat > /etc/xdg/autostart/nm-applet.desktop <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Network Manager Applet
+Exec=/usr/bin/nm-applet
+OnlyShowIn=MATE;
+X-MATE-Autostart-enabled=true
+NoDisplay=true
+DESKTOP
+cat > /etc/xdg/autostart/blueman.desktop <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Blueman Applet
+Exec=/usr/bin/blueman-applet
+OnlyShowIn=MATE;
+X-MATE-Autostart-enabled=true
+NoDisplay=true
+DESKTOP
+cat > /etc/xdg/autostart/mate-volume-control-status-icon.desktop <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=MATE Volume Control
+Exec=/usr/bin/mate-volume-control-status-icon
+OnlyShowIn=MATE;
+X-MATE-Autostart-enabled=true
+NoDisplay=true
+DESKTOP
+chmod 0644 /etc/xdg/autostart/nm-applet.desktop /etc/xdg/autostart/blueman.desktop /etc/xdg/autostart/mate-volume-control-status-icon.desktop
+# Do not let an inherited liveuser dconf database override the system MATE panel layout.
+rm -f /home/liveuser/.config/dconf/user
+
 if [[ ! -s /usr/share/mate-panel/layouts/default.layout ]] ||
    ! grep -Fq 'NotificationAreaAppletFactory::NotificationArea' /usr/share/mate-panel/layouts/default.layout; then
   echo "MATE default panel layout has no notification area for network, Bluetooth and audio icons." >&2
   exit 1
 fi
+for desktop in nm-applet.desktop blueman.desktop mate-volume-control-status-icon.desktop; do
+  [[ -s "/etc/xdg/autostart/$desktop" ]] || {
+    echo "VENOM MATE applet autostart missing: $desktop" >&2
+    exit 1
+  }
+  grep -Fq 'OnlyShowIn=MATE;' "/etc/xdg/autostart/$desktop" || {
+    echo "VENOM MATE applet autostart is not enabled specifically for MATE: $desktop" >&2
+    exit 1
+  }
+done
+[[ ! -e /home/liveuser/.config/dconf/user ]] || {
+  echo "Inherited liveuser dconf database can override the VENOM MATE panel defaults." >&2
+  exit 1
+}
 # Default layout is seeded through dconf for a fresh liveuser profile.
 # Default launcher is the real Arch online installer. Keep a separate offline profile.
 cp -a /etc/calamares /etc/calamares-online
