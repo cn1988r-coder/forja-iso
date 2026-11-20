@@ -60,10 +60,11 @@ jobs:
 
           grep -Fq '/usr/share/forja/packages/shelly-git-*.pkg.tar.zst' "$EOS/modules/shellprocess_forja_stage_packages.conf"
           grep -Fq 'pacman -U --noconfirm --needed /tmp/forja-packages/*.pkg.tar.zst' "$EOS/modules/shellprocess_forja_local_packages.conf"
+          grep -Fq 'GRUB_DISTRIBUTOR="Forja OS"' "$EOS/modules/shellprocess_forja_grub_defaults.conf"
           python - "$EOS/settings_online.conf" <<'PY'
           import pathlib, sys
           data = pathlib.Path(sys.argv[1]).read_text().split("- exec:", 1)[1].split("- show:", 1)[0]
-          steps = ["shellprocess@forja_bootstrap", "usersq", "shellprocess@forja_sudoers", "networkcfg", "packages@online", "shellprocess@forja_local_packages", "fstab", "bootloader"]
+          steps = ["shellprocess@forja_bootstrap", "usersq", "shellprocess@forja_sudoers", "networkcfg", "packages@online", "shellprocess@forja_local_packages", "fstab", "shellprocess@forja_grub_defaults", "bootloader"]
           positions = [data.index("  - " + step) for step in steps]
           if positions != sorted(positions):
               raise SystemExit("Ordem incorreta: bootstrap Arch, usuário, rede, pacotes Forja e bootloader.")
