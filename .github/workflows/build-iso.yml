@@ -7,6 +7,9 @@ on:
     paths:
       - "Dockerfile"
       - "scripts/build-forja-iso.sh"
+      - "scripts/patch-calamares.py"
+      - "build/packages.arch"
+      - "build/packages.mate"
       - "scripts/build-container.sh"
       - "build/**"
       - ".github/workflows/build-iso.yml"
