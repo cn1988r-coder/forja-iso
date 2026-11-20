@@ -170,9 +170,26 @@ if [[ ! -f /home/liveuser/.local/share/applications/calamares.desktop ]]; then
   echo "Calamares live-session desktop entry is missing: /home/liveuser/.local/share/applications/calamares.desktop" >&2
   exit 1
 fi
-sed -i -e 's|^TryExec=eos-welcome$|TryExec=calamares|' -e 's|^Exec=eos-welcome$|Exec=pkexec calamares -c /etc/calamares-online|' /home/liveuser/.local/share/applications/calamares.desktop
+sed -i \
+  -e 's|^Name=Install System$|Name=Install Forja OS (online)|' \
+  -e 's|^Name\[pt_BR\]=Sistema de Instalação$|Name[pt_BR]=Instalar Forja OS (online)|' \
+  -e 's|^GenericName=System Installer$|GenericName=Forja OS Online Installer|' \
+  -e 's|^GenericName\[pt_BR\]=Instalador de Sistema$|GenericName[pt_BR]=Instalador online da Forja OS|' \
+  -e 's|^Comment=Calamares — System Installer$|Comment=Install Forja OS using official Arch Linux repositories|' \
+  -e 's|^Comment\[pt_BR\]=Calamares — Instalador de Sistema$|Comment[pt_BR]=Instala a Forja OS pelos repositórios oficiais do Arch Linux|' \
+  -e 's|^TryExec=eos-welcome$|TryExec=calamares|' \
+  -e 's|^Exec=eos-welcome$|Exec=pkexec calamares -c /etc/calamares-online|' \
+  /home/liveuser/.local/share/applications/calamares.desktop
 grep -Fxq 'TryExec=calamares' /home/liveuser/.local/share/applications/calamares.desktop || {
   echo "Calamares desktop entry has an invalid TryExec value." >&2
+  exit 1
+}
+grep -Fxq 'Name=Install Forja OS (online)' /home/liveuser/.local/share/applications/calamares.desktop || {
+  echo "Calamares online launcher is not branded as Forja OS." >&2
+  exit 1
+}
+grep -Fxq 'Name[pt_BR]=Instalar Forja OS (online)' /home/liveuser/.local/share/applications/calamares.desktop || {
+  echo "Calamares online launcher has no Forja OS Portuguese label." >&2
   exit 1
 }
 grep -Fxq 'Exec=pkexec calamares -c /etc/calamares-online' /home/liveuser/.local/share/applications/calamares.desktop || {
