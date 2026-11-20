@@ -196,8 +196,8 @@ grep -Fq 'subject.user === "liveuser"' /etc/polkit-1/rules.d/49-forja-calamares.
 if calamares_marker not in s:
     raise SystemExit('Não foi possível localizar a instalação dos pacotes locais para ativar o Calamares offline.')
 s = s.replace(calamares_marker, calamares_marker + calamares_patch, 1)
-package_archive_marker = 'rm -rf "/root/packages/"\\n'
-package_archive_copy = 'mkdir -p "/usr/share/forja/packages"\\ncp /root/packages/shelly-git-*.pkg.tar.zst /root/packages/ferdium-bin-*.pkg.tar.zst /root/packages/iptvnator-bin-*.pkg.tar.zst /root/packages/bibata-cursor-theme-bin-*.pkg.tar.zst "/usr/share/forja/packages/"\\nrm -rf "/root/packages/"\\n'
+package_archive_marker = 'rm -rf "/root/packages/"\n'
+package_archive_copy = 'mkdir -p "/usr/share/forja/packages"\ncp /root/packages/shelly-git-*.pkg.tar.zst /root/packages/ferdium-bin-*.pkg.tar.zst /root/packages/iptvnator-bin-*.pkg.tar.zst /root/packages/bibata-cursor-theme-bin-*.pkg.tar.zst "/usr/share/forja/packages/"\nrm -rf "/root/packages/"\n'
 if package_archive_marker not in s:
     raise SystemExit('Não foi possível preservar os pacotes próprios Forja para o instalador online.')
 s = s.replace(package_archive_marker, package_archive_copy, 1)
