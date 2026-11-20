@@ -64,6 +64,5 @@ wget
 which
 wpa_supplicant
 xfsprogs
-yay
-git
-base-devel
+community-keyring
+community-release
