@@ -240,17 +240,29 @@ dontChroot: true
 timeout: 120
 verbose: true
 script:
-  - "mkdir -p \\"${ROOT}/tmp/forja-packages\\""
-  - "cp /root/packages/shelly-git-*.pkg.tar.zst /root/packages/ferdium-bin-*.pkg.tar.zst /root/packages/iptvnator-bin-*.pkg.tar.zst /root/packages/bibata-cursor-theme-bin-*.pkg.tar.zst \\"${ROOT}/tmp/forja-packages/\\""
+  - 'mkdir -p ${ROOT}/tmp/forja-packages'
+  - 'cp /root/packages/shelly-git-*.pkg.tar.zst /root/packages/ferdium-bin-*.pkg.tar.zst /root/packages/iptvnator-bin-*.pkg.tar.zst /root/packages/bibata-cursor-theme-bin-*.pkg.tar.zst ${ROOT}/tmp/forja-packages/'
 """)
 (modules / "shellprocess_forja_local_packages.conf").write_text("""---
 dontChroot: false
 timeout: 1800
 verbose: true
 script:
-  - "pacman -U --noconfirm --needed /tmp/forja-packages/*.pkg.tar.zst"
-  - "rm -rf /tmp/forja-packages"
+  - 'pacman -U --noconfirm --needed /tmp/forja-packages/*.pkg.tar.zst'
+  - 'rm -rf /tmp/forja-packages'
 """)
+
+(modules / "shellprocess_forja_cleanup.conf").write_text("""---
+dontChroot: false
+timeout: 180
+verbose: true
+script:
+  - 'if pacman -Q calamares >/dev/null 2>&1; then pacman -Rdd --noconfirm calamares; fi'
+  - 'packages=$(pacman -Qq | grep -E "^(endeavouros-|eos-)" || true); if [ -n "$packages" ]; then pacman -Rdd --noconfirm $packages; fi'
+  - 'rm -rf /etc/calamares /usr/share/calamares /usr/lib/calamares /usr/share/endeavouros /usr/share/eos'
+  - 'rm -f /etc/pacman.d/endeavouros-mirrorlist /usr/lib/endeavouros-release /etc/polkit-1/rules.d/49-forja-calamares.rules'
+""")
+
 
 # Keep partitioning safe and independent of the removed package/bootloader chooser.
 partition_config = modules / "partition.conf"
