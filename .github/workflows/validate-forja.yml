@@ -94,17 +94,3 @@ jobs:
           ! grep -Eq 'packagechooser|netinstall|eos_pacman|pacstrap|eos_script' "$EOS/settings_offline.conf"
           grep -Fq 'action.id === "com.github.calamares.calamares"' build/airootfs/etc/polkit-1/rules.d/49-forja-calamares.rules
           echo "OK: patcher aplicado e fluxos online Arch/offline separados e verificados"
- "$EOS/modules/shellprocess_forja_cleanup.conf"
-
-          grep -Fxq 'efiBootLoader: "grub"' "$EOS/modules/bootloader.conf"
-          ! grep -q 'efiBootLoaderVar:' "$EOS/modules/partition.conf"
-          grep -Fq 'availableFileSystemTypes:  ["ext4"]' "$EOS/modules/partition.conf"
-          grep -Fq '/run/archiso/bootmnt/arch/x86_64/airootfs.sfs' "$EOS/modules/unpackfs.conf"
-          grep -Fxq 'username: liveuser' "$EOS/modules/removeuser.conf"
-          grep -Fq 'displaymanagers:' "$EOS/modules/displaymanager.conf"
-          grep -Fq 'lightdm.service' "$EOS/modules/services-systemd.conf"
-
-          ! grep -Eq 'packagechooser|netinstall|eos_pacman|pacstrap|eos_script' "$EOS/settings_online.conf"
-          ! grep -Eq 'packagechooser|netinstall|eos_pacman|pacstrap|eos_script' "$EOS/settings_offline.conf"
-          grep -Fq 'action.id === "com.github.calamares.calamares"' build/airootfs/etc/polkit-1/rules.d/49-forja-calamares.rules
-          echo "OK: patcher aplicado e fluxos online Arch/offline separados e verificados"
