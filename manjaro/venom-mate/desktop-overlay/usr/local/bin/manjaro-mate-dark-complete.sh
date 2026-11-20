@@ -24,7 +24,7 @@ info "Atualizando sistema e instalando pacotes..."
 sudo pacman -Syu --noconfirm
 sudo pacman -S --noconfirm --needed \
     mate mate-extra \
-    materia-gtk-theme papirus-icon-theme dconf-editor blueman
+    materia-gtk-theme papirus-icon-theme pamac-gtk dconf-editor blueman
 
 # ---------------------------------------------------------
 # 3. AUR (Brisk Menu + Bibata)
