@@ -9,6 +9,7 @@ for f in profile.conf Packages-Root Packages-Desktop Packages-Live Packages-Mhwd
   [[ -s "$PROFILE/$f" ]] || fail "arquivo de perfil ausente: $f"
 done
 [[ -s "$PROFILE/desktop-overlay/usr/local/bin/manjaro-mate-dark-complete.sh" ]] || fail "script original ausente do overlay"
+[[ -s "$PROFILE/desktop-overlay/usr/share/mate-panel/layouts/manjaro.layout" ]] || fail "layout Manjaro MATE ausente"
 [[ -s "$PROFILE/desktop-overlay/usr/share/applications/venom-mate-setup.desktop" ]] || fail "atalho do configurador ausente"
 [[ -s "$PROFILE/desktop-overlay/etc/locale.conf" ]] || fail "locale PT-BR ausente"
 [[ -s "$PROFILE/desktop-overlay/etc/vconsole.conf" ]] || fail "teclado ABNT2 ausente"
@@ -18,6 +19,7 @@ grep -Fxq 'KEYMAP=br-abnt2' "$PROFILE/desktop-overlay/etc/vconsole.conf" || fail
 grep -Fq 'XkbVariant" "abnt2' "$PROFILE/desktop-overlay/etc/X11/xorg.conf.d/00-keyboard.conf" || fail "X11 ABNT2 inválido"
 cmp -s "$ROOT/scripts/manjaro-mate-dark-complete.sh" "$PROFILE/desktop-overlay/usr/local/bin/manjaro-mate-dark-complete.sh" || fail "cópia do script diverge do original"
 bash -n "$ROOT/scripts/manjaro-mate-dark-complete.sh" || fail "sintaxe do script original inválida"
+grep -Fq "manjaro-mate-settings" "$ROOT/scripts/manjaro-mate-dark-complete.sh" && fail "pacote MATE descontinuado ainda está no script" || true
 bash -n "$ROOT/scripts/build-venom-iso.sh" || fail "sintaxe do construtor inválida"
 ! grep -Eiq 'calamares|archiso|endeavouros' "$PROFILE/Packages-Root" "$PROFILE/Packages-Desktop" "$PROFILE/Packages-Live" "$PROFILE/profile.conf" || fail "componente proibido no perfil ativo"
 grep -Fxq 'mate' "$PROFILE/Packages-Desktop" || fail "grupo MATE ausente"
