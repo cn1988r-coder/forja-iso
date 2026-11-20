@@ -162,6 +162,18 @@ grep -Fxq 'Exec=pkexec calamares' /home/liveuser/.local/share/applications/calam
   echo "Calamares desktop entry has an invalid Exec value." >&2
   exit 1
 }
+if [[ ! -f /etc/polkit-1/rules.d/49-forja-calamares.rules ]]; then
+  echo "Restricted live-session Polkit rule for Calamares is missing." >&2
+  exit 1
+fi
+grep -Fq 'action.id === "com.github.calamares.calamares"' /etc/polkit-1/rules.d/49-forja-calamares.rules || {
+  echo "Calamares Polkit action ID is not authorized by the live rule." >&2
+  exit 1
+}
+grep -Fq 'subject.user === "liveuser"' /etc/polkit-1/rules.d/49-forja-calamares.rules || {
+  echo "Calamares Polkit rule is not restricted to liveuser." >&2
+  exit 1
+}
 """
 if calamares_marker not in s:
     raise SystemExit('Não foi possível localizar a instalação dos pacotes locais para ativar o Calamares offline.')
