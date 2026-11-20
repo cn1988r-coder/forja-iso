@@ -172,3 +172,14 @@ Nunca apresentar intenção como implementação, nem implementação como teste
 - `scripts/validate-build.sh` agora exige no código a presença do separador, da área de notificação e do applet nativo de volume.
 - Commits desta correção: `c085ccf5f30c0e7978fabf1de4d97d4844610d31`, `51f357e90145aa1036f50fe150e662eede2e655f` e `faf5a6cd9bf8cf69ac42381c4a45120dabaf2d7c`.
 - **Ainda não validado:** sintaxe/execução do hook, validador estático, renderização do painel em sessão Live e presença real dos ícones. Nenhuma nova ISO foi compilada. Não afirmar que o defeito está resolvido até validar o painel graficamente em VM.
+
+
+## Auditoria corretiva após os defeitos observados na ISO #50
+
+- Revisão em 2026-11-20 do HEAD da branch `optimize/venom-iso-size`: foram encontrados problemas concretos que as verificações anteriores não detectavam.
+- **Wallpaper:** o script gerava intencionalmente um PNG liso `#101010`. Foi adicionada a arte vetorial monocromática `build/airootfs/usr/share/backgrounds/venom/venom-wallpaper.svg`; o build agora a rasteriza para PNG, verifica o arquivo e exige resolução de 1920×1080 antes de copiá-lo para a imagem Live. A imagem não foi visualmente validada em uma sessão MATE.
+- **Validador:** o final de `scripts/validate-build.sh` continha um bloco de verificações duplicado. A segunda cópia foi removida. As verificações do wallpaper agora exigem a arte SVG, a conversão e a checagem de resolução, e reprovam o gerador antigo de fundo liso.
+- **Bloqueio de segurança da próxima ISO:** o validador agora interrompe explicitamente qualquer aprovação enquanto `build/airootfs/usr/bin/venom-installer` não existir como executável e enquanto o fluxo Calamares permanecer no script de build. Isso é intencional: o Calamares fechou durante o teste Live e a decisão arquitetural é substituí-lo por instalador próprio em Python, 100% gráfico. Não se deve gerar outra ISO com o instalador conhecido como defeituoso.
+- **Painel MATE:** o layout explícito, o autostart de rede/Bluetooth e o applet nativo de volume continuam configurados, mas ainda não foram validados graficamente. A validação textual não comprova que os applets são carregados e exibidos.
+- **Estado real:** foram gravadas correções no código; não foi iniciada compilação. Não há prova de boot, renderização do wallpaper, exibição dos indicadores, funcionamento do Bluetooth ou instalação completa após essas alterações.
+- **Próximos bloqueios:** implementar o instalador próprio; revisar e testar o painel MATE com sessão gráfica; validar o BlueZ com e sem controlador Bluetooth; confirmar o wallpaper no desktop; executar o validador em CI; só então solicitar autorização separada para uma nova ISO.
