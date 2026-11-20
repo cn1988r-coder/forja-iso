@@ -32,6 +32,7 @@ jobs:
 
   build:
     name: Compile VENOM OS
+    if: github.event_name == 'workflow_dispatch'
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 360
