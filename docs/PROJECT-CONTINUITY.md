@@ -1,5 +1,15 @@
 # VENOM OS - Registro permanente de continuidade
 
+## Correção dos indicadores do painel MATE em 2026-11-20
+
+- Durante o teste da ISO #50, o usuário informou que os indicadores de rede, Bluetooth e volume não apareciam no painel MATE.
+- Revisão do perfil Live na branch `optimize/venom-iso-size` confirmou que `network-manager-applet` e `mate-media` não estavam em `build/packages.mate`. O pacote `blueman` já estava listado, mas os pacotes `bluez` e `bluez-utils` não estavam explicitamente incluídos.
+- Correção preparada no perfil Live: adicionar `network-manager-applet`, `mate-media`, `bluez`, `bluez-utils` e a pilha de áudio `pipewire`, `pipewire-alsa`, `pipewire-pulse`, `pipewire-jack`, `wireplumber`, `alsa-utils` e `rtkit`. O script já habilita `NetworkManager.service` e `bluetooth.service`; esses serviços continuam habilitados.
+- O validador estático foi ampliado para exigir os pacotes dos indicadores e verificar a ativação do serviço Bluetooth.
+- Esta correção altera somente a branch isolada `optimize/venom-iso-size`; não modifica `main` nem `fix/forja-calamares-stability`.
+- **Não testado:** a correção ainda não foi compilada nem verificada em sessão Live. A ISO #50 existente não muda. Não iniciar build sem autorização explícita do usuário.
+- **Próximo passo:** executar a validação estática e, após autorização, compilar nova ISO e testar visualmente os três indicadores na sessão MATE Live e no sistema instalado.
+
 Última atualização: 2026-11-20
 
 Este documento é a referência operacional para retomar o desenvolvimento sem depender de o usuário recontar o histórico. Deve ser consultado no início de cada sessão de trabalho e atualizado após mudanças relevantes, builds, decisões e testes.
