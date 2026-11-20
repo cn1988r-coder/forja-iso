@@ -1,3 +1,32 @@
+# Estado confirmado em 2026-11-20 08:33 BRT
+
+## Retomada do projeto VENOM OS
+
+- Repositório: `cn1988r-coder/forja-iso`.
+- Branch autorizada para desenvolvimento: `optimize/venom-iso-size`.
+- HEAD confirmado: `2fa22b5fe75af9ff111de11226dd71ca4b99845f`.
+- Instruções de agentes: `AGENTS.md`, commit `2fa22b5fe75af9ff111de11226dd71ca4b99845f`.
+- Não havia workflow ativo na consulta ao GitHub Actions feita às 08:33 BRT.
+- **Build #40**: run `44673298576`, commit `176355ffb49dcc59f5030842479222db93223049`, terminou com falha. A etapa de preparação do ambiente passou; a etapa `mkarchiso` falhou porque o script reportou que `/usr/bin/calamares` estava ausente. Nenhuma ISO, hash ou artefato foi produzido nessa execução.
+- **Build #50**: run `44696672641`, commit `88143611d80214fd5b945c9346b352ce8e14f47d`, terminou com sucesso e produziu `VENOM-OS-MATE-2026.11.20.iso`. SHA-256 da ISO: `941793b70fa33a786ab233e8393254a8cc6ed6969be42fef4a24b60d40959964`. Artefato ZIP ID `14612642525`, tamanho `4.975.020.638` bytes. **Preservar esse artefato e hash como registro histórico; não tratar a ISO como aprovada**, pois o usuário constatou que o Calamares fecha sozinho e a arquitetura ainda depende do EndeavourOS.
+- **Validação #1163**: run `44727964982`, no HEAD atual, terminou com falha deliberada em `scripts/validate-scope.sh`: o instalador gráfico próprio ainda não foi implementado e validado. A validação de sintaxe/build foi ignorada após essa falha.
+- A execução #1163 também confirma que o validador de escopo ainda procura blocos Python embutidos e código/identidade Calamares. Isso está em conflito com as decisões atuais: Calamares foi rejeitado e Python não foi aprovado como tecnologia do instalador.
+- A inspeção direta do HEAD atual confirma que a migração para Arch Linux puro **ainda não foi feita**: `scripts/build-venom-iso.sh`, `Dockerfile`, `scripts/build-container.sh` e `.github/workflows/build-iso.yml` ainda clonam/consomem EndeavourOS, seus repositórios e paths. O perfil Archiso próprio ainda não foi criado.
+- A documentação mais antiga abaixo contém instruções históricas superadas. Este bloco e `AGENTS.md` prevalecem: instalador próprio 100% gráfico, Calamares rejeitado, base Arch oficial, MATE + LightDM, sem geração de ISO sem autorização explícita.
+- Nenhuma ISO foi iniciada ou gerada nesta retomada.
+
+## Próxima sequência técnica
+
+1. Inventariar o conteúdo do perfil EOS usado atualmente e mapear somente o necessário para um perfil Archiso oficial independente.
+2. Criar o perfil VENOM em `build/archiso` a partir da estrutura oficial `archiso/configs/releng`, sem clonar ou executar scripts de outras distribuições.
+3. Reescrever o container e os scripts/workflows para usar exclusivamente Arch Linux e `mkarchiso` sobre o perfil VENOM.
+4. Remover referências de build e pacotes Calamares, wrappers, patches, regras polkit e validadores legados; preservar apenas créditos/licenças exigidos.
+5. Implementar e testar o instalador gráfico nativo aprovado em componentes isolados antes de qualquer build ISO.
+6. Atualizar os validadores para refletir as decisões reais, sem exigir Python ou Calamares.
+7. Atualizar este registro após cada etapa, sem disparar build ISO.
+
+---
+
 # VENOM OS - Registro permanente de continuidade
 
 ## Correção dos indicadores do painel MATE em 2026-11-20
