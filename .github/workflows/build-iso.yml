@@ -1,75 +1,21 @@
 name: Compilar ISO VENOM OS
 
+# Bloqueio intencional: nenhuma compilação de ISO pode ocorrer enquanto
+# o instalador próprio VENOM não estiver implementado, validado e autorizado.
+# O workflow permanece visível para auditoria, mas não aceita gatilhos de push.
 on:
   workflow_dispatch:
-  push:
-    branches: [main, fix/venom-calamares-stability, fix/forja-calamares-stability]
-    paths:
-      - "Dockerfile"
-      - "scripts/build-venom-iso.sh"
-      - "scripts/patch-calamares.py"
-      - "build/packages.arch"
-      - "build/packages.mate"
-      - "scripts/build-container.sh"
-      - "build/**"
-      - ".github/workflows/build-iso.yml"
 
 permissions:
   contents: read
 
-concurrency:
-  group: venom-os-iso-build-v2
-  cancel-in-progress: true
-
 jobs:
   build-iso:
+    if: false
     runs-on: ubuntu-latest
-    timeout-minutes: 360
     steps:
-      - name: Baixar repositório
-        uses: actions/checkout@v4
-
-      - name: Diagnóstico inicial do runner
+      - name: Compilação bloqueada por decisão do projeto
         run: |
-          set -euxo pipefail
-          echo "Commit: $GITHUB_SHA"
-          echo "Workspace: $GITHUB_WORKSPACE"
-          df -h "$GITHUB_WORKSPACE"
-          free -h
-          nproc
-          docker version
-
-      - name: Construir ambiente Arch com repositórios EndeavourOS
-        run: |
-          docker build --pull \
-            --build-arg BUILD_UID="$(id -u)" \
-            --build-arg BUILD_GID="$(id -g)" \
-            -t venom-os-iso-builder .
-
-      - name: Compilar ISO com mkarchiso
-        run: |
-          docker run --rm --privileged \
-            -v "$GITHUB_WORKSPACE:/workspace" \
-            -w /workspace \
-            venom-os-iso-builder
-
-      - name: Verificar e calcular hash da ISO
-        run: |
-          shopt -s nullglob
-          isos=(work/EndeavourOS-ISO/out/*.iso)
-          if (( ${#isos[@]} == 0 )); then
-            echo "Nenhuma ISO foi gerada." >&2
-            exit 1
-          fi
-          file "${isos[@]}"
-          sha256sum "${isos[@]}" | tee work/venom-iso-sha256.txt
-
-      - name: Publicar ISO e hash como artefatos
-        uses: actions/upload-artifact@v4
-        with:
-          name: venom-os-iso
-          path: |
-            work/EndeavourOS-ISO/out/*.iso
-            work/venom-iso-sha256.txt
-          if-no-files-found: error
-          retention-days: 1
+          echo "Build bloqueada: instalador próprio VENOM ainda não foi implementado e validado."
+          echo "A compilação também depende de autorização expressa do usuário."
+          exit 1
