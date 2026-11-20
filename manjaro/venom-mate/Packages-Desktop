@@ -1,0 +1,35 @@
+# MATE desktop for Manjaro. The user's original setup script remains responsible
+# for its complete package refresh, AUR additions and desktop preferences.
+mate
+mate-extra
+xorg-server
+xorg-xinit
+xorg-xrandr
+lightdm
+lightdm-gtk-greeter
+accountsservice
+networkmanager
+network-manager-applet
+bluez
+bluez-utils
+blueman
+pipewire
+pipewire-alsa
+pipewire-pulse
+pipewire-jack
+wireplumber
+alsa-utils
+alsa-firmware
+sof-firmware
+materia-gtk-theme
+papirus-icon-theme
+dconf
+dconf-editor
+curl
+git
+base-devel
+firefox
+xdg-utils
+xdg-user-dirs
+noto-fonts
+ttf-dejavu
