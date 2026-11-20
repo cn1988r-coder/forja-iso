@@ -1,0 +1,5 @@
+*.iso
+*.iso.*
+*.pkg.tar.*
+*.log
+work-*
