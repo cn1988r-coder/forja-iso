@@ -17,6 +17,7 @@ required=(
   "$P/Packages-Root" "$P/Packages-Desktop" "$P/Packages-Live" "$P/Packages-Mhwd"
   "$D/etc/skel/.config/gtk-3.0/settings.ini"
   "$D/etc/skel/.config/autostart/venom-iptvnator-install.desktop"
+  "$D/etc/skel/.config/autostart/venom-network-applet.desktop"
   "$D/usr/local/bin/venom-install-iptvnator"
   "$D/etc/skel/.config/xfce4/panel/docklike-2.rc"
   "$D/etc/skel/.config/xfce4/helpers.rc"
@@ -77,6 +78,8 @@ grep -Fq 'NAME="VENOM OS"' "$R/etc/os-release" || fail "nome do sistema não é 
 grep -Fq 'PRETTY_NAME="VENOM OS"' "$R/etc/os-release" || fail "nome amigável não é VENOM OS"
 grep -Fq 'GRUB_DISTRIBUTOR="VENOM OS"' "$R/etc/default/grub" || fail "identidade VENOM OS ausente no GRUB"
 grep -Fq 'EnableAUR' "$R/etc/pamac.conf" || fail "Pamac AUR não habilitado"
+grep -Fq 'Exec=nm-applet --indicator' "$D/etc/skel/.config/autostart/venom-network-applet.desktop" || fail "NetworkManager applet não inicia na sessão XFCE"
+grep -Fq 'button-icon" type="string" value="comm-menu-symbolic"' "$X/xfce4-panel.xml" || fail "ícone Community do menu Whisker ausente"
 grep -Fq 'WebBrowser=firefox' "$D/etc/skel/.config/xfce4/helpers.rc" || fail "Firefox não configurado como navegador padrão"
 grep -Fq '/usr/share/backgrounds/venom/venom-black.svg' "$X/xfce4-desktop.xml" || fail "papel de parede VENOM ausente"
 
