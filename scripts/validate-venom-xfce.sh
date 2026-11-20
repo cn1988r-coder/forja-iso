@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+P="$ROOT/manjaro/venom-xfce"
+fail(){ printf 'FALHA: %s\n' "$*" >&2; exit 1; }
+pass(){ printf 'OK: %s\n' "$*"; }
+
+required=(
+  "$ROOT/shared/pacman.conf"
+  "$P/profile.conf" "$P/user-repos.conf"
+  "$P/Packages-Root" "$P/Packages-Desktop" "$P/Packages-Live" "$P/Packages-Mhwd"
+  "$P/desktop-overlay/etc/skel/.config/gtk-3.0/settings.ini"
+  "$P/desktop-overlay/etc/skel/.config/autostart/venom-iptvnator-install.desktop"
+  "$P/desktop-overlay/usr/local/bin/venom-install-iptvnator"
+  "$P/live-overlay/etc/issue"
+  "$P/root-overlay/etc/os-release"
+  "$P/root-overlay/etc/default/grub"
+  "$P/root-overlay/etc/pamac.conf"
+)
+for f in "${required[@]}"; do [[ -s "$f" ]] || fail "arquivo obrigatório ausente: $f"; done
+
+bash -n "$P/profile.conf" || fail "sintaxe inválida em profile.conf"
+bash -n "$P/desktop-overlay/usr/local/bin/venom-install-iptvnator" || fail "sintaxe inválida no instalador IPTVnator"
+
+for pkg in xfce4 xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 xfconf thunar comm-xfce-config comm-xfce-datetime firefox pamac-gtk lightdm networkmanager; do
+  grep -Fxq "$pkg" "$P/Packages-Desktop" || fail "pacote XFCE/aplicativo selecionado ausente: $pkg"
+done
+for pkg in community-keyring community-release; do
+  grep -Fxq "$pkg" "$P/Packages-Root" || fail "pacote base da fonte XFCE ausente: $pkg"
+done
+grep -Fxq 'community-livecd-key' "$P/Packages-Live" || fail "chave do ambiente Live ausente"
+grep -Fxq 'yay' "$P/Packages-Root" || fail "yay ausente para a instalação AUR do IPTVnator"
+grep -Fq 'iptvnator-bin' "$P/desktop-overlay/usr/local/bin/venom-install-iptvnator" || fail "instalação IPTVnator ausente"
+
+if grep -Eiq '^(mate|mate-extra|mate-media|marco|caja)([[:space:]]|$)' "$P"/Packages-*; then
+  fail "pacotes MATE encontrados no perfil XFCE"
+fi
+if grep -Eiq '^(big-video-converter|biglinux-webapps|bigocrpdf|bigicons-papient|comm-wallpapers-xfce|comm-welcome|biglinux-driver-manager|biglinux-metapackage|biglinux-apps-rename|auto-tweaks-browser|tts-biglinux|brave-browser|libreoffice-fresh-pt-br|steam|rustdesk-bin)([[:space:]]|$)' "$P"/Packages-*; then
+  fail "aplicativo adicional/identidade visual do fornecedor ainda listado"
+fi
+if grep -Eiq 'calamares|biglinux|bigcommunity|repo\.biglinux\.com\.br' "$P"/Packages-* "$P/user-repos.conf" "$ROOT/shared/pacman.conf"; then
+  fail "identidade ou instalador de terceiros encontrado no perfil"
+fi
+
+grep -Fq 'label="VENOM_OS_XFCE"' "$P/profile.conf" || fail "rótulo VENOM OS ausente"
+grep -Fq 'hostname="venom"' "$P/profile.conf" || fail "hostname VENOM ausente"
+grep -Fq 'displaymanager="lightdm"' "$P/profile.conf" || fail "LightDM não selecionado"
+grep -Fq '[venom-xfce]' "$P/user-repos.conf" || fail "repositório do suporte XFCE não configurado"
+grep -Fq 'https://repo.communitybig.org/community-stable/$arch' "$P/user-repos.conf" || fail "URL atual do suporte XFCE ausente"
+grep -Fq '[venom-xfce]' "$ROOT/shared/pacman.conf" || fail "repositório VENOM OS ausente na configuração de compilação"
+if grep -Fq 'repo.biglinux.com.br' "$ROOT/shared/pacman.conf"; then fail "URL antiga que retornava 404 ainda está configurada"; fi
+
+grep -Fq 'NAME="VENOM OS"' "$P/root-overlay/etc/os-release" || fail "nome do sistema não é VENOM OS"
+grep -Fq 'PRETTY_NAME="VENOM OS"' "$P/root-overlay/etc/os-release" || fail "nome amigável não é VENOM OS"
+grep -Fq 'GRUB_DISTRIBUTOR="VENOM OS"' "$P/root-overlay/etc/default/grub" || fail "identidade VENOM OS ausente no GRUB"
+grep -Fq 'gtk-theme-name=Adwaita-dark' "$P/desktop-overlay/etc/skel/.config/gtk-3.0/settings.ini" || fail "tema escuro ausente"
+grep -Fq 'gtk-icon-theme-name=Papirus-Dark' "$P/desktop-overlay/etc/skel/.config/gtk-3.0/settings.ini" || fail "ícones escuros ausentes"
+grep -Fq 'EnableAUR' "$P/root-overlay/etc/pamac.conf" || fail "Pamac AUR não habilitado"
+
+pass "perfil e sintaxe do VENOM OS XFCE"
+pass "XFCE e configuração original da sessão preservados"
+pass "Firefox, Pamac e instalação de IPTVnator selecionados"
+pass "aplicativos extras e identidade visual do fornecedor removidos da seleção"
+pass "tema escuro e identidade VENOM OS configurados"
+pass "repositório antigo 404 removido"
+printf 'VALIDAÇÃO ESTÁTICA DO VENOM OS CONCLUÍDA.\n'
