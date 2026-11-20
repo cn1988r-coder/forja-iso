@@ -106,9 +106,13 @@ rm -rf "$SKEL/.config/kdedefaults" "$SKEL/.config/plasma"* "$SKEL/.local/share/p
 find "$SKEL/.config" -maxdepth 1 -type f \( -name 'balo*' -o -name 'kcm*' -o -name 'kde*' -o -name 'kscreen*' -o -name 'ksmserverrc' -o -name 'ksplashrc' -o -name 'kwalletrc' -o -name 'kxkbrc' -o -name 'plasma*' -o -name 'powerdevilrc' -o -name 'powermanagementprofilesrc' -o -name 'systemsettingsrc' \) -delete
 mkdir -p "$EOS_DIR/airootfs/root/packages"
 
-log "Preparando wallpaper espacial oficial da Forja OS"
+log "Preparando wallpaper preto monocromático da Forja OS"
 FORJA_WALLPAPER="$ROOT/build/airootfs/usr/share/backgrounds/forja/forja-wallpaper.png"
-[[ -s "$FORJA_WALLPAPER" ]] || die "Wallpaper oficial ausente: $FORJA_WALLPAPER. A ISO não será gerada com fundo preto."
+mkdir -p "$(dirname "$FORJA_WALLPAPER")" "$EOS_DIR/airootfs/root"
+magick -size 1920x1080 xc:'#101010' "$FORJA_WALLPAPER"
+cp "$FORJA_WALLPAPER" "$EOS_DIR/airootfs/root/livewall.png"
+cp "$FORJA_WALLPAPER" "$EOS_DIR/airootfs/root/endeavouros-wallpaper.png"
+[[ -s "$FORJA_WALLPAPER" ]] || die "Não foi possível gerar o wallpaper monocromático da Forja OS."
 
 log "Removendo etapa específica de configuração KDE do prepare.sh"
 python - "$EOS_DIR/prepare.sh" <<'PY'
@@ -391,9 +395,7 @@ log "Preparando framework EndeavourOS"
   ./prepare.sh
 )
 
-log "Aplicando wallpaper oficial da Forja após prepare.sh"
-cp "$FORJA_WALLPAPER" "$EOS_DIR/airootfs/root/livewall.png"
-cp "$FORJA_WALLPAPER" "$EOS_DIR/airootfs/root/endeavouros-wallpaper.png"
+log "Wallpaper monocromático preparado antes de executar prepare.sh"
 
 log "Compilando ISO Forja OS. Esta etapa pode levar bastante tempo."
 (
