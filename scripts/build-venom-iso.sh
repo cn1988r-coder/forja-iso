@@ -128,7 +128,7 @@ python - "$EOS_DIR/prepare.sh" <<'PY'
 import pathlib, re, sys
 p = pathlib.Path(sys.argv[1])
 s = p.read_text()
-s = re.sub(r'(?s)# add date to wallpaper.*?a[i]rootfs/root/livewall\.png\n', '# VENOM OS: fundo preto puro, sem data sobreposta.\n', s, count=1)
+s = re.sub(r'(?s)# add date to wallpaper.*?a[i]rootfs/root/livewall\.png\n', '# VENOM OS: wallpaper vetorial, sem data sobreposta.\n', s, count=1)
 s = re.sub(r'(?m)^wget -qN .*endeavouros-wallpaper\.png.*\n', '', s)
 s = re.sub(r'(?m)^get_pkg "eos-settings-plasma"\s*$', '# KDE settings package intentionally omitted for VENOM OS.', s)
 p.write_text(s)
@@ -330,11 +330,11 @@ if [[ ! -f /home/liveuser/.local/share/applications/calamares.desktop ]]; then
 fi
 sed -i \
   -e 's|^Name=Install System$|Name=Install VENOM OS (online)|' \
-  -e 's|^Name\[pt_BR\]=Sistema de Instalação$|Name[pt_BR]=Instalar VENOM OS (online)|' \
+  -e 's|^Name\\[pt_BR\\]=Sistema de Instalação$|Name[pt_BR]=Instalar VENOM OS (online)|' \
   -e 's|^GenericName=System Installer$|GenericName=VENOM OS Online Installer|' \
-  -e 's|^GenericName\[pt_BR\]=Instalador de Sistema$|GenericName[pt_BR]=Instalador online da VENOM OS|' \
+  -e 's|^GenericName\\[pt_BR\\]=Instalador de Sistema$|GenericName[pt_BR]=Instalador online da VENOM OS|' \
   -e 's|^Comment=Calamares — System Installer$|Comment=Install VENOM OS using official Arch Linux repositories|' \
-  -e 's|^Comment\[pt_BR\]=Calamares — Instalador de Sistema$|Comment[pt_BR]=Instala a VENOM OS pelos repositórios oficiais do Arch Linux|' \
+  -e 's|^Comment\\[pt_BR\\]=Calamares — Instalador de Sistema$|Comment[pt_BR]=Instala a VENOM OS pelos repositórios oficiais do Arch Linux|' \
   -e 's|^TryExec=eos-welcome$|TryExec=/usr/bin/calamares|' \
   -e 's|^Exec=eos-welcome$|Exec=sh -c "pkexec /usr/bin/venom-calamares -c /etc/calamares-online"|' \
   /home/liveuser/.local/share/applications/calamares.desktop
