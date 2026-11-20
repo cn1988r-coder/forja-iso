@@ -25,6 +25,10 @@ Os dois comandos são manuais. Nenhum serviço, timer ou inicialização automá
 
 **Estado atual:** os comandos estão presentes como bloqueios seguros, mas o servidor, o protocolo de metadados assinados e o instalador independente ainda não foram implementados. Até lá, eles informam que o serviço não está configurado e não alteram o sistema. Não anunciar o repositório como operacional.
 
+## Instalador
+
+- **Calamares:** instalador gráfico da VENOM OS, com fluxos online e offline planejados para instalar a própria imagem do sistema presente na ISO.
+
 ## Estrutura do projeto
 
 - `Dockerfile`: ambiente de compilação.
