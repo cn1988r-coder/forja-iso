@@ -2,8 +2,8 @@
 set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-fail() { printf 'FALHA: %s\n' "$*" >&2; exit 1; }
-pass() { printf 'OK: %s\n' "$*"; }
+fail() { printf 'FALHA: %s\\n' "$*" >&2; exit 1; }
+pass() { printf 'OK: %s\\n' "$*"; }
 
 required=(
   "$ROOT/build/profiledef.sh"
@@ -30,7 +30,8 @@ for script in "$ROOT"/scripts/*.sh "$ROOT"/build/profiledef.sh; do
   bash -n "$script" || fail "sintaxe inválida: $script"
 done
 
-grep -Fq 'Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch' "$ROOT/build/pacman.conf" || fail "mirror oficial Arch ausente"
+# The dollar signs are literal Pacman variables in pacman.conf, not shell variables.
+grep -Fq "Server = https://geo.mirror.pkgbuild.com/\\$repo/os/\\$arch" "$ROOT/build/pacman.conf" || fail "mirror oficial Arch ausente"
 grep -Fq 'LANG=pt_BR.UTF-8' "$ROOT/build/airootfs/etc/locale.conf" || fail "locale PT-BR ausente"
 grep -Fq 'pt_BR.UTF-8 UTF-8' "$ROOT/build/airootfs/etc/locale.gen" || fail "locale pt_BR não habilitado"
 grep -Fxq 'KEYMAP=br-abnt2' "$ROOT/build/airootfs/etc/vconsole.conf" || fail "teclado ABNT2 ausente"
@@ -52,5 +53,5 @@ pass "pacotes e indicadores MATE presentes"
 pass "estrutura C + GTK4 presente; instalação continua bloqueada"
 pass "workflow de compilação ISO permanece bloqueado"
 
-printf 'PENDENTE: perfil Archiso completo, backend do instalador e testes em VM.\n'
-printf 'ISO: nenhuma compilação executada por este validador.\n'
+printf 'PENDENTE: perfil Archiso completo, backend do instalador e testes em VM.\\n'
+printf 'ISO: nenhuma compilação executada por este validador.\\n'
