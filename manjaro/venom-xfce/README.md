@@ -1,14 +1,14 @@
-# VENOM OS XFCE
+# VENOM OS
 
-This profile preserves the XFCE desktop as the desktop environment for VENOM OS.
+This profile keeps the original XFCE session structure, including its session configuration and date/time integration packages. It removes the extra bundled applications and visual identity of the upstream distribution.
 
-Retained applications explicitly selected for this edition:
+Selected applications retained:
 - Firefox
 - Pamac GTK
-- IPTVnator (installed on first login from the AUR as `iptvnator-bin`)
+- IPTVnator, installed on first login as `iptvnator-bin` from the AUR
 
-The dark GTK theme remains enabled. BigLinux-specific applications, artwork, logos, and names are not part of the VENOM OS identity.
+The dark theme remains enabled. The current signed XFCE support repository is used only for the XFCE session configuration packages and required keyring/release integration. No old repository URL is used.
 
-The ISO build uses the official Manjaro stable repositories. No BigLinux package repository is configured.
+The final system identity, validation job, compilation job, and artifact are named VENOM OS.
 
-The live ISO is a desktop test image. It intentionally does not bundle Calamares; the final VENOM OS installer is a separate project component.
+This test ISO does not include Calamares. The final VENOM OS installer remains a separate project component.
