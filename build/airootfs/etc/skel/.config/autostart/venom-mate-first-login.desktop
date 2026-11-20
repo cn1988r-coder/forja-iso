@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=VENOM MATE First Login Setup
+Comment=Aplica tema escuro, ícones, cursor e wallpaper da VENOM OS
+Exec=/usr/local/bin/venom-mate-first-login
+OnlyShowIn=MATE;
+X-MATE-Autostart-enabled=true
+NoDisplay=true
