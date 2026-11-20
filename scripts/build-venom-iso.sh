@@ -177,10 +177,10 @@ sed -i \
   -e 's|^GenericName\[pt_BR\]=Instalador de Sistema$|GenericName[pt_BR]=Instalador online da VENOM OS|' \
   -e 's|^Comment=Calamares — System Installer$|Comment=Install VENOM OS using official Arch Linux repositories|' \
   -e 's|^Comment\[pt_BR\]=Calamares — Instalador de Sistema$|Comment[pt_BR]=Instala a VENOM OS pelos repositórios oficiais do Arch Linux|' \
-  -e 's|^TryExec=eos-welcome$|TryExec=calamares|' \
-  -e 's|^Exec=eos-welcome$|Exec=pkexec calamares -c /etc/calamares-online|' \
+  -e 's|^TryExec=eos-welcome$|TryExec=/usr/bin/calamares|' \
+  -e 's|^Exec=eos-welcome$|Exec=/usr/bin/pkexec /usr/bin/calamares -c /etc/calamares-online|' \
   /home/liveuser/.local/share/applications/calamares.desktop
-grep -Fxq 'TryExec=calamares' /home/liveuser/.local/share/applications/calamares.desktop || {
+grep -Fxq 'TryExec=/usr/bin/calamares' /home/liveuser/.local/share/applications/calamares.desktop || {
   echo "Calamares desktop entry has an invalid TryExec value." >&2
   exit 1
 }
@@ -192,7 +192,7 @@ grep -Fxq 'Name[pt_BR]=Instalar VENOM OS (online)' /home/liveuser/.local/share/a
   echo "Calamares online launcher has no VENOM OS Portuguese label." >&2
   exit 1
 }
-grep -Fxq 'Exec=pkexec calamares -c /etc/calamares-online' /home/liveuser/.local/share/applications/calamares.desktop || {
+grep -Fxq 'Exec=/usr/bin/pkexec /usr/bin/calamares -c /etc/calamares-online' /home/liveuser/.local/share/applications/calamares.desktop || {
   echo "Calamares online desktop entry has an invalid Exec value." >&2
   exit 1
 }
@@ -202,8 +202,8 @@ Type=Application
 Name=Instalar VENOM OS (offline)
 Name[pt_BR]=Instalar VENOM OS (offline)
 Comment=Instala a VENOM OS usando a imagem incluída na ISO
-Exec=pkexec calamares -c /etc/calamares-offline
-TryExec=calamares
+Exec=/usr/bin/pkexec /usr/bin/calamares -c /etc/calamares-offline
+TryExec=/usr/bin/calamares
 Icon=calamares
 Terminal=false
 Categories=System;
@@ -213,7 +213,7 @@ if [[ ! -f /etc/polkit-1/rules.d/49-venom-calamares.rules ]]; then
   echo "Restricted live-session Polkit rule for Calamares is missing." >&2
   exit 1
 fi
-grep -Fq 'action.id === "com.github.calamares.calamares"' /etc/polkit-1/rules.d/49-venom-calamares.rules || {
+grep -Fq 'action.id === "com.github.calamares.calamares.pkexec.run"' /etc/polkit-1/rules.d/49-venom-calamares.rules || {
   echo "Calamares Polkit action ID is not authorized by the live rule." >&2
   exit 1
 }
