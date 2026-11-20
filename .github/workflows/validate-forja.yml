@@ -55,6 +55,7 @@ jobs:
           grep -Fq 'cp /etc/pacman.conf' "$EOS/modules/shellprocess_forja_bootstrap.conf"
           grep -Fq 'networkmanager' "$EOS/modules/packages_online.conf"
           grep -Fq 'mate-session-manager' "$EOS/modules/packages_online.conf"
+          grep -Fq "wheel ALL=(ALL:ALL) ALL" "$EOS/modules/shellprocess_forja_sudoers.conf"
           ! grep -Eq 'endeavouros|eos-' "$EOS/modules/packages_online.conf"
 
           grep -Fq '/usr/share/forja/packages/shelly-git-*.pkg.tar.zst' "$EOS/modules/shellprocess_forja_stage_packages.conf"
@@ -62,7 +63,7 @@ jobs:
           python - "$EOS/settings_online.conf" <<'PY'
           import pathlib, sys
           data = pathlib.Path(sys.argv[1]).read_text().split("- exec:", 1)[1].split("- show:", 1)[0]
-          steps = ["shellprocess@forja_bootstrap", "usersq", "networkcfg", "packages@online", "shellprocess@forja_local_packages", "fstab", "bootloader"]
+          steps = ["shellprocess@forja_bootstrap", "usersq", "shellprocess@forja_sudoers", "networkcfg", "packages@online", "shellprocess@forja_local_packages", "fstab", "bootloader"]
           positions = [data.index("  - " + step) for step in steps]
           if positions != sorted(positions):
               raise SystemExit("Ordem incorreta: bootstrap Arch, usuário, rede, pacotes Forja e bootloader.")
