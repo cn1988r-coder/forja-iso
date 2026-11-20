@@ -1,16 +1,15 @@
-name: Validar VENOM OS
+name: Validar VENOM OS Manjaro
 
 on:
   push:
     branches:
       - optimize/venom-iso-size
     paths:
-      - "AGENTS.md"
-      - "Dockerfile"
+      - "manjaro/venom-mate/**"
+      - "scripts/manjaro-mate-dark-complete.sh"
+      - "scripts/build-venom-iso.sh"
+      - "scripts/validate-manjaro-profile.sh"
       - "README.md"
-      - "build/**"
-      - "installer/**"
-      - "scripts/**"
       - ".github/workflows/**"
   pull_request:
     branches:
@@ -21,10 +20,10 @@ permissions:
   contents: read
 
 jobs:
-  static-validation:
+  validar:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Validar dentro do ambiente Arch Linux
-        run: bash scripts/build-container.sh
+      - name: Validar perfil Manjaro e script original
+        run: bash scripts/validate-manjaro-profile.sh
