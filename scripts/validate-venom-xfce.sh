@@ -32,13 +32,14 @@ required=(
   "$X/xfce4-notifyd.xml" "$X/xfce4-power-manager.xml" "$X/xfce4-screensaver.xml"
   "$X/xfce4-settings-manager.xml" "$X/xfce4-taskmanager.xml" "$X/xfce4-terminal.xml"
   "$D/usr/share/backgrounds/venom/venom-black.svg"
+  "$D/usr/share/themes/adw-gtk3-dark/xfwm4/themerc"
 )
 for f in "${required[@]}"; do [[ -s "$f" ]] || fail "arquivo obrigatório ausente/vazio: $f"; done
 
 bash -n "$P/profile.conf" || fail "sintaxe inválida em profile.conf"
 bash -n "$D/usr/local/bin/venom-install-iptvnator" || fail "sintaxe inválida no instalador de aplicativos"
 
-for pkg in xfce4 xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 xfconf thunar xfce4-docklike-plugin firefox pamac-gtk lightdm networkmanager comm-xfce-config comm-xfce-datetime adw-gtk-theme bigicons-papient big-bibata-cursor-theme noto-nerd-fonts-lite; do
+for pkg in xfce4 xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 xfconf thunar xfce4-docklike-plugin firefox pamac-gtk lightdm networkmanager adw-gtk-theme bigicons-papient big-bibata-cursor-theme noto-nerd-fonts-lite; do
   grep -Fxq "$pkg" "$P/Packages-Desktop" || fail "pacote obrigatório ausente em Packages-Desktop: $pkg"
 done
 for pkg in calamares polkit-gnome community-livecd-key; do
@@ -53,7 +54,7 @@ fi
 if grep -Eiq '^(big-video-converter|biglinux-webapps|bigocrpdf|comm-wallpapers-xfce|comm-welcome|biglinux-driver-manager|biglinux-metapackage|biglinux-apps-rename|auto-tweaks-browser|tts-biglinux|brave-browser|libreoffice-fresh-pt-br|steam|rustdesk-bin)([[:space:]]|$)' "$P"/Packages-*; then
   fail "aplicativo adicional da imagem Community foi incluído sem solicitação"
 fi
-if grep -Eiq 'biglinux|bigcommunity|repo\.biglinux\.com\.br' "$P/user-repos.conf" "$ROOT/shared/pacman.conf" "$L" "$D"; then
+if grep -R -Eiq 'biglinux|bigcommunity|repo\.biglinux\.com\.br' "$P/user-repos.conf" "$ROOT/shared/pacman.conf" "$L" "$D"; then
   fail "branding ou repositório BigLinux/BigCommunity ainda presente nos overlays VENOM"
 fi
 
@@ -123,7 +124,8 @@ PY
 ruby -e 'require "yaml"; YAML.load_file(ARGV.fetch(0))' "$L/etc/calamares/settings.conf" >/dev/null || fail "settings.conf do Calamares não é YAML válido"
 
 pass "perfil XFCE, dependências, configurações e scripts"
-pass "tema Community, ícones, cursor e fontes instalados e selecionados"
+[[ "$(find "$D/usr/share/themes/adw-gtk3-dark/xfwm4" -type f | wc -l)" -eq 58 ]] || fail "tema XFWM4 Community incompleto (esperados 58 arquivos)"
+pass "tema Community, ícones, cursor, fontes e decoração XFWM4 instalados e selecionados"
 pass "Calamares, branding VENOM e integração MHWD configurados"
 pass "assinatura PGP verificada sem TrustAll"
 printf 'VALIDAÇÃO ESTRITA CONCLUÍDA: TODOS OS REQUISITOS ESTÁTICOS ESTÃO VERDES.\n'
