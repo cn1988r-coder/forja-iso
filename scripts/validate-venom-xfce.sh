@@ -71,7 +71,7 @@ grep -Fq '[community-stable]' "$ROOT/shared/pacman.conf" || fail "repositório C
 if grep -Fq 'repo.biglinux.com.br' "$ROOT/shared/pacman.conf"; then fail "URL antiga do repositório ainda configurada"; fi
 
 grep -Fq 'AECEEE84E52BBFAA9F1C9DF01EA0CEEEB09B44A3' "$W" || fail "fingerprint completo da chave Community não está configurado no workflow"
-if grep -Eiq 'TrustAll|SigLevel[[:space:]]*=[[:space:]]*Optional' "$ROOT/shared/pacman.conf" "$P/user-repos.conf"; then fail "verificação de assinatura foi enfraquecida"; fi
+if grep -Eiq '^[[:space:]]*(TrustAll|SigLevel[[:space:]]*=[[:space:]]*Optional)' "$ROOT/shared/pacman.conf" "$P/user-repos.conf"; then fail "verificação de assinatura foi enfraquecida"; fi
 grep -Fq "if: github.event_name == 'workflow_dispatch'" "$W" || fail "build não está protegido contra disparo automático por push"
 
 grep -Fq 'NAME="VENOM OS"' "$R/etc/os-release" || fail "nome do sistema não é VENOM OS"
