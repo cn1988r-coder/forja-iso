@@ -22,8 +22,7 @@ catfish
 menulibre
 mugshot
 xarchiver
-comm-xfce-config
-comm-xfce-datetime
+xfce4-docklike-plugin
 lightdm
 lightdm-gtk-greeter
 networkmanager
