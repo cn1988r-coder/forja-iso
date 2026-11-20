@@ -57,7 +57,7 @@ grep -Fq 'Name=Install VENOM OS (online)' "$ROOT/scripts/build-venom-iso.sh" || 
 grep -Fq 'Name[pt_BR]=Instalar VENOM OS (online)' "$ROOT/scripts/build-venom-iso.sh" || fail "atalho online não está identificado em português"
 grep -Fq 'pkexec /usr/bin/venom-calamares -c /etc/calamares-offline' "$ROOT/scripts/build-venom-iso.sh" || fail "atalho offline não inicia o wrapper VENOM"
 grep -Fq 'Exec=sh -c "pkexec /usr/bin/venom-calamares -c /etc/calamares-online"' "$ROOT/scripts/build-venom-iso.sh" || fail "atalho gráfico não inicia o wrapper VENOM do Calamares"
-grep -Fq 'action.id === "com.github.calamares.calamares"' "$ROOT/build/airootfs/etc/polkit-1/rules.d/49-venom-calamares.rules" || fail "regra Polkit não autoriza a ação correta do Calamares"
+grep -Fq 'action.id === "com.github.calamares.calamares.pkexec.run"' "$ROOT/build/airootfs/etc/polkit-1/rules.d/49-venom-calamares.rules" || fail "regra Polkit não autoriza a ação pkexec do Calamares"
 grep -Fq 'subject.user === "liveuser"' "$ROOT/build/airootfs/etc/polkit-1/rules.d/49-venom-calamares.rules" || fail "regra Polkit não está restrita ao usuário Live"
 grep -Fq 'subject.isInGroup("wheel")' "$ROOT/build/airootfs/etc/polkit-1/rules.d/49-venom-calamares.rules" || fail "regra Polkit não exige o grupo wheel"
 grep -Fq 'subject.active' "$ROOT/build/airootfs/etc/polkit-1/rules.d/49-venom-calamares.rules" || fail "regra Polkit não exige sessão ativa"
