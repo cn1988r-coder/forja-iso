@@ -148,6 +148,8 @@ grep -Fq '  - internet' "$ROOT/scripts/patch-calamares.py" || fail "o instalador
 grep -Fq 'update_db: true' "$ROOT/scripts/patch-calamares.py" || fail "o instalador online não atualiza a base do Pacman"
 grep -Fq 'networkmanager' "$ROOT/build/packages.arch" || fail "NetworkManager ausente do sistema Arch da Forja"
 grep -Fxq 'pacman-mirrorlist' "$ROOT/build/packages.arch" || fail "mirrorlist oficial Arch ausente do instalador online"
+grep -Fq 'shellprocess_forja_sudoers.conf' "$ROOT/scripts/patch-calamares.py" || fail "usuário Forja não recebe sudo"
+grep -Fq "wheel ALL=(ALL:ALL) ALL" "$ROOT/scripts/patch-calamares.py" || fail "grupo wheel não é habilitado no sudoers"
 grep -Fq 'shellprocess_forja_stage_packages.conf' "$ROOT/scripts/patch-calamares.py" || fail "pacotes próprios Forja não são preparados para instalação"
 grep -Fq '/usr/share/forja/packages/shelly-git-*.pkg.tar.zst' "$ROOT/scripts/patch-calamares.py" || fail "arquivos AUR Forja não são lidos do caminho persistente da ISO"
 grep -Fq 'package_archive_copy =' "$ROOT/scripts/build-forja-iso.sh" || fail "pacotes AUR não são preservados antes da limpeza da imagem Live"
