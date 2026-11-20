@@ -1,46 +1,36 @@
-# Estado do Pacman e do repositório VENOM
+# Estado do Pacman e do repositório VENON
 
-Data do registro: 19/11/2026
+Registro atualizado em 20/11/2026.
 
-## Decisão de arquitetura
+## Arquitetura obrigatória
 
-- O Pacman do Arch Linux continua responsável pelas atualizações normais do sistema: kernel, bibliotecas, dependências, correções e segurança.
-- O repositório VENOM contém somente pacotes próprios da distribuição, identificados pelo prefixo venom-.
-- O repositório VENOM não substitui nem interfere na configuração normal do Pacman.
-- O usuário acessa a interface do repositório digitando somente sudo venom no terminal.
+- O Pacman oficial é o único gerenciador de atualizações normais do sistema e dos aplicativos Arch.
+- A atualização geral é feita pelo usuário com `sudo pacman -Syu`.
+- A configuração global `/etc/pacman.conf` contém somente os repositórios oficiais Arch.
+- VENON é um mecanismo próprio, totalmente independente do Pacman.
+- VENON não chama `pacman` ou `pacman-key`, não usa configuração isolada do Pacman e não altera o banco de pacotes do Pacman.
+- Nenhum serviço ou timer ativa VENON automaticamente.
 
-## Implementado no código-fonte
+## Comandos definitivos
 
-- Cliente em build/airootfs/usr/bin/venom.
-- O comando sem argumentos sudo venom abre um menu interativo.
-- O menu oferece sincronização, pesquisa, instalação, atualização seletiva, remoção e listagem de pacotes VENOM.
-- A interface não exige que o usuário memorize subcomandos.
-- Configuração isolada em build/airootfs/etc/venom/pacman.conf.
-- Arquivo de mirrorlist próprio em build/airootfs/etc/pacman.d/venom-mirrorlist.
-- Arquivo reservado ao fingerprint em build/airootfs/etc/venom/repository-key.
-- Script de build copia esses arquivos para a imagem e aplica permissão executável ao cliente.
-- Instalação e remoção direta pelo cliente são limitadas a nomes venom-*.
-- A atualização seletiva consulta e atualiza somente pacotes instalados com prefixo venom-; não executa atualização geral do sistema.
-- O cliente não modifica /etc/pacman.conf.
+- `venon-update`: consulta e lista atualizações VENON disponíveis. Não instala.
+- `venon-upgrade`: baixa e instala atualizações VENON após confirmação explícita.
 
-## Ainda não operacional
+## Correções feitas no código
 
-O serviço remoto ainda não está pronto. Faltam:
-- hospedagem compatível com repositório Pacman;
-- URL HTTPS real;
-- chave pública oficial e fingerprint confirmado por canal confiável;
-- pacotes VENOM publicados e bancos de dados assinados.
+- Removido o cliente legado `/usr/bin/venom`, que utilizava Pacman e pacman-key.
+- Removidos `/etc/venom/pacman.conf`, o arquivo de fingerprint legado e a mirrorlist VENOM colocada em `/etc/pacman.d`.
+- Adicionados os comandos `/usr/bin/venon-update` e `/usr/bin/venon-upgrade`.
+- Atualizado o script de preparação da ISO para instalar somente os dois comandos novos.
+- Atualizada a documentação para não descrever o menu antigo nem uma falsa integração com Pacman.
+- Atualizado o validador estático para rejeitar a presença do cliente/configuração antigos e qualquer chamada ao Pacman dentro dos comandos VENON.
 
-O cliente mantém operações remotas bloqueadas enquanto a URL e o fingerprint não estiverem configurados e a chave não estiver no chaveiro Pacman. A configuração exige assinaturas de banco de dados e pacotes.
+## Limite operacional explícito
 
-## Próximos passos
+Os dois comandos estão presentes como bloqueios seguros. Eles não consultam nem instalam pacotes ainda, porque a infraestrutura independente VENON será construída em etapa posterior, depois da instalação e validação da VENOM OS. Até essa infraestrutura existir, os comandos encerram sem modificar o sistema.
 
-1. Definir a hospedagem e o endereço HTTPS.
-2. Gerar e proteger a chave de assinatura do repositório.
-3. Publicar os primeiros pacotes próprios com prefixo venom-.
-4. Configurar o fingerprint público no sistema após conferência independente.
-5. Em etapa autorizada, realizar testes reais do menu, instalação, atualização seletiva e isolamento da configuração.
+Ainda faltam hospedagem, protocolo de metadados assinados, chave pública própria, verificação criptográfica independente, formato de pacote e instalador próprio. Não declarar VENON operacional antes de implementar e testar esses componentes.
 
-## Limite desta etapa
+## Validação
 
-A interface de menu foi registrada na branch de trabalho. Não foram executados build, validação, testes de integração ou geração de ISO. Portanto, o menu está implementado no código-fonte, mas ainda não foi comprovado em execução e o repositório remoto não está ativo.
+Nenhuma validação automatizada, compilação, workflow ou instalação foi executada nesta alteração.

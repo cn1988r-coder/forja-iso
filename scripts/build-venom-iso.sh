@@ -64,8 +64,9 @@ PY
 
 log "Aplicando identidade visual e configurações MATE"
 cp -a "$ROOT/build/airootfs/." "$EOS_DIR/airootfs/"
-# Ensure the VENOM repository client is executable in the generated live and installed system.
-chmod 0755 "$EOS_DIR/airootfs/usr/bin/venom"
+# Install the two manual VENON entry points. Their backend remains disabled until
+# the independent VENON repository and package installer are implemented.
+chmod 0755 "$EOS_DIR/airootfs/usr/bin/venon-update" "$EOS_DIR/airootfs/usr/bin/venon-upgrade"
 # The VENOM live and installed system must use Arch repositories only.
 mkdir -p "$EOS_DIR/airootfs/etc"
 cat > "$EOS_DIR/airootfs/etc/pacman.conf" <<'PACMANCONF'

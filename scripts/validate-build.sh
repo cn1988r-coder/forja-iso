@@ -182,6 +182,19 @@ if grep -Eiq '^(plasma|kde|sddm|dolphin|konsole)(-|$)' "$ROOT/build/packages.mat
   fail "pacotes KDE encontrados na lista MATE"
 fi
 
+
+# Pacman is the sole system updater; VENON must remain a separate, manual mechanism.
+[[ -x "$ROOT/build/airootfs/usr/bin/venon-update" ]] || fail "comando venon-update ausente"
+[[ -x "$ROOT/build/airootfs/usr/bin/venon-upgrade" ]] || fail "comando venon-upgrade ausente"
+[[ ! -e "$ROOT/build/airootfs/usr/bin/venom" ]] || fail "cliente VENOM legado ainda existe"
+[[ ! -e "$ROOT/build/airootfs/etc/venom/pacman.conf" ]] || fail "configuração isolada de Pacman legada ainda existe"
+[[ ! -e "$ROOT/build/airootfs/etc/pacman.d/venom-mirrorlist" ]] || fail "mirrorlist VENOM legada ainda existe"
+if grep -Eiq 'pacman|pacman-key|/etc/pacman' "$ROOT/build/airootfs/usr/bin/venon-update" "$ROOT/build/airootfs/usr/bin/venon-upgrade"; then
+  fail "cliente VENON contém dependência ou chamada ao Pacman"
+fi
+grep -Fq 'venon-update' "$ROOT/scripts/build-venom-iso.sh" || fail "comando venon-update não é preparado para a imagem"
+grep -Fq 'venon-upgrade' "$ROOT/scripts/build-venom-iso.sh" || fail "comando venon-upgrade não é preparado para a imagem"
+
 pass "arquivos e escopo do build presentes"
 pass "sintaxe Bash e blocos Python do compilador válidos"
 printf 'AVISO: esta validação estática não executa makepkg, mkarchiso ou testes de VM.\n'
