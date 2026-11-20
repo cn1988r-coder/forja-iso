@@ -13,9 +13,9 @@ Atualizado em 20/11/2026.
 - Nenhum instalador, serviço, repositório, configuração ou componente de outra distribuição integra o sistema.
 
 ## Repositório e fluxo de trabalho
-- Repositório de trabalho: cn1988r-coder/forja-iso.
+- Repositório de trabalho: cn1988r-coder/forja-iso. O nome é mantido por ser o repositório disponível para o desenvolvimento; não é o nome do sistema.
 - Branch autorizada: optimize/venom-iso-size.
-- HEAD verificado antes deste registro: 65764d0705792f0a706b42da2a44b8a5c662fa25.
+- HEAD de código verificado antes deste registro: 62382f80531b97e6bf4f163d5ab3662f1b333f13.
 - Não alterar main ou outras branches sem autorização expressa.
 - Não gerar ISO sem autorização expressa do usuário.
 - Registrar somente resultados efetivamente verificados.
@@ -49,16 +49,20 @@ Atualizado em 20/11/2026.
 - O workflow de compilação ISO permanece bloqueado.
 - A auditoria da árvore atual não encontrou caminhos com nomes de componentes de instaladores externos.
 - Commits anteriores permanecem no histórico Git, mas seus arquivos removidos não integram a árvore atual.
+- As execuções de validação associadas ao commit 6830acf815d17dcd70ca955d7d8de7298fd5aeef falharam durante a compilação C: foi usada a função inexistente gtk_string_list_get_n_items().
+- Correção aplicada em installer/src/main.c no commit 62382f80531b97e6bf4f163d5ab3662f1b333f13: a contagem agora usa g_list_model_get_n_items(G_LIST_MODEL(items)).
+- A correção foi confirmada no diff do commit. A validação automatizada do novo commit ainda não foi confirmada; não declarar compilação bem-sucedida até obter resultado do CI.
 
 ## Próximas etapas
-1. Completar o perfil Archiso oficial.
-2. Implementar o backend seguro do instalador C + GTK4.
-3. Reproduzir a referência visual aprovada pelo usuário quando ela estiver disponível no contexto.
-4. Implementar particionamento automático e personalizado em discos virtuais descartáveis.
-5. Implementar instalação offline, usuário, MATE, LightDM, rede, ABNT2 e GRUB.
-6. Criar testes automatizados e validar instalação e falhas em VM descartável.
-7. Auditar indicadores de rede, Bluetooth e volume numa sessão MATE real.
-8. Solicitar autorização expressa antes de qualquer compilação ISO.
+1. Confirmar que a compilação GTK4 passa no CI após a correção.
+2. Completar o perfil Archiso oficial.
+3. Implementar o backend seguro do instalador C + GTK4.
+4. Reproduzir a referência visual aprovada pelo usuário quando ela estiver disponível no contexto.
+5. Implementar particionamento automático e personalizado em discos virtuais descartáveis.
+6. Implementar instalação offline, usuário, MATE, LightDM, rede, ABNT2 e GRUB.
+7. Criar testes automatizados e validar instalação e falhas em VM descartável.
+8. Auditar indicadores de rede, Bluetooth e volume numa sessão MATE real.
+9. Solicitar autorização expressa antes de qualquer compilação ISO.
 
 ## Retenção de artefatos
 - O GitHub é infraestrutura de desenvolvimento e entrega temporária.
