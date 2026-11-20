@@ -39,6 +39,14 @@ jobs:
           grep -Fxq 'branding: forja' "$RUNNER_TEMP/calamares/data/eos/settings_online.conf"
           grep -Fq 'shellprocess@forja_cleanup' "$RUNNER_TEMP/calamares/data/eos/settings_online.conf"
           grep -Fxq 'efiBootLoader: "grub"' "$RUNNER_TEMP/calamares/data/eos/modules/bootloader.conf"
+          ! grep -Fq '  - grubcfg' "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
+          grep -Fq '/run/archiso/bootmnt/arch/x86_64/airootfs.sfs' "$RUNNER_TEMP/calamares/data/eos/modules/unpackfs.conf"
+          grep -Fxq 'username: liveuser' "$RUNNER_TEMP/calamares/data/eos/modules/removeuser.conf"
+          grep -Fq 'displaymanagers:' "$RUNNER_TEMP/calamares/data/eos/modules/displaymanager.conf"
+          grep -Fq 'lightdm.service' "$RUNNER_TEMP/calamares/data/eos/modules/services-systemd.conf"
+          for module in partition mount unpackfs machineid fstab removeuser usersq networkcfg displaymanager hwclock bootloader services-systemd preservefiles shellprocess_forja_cleanup umount finished; do
+            test -f "$RUNNER_TEMP/calamares/data/eos/modules/$module.conf" || test "$module" = networkcfg
+          done
           ! grep -q 'efiBootLoaderVar:' "$RUNNER_TEMP/calamares/data/eos/modules/partition.conf"
           grep -Fq 'availableFileSystemTypes:  ["ext4"]' "$RUNNER_TEMP/calamares/data/eos/modules/partition.conf"
           ! grep -q 'packages@online' "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
