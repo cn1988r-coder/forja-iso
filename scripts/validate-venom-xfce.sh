@@ -48,7 +48,7 @@ for f in "${required[@]}"; do [[ -s "$f" ]] || fail "arquivo obrigatório ausent
 bash -n "$P/profile.conf" || fail "sintaxe inválida em profile.conf"
 bash -n "$D/usr/local/bin/venom-install-iptvnator" || fail "sintaxe inválida no instalador de aplicativos"
 
-for pkg in xfce4 xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 xfconf thunar xfce4-docklike-plugin firefox pamac-gtk lightdm networkmanager adw-gtk-theme bigicons-papient big-bibata-cursor-theme noto-nerd-fonts-lite; do
+for pkg in xfce4 xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 xfconf thunar xfce4-docklike-plugin firefox pamac-gtk lightdm networkmanager adw-gtk-theme papirus-icon-theme big-bibata-cursor-theme ttf-nerd-fonts-symbols-mono; do
   grep -Fxq "$pkg" "$P/Packages-Desktop" || fail "pacote obrigatório ausente em Packages-Desktop: $pkg"
 done
 for pkg in calamares polkit-gnome community-livecd-key; do
@@ -92,12 +92,12 @@ grep -Fq 'WebBrowser=firefox' "$D/etc/skel/.config/xfce4/helpers.rc" || fail "Fi
 grep -Fq '/usr/share/backgrounds/venom/venom-black.svg' "$X/xfce4-desktop.xml" || fail "papel de parede VENOM ausente"
 
 grep -Fq 'gtk-theme-name=adw-gtk3-dark' "$D/etc/skel/.config/gtk-3.0/settings.ini" || fail "tema GTK escuro Community ausente"
-grep -Fq 'gtk-icon-theme-name=bigicons-papient-dark' "$D/etc/skel/.config/gtk-3.0/settings.ini" || fail "ícones BigIcons Papient Dark ausentes"
-grep -Fq 'gtk-font-name=Noto Sans Nerd Font Medium 10' "$D/etc/skel/.config/gtk-3.0/settings.ini" || fail "fonte GTK Noto Sans Nerd ausente"
+grep -Fq 'gtk-icon-theme-name=Papirus-Dark' "$D/etc/skel/.config/gtk-3.0/settings.ini" || fail "tema Papirus-Dark ausente"
+grep -Fq 'gtk-font-name=Noto Sans 10' "$D/etc/skel/.config/gtk-3.0/settings.ini" || fail "fonte Noto Sans ausente"
 grep -Fq 'ThemeName" type="string" value="adw-gtk3-dark"' "$X/xsettings.xml" || fail "tema XFCE incorreto"
-grep -Fq 'IconThemeName" type="string" value="bigicons-papient-dark"' "$X/xsettings.xml" || fail "ícones XFCE incorretos"
-grep -Fq 'FontName" type="string" value="Noto Sans Nerd Font Medium 10"' "$X/xsettings.xml" || fail "fonte de interface incorreta"
-grep -Fq 'MonospaceFontName" type="string" value="Noto Mono Nerd Font Medium 11"' "$X/xsettings.xml" || fail "fonte monoespaçada incorreta"
+grep -Fq 'IconThemeName" type="string" value="Papirus-Dark"' "$X/xsettings.xml" || fail "tema de ícones XFCE incorreto"
+grep -Fq 'FontName" type="string" value="Noto Sans 10"' "$X/xsettings.xml" || fail "fonte de interface incorreta"
+grep -Fq 'MonospaceFontName" type="string" value="Noto Sans Mono 11"' "$X/xsettings.xml" || fail "fonte monoespaçada incorreta"
 grep -Fq 'CursorThemeName" type="string" value="Bibata-Modern-Classic"' "$X/xsettings.xml" || fail "cursor Bibata incorreto"
 grep -Fq 'name="theme" type="string" value="adw-gtk3-dark"' "$X/xfwm4.xml" || fail "tema do gerenciador de janelas incorreto"
 
@@ -146,7 +146,7 @@ ruby -e 'require "yaml"; ARGV.each { |f| YAML.load_file(f); puts "VERDE: YAML v�
 
 pass "perfil XFCE, dependências, configurações e scripts"
 [[ "$(find "$D/usr/share/themes/adw-gtk3-dark/xfwm4" -type f | wc -l)" -eq 58 ]] || fail "tema XFWM4 Community incompleto (esperados 58 arquivos)"
-pass "tema Community, ícones, cursor, fontes e decoração XFWM4 instalados e selecionados"
+pass "tema Community, Papirus-Dark, cursor, fontes e decoração XFWM4 instalados e selecionados"
 pass "Calamares: sequência, módulo systemd, usuários e keyrings verificados contra as configurações oficiais"
 pass "assinatura PGP verificada sem TrustAll"
 printf 'VALIDAÇÃO ESTRITA CONCLUÍDA: TODOS OS REQUISITOS ESTÁTICOS ESTÃO VERDES.\n'

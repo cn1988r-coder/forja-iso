@@ -76,5 +76,5 @@ gvfs-mtp
 udisks2
 adw-gtk-theme
 big-bibata-cursor-theme
-bigicons-papient
-noto-nerd-fonts-lite
+papirus-icon-theme
+ttf-nerd-fonts-symbols-mono
