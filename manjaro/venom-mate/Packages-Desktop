@@ -24,6 +24,7 @@ alsa-firmware
 sof-firmware
 materia-gtk-theme
 papirus-icon-theme
+pamac-gtk
 dconf
 dconf-editor
 curl
