@@ -1,0 +1,27 @@
+---
+componentName:           venom
+welcomeStyleCalamares:    true
+welcomeExpandingLogo:     true
+windowSize:               1024px,735px
+
+strings:
+    productName:          VENOM OS
+    shortProductName:     VENOM
+    version:              0.1
+    shortVersion:         0.1
+    versionedName:        VENOM OS 0.1
+    shortVersionedName:   VENOM 0.1
+    bootloaderEntryName:  VENOM OS
+
+images:
+    productLogo:          "logo.svg"
+    productIcon:          "/usr/share/icons/hicolor/scalable/apps/venom-installer.svg"
+    productWelcome:       "big-welcome.svg"
+
+style:
+    SidebarBackground:    "#03060b"
+    SidebarText:          "#dcecff"
+    SidebarTextSelect:    "#55b7ff"
+    SidebarTextHighlight: "#ffffff"
+
+sidebar: widget

@@ -1,0 +1,61 @@
+name: Build VENOM OS Community MATE ISO
+
+on:
+  push:
+    branches:
+      - feature/venom-bigcommunity-mate
+    paths:
+      - ".github/workflows/build-bigcommunity-mate.yml"
+      - "manjaro/venom-community-mate/**"
+      - "scripts/validate-bigcommunity-mate.sh"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: venom-community-mate-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate profile before compilation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout VENOM OS
+        uses: actions/checkout@v4
+      - name: Validate profile, packages, branding and SVG assets
+        run: bash scripts/validate-bigcommunity-mate.sh
+      - name: Check whitespace errors
+        run: git diff --check
+
+  build:
+    name: Build ISO only after validation succeeds
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout VENOM OS
+        uses: actions/checkout@v4
+      - name: Build with official Manjaro ISO tooling
+        id: manjaro-build
+        uses: manjaro/manjaro-iso-action@main
+        with:
+          iso-profiles-repo: https://github.com/cn1988r-coder/forja-iso
+          iso-profiles-branch: feature/venom-bigcommunity-mate
+          edition: venom-community-mate
+          branch: stable
+          scope: full
+          kernel: linux618
+      - name: Publish ISO, package manifest and hashes
+        uses: actions/upload-artifact@v4
+        with:
+          name: VENOM-OS-Community-MATE-ISO
+          path: |
+            ${{ steps.manjaro-build.outputs.file-path }}
+            ${{ steps.manjaro-build.outputs.file-path }}.pkgs
+            ${{ steps.manjaro-build.outputs.file-path }}.sha1
+            ${{ steps.manjaro-build.outputs.file-path }}.sha256
+            ${{ steps.manjaro-build.outputs.file-path }}.sha512
+          if-no-files-found: error
+          retention-days: 3

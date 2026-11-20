@@ -1,0 +1,3 @@
+Server = https://mirrors.manjaro.org/repo/stable/$repo/$arch
+Server = https://mirrors2.manjaro.org/stable/$repo/$arch
+Include = /etc/pacman.d/mirrorlist

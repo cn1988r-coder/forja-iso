@@ -1,0 +1,12 @@
+[Unit]
+Description=Compile VENOM OS desktop defaults
+Before=lightdm.service
+ConditionPathExists=/etc/dconf/db/local.d/00-venom
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/dconf update
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

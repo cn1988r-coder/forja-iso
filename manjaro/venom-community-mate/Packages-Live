@@ -1,0 +1,12 @@
+# Keep the existing Calamares integration; replace its branding through the overlay.
+calamares
+calamares-biglinux
+gparted
+grub-theme-live-manjaro
+manjaro-live-systemd
+mkinitcpio-nfs-utils
+nbd
+squashfs-tools
+timeshift
+memtest86+
+memtest86+-efi
