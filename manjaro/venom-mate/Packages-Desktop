@@ -2,6 +2,7 @@
 # for its complete package refresh, AUR additions and desktop preferences.
 mate
 mate-extra
+mate-media
 xorg-server
 xorg-xinit
 xorg-xrandr
