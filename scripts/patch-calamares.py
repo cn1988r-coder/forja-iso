@@ -96,7 +96,6 @@ sequence:
   - networkcfg
   - displaymanager
   - hwclock
-  - grubcfg
   - bootloader
   - services-systemd
   - preservefiles
@@ -159,21 +158,7 @@ grubProbe: "grub-probe"
 efiBootMgr: "efibootmgr"
 installEFIFallback: true
 """)
-(modules / "grubcfg.conf").write_text("""---
-overwrite: true
-prefer_grub_d: false
-keep_distributor: false
-kernel_params:
-  - "quiet"
-  - "loglevel=3"
-defaults:
-    GRUB_TIMEOUT: 5
-    GRUB_DEFAULT: 0
-    GRUB_DISABLE_SUBMENU: false
-    GRUB_DISABLE_RECOVERY: true
-    GRUB_EARLY_INITRD_LINUX_STOCK: ""
-always_use_defaults: true
-""")
+# grubcfg is intentionally omitted: upstream requires packagechooser_bootloader global storage.
 (modules / "displaymanager.conf").write_text("""---
 displaymanagers:
   - lightdm
