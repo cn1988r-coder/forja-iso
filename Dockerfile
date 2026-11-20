@@ -8,4 +8,4 @@ RUN pacman -Syu --noconfirm && \
     pacman -Scc --noconfirm
 
 WORKDIR /workspace
-CMD ["bash", "-lc", "meson setup /tmp/venom-installer-build installer && meson compile -C /tmp/venom-installer-build && shellcheck scripts/*.sh && bash scripts/validate-scope.sh"]
+CMD ["bash", "-lc", "meson setup /tmp/venom-installer-build installer && meson compile -C /tmp/venom-installer-build && shellcheck scripts/*.sh build/airootfs/usr/local/bin/venom-mate-first-login && bash -n build/airootfs/usr/local/bin/venom-mate-first-login && bash scripts/validate-scope.sh"]
