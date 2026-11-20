@@ -91,6 +91,9 @@ settings_offline_text = """# Forja OS offline: copia a imagem completa da própr
 ---
 modules-search: [ local ]
 instances:
+- id: forja_sudoers
+  module: shellprocess
+  config: shellprocess_forja_sudoers.conf
 - id: forja_cleanup
   module: shellprocess
   config: shellprocess_forja_cleanup.conf
@@ -107,6 +110,7 @@ sequence:
   - fstab
   - removeuser
   - usersq
+  - shellprocess@forja_sudoers
   - networkcfg
   - displaymanager
   - hwclock
@@ -146,6 +150,9 @@ instances:
 - id: forja_local_packages
   module: shellprocess
   config: shellprocess_forja_local_packages.conf
+- id: forja_sudoers
+  module: shellprocess
+  config: shellprocess_forja_sudoers.conf
 - id: forja_cleanup
   module: shellprocess
   config: shellprocess_forja_cleanup.conf
@@ -166,6 +173,7 @@ sequence:
   - keyboard
   - localecfg
   - usersq
+  - shellprocess@forja_sudoers
   - networkcfg
   - shellprocess@forja_stage_packages
   - packages@online
@@ -246,6 +254,16 @@ verbose: true
 script:
   - 'pacstrap -K -C /etc/pacman.conf ${ROOT} base linux linux-firmware archlinux-keyring pacman-mirrorlist sudo networkmanager'
   - 'mkdir -p ${ROOT}/etc/pacman.d && cp /etc/pacman.conf ${ROOT}/etc/pacman.conf && cp /etc/pacman.d/mirrorlist ${ROOT}/etc/pacman.d/mirrorlist'
+""")
+(modules / "shellprocess_forja_sudoers.conf").write_text("""---
+dontChroot: false
+timeout: 30
+verbose: true
+script:
+  - "install -d -m 0750 /etc/sudoers.d"
+  - "echo '%wheel ALL=(ALL:ALL) ALL' > /etc/sudoers.d/10-forja-wheel"
+  - "chmod 0440 /etc/sudoers.d/10-forja-wheel"
+  - "visudo -cf /etc/sudoers"
 """)
 (modules / "shellprocess_forja_stage_packages.conf").write_text("""---
 dontChroot: true
@@ -339,7 +357,7 @@ units:
 unpackfs = modules / "unpackfs.conf"
 if not unpackfs.exists() or "/run/archiso/bootmnt/arch/x86_64/airootfs.sfs" not in unpackfs.read_text():
     raise SystemExit("A origem da imagem Forja no unpackfs.conf não foi encontrada.")
-for required in ("displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf", "shellprocess_forja_cleanup.conf", "shellprocess_forja_bootstrap.conf", "shellprocess_forja_stage_packages.conf", "shellprocess_forja_local_packages.conf", "packages_online.conf", "welcome_forja_online.conf"):
+for required in ("displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf", "shellprocess_forja_cleanup.conf", "shellprocess_forja_bootstrap.conf", "shellprocess_forja_sudoers.conf", "shellprocess_forja_stage_packages.conf", "shellprocess_forja_local_packages.conf", "packages_online.conf", "welcome_forja_online.conf"):
     if not (modules / required).exists():
         raise SystemExit(f"Módulo necessário ausente: {required}")
 for config in (settings_offline, settings_online):
