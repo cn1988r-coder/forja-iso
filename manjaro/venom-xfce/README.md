@@ -5,9 +5,10 @@ This profile preserves the original XFCE panel layout, docklike panel, Whisker m
 Retained applications:
 - Firefox
 - Pamac GTK
+- Ferdium, installed on first login as `ferdium-bin` from the AUR
 - IPTVnator, installed on first login as `iptvnator-bin` from the AUR
 
-The dark theme remains enabled. The current signed package source is used for the XFCE panel plugin and required trust package only. No obsolete repository URL is configured.
+Ferdium and IPTVnator are installed through Pamac's AUR support during first login. The dark theme remains enabled. The current signed package source is used for the XFCE panel plugin and required trust package only. No obsolete repository URL is configured.
 
 The system identity, validation job, compilation job, and artifact use only the name VENOM OS.
 
