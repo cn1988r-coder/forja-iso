@@ -18,6 +18,17 @@ if "branding: endeavouros" not in text:
     raise SystemExit("Branding upstream esperado não encontrado em settings_offline.conf.")
 settings.write_text(text.replace("branding: endeavouros", "branding: venom", 1))
 
+# Bind pkexec's Calamares action to the VENOM wrapper, which fixes Qt's display backend.
+policy = source / "com.github.calamares.calamares.policy"
+if not policy.exists():
+    raise SystemExit("Polkit action policy for Calamares is missing.")
+policy_text = policy.read_text()
+old_policy_path = '<annotate key="org.freedesktop.policykit.exec.path">/usr/bin/calamares</annotate>'
+new_policy_path = '<annotate key="org.freedesktop.policykit.exec.path">/usr/bin/venom-calamares</annotate>'
+if old_policy_path not in policy_text:
+    raise SystemExit("Expected Calamares pkexec executable path was not found.")
+policy.write_text(policy_text.replace(old_policy_path, new_policy_path, 1))
+
 # Keep only the explicit system-group mapping for wheel.
 for name in ("usersq.conf", "users.conf"):
     path = source / "data/eos/modules" / name

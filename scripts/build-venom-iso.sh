@@ -148,7 +148,7 @@ calamares_patch = """if [[ ! -r /etc/calamares/settings_offline.conf || ! -r /et
   echo "Calamares VENOM online/offline settings are missing." >&2
   exit 1
 fi
-if [[ ! -x /usr/bin/calamares ]]; then
+if [[ ! -x /usr/bin/calamares || ! -x /usr/bin/venom-calamares ]]; then
   echo "Calamares executable is missing: /usr/bin/calamares" >&2
   exit 1
 fi
@@ -178,7 +178,7 @@ sed -i \
   -e 's|^Comment=Calamares — System Installer$|Comment=Install VENOM OS using official Arch Linux repositories|' \
   -e 's|^Comment\[pt_BR\]=Calamares — Instalador de Sistema$|Comment[pt_BR]=Instala a VENOM OS pelos repositórios oficiais do Arch Linux|' \
   -e 's|^TryExec=eos-welcome$|TryExec=/usr/bin/calamares|' \
-  -e 's|^Exec=eos-welcome$|Exec=/usr/bin/pkexec /usr/bin/calamares -c /etc/calamares-online|' \
+  -e 's|^Exec=eos-welcome$|Exec=sh -c "pkexec /usr/bin/venom-calamares -c /etc/calamares-online"|' \
   /home/liveuser/.local/share/applications/calamares.desktop
 grep -Fxq 'TryExec=/usr/bin/calamares' /home/liveuser/.local/share/applications/calamares.desktop || {
   echo "Calamares desktop entry has an invalid TryExec value." >&2
@@ -192,7 +192,7 @@ grep -Fxq 'Name[pt_BR]=Instalar VENOM OS (online)' /home/liveuser/.local/share/a
   echo "Calamares online launcher has no VENOM OS Portuguese label." >&2
   exit 1
 }
-grep -Fxq 'Exec=/usr/bin/pkexec /usr/bin/calamares -c /etc/calamares-online' /home/liveuser/.local/share/applications/calamares.desktop || {
+grep -Fxq 'Exec=sh -c "pkexec /usr/bin/venom-calamares -c /etc/calamares-online"' /home/liveuser/.local/share/applications/calamares.desktop || {
   echo "Calamares online desktop entry has an invalid Exec value." >&2
   exit 1
 }
@@ -202,7 +202,7 @@ Type=Application
 Name=Instalar VENOM OS (offline)
 Name[pt_BR]=Instalar VENOM OS (offline)
 Comment=Instala a VENOM OS usando a imagem incluída na ISO
-Exec=/usr/bin/pkexec /usr/bin/calamares -c /etc/calamares-offline
+Exec=sh -c "pkexec /usr/bin/venom-calamares -c /etc/calamares-offline"
 TryExec=/usr/bin/calamares
 Icon=calamares
 Terminal=false
@@ -323,6 +323,9 @@ import pathlib, sys
 path = pathlib.Path(sys.argv[1])
 source = path.read_text()
 source = source.replace("-DCMAKE_BUILD_TYPE=Debug", "-DCMAKE_BUILD_TYPE=Release", 1)
+source = source.replace("depends=( 'qt6-svg'", "depends=( 'xcb-util-cursor' 'qt6-svg'", 1)
+if "xcb-util-cursor" not in source:
+    raise SystemExit("Não foi possível adicionar a dependência xcb-util-cursor ao pacote Calamares.")
 needle = '    awk -i inplace -v version="${pkgver}" -v release="${release_name}" "$replace_command" "${srcdir}/calamares-${pkgver}/data/eos/branding/endeavouros/branding.desc"\n}'
 replacement = needle[:-1] + '    python "$startdir/patch-calamares.py" "${srcdir}/calamares-${pkgver}"\n    awk -i inplace -v version="${pkgver}" -v release="${release_name}" "$replace_command" "${srcdir}/calamares-${pkgver}/data/eos/branding/venom/branding.desc"\n}'
 if needle not in source:

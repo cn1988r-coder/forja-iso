@@ -1,0 +1,14 @@
+#!/bin/sh
+# VENOM OS Calamares launcher: force X11/XCB for the MATE live session.
+# pkexec starts this wrapper as root; keep the session display credentials
+# supplied by the Calamares Polkit policy and discard stale Wayland variables.
+LOG=/var/log/venom-calamares-launch.log
+{
+    printf '\n[%s] Starting VENOM OS installer\n' "$(date --iso-8601=seconds)"
+    printf 'DISPLAY=%s\n' "${DISPLAY:-<unset>}"
+    printf 'XAUTHORITY=%s\n' "${XAUTHORITY:-<unset>}"
+    printf 'QT_QPA_PLATFORM forced to xcb\n'
+} >> "$LOG" 2>&1
+export QT_QPA_PLATFORM=xcb
+unset WAYLAND_DISPLAY WAYLAND_SOCKET
+exec /usr/bin/calamares "$@" >> "$LOG" 2>&1
