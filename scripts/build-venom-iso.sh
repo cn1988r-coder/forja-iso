@@ -5,14 +5,14 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 command -v buildiso >/dev/null 2>&1 || {
-  printf 'ERRO: buildiso não encontrado. Execute em um ambiente de construção Manjaro com manjaro-tools-iso instalado.\\n' >&2
+  printf 'ERRO: buildiso não encontrado. Execute em um ambiente de construção Manjaro com manjaro-tools-iso instalado.\n' >&2
   exit 1
 }
 
 [[ -s manjaro/venom-mate/profile.conf ]] || {
-  printf 'ERRO: perfil Manjaro VENOM MATE não encontrado.\\n' >&2
+  printf 'ERRO: perfil Manjaro VENOM MATE não encontrado.\n' >&2
   exit 1
 }
 
-printf '[VENOM] Construindo perfil Manjaro MATE com buildiso oficial.\\n'
+printf '[VENOM] Construindo perfil Manjaro MATE com buildiso oficial.\n'
 exec buildiso -f -p venom-mate -b stable -k linux618
