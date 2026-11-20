@@ -1,6 +1,11 @@
 name: Build Manjaro VENOM MATE ISO
 
 on:
+  push:
+    branches:
+      - optimize/venom-iso-size
+    paths:
+      - ".github/workflows/build-manjaro-iso.yml"
   workflow_dispatch:
 
 permissions:
@@ -20,6 +25,11 @@ jobs:
 
       - name: Validate Manjaro profile and exact DeepSeek script
         run: bash scripts/validate-manjaro-profile.sh
+
+      - name: Configure Manjaro tools to use this profile checkout
+        run: |
+          sudo install -d -m 0755 /root/.config/manjaro-tools
+          printf 'run_dir=%s/iso-profiles\\n' "$GITHUB_WORKSPACE" | sudo tee /root/.config/manjaro-tools/iso-profiles.conf
 
       - name: Build Manjaro ISO with official Manjaro tooling
         id: manjaro-build
