@@ -131,7 +131,7 @@ import pathlib, sys
 p = pathlib.Path(sys.argv[1])
 s = p.read_text()
 old = 'systemctl set-default multi-user.target'
-new = 'systemctl enable NetworkManager.service\nsystemctl enable lightdm.service\nsystemctl set-default graphical.target\ndconf update'
+new = 'systemctl enable NetworkManager.service\nsystemctl enable bluetooth.service\nsystemctl enable lightdm.service\nsystemctl set-default graphical.target\ndconf update'
 if old not in s:
     raise SystemExit('Não foi possível localizar o ponto de ativação do alvo multi-user no script upstream.')
 s = s.replace(old, new, 1)
@@ -299,7 +299,7 @@ s = s.replace('iso_application="EndeavourOS Live/Rescue CD"', 'iso_application="
 # Zstandard favors fast decompression during Live startup over the smaller, slower XZ image.
 s, count = re.subn(
     r"(?m)^airootfs_image_tool_options=.*$",
-    "airootfs_image_tool_options=('-comp' 'zstd' '-Xcompression-level' '3' '-b' '1M')",
+    "airootfs_image_tool_options=('-comp' 'zstd' '-Xcompression-level' '19' '-b' '1M')",
     s,
     count=1,
 )

@@ -11,7 +11,7 @@ picture-options='zoom'
 color-shading-type='solid'
 primary-color='#000000'
 secondary-color='#000000'
-show-desktop-icons=false
+show-desktop-icons=true
 
 [org/mate/desktop/session]
 idle-delay=uint32 0
