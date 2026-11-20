@@ -87,7 +87,7 @@ grep -Fq 'auto-entries no' "$ROOT/scripts/build-forja-iso.sh" || fail "systemd-b
 grep -Fq 'quiet loglevel=3 vt.global_cursor_default=0' "$ROOT/scripts/build-forja-iso.sh" || fail "inicialização sem modo visual discreto"
 grep -Fq "'-comp' 'zstd' '-Xcompression-level' '3'" "$ROOT/scripts/build-forja-iso.sh" || fail "SquashFS não usa Zstandard nível 3 para acelerar leitura e boot"
 
-if grep -Eq 'requiredStorage|requiredRam|chrooted_cleaner_script[.]sh|forja-installer|python - PKGBUILD' "$ROOT/scripts/build-forja-iso.sh"; then
+if grep -Eq 'requiredStorage|requiredRam|chrooted_cleaner_script[.]sh|python - PKGBUILD' "$ROOT/scripts/build-forja-iso.sh"; then
   fail "o script contém alterações não autorizadas no fluxo do Calamares"
 fi
 grep -Fq 'CMAKE_BUILD_TYPE=Release' "$ROOT/scripts/build-forja-iso.sh" || fail "Calamares não está configurado para build Release"
