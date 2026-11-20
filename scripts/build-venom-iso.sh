@@ -451,16 +451,15 @@ log "Preparando framework EndeavourOS"
   ./prepare.sh
 )
 
-# prepare.sh may reinstall the live filesystem and reset file modes.
-# Restore the launcher permission only after that stage, immediately before mkarchiso.
-log "Validando executáveis do instalador Calamares após prepare.sh"
-CALAMARES_BIN="$EOS_DIR/airootfs/usr/bin/calamares"
+# prepare.sh only prepares the airootfs and queues locally built packages.
+# Calamares is installed later by run_before_squashfs.sh, so its binary must be
+# checked inside that hook, immediately after pacman -U installs the local package.
+log "Validando wrapper VENOM do instalador após prepare.sh"
 VENOM_LAUNCHER="$EOS_DIR/airootfs/usr/bin/venom-calamares"
-[[ -f "$CALAMARES_BIN" && -x "$CALAMARES_BIN" ]] || die "Executável Calamares ausente ou sem permissão no airootfs: $CALAMARES_BIN"
 [[ -f "$VENOM_LAUNCHER" ]] || die "Wrapper VENOM do Calamares ausente no airootfs: $VENOM_LAUNCHER"
 chmod 0755 "$VENOM_LAUNCHER"
 [[ -x "$VENOM_LAUNCHER" ]] || die "Wrapper VENOM do Calamares continua sem permissão de execução: $VENOM_LAUNCHER"
-log "Calamares e wrapper VENOM confirmados como executáveis no airootfs"
+log "Wrapper VENOM confirmado; o executável Calamares será validado no hook após a instalação do pacote local."
 
 log "Compilando ISO VENOM OS. Esta etapa pode levar bastante tempo."
 (
