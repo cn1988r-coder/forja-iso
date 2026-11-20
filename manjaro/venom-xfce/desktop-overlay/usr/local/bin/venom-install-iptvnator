@@ -1,0 +1,9 @@
+#!/bin/bash
+set -u
+marker="$HOME/.config/venom-iptvnator-installed"
+[[ -e "$marker" ]] && exit 0
+command -v yay >/dev/null 2>&1 || exit 0
+if yay -S --noconfirm --needed iptvnator-bin; then
+  mkdir -p "$HOME/.config"
+  touch "$marker"
+fi
