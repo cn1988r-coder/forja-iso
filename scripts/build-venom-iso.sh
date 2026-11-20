@@ -1,10 +1,18 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-cat >&2 <<'MSG'
-COMPILACAO BLOQUEADA.
-A VENOM OS ainda não possui instalador próprio implementado e validado.
-O perfil Archiso também permanece em preparação.
-Nenhuma ISO pode ser gerada sem autorização expressa do usuário.
-Este script é intencionalmente uma barreira de segurança.
-MSG
-exit 1
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+command -v buildiso >/dev/null 2>&1 || {
+  printf 'ERRO: buildiso não encontrado. Execute em um ambiente de construção Manjaro com manjaro-tools-iso instalado.\\n' >&2
+  exit 1
+}
+
+[[ -s manjaro/venom-mate/profile.conf ]] || {
+  printf 'ERRO: perfil Manjaro VENOM MATE não encontrado.\\n' >&2
+  exit 1
+}
+
+printf '[VENOM] Construindo perfil Manjaro MATE com buildiso oficial.\\n'
+exec buildiso -f -p venom-mate -b stable -k linux618
