@@ -23,7 +23,7 @@ command -v pacman &>/dev/null || erro "Exclusivo para Manjaro/Arch."
 info "Atualizando sistema e instalando pacotes..."
 sudo pacman -Syu --noconfirm
 sudo pacman -S --noconfirm --needed \
-    mate mate-extra manjaro-mate-settings \
+    mate mate-extra \
     materia-gtk-theme papirus-icon-theme dconf-editor blueman
 
 # ---------------------------------------------------------
