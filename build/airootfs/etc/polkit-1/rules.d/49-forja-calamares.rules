@@ -1,0 +1,11 @@
+// Permit only the temporary live session account to launch Calamares.
+// The rule is removed from the installed system during the final cleanup.
+polkit.addRule(function(action, subject) {
+    if (action.id === "com.github.calamares.calamares" &&
+        subject.user === "liveuser" &&
+        subject.isInGroup("wheel") &&
+        subject.active &&
+        subject.local) {
+        return polkit.Result.YES;
+    }
+});
