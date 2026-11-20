@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# Aplicação das configurações MATE do script manjaro-mate-dark-complete.sh
+# Adaptado para Arch Linux oficial e para o primeiro login da VENOM OS.
+set -Eeuo pipefail
+
+log() { printf '[VENOM MATE] %s\n' "$*"; }
+warn() { printf '[VENOM MATE] AVISO: %s\n' "$*" >&2; }
+
+[[ "${EUID}" -ne 0 ]] || { warn "Este script deve ser executado pelo usuário da sessão gráfica."; exit 1; }
+command -v gsettings >/dev/null 2>&1 || { warn "gsettings não encontrado; sessão MATE ainda não está pronta."; exit 0; }
+
+# Tema, ícones, cursor e preferência por aplicações escuras.
+set_setting() {
+    local schema="$1" key="$2" value="$3"
+    if gsettings list-schemas | grep -Fxq "$schema"; then
+        gsettings set "$schema" "$key" "$value" || warn "Não foi possível aplicar $schema.$key"
+    else
+        warn "Schema indisponível: $schema"
+    fi
+}
+log "Aplicando Materia Dark, Papirus-Dark e Bibata."
+set_setting org.mate.interface gtk-theme "'Materia-dark'"
+set_setting org.mate.Marco.general theme "'Materia-dark'"
+set_setting org.mate.interface metacity-theme "'Materia-dark'"
+set_setting org.mate.interface icon-theme "'Papirus-Dark'"
+set_setting org.mate.peripherals-mouse cursor-theme "'Bibata-Modern-Classic'"
+set_setting org.mate.peripherals-mouse cursor-size "24"
+set_setting org.mate.interface gtk-application-prefer-dark-theme "true"
+
+# Preserva o layout VENOM existente, incluindo rede, Bluetooth e volume.
+# Não redefine default-layout para 'manjaro' nem executa mate-panel --reset.
+
+# Wallpaper 4K da Lua do script original.
+wall_dir="${XDG_DATA_HOME:-$HOME/.local/share}/wallpapers"
+wall_file="$wall_dir/moon-grey-4k.jpg"
+wall_url="https://wallpapers.com/images/wallpapers/magnificavista-de-uma-lua-cheia-no-ceu-noturno-4q7f0ei1u5yvrwp0.jpg"
+mkdir -p "$wall_dir"
+if [[ ! -s "$wall_file" ]]; then
+    if command -v curl >/dev/null 2>&1; then
+        log "Baixando wallpaper original da Lua."
+        if ! curl --fail --location --retry 3 --connect-timeout 15 "$wall_url" --output "$wall_file"; then
+            rm -f "$wall_file"
+            warn "Download do wallpaper falhou; será tentado novamente no próximo login."
+        fi
+    else
+        warn "curl não está instalado; wallpaper não foi baixado."
+    fi
+fi
+if [[ -s "$wall_file" ]]; then
+    if gsettings list-schemas | grep -Fxq org.mate.desktop.background; then
+        gsettings set org.mate.desktop.background picture-uri "'file://$wall_file'" || \
+        gsettings set org.mate.desktop.background picture-filename "'$wall_file'" || true
+    elif gsettings list-schemas | grep -Fxq org.mate.background; then
+        gsettings set org.mate.background picture-filename "'$wall_file'" || true
+    else
+        warn "Schema de papel de parede do MATE não encontrado."
+    fi
+fi
+
+# Ajuste do Brisk Menu somente quando o applet e seu schema já estiverem presentes.
+if gsettings list-schemas | grep -Fxq com.solus-project.brisk-menu; then
+    gsettings set com.solus-project.brisk-menu label-visible false || true
+fi
+
+log "Configuração da sessão MATE concluída."
