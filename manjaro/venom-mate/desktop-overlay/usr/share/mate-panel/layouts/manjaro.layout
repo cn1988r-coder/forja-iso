@@ -36,7 +36,7 @@ object-type=applet
 applet-iid=ClockAppletFactory::ClockApplet
 toplevel-id=top
 pack-type=end
-pack-index=0
+pack-index=2
 locked=true
 
 [Object show-desktop]
