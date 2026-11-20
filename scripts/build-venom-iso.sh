@@ -211,15 +211,6 @@ OnlyShowIn=MATE;
 X-MATE-Autostart-enabled=true
 NoDisplay=true
 DESKTOP
-cat > /etc/xdg/autostart/mate-volume-control-status-icon.desktop <<'DESKTOP'
-[Desktop Entry]
-Type=Application
-Name=MATE Volume Control
-Exec=/usr/bin/mate-volume-control-status-icon
-OnlyShowIn=MATE;
-X-MATE-Autostart-enabled=true
-NoDisplay=true
-DESKTOP
 
 # Install a deterministic MATE panel layout after the desktop packages are installed.
 # The top panel contains a real separator, the notification area (network/Bluetooth
@@ -295,11 +286,10 @@ pack-index=0
 locked=true
 LAYOUT
 
-chmod 0644 /etc/xdg/autostart/nm-applet.desktop /etc/xdg/autostart/blueman.desktop /etc/xdg/autostart/mate-volume-control-status-icon.desktop
+chmod 0644 /etc/xdg/autostart/nm-applet.desktop /etc/xdg/autostart/blueman.desktop
 # Validate the launchers after writing them, not the upstream files they replace.
 check_session_applet /etc/xdg/autostart/nm-applet.desktop nm-applet
 check_session_applet /etc/xdg/autostart/blueman.desktop blueman-applet
-check_session_applet /etc/xdg/autostart/mate-volume-control-status-icon.desktop mate-volume-control-status-icon
 # Do not let an inherited liveuser dconf database override the system MATE panel layout.
 rm -f /home/liveuser/.config/dconf/user
 
@@ -310,7 +300,7 @@ if [[ ! -s /usr/share/mate-panel/layouts/default.layout ]] ||
   echo "VENOM MATE panel layout is missing the notification area, separator or native volume applet." >&2
   exit 1
 fi
-for desktop in nm-applet.desktop blueman.desktop mate-volume-control-status-icon.desktop; do
+for desktop in nm-applet.desktop blueman.desktop; do
   [[ -s "/etc/xdg/autostart/$desktop" ]] || {
     echo "VENOM MATE applet autostart missing: $desktop" >&2
     exit 1
