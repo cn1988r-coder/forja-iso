@@ -51,12 +51,23 @@ jobs:
           grep -Fq '    - internet' "$EOS/modules/welcome_forja_online.conf"
           grep -Fq 'backend: pacman' "$EOS/modules/packages_online.conf"
           grep -Fq 'update_db: true' "$EOS/modules/packages_online.conf"
+          grep -Fq 'pacstrap -K -C /etc/pacman.conf' "$EOS/modules/shellprocess_forja_bootstrap.conf"
+          grep -Fq 'cp /etc/pacman.conf' "$EOS/modules/shellprocess_forja_bootstrap.conf"
           grep -Fq 'networkmanager' "$EOS/modules/packages_online.conf"
           grep -Fq 'mate-session-manager' "$EOS/modules/packages_online.conf"
           ! grep -Eq 'endeavouros|eos-' "$EOS/modules/packages_online.conf"
 
           grep -Fq '/usr/share/forja/packages/shelly-git-*.pkg.tar.zst' "$EOS/modules/shellprocess_forja_stage_packages.conf"
           grep -Fq 'pacman -U --noconfirm --needed /tmp/forja-packages/*.pkg.tar.zst' "$EOS/modules/shellprocess_forja_local_packages.conf"
+          python - "$EOS/settings_online.conf" <<'PY'
+          import pathlib, sys
+          data = pathlib.Path(sys.argv[1]).read_text().split("- exec:", 1)[1].split("- show:", 1)[0]
+          steps = ["shellprocess@forja_bootstrap", "usersq", "networkcfg", "packages@online", "shellprocess@forja_local_packages", "fstab", "bootloader"]
+          positions = [data.index("  - " + step) for step in steps]
+          if positions != sorted(positions):
+              raise SystemExit("Ordem incorreta: bootstrap Arch, usuário, rede, pacotes Forja e bootloader.")
+          print("OK: sequência online executa bootstrap Arch antes da instalação dos pacotes Forja")
+          PY
           grep -Fq 'packages=$(pacman -Qq | grep -E' "$EOS/modules/shellprocess_forja_cleanup.conf"
 
           grep -Fxq 'efiBootLoader: "grub"' "$EOS/modules/bootloader.conf"
