@@ -1,4 +1,4 @@
-# XFCE desktop core and the original desktop structure
+# XFCE desktop core and Community XFCE session configuration
 xfce4
 xfce4-goodies
 xfce4-panel
@@ -22,6 +22,8 @@ catfish
 menulibre
 mugshot
 xarchiver
+comm-xfce-config
+comm-xfce-datetime
 lightdm
 lightdm-gtk-greeter
 networkmanager
@@ -69,8 +71,7 @@ firefox
 pamac-gtk
 papirus-icon-theme
 bibata-cursor-theme
-materiav2-gtk-theme
-adw-gtk-theme
+adwaita-gtk-theme
 gnome-themes-extra
 cantarell-fonts
 noto-fonts
