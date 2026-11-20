@@ -99,10 +99,12 @@ install -Dm644 /etc/pacman.d/mirrorlist "$EOS_DIR/airootfs/etc/pacman.d/mirrorli
 # Keeping a second copy here makes pacman reject endeavouros-skel-liveuser with file conflicts.
 rm -f "$EOS_DIR/airootfs/etc/skel/.config/gtk-3.0/settings.ini"
 rm -f "$EOS_DIR/airootfs/etc/skel/.config/gtk-4.0/settings.ini"
+rm -f "$EOS_DIR/airootfs/etc/skel/.icons/default/index.theme"
 SKEL="$EOS_DIR/airootfs/root/endeavouros-skel-liveuser/src/etc/skel"
-mkdir -p "$SKEL/.config/gtk-3.0" "$SKEL/.config/gtk-4.0"
+mkdir -p "$SKEL/.config/gtk-3.0" "$SKEL/.config/gtk-4.0" "$SKEL/.icons/default"
 cp "$ROOT/build/airootfs/etc/skel/.config/gtk-3.0/settings.ini" "$SKEL/.config/gtk-3.0/settings.ini"
 cp "$ROOT/build/airootfs/etc/skel/.config/gtk-4.0/settings.ini" "$SKEL/.config/gtk-4.0/settings.ini"
+cp "$ROOT/build/airootfs/etc/skel/.icons/default/index.theme" "$SKEL/.icons/default/index.theme"
 rm -rf "$SKEL/.config/kdedefaults" "$SKEL/.config/plasma"* "$SKEL/.local/share/plasma" "$SKEL/.local/share/konsole" "$SKEL/.local/etc/xdg/kdeglobals"
 find "$SKEL/.config" -maxdepth 1 -type f \( -name 'balo*' -o -name 'kcm*' -o -name 'kde*' -o -name 'kscreen*' -o -name 'ksmserverrc' -o -name 'ksplashrc' -o -name 'kwalletrc' -o -name 'kxkbrc' -o -name 'plasma*' -o -name 'powerdevilrc' -o -name 'powermanagementprofilesrc' -o -name 'systemsettingsrc' \) -delete
 mkdir -p "$EOS_DIR/airootfs/root/packages"

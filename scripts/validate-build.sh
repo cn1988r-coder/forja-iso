@@ -23,6 +23,8 @@ required_files=(
   "$ROOT/build/airootfs/etc/lightdm/lightdm-gtk-greeter.conf"
   "$ROOT/build/airootfs/etc/skel/.config/gtk-3.0/settings.ini"
   "$ROOT/build/airootfs/etc/skel/.config/gtk-4.0/settings.ini"
+  "$ROOT/build/airootfs/etc/skel/.icons/default/index.theme"
+  "$ROOT/build/airootfs/usr/share/icons/default/index.theme"
 )
 for file in "${required_files[@]}"; do
   [[ -f "$file" ]] || fail "arquivo necessário ausente: $file"
@@ -80,6 +82,12 @@ grep -Fq 'background=#000000' "$ROOT/build/airootfs/etc/lightdm/lightdm-gtk-gree
 grep -Fq 'theme-name=Materia-dark' "$ROOT/build/airootfs/etc/lightdm/lightdm-gtk-greeter.conf" || fail "tema do greeter LightDM ausente"
 grep -Fq 'icon-theme-name=Papirus' "$ROOT/build/airootfs/etc/lightdm/lightdm-gtk-greeter.conf" || fail "ícones do greeter LightDM ausentes"
 grep -Fq 'cursor-theme-name=Bibata-Modern-Classic' "$ROOT/build/airootfs/etc/lightdm/lightdm-gtk-greeter.conf" || fail "cursor do greeter LightDM ausente"
+grep -Fq "cursor-theme='Bibata-Modern-Classic'" "$ROOT/build/airootfs/etc/dconf/db/local.d/00-venom" || fail "cursor padrão do MATE ausente no dconf"
+grep -Fq 'gtk-cursor-theme-name=Bibata-Modern-Classic' "$ROOT/build/airootfs/etc/skel/.config/gtk-3.0/settings.ini" || fail "cursor padrão GTK3 ausente"
+grep -Fq 'gtk-cursor-theme-name=Bibata-Modern-Classic' "$ROOT/build/airootfs/etc/skel/.config/gtk-4.0/settings.ini" || fail "cursor padrão GTK4 ausente"
+grep -Fq 'Inherits=Bibata-Modern-Classic' "$ROOT/build/airootfs/etc/skel/.icons/default/index.theme" || fail "cursor Xcursor padrão do novo usuário ausente"
+grep -Fq 'Inherits=Bibata-Modern-Classic' "$ROOT/build/airootfs/usr/share/icons/default/index.theme" || fail "cursor Xcursor padrão do sistema ausente"
+grep -Fq 'cp "$ROOT/build/airootfs/etc/skel/.icons/default/index.theme" "$SKEL/.icons/default/index.theme"' "$ROOT/scripts/build-venom-iso.sh" || fail "cursor Bibata não é incorporado ao perfil inicial do usuário"
 grep -Fq 'systemctl enable lightdm.service' "$ROOT/scripts/build-venom-iso.sh" || fail "LightDM não será habilitado"
 grep -Fq 'dconf update' "$ROOT/scripts/build-venom-iso.sh" || fail "banco dconf não será compilado"
 grep -Fq 'MENU TITLE VENOM OS' "$ROOT/scripts/build-venom-iso.sh" || fail "menu de boot sem identidade VENOM OS"
