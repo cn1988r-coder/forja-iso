@@ -68,18 +68,32 @@ if "regularExpression: /[a-zA-Z0-9][-a-zA-Z0-9_]+/" in qml:
     raise SystemExit("Validação QML do hostname não foi ancorada.")
 
 
-# Replace the EndeavourOS installer flows with the Forja image installer.
-# Both modes install the exact live filesystem from the ISO. Online mode only
-# refreshes Arch package databases; it does not run netinstall or select a DE.
-settings_common = """# Forja OS installer: one guided flow, user credentials first, disk second, then install the Forja live image.
+# The online installer is a real Arch Linux netinstall. The offline installer
+# remains a separate image-based path for machines without internet.
+packages_arch = branding.parent / "packages.arch"
+packages_mate = branding.parent / "packages.mate"
+if not packages_arch.is_file() or not packages_mate.is_file():
+    raise SystemExit("Manifestos de pacotes Arch/Forja ausentes para o instalador online.")
+
+def read_packages(path):
+    return [line.strip() for line in path.read_text().splitlines()
+            if line.strip() and not line.lstrip().startswith("#")]
+
+arch_packages = read_packages(packages_arch)
+mate_packages = read_packages(packages_mate)
+online_packages = list(dict.fromkeys(arch_packages + mate_packages))
+if not online_packages or any(not re.fullmatch(r"[a-zA-Z0-9@._+-]+", p) for p in online_packages):
+    raise SystemExit("Manifesto online contém nome de pacote vazio ou inválido.")
+if any(p.startswith(("eos-", "endeavouros-")) for p in online_packages):
+    raise SystemExit("O manifesto online não pode instalar pacotes EndeavourOS.")
+
+settings_offline_text = """# Forja OS offline: copia a imagem completa da própria ISO.
 ---
 modules-search: [ local ]
-
 instances:
 - id: forja_cleanup
   module: shellprocess
   config: shellprocess_forja_cleanup.conf
-
 sequence:
 - show:
   - usersq
@@ -103,7 +117,65 @@ sequence:
   - umount
 - show:
   - finished
+branding: forja
+prompt-install: true
+dont-chroot: false
+oem-setup: false
+disable-cancel: false
+disable-cancel-during-exec: false
+hide-back-and-next-during-exec: true
+quit-at-end: false
+"""
 
+settings_online_text = """# Forja OS online: installs a clean Arch system from official Arch repositories.
+---
+modules-search: [ local ]
+instances:
+- id: forja_welcome
+  module: welcome
+  config: welcome_forja_online.conf
+- id: online
+  module: packages
+  config: packages_online.conf
+- id: forja_stage_packages
+  module: shellprocess
+  config: shellprocess_forja_stage_packages.conf
+- id: forja_local_packages
+  module: shellprocess
+  config: shellprocess_forja_local_packages.conf
+- id: forja_cleanup
+  module: shellprocess
+  config: shellprocess_forja_cleanup.conf
+sequence:
+- show:
+  - welcome@forja_welcome
+  - locale
+  - keyboard
+  - usersq
+  - partition
+  - summary
+- exec:
+  - partition
+  - mount
+  - machineid
+  - locale
+  - keyboard
+  - localecfg
+  - usersq
+  - networkcfg
+  - shellprocess@forja_stage_packages
+  - packages@online
+  - shellprocess@forja_local_packages
+  - fstab
+  - displaymanager
+  - hwclock
+  - bootloader
+  - services-systemd
+  - preservefiles
+  - shellprocess@forja_cleanup
+  - umount
+- show:
+  - finished
 branding: forja
 prompt-install: true
 dont-chroot: false
@@ -116,11 +188,68 @@ quit-at-end: false
 
 settings_offline = source / "data/eos/settings_offline.conf"
 settings_online = source / "data/eos/settings_online.conf"
-settings_offline.write_text(settings_common)
-settings_online.write_text(settings_common)
+settings_offline.write_text(settings_offline_text)
+settings_online.write_text(settings_online_text)
 
-modules = source / "data/eos/modules"
-# No package transaction is performed: both paths install the complete ISO image unchanged.
+packages_config = source / "data/eos/modules/packages_online.conf"
+packages_config.write_text(
+    "---\n"
+    "backend: pacman\n"
+    "skip_if_no_internet: false\n"
+    "update_db: true\n"
+    "update_system: false\n"
+    "pacman:\n"
+    "  num_retries: 6\n"
+    "  disable_download_timeout: true\n"
+    "  needed_only: true\n"
+    "operations:\n"
+    "  - install:\n" +
+    "".join(f"      - {package}\n" for package in online_packages)
+)
+
+welcome_config = source / "data/eos/modules/welcome_forja_online.conf"
+welcome_config.write_text("""---
+showSupportUrl: false
+showKnownIssuesUrl: false
+showReleaseNotesUrl: false
+showDonateUrl: false
+requirements:
+  requiredStorage: 20
+  requiredRam: 2
+  internetCheckUrl:
+    - https://archlinux.org/
+    - https://kernel.org/
+  check:
+    - storage
+    - ram
+    - internet
+    - root
+    - screen
+  required:
+    - ram
+    - internet
+geoip:
+  style: "none"
+  url: "https://geoip.kde.org/v1/ubiquity"
+  selector: "CountryCode"
+""")
+
+(modules / "shellprocess_forja_stage_packages.conf").write_text("""---
+dontChroot: true
+timeout: 120
+verbose: true
+script:
+  - "mkdir -p \\"${ROOT}/tmp/forja-packages\\""
+  - "cp /root/packages/shelly-git-*.pkg.tar.zst /root/packages/ferdium-bin-*.pkg.tar.zst /root/packages/iptvnator-bin-*.pkg.tar.zst /root/packages/bibata-cursor-theme-bin-*.pkg.tar.zst \\"${ROOT}/tmp/forja-packages/\\""
+""")
+(modules / "shellprocess_forja_local_packages.conf").write_text("""---
+dontChroot: false
+timeout: 1800
+verbose: true
+script:
+  - "pacman -U --noconfirm --needed /tmp/forja-packages/*.pkg.tar.zst"
+  - "rm -rf /tmp/forja-packages"
+""")
 
 # Keep partitioning safe and independent of the removed package/bootloader chooser.
 partition_config = modules / "partition.conf"
@@ -202,8 +331,20 @@ for config in (settings_offline, settings_online):
     for forbidden in ("packagechooser", "netinstall", "eos_pacman", "pacstrap", "eos_script", "cleaner_script"):
         if forbidden in data:
             raise SystemExit(f"Fluxo EndeavourOS não removido de {config.name}: {forbidden}")
-    if "branding: forja" not in data or "  - unpackfs" not in data or "  - usersq" not in data or "  - bootloader" not in data:
+    if "branding: forja" not in data or "  - usersq" not in data or "  - bootloader" not in data:
         raise SystemExit(f"Fluxo Forja incompleto em {config.name}.")
+if "  - unpackfs" not in settings_offline.read_text():
+    raise SystemExit("O instalador offline deve copiar a imagem da ISO.")
+if "  - unpackfs" in settings_online.read_text():
+    raise SystemExit("O instalador online não pode copiar o sistema Live/EndeavourOS.")
+if "  - packages@online" not in settings_online.read_text():
+    raise SystemExit("O instalador online não executa o instalador de pacotes Arch.")
+if "packages@online" in settings_offline.read_text():
+    raise SystemExit("O instalador offline não pode depender de internet.")
+if "  - internet" not in welcome_config.read_text() or "    - internet" not in welcome_config.read_text():
+    raise SystemExit("O fluxo online precisa exigir conectividade real.")
+if "backend: pacman" not in packages_config.read_text():
+    raise SystemExit("O instalador online não usa Pacman/Arch.")
 partition_data = partition_config.read_text()
 if "efiBootLoaderVar:" in partition_data:
     raise SystemExit("partition.conf ainda depende do seletor de bootloader removido.")
@@ -211,10 +352,8 @@ if 'availableFileSystemTypes:  ["ext4"]' not in partition_data:
     raise SystemExit("A instalação Forja deve usar ext4 como único sistema de arquivos selecionável.")
 if 'efiBootLoader: "grub"' not in (modules / "bootloader.conf").read_text():
     raise SystemExit("GRUB não está definido como bootloader fixo.")
-if "packages@online" in settings_offline.read_text() or "packages@online" in settings_online.read_text():
-    raise SystemExit("A instalação da imagem completa não pode depender de atualização de pacotes online.")
-for config in (settings_offline, settings_online):
-    data = config.read_text()
-    for inherited in ("locale", "keyboard", "localecfg"):
-        if f"  - {inherited}" + chr(10) in data:
-            raise SystemExit(f"Idioma e teclado devem ser herdados da imagem Live, não reconfigurados: {inherited}")
+if "packages@online" in settings_offline.read_text():
+    raise SystemExit("A instalação offline não pode depender de internet.")
+for inherited in ("locale", "keyboard", "localecfg"):
+    if f"  - {inherited}" + chr(10) in settings_offline.read_text():
+        raise SystemExit(f"Idioma e teclado offline devem ser herdados da imagem Live: {inherited}")
