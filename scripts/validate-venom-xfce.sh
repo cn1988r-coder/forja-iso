@@ -104,7 +104,7 @@ grep -Fq 'name="theme" type="string" value="adw-gtk3-dark"' "$X/xfwm4.xml" || fa
 grep -Fq 'branding: venom' "$L/etc/calamares/settings.conf" || fail "Calamares não está usando branding VENOM"
 grep -Fq '/run/miso/bootmnt/manjaro/x86_64/rootfs.sfs' "$L/etc/calamares/modules/unpackfs.conf" || fail "imagem rootfs do Live não configurada no unpackfs"
 grep -Fq '  - lightdm' "$L/etc/calamares/modules/displaymanager.conf" || fail "Calamares não configura LightDM"
-grep -Fq '      - name: "NetworkManager.service"' "$L/etc/calamares/modules/services-systemd.conf" || fail "NetworkManager não será habilitado no sistema instalado"
+grep -Fq '  - name: "NetworkManager.service"' "$L/etc/calamares/modules/services-systemd.conf" || fail "NetworkManager não será habilitado no sistema instalado"
 grep -Fq '      - services-systemd' "$L/etc/calamares/settings.conf" || fail "módulo systemd do Calamares não está na sequência"
 grep -Fq '  - archlinux' "$L/etc/calamares/modules/postcfg.conf" || fail "chaveiro Arch não será inicializado pelo postcfg"
 grep -Fq '  - manjaro' "$L/etc/calamares/modules/postcfg.conf" || fail "chaveiro Manjaro não será inicializado pelo postcfg"
