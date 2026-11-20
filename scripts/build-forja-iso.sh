@@ -127,7 +127,7 @@ import pathlib, sys
 p = pathlib.Path(sys.argv[1])
 s = p.read_text()
 old = 'systemctl set-default multi-user.target'
-new = 'systemctl enable lightdm.service\nsystemctl set-default graphical.target\ndconf update'
+new = 'systemctl enable NetworkManager.service\nsystemctl enable lightdm.service\nsystemctl set-default graphical.target\ndconf update'
 if old not in s:
     raise SystemExit('Não foi possível localizar o ponto de ativação do alvo multi-user no script upstream.')
 s = s.replace(old, new, 1)
@@ -140,28 +140,46 @@ if motd_marker not in s:
     raise SystemExit('Não foi possível localizar a etapa do motd.')
 s = s.replace(motd_marker, 'printf "Forja OS\\nBase Arch Linux\\n" > "/usr/lib/forja-release"\n' + motd_marker, 1)
 calamares_marker = 'pacman -U --noconfirm --needed -- "/root/packages/"*".pkg.tar.zst"\n'
-calamares_patch = """if [[ ! -r /etc/calamares/settings_offline.conf ]]; then
-  echo "Calamares offline configuration is missing." >&2
-  exit 1
-fi
-install -m 0644 /etc/calamares/settings_offline.conf /etc/calamares/settings.conf
-if [[ ! -f /home/liveuser/.local/share/applications/calamares.desktop ]]; then
-  echo "Calamares live-session desktop entry is missing: /home/liveuser/.local/share/applications/calamares.desktop" >&2
+calamares_patch = """if [[ ! -r /etc/calamares/settings_offline.conf || ! -r /etc/calamares/settings_online.conf ]]; then
+  echo "Calamares Forja online/offline settings are missing." >&2
   exit 1
 fi
 if [[ ! -x /usr/bin/calamares ]]; then
   echo "Calamares executable is missing: /usr/bin/calamares" >&2
   exit 1
 fi
-sed -i -e 's|^TryExec=eos-welcome$|TryExec=calamares|' -e 's|^Exec=eos-welcome$|Exec=pkexec calamares|' /home/liveuser/.local/share/applications/calamares.desktop
+# Default launcher is the real Arch online installer. Keep a separate offline profile.
+cp -a /etc/calamares /etc/calamares-online
+install -m 0644 /etc/calamares/settings_online.conf /etc/calamares-online/settings.conf
+cp -a /etc/calamares /etc/calamares-offline
+install -m 0644 /etc/calamares/settings_offline.conf /etc/calamares-offline/settings.conf
+install -m 0644 /etc/calamares/settings_online.conf /etc/calamares/settings.conf
+if [[ ! -f /home/liveuser/.local/share/applications/calamares.desktop ]]; then
+  echo "Calamares live-session desktop entry is missing: /home/liveuser/.local/share/applications/calamares.desktop" >&2
+  exit 1
+fi
+sed -i -e 's|^TryExec=eos-welcome$|TryExec=calamares|' -e 's|^Exec=eos-welcome$|Exec=pkexec calamares -c /etc/calamares-online|' /home/liveuser/.local/share/applications/calamares.desktop
 grep -Fxq 'TryExec=calamares' /home/liveuser/.local/share/applications/calamares.desktop || {
   echo "Calamares desktop entry has an invalid TryExec value." >&2
   exit 1
 }
-grep -Fxq 'Exec=pkexec calamares' /home/liveuser/.local/share/applications/calamares.desktop || {
-  echo "Calamares desktop entry has an invalid Exec value." >&2
+grep -Fxq 'Exec=pkexec calamares -c /etc/calamares-online' /home/liveuser/.local/share/applications/calamares.desktop || {
+  echo "Calamares online desktop entry has an invalid Exec value." >&2
   exit 1
 }
+cat > /home/liveuser/.local/share/applications/forja-installer-offline.desktop <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Instalar Forja OS (offline)
+Name[pt_BR]=Instalar Forja OS (offline)
+Comment=Instala a Forja OS usando a imagem incluída na ISO
+Exec=pkexec calamares -c /etc/calamares-offline
+TryExec=calamares
+Icon=calamares
+Terminal=false
+Categories=System;
+DESKTOP
+chown liveuser:liveuser /home/liveuser/.local/share/applications/forja-installer-offline.desktop
 if [[ ! -f /etc/polkit-1/rules.d/49-forja-calamares.rules ]]; then
   echo "Restricted live-session Polkit rule for Calamares is missing." >&2
   exit 1
@@ -264,6 +282,8 @@ curl -fsSL "https://raw.githubusercontent.com/endeavouros-team/PKGBUILDS/$PKGBUI
 cp "$ROOT/scripts/patch-calamares.py" "$CALAMARES_SRC/patch-calamares.py"
 mkdir -p "$CALAMARES_SRC/branding"
 cp -a "$ROOT/build/calamares/branding/forja" "$CALAMARES_SRC/branding/forja"
+cp "$ROOT/build/packages.arch" "$CALAMARES_SRC/branding/packages.arch"
+cp "$ROOT/build/packages.mate" "$CALAMARES_SRC/branding/packages.mate"
 python - "$CALAMARES_SRC/PKGBUILD" <<'PY'
 import pathlib, sys
 path = pathlib.Path(sys.argv[1])
