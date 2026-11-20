@@ -160,7 +160,7 @@ if grep -Eiq '^(endeavouros-|eos-)' "$ROOT/build/packages.arch"; then fail "mani
 grep -Fq 'shelly-git-*.pkg.tar.zst' "$ROOT/scripts/patch-calamares.py" || fail "Shelly não será instalado no fluxo online"
 grep -Fq 'shellprocess@forja_cleanup' "$ROOT/scripts/patch-calamares.py" || fail "limpeza final da instalação Forja ausente"
 grep -Fq 'pacman -Q calamares' "$ROOT/scripts/patch-calamares.py" || fail "remoção de Calamares não é condicional no sistema instalado"
-grep -Fq 'rate-mirrors$|reflector-simple$|welcome$|iso-create-ml
+grep -Fq 'rate-mirrors$|reflector-simple$|welcome$|iso-create-ml$' "$ROOT/scripts/patch-calamares.py" || fail "ferramentas EndeavourOS não são removidas do destino offline"
 grep -Fq '/etc/polkit-1/rules.d/49-forja-calamares.rules' "$ROOT/scripts/patch-calamares.py" || fail "regra temporária Polkit não será removida do sistema instalado"
 grep -Fq 'rm -f /etc/pacman.d/endeavouros-mirrorlist' "$ROOT/scripts/patch-calamares.py" || fail "mirrorlist EndeavourOS não será removida do sistema instalado"
 
