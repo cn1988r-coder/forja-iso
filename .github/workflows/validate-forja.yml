@@ -20,6 +20,12 @@ jobs:
         uses: actions/checkout@v4
       - name: Validar scripts e perfil da distribuição
         run: bash scripts/validate-build.sh
+
+  patcher-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Testar patcher contra o Calamares upstream fixado
         run: |
           set -euo pipefail
@@ -35,6 +41,6 @@ jobs:
           ! grep -q 'efiBootLoaderVar:' "$RUNNER_TEMP/calamares/data/eos/modules/partition.conf"
           grep -Fq 'availableFileSystemTypes:  ["ext4"]' "$RUNNER_TEMP/calamares/data/eos/modules/partition.conf"
           ! grep -q 'packages@online' "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
-          ! grep -Eq '  - (locale|keyboard|localecfg)$' "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
+          ! grep -Eq '  - (locale|keyboard|localecfg) "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
           grep -Fq 'action.id === "com.github.calamares.calamares"' build/airootfs/etc/polkit-1/rules.d/49-forja-calamares.rules
           ! grep -Eq 'packagechooser|netinstall|eos_pacman|pacstrap|eos_script' "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
