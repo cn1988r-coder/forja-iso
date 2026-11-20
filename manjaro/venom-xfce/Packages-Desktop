@@ -1,6 +1,5 @@
 # XFCE desktop core and Community XFCE session configuration
 xfce4
-xfce4-goodies
 xfce4-panel
 xfce4-panel-profiles
 xfce4-session
@@ -18,10 +17,6 @@ thunar-archive-plugin
 thunar-media-tags-plugin
 thunar-shares-plugin
 tumbler
-catfish
-menulibre
-mugshot
-xarchiver
 xfce4-docklike-plugin
 lightdm
 lightdm-gtk-greeter
@@ -62,7 +57,6 @@ xfce4-genmon-plugin
 xfce4-mount-plugin
 xfce4-notes-plugin
 xfce4-screensaver
-xfce4-artwork
 xorg-server
 xorg-xinit
 xorg-xrandr
@@ -83,8 +77,3 @@ gvfs
 gvfs-smb
 gvfs-mtp
 udisks2
-htop
-inxi
-p7zip
-unarchiver
-openssh
