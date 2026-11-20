@@ -129,11 +129,11 @@ modules = source / "data/eos/modules"
 # Keep partitioning safe and independent of the removed package/bootloader chooser.
 partition_config = modules / "partition.conf"
 partition_text = partition_config.read_text()
-partition_text, removed = re.subn(r"(?m)^efiBootLoaderVar:.*\\n", "", partition_text, count=1)
+partition_text, removed = re.subn(r"(?m)^efiBootLoaderVar:.*\n", "", partition_text, count=1)
 if removed != 1:
     raise SystemExit("A referência obsoleta ao seletor de bootloader não foi encontrada em partition.conf.")
 partition_text, fs_count = re.subn(
-    r"(?m)^availableFileSystemTypes:\\s+\\[.*\\]$",
+    r"(?m)^availableFileSystemTypes:\s+\\[.*\\]$",
     'availableFileSystemTypes:  ["ext4"]',
     partition_text,
     count=1,
@@ -212,7 +212,7 @@ units:
 unpackfs = modules / "unpackfs.conf"
 if not unpackfs.exists() or "/run/archiso/bootmnt/arch/x86_64/airootfs.sfs" not in unpackfs.read_text():
     raise SystemExit("A origem da imagem Forja no unpackfs.conf não foi encontrada.")
-for required in ("packages_online.conf", "displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf", "shellprocess_forja_cleanup.conf"):
+for required in ("displaymanager.conf", "services-systemd.conf", "bootloader.conf", "grubcfg.conf", "shellprocess_forja_cleanup.conf"):
     if not (modules / required).exists():
         raise SystemExit(f"Módulo necessário ausente: {required}")
 for config in (settings_offline, settings_online):
@@ -222,9 +222,6 @@ for config in (settings_offline, settings_online):
             raise SystemExit(f"Fluxo EndeavourOS não removido de {config.name}: {forbidden}")
     if "branding: forja" not in data or "  - unpackfs" not in data or "  - usersq" not in data or "  - bootloader" not in data:
         raise SystemExit(f"Fluxo Forja incompleto em {config.name}.")
-for config in (settings_offline, settings_online):
-    if "packages@online" not in config.read_text():
-        raise SystemExit(f"{config.name} não executa a etapa de rede opcional.")
 partition_data = partition_config.read_text()
 if "efiBootLoaderVar:" in partition_data:
     raise SystemExit("partition.conf ainda depende do seletor de bootloader removido.")
