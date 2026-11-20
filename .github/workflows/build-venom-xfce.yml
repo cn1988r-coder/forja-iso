@@ -1,4 +1,4 @@
-name: VENOM OS
+name: VENOM OS XFCE 1.0
 
 on:
   push:
@@ -51,7 +51,7 @@ jobs:
       - name: Publish VENOM OS ISO and checksums
         uses: actions/upload-artifact@v4
         with:
-          name: VENOM-OS-ISO
+          name: VENOM-OS-XFCE-1.0
           path: |
             ${{ steps.venom-build.outputs.file-path }}
             ${{ steps.venom-build.outputs.file-path }}.pkgs

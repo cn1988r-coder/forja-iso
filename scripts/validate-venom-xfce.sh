@@ -47,12 +47,12 @@ if grep -Eiq 'calamares|biglinux|bigcommunity|repo\.biglinux\.com\.br' "$P"/Pack
   fail "identidade ou instalador de terceiros encontrado no perfil"
 fi
 
-grep -Fq 'label="VENOM_OS_XFCE"' "$P/profile.conf" || fail "rótulo VENOM OS ausente"
+grep -Fq 'label="VENOM_OS_XFCE_1.0"' "$P/profile.conf" || fail "rótulo VENOM OS XFCE 1.0 ausente"
 grep -Fq 'hostname="venom"' "$P/profile.conf" || fail "hostname VENOM ausente"
 grep -Fq 'displaymanager="lightdm"' "$P/profile.conf" || fail "LightDM não selecionado"
-grep -Fq '[venom-xfce]' "$P/user-repos.conf" || fail "repositório do suporte XFCE não configurado"
-grep -Fq 'https://repo.communitybig.org/community-stable/$arch' "$P/user-repos.conf" || fail "URL atual do suporte XFCE ausente"
-grep -Fq '[venom-xfce]' "$ROOT/shared/pacman.conf" || fail "repositório VENOM OS ausente na configuração de compilação"
+grep -Fq '[community-stable]' "$P/user-repos.conf" || fail "repositório Community Stable não configurado"
+grep -Fq 'https://repo.communitybig.org/community-stable/$arch' "$P/user-repos.conf" || fail "URL Community Stable ausente"
+grep -Fq '[community-stable]' "$ROOT/shared/pacman.conf" || fail "repositório Community Stable ausente na configuração de compilação"
 if grep -Fq 'repo.biglinux.com.br' "$ROOT/shared/pacman.conf"; then fail "URL antiga que retornava 404 ainda está configurada"; fi
 
 grep -Fq 'NAME="VENOM OS"' "$P/root-overlay/etc/os-release" || fail "nome do sistema não é VENOM OS"
@@ -77,6 +77,22 @@ if not xmls:
     raise SystemExit("FALHA: nenhum XML/SVG encontrado")
 for path in xmls:
     ET.parse(path)
+panel_path = root / "desktop-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml"
+tree = ET.parse(panel_path)
+channel = tree.getroot()
+panels = channel.find("./property[@name='panels']")
+ids = [int(v.attrib["value"]) for v in panels.findall("value")]
+if ids != [1]:
+    raise SystemExit(f"FALHA: esperado somente um painel, encontrados {ids}")
+p = channel.find("./property[@name='panels']/property[@name='panel-1']")
+def prop(name):
+    node = p.find(f"./property[@name='{name}']")
+    return node.attrib.get("value") if node is not None else None
+if prop("length") != "100" or prop("size") != "40" or prop("mode") != "0":
+    raise SystemExit("FALHA: painel deve ser horizontal, 100% de largura e 40 px")
+if not (prop("position") or "").startswith("p=8;"):
+    raise SystemExit("FALHA: painel não está ancorado na parte inferior")
+print("OK: painel único inferior, horizontal, 100% de largura e 40 px")
 print(f"OK: {len(xmls)} XML/SVG(s) bem formados")
 PY
 
@@ -85,5 +101,5 @@ pass "estrutura, painel e configurações originais do XFCE preservados"
 pass "Firefox, Pamac, IPTVnator e Ferdium selecionados"
 pass "aplicativos extras e identidade visual do fornecedor removidos"
 pass "tema escuro e identidade VENOM OS configurados"
-pass "repositório antigo 404 removido"
+pass "repositório Community Stable configurado com nome de base correto"
 printf 'VALIDAÇÃO ESTÁTICA DO VENOM OS CONCLUÍDA.\n'

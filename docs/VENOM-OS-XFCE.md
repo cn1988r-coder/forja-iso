@@ -8,7 +8,7 @@ Retained applications: Firefox, Pamac GTK, Ferdium, and IPTVnator. Ferdium and I
 
 Other bundled applications and vendor identity packages are excluded. The dark theme remains enabled. The operating-system identity, validation job, compilation job, and published artifact use only the name VENOM OS.
 
-The current signed package source is used only for the XFCE panel plugin and required trust packages. The obsolete `repo.biglinux.com.br` URL is not used.
+The signed Community Stable package repository is configured under its actual repository name, `community-stable`, so Pacman requests `community-stable.db` rather than a nonexistent `venom-xfce.db`.
 
 ## Installer
 

@@ -10,6 +10,6 @@ Retained applications:
 
 Ferdium and IPTVnator are installed through Pamac's AUR support during first login. The dark theme remains enabled. The current signed package source is used for the XFCE panel plugin and required trust package only. No obsolete repository URL is configured.
 
-The system identity, validation job, compilation job, and artifact use only the name VENOM OS.
+The ISO is branded **VENOM OS XFCE 1.0**. The GitHub Actions workflow validates the profile before compiling it and publishes the artifact as `VENOM-OS-XFCE-1.0`.
 
 This test ISO does not include Calamares. The final VENOM OS installer remains a separate project component.
