@@ -3,7 +3,7 @@ name: Compilar ISO Forja OS
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, fix/forja-calamares-stability]
     paths:
       - "Dockerfile"
       - "scripts/build-forja-iso.sh"
@@ -69,4 +69,4 @@ jobs:
             work/EndeavourOS-ISO/out/*.iso
             work/forja-iso-sha256.txt
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 1
