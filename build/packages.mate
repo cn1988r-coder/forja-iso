@@ -47,3 +47,7 @@ mate-polkit
 materia-gtk-theme
 papirus-icon-theme
 dconf
+dconf-editor
+curl
+git
+base-devel
