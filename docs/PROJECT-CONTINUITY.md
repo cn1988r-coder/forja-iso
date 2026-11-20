@@ -75,3 +75,14 @@ Atualizado em 20/11/2026.
 - Validações estáticas não comprovam boot, instalação, sessão MATE ou funcionamento dos indicadores.
 - Nenhuma ISO deve ser declarada pronta sem build autorizada e testes reais.
 - O histórico Git e referências administrativas do GitHub exigem auditoria separada da árvore de arquivos atual.
+
+## Autorização de continuidade registrada em 20/11/2026
+- O usuário autorizou prosseguir com o desenvolvimento da VENOM OS sem solicitar confirmação para cada correção técnica rotineira.
+- Escopo autorizado: investigar falhas, corrigir código e scripts, ajustar CI, implementar o instalador próprio em C + GTK4, desenvolver o backend, criar testes automatizados e repetir ciclos de validação/correção.
+- Ao encontrar erros, investigar a causa, corrigir e validar novamente; registrar resultados reais, inclusive falhas persistentes e bloqueios.
+- Preservar a arquitetura Arch Linux oficial + MATE + LightDM e todas as restrições arquiteturais já registradas.
+- Não usar Calamares, EndeavourOS ou componentes de outras distribuições.
+- A autorização para desenvolver o instalador não autoriza operações destrutivas em discos reais. Validar operações de particionamento/formatação primeiro com imagens descartáveis e máquinas virtuais.
+- A autorização não inclui compilar ou publicar ISO. Build e publicação de ISO continuam exigindo autorização específica do usuário.
+- Limitação operacional: não existe execução contínua garantida depois que a conversa é fechada. O assistente só pode trabalhar quando uma sessão/tarefa efetivamente estiver em execução; não prometer trabalho noturno em segundo plano nem conclusão automática para o dia seguinte.
+- Não declarar a VENOM OS ou o instalador prontos sem evidência de compilação, testes e validação em VM.
