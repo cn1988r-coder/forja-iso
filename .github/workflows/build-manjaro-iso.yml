@@ -29,7 +29,7 @@ jobs:
       - name: Configure Manjaro tools to use this profile checkout
         run: |
           sudo install -d -m 0755 /root/.config/manjaro-tools
-          printf 'run_dir=%s/iso-profiles\\n' "$GITHUB_WORKSPACE" | sudo tee /root/.config/manjaro-tools/iso-profiles.conf
+          printf 'run_dir=%s/iso-profiles\n' "$GITHUB_WORKSPACE" | sudo tee /root/.config/manjaro-tools/iso-profiles.conf
 
       - name: Build Manjaro ISO with official Manjaro tooling
         id: manjaro-build
