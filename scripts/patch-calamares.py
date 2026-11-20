@@ -245,6 +245,7 @@ timeout: 3600
 verbose: true
 script:
   - 'pacstrap -K -C /etc/pacman.conf ${ROOT} base linux linux-firmware archlinux-keyring pacman-mirrorlist sudo networkmanager'
+  - 'mkdir -p ${ROOT}/etc/pacman.d && cp /etc/pacman.conf ${ROOT}/etc/pacman.conf && cp /etc/pacman.d/mirrorlist ${ROOT}/etc/pacman.d/mirrorlist'
 """)
 (modules / "shellprocess_forja_stage_packages.conf").write_text("""---
 dontChroot: true
