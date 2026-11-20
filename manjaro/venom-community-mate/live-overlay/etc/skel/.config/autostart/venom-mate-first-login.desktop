@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=VENOM MATE first-login setup
-Comment=Apply VENOM OS dark desktop defaults
-Exec=/usr/local/bin/venom-mate-first-login
-OnlyShowIn=MATE;
-X-MATE-Autostart-enabled=true
-NoDisplay=true

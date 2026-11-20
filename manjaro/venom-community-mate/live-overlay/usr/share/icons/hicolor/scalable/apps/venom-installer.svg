@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-<defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="#b9e7ff"/><stop offset="1" stop-color="#1479c8"/></linearGradient></defs>
-<path fill="url(#g)" d="M54 5h20l5 16 11 5 14-8 14 14-8 14 5 11 16 5v20l-16 5-5 11 8 14-14 14-14-8-11 5-5 16H54l-5-16-11-5-14 8-14-14 8-14-5-11L-3 82V62l16-5 5-11-8-14 14-14 14 8 11-5z" transform="translate(8 0) scale(.88)"/>
-<circle cx="64" cy="64" r="22" fill="#03070d" stroke="#d9f2ff" stroke-width="5"/>
-</svg>
