@@ -12,7 +12,7 @@ A VENOM OS passa a usar **Manjaro Linux** como base, com desktop MATE e LightDM.
 - O perfil não inclui Calamares nem Endeavouros.
 
 ## Configuração MATE do DeepSeek
-O arquivo original `scripts/manjaro-mate-dark-complete.sh` é mantido como fornecido. A mesma cópia é colocada no sistema gerado em `/usr/local/bin/manjaro-mate-dark-complete.sh`, com verificação automática de igualdade byte a byte.
+O script `scripts/manjaro-mate-dark-complete.sh` foi mantido com sua lógica original. A única correção foi retirar `manjaro-mate-settings`, pacote que o Manjaro informa não oferecer atualmente para MATE. O layout `manjaro` usado pelo script é fornecido diretamente no perfil. A cópia instalada em `/usr/local/bin/manjaro-mate-dark-complete.sh` é verificada byte a byte contra o arquivo de origem.
 
 No menu do MATE existe o atalho **Configurar MATE**. Ele abre um terminal e executa o script original, permitindo que os comandos sudo do script solicitem autenticação quando necessário. O script não é executado silenciosamente no primeiro login.
 
