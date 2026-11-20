@@ -35,9 +35,6 @@ jobs:
           ! grep -q 'efiBootLoaderVar:' "$RUNNER_TEMP/calamares/data/eos/modules/partition.conf"
           grep -Fq 'availableFileSystemTypes:  ["ext4"]' "$RUNNER_TEMP/calamares/data/eos/modules/partition.conf"
           ! grep -q 'packages@online' "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
-          ! grep -Eq '  - (locale|keyboard|localecfg)          grep -Fq 'action.id === "com.github.calamares.calamares"' build/airootfs/etc/polkit-1/rules.d/49-forja-calamares.rules
-          ! grep -Eq 'packagechooser|netinstall|eos_pacman|pacstrap|eos_script' "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
- "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
-          grep -Fq 'efiBootLoader: "grub"' "$RUNNER_TEMP/calamares/data/eos/modules/bootloader.conf"
+          ! grep -Eq '  - (locale|keyboard|localecfg)$' "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
           grep -Fq 'action.id === "com.github.calamares.calamares"' build/airootfs/etc/polkit-1/rules.d/49-forja-calamares.rules
           ! grep -Eq 'packagechooser|netinstall|eos_pacman|pacstrap|eos_script' "$RUNNER_TEMP/calamares/data/eos/settings_offline.conf"
