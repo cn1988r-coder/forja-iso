@@ -133,7 +133,7 @@ partition_text, removed = re.subn(r"(?m)^efiBootLoaderVar:.*\n", "", partition_t
 if removed != 1:
     raise SystemExit("A referência obsoleta ao seletor de bootloader não foi encontrada em partition.conf.")
 partition_text, fs_count = re.subn(
-    r"(?m)^availableFileSystemTypes:\s+\\[.*\\]$",
+    r"(?m)^availableFileSystemTypes:\s+\[.*\]$",
     'availableFileSystemTypes:  ["ext4"]',
     partition_text,
     count=1,
