@@ -344,18 +344,18 @@ dontChroot: false
 timeout: 30
 verbose: true
 script:
-  - 'install -d -m 0755 /etc/default'
-  - 'cat > /etc/default/grub <<\'GRUB\''
-  - 'GRUB'
-  - 'GRUB_DEFAULT=0'
-  - 'GRUB_TIMEOUT=5'
-  - 'GRUB_DISTRIBUTOR="Forja OS"'
-  - 'GRUB_CMDLINE_LINUX_DEFAULT="quiet loglevel=3"'
-  - 'GRUB_CMDLINE_LINUX=""'
-  - 'GRUB_DISABLE_SUBMENU=true'
-  - 'GRUB_DISABLE_RECOVERY=true'
-  - 'GRUB_EARLY_INITRD_LINUX_STOCK=""'
-  - 'GRUB'
+  - "install -d -m 0755 /etc/default"
+  - |
+    cat > /etc/default/grub <<'GRUB'
+    GRUB_DEFAULT=0
+    GRUB_TIMEOUT=5
+    GRUB_DISTRIBUTOR="Forja OS"
+    GRUB_CMDLINE_LINUX_DEFAULT="quiet loglevel=3"
+    GRUB_CMDLINE_LINUX=""
+    GRUB_DISABLE_SUBMENU=true
+    GRUB_DISABLE_RECOVERY=true
+    GRUB_EARLY_INITRD_LINUX_STOCK=""
+    GRUB
 """)
 (modules / "services-systemd.conf").write_text("""---
 units:
