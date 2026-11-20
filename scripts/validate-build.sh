@@ -36,7 +36,7 @@ bash -n "$ROOT/scripts/build-venom-iso.sh" || fail "erro de sintaxe no script de
 bash -n "$ROOT/scripts/build-container.sh" || fail "erro de sintaxe no wrapper Docker/Podman"
 
 python - "$ROOT/scripts/build-venom-iso.sh" <<'PY'
-import pathlib, re, sys
+import ast, pathlib, re, sys
 source = pathlib.Path(sys.argv[1]).read_text()
 separator = chr(10)
 blocks = re.findall("<<'PY'" + separator + "(.*?)" + separator + "PY", source, re.S)
@@ -51,16 +51,30 @@ if lightdm_marker not in source:
 lightdm = source.split(lightdm_marker, 1)[1].split(chr(10) + "PY", 1)[0]
 if "import pathlib, re, sys" not in lightdm:
     raise SystemExit("Bloco LightDM usa re sem importar o módulo.")
-match = re.search(r"calamares_install_pattern = re\.compile\(\s*(r'[^']+')", source)
-if not match:
-    raise SystemExit("Regex de pacotes locais do Calamares não foi encontrada.")
-pattern = re.compile(match.group(1)[1:-1])
+
+tree = ast.parse(source)
+pattern_text = None
+for node in ast.walk(tree):
+    if not isinstance(node, ast.Assign):
+        continue
+    if not any(isinstance(target, ast.Name) and target.id == "calamares_install_pattern"
+               for target in node.targets):
+        continue
+    call = node.value
+    if (isinstance(call, ast.Call) and isinstance(call.func, ast.Attribute)
+            and call.func.attr == "compile" and call.args
+            and isinstance(call.args[0], ast.Constant)
+            and isinstance(call.args[0].value, str)):
+        pattern_text = call.args[0].value
+        break
+if pattern_text is None:
+    raise SystemExit("Regex de pacotes locais do Calamares não foi encontrada como literal Python.")
+pattern = re.compile(pattern_text, re.MULTILINE)
 fixture = '  pacman -U --noconfirm --needed -- "/root/packages/"*".pkg.tar.zst"' + chr(10)
 if len(list(pattern.finditer(fixture))) != 1:
     raise SystemExit("Regex de pacotes locais não reconhece o comando upstream fixado.")
 print("OK: import re e regex de pacotes locais do Calamares")
 PY
-
 grep -Fq 'EOS_COMMIT="90376d8f52ab19e19073eed33d6f36c46ec7c409"' "$ROOT/scripts/build-venom-iso.sh" || fail "framework EndeavourOS sem revisão fixada"
 grep -Fq 'PKGBUILDS_COMMIT="474a51d4c7cb6f82bfbb2e78a7ce9a321aa5eabd"' "$ROOT/scripts/build-venom-iso.sh" || fail "receita Calamares sem revisão fixada"
 grep -Fq 'SHELLY_COMMIT="6840658b19d72205c38bd320c1cef6ff3076bc7c"' "$ROOT/scripts/build-venom-iso.sh" || fail "Shelly sem revisão fixada"
