@@ -161,3 +161,14 @@ Nunca apresentar intenção como implementação, nem implementação como teste
 - Commit: `38d452ad06e68d324a73ec82277744f22f830e0c`.
 - **Pendente:** executar o validador estático; confirmar em sessão Live MATE que os três indicadores aparecem e respondem. Nenhuma ISO nova foi compilada.
 - **Importante:** a branch ainda contém a integração antiga do Calamares. Isso não está aprovado como instalador final e conflita com a decisão de desenvolver um instalador gráfico próprio em Python. Não apresentar Calamares como solução concluída.
+
+
+## Correção estrutural do painel MATE: applets e separador (2026-11-20)
+
+- O usuário esclareceu que a conectividade de rede funciona; o defeito é a ausência dos indicadores visuais no painel superior, além da ausência de separador.
+- A revisão identificou que o código anterior apenas exigia a presença da área de notificação no layout padrão do pacote e criava lançadores XDG para rede/Bluetooth. Não definia um layout completo próprio com o separador e o applet nativo de volume do MATE.
+- O script agora grava `/usr/share/mate-panel/layouts/default.layout` dentro do hook, depois da instalação dos pacotes, com menu, separador, área de notificação (rede/Bluetooth), applet nativo de volume `GvcAppletFactory::GvcApplet`, relógio e painel inferior com lista de janelas/áreas de trabalho.
+- Os lançadores explícitos `nm-applet` e `blueman-applet` permanecem na sessão MATE. O antigo lançador de volume em bandeja foi removido para evitar duplicação: o volume passa a ser o applet nativo definido no layout.
+- `scripts/validate-build.sh` agora exige no código a presença do separador, da área de notificação e do applet nativo de volume.
+- Commits desta correção: `c085ccf5f30c0e7978fabf1de4d97d4844610d31`, `51f357e90145aa1036f50fe150e662eede2e655f` e `faf5a6cd9bf8cf69ac42381c4a45120dabaf2d7c`.
+- **Ainda não validado:** sintaxe/execução do hook, validador estático, renderização do painel em sessão Live e presença real dos ícones. Nenhuma nova ISO foi compilada. Não afirmar que o defeito está resolvido até validar o painel graficamente em VM.
