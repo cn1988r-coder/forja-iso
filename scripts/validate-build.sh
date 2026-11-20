@@ -11,6 +11,7 @@ required_files=(
   "$ROOT/scripts/patch-calamares.py"
   "$ROOT/build/calamares/branding/forja/branding.desc"
   "$ROOT/build/calamares/branding/forja/stylesheet.qss"
+  "$ROOT/build/airootfs/etc/polkit-1/rules.d/49-forja-calamares.rules"
   "$ROOT/build/calamares/branding/forja/forja-logo.svg"
   "$ROOT/Dockerfile"
   "$ROOT/.dockerignore"
@@ -49,6 +50,11 @@ grep -Fq 'raw.githubusercontent.com/Seafoam-Labs/Shelly-ALPM/' "$ROOT/scripts/bu
 grep -Fq 'makepkg --syncdeps --noconfirm' "$ROOT/scripts/build-forja-iso.sh" || fail "PKGBUILD original do Calamares não é compilado"
 grep -Fq 'install -m 0644 /etc/calamares/settings_offline.conf /etc/calamares/settings.conf' "$ROOT/scripts/build-forja-iso.sh" || fail "configuração offline original não é ativada"
 grep -Fq 'Exec=pkexec calamares' "$ROOT/scripts/build-forja-iso.sh" || fail "atalho gráfico não inicia o Calamares diretamente"
+grep -Fq 'action.id === "com.github.calamares.calamares"' "$ROOT/build/airootfs/etc/polkit-1/rules.d/49-forja-calamares.rules" || fail "regra Polkit não autoriza a ação correta do Calamares"
+grep -Fq 'subject.user === "liveuser"' "$ROOT/build/airootfs/etc/polkit-1/rules.d/49-forja-calamares.rules" || fail "regra Polkit não está restrita ao usuário Live"
+grep -Fq 'subject.isInGroup("wheel")' "$ROOT/build/airootfs/etc/polkit-1/rules.d/49-forja-calamares.rules" || fail "regra Polkit não exige o grupo wheel"
+grep -Fq 'subject.active' "$ROOT/build/airootfs/etc/polkit-1/rules.d/49-forja-calamares.rules" || fail "regra Polkit não exige sessão ativa"
+grep -Fq 'subject.local' "$ROOT/build/airootfs/etc/polkit-1/rules.d/49-forja-calamares.rules" || fail "regra Polkit não exige sessão local"
 grep -Fq 'TryExec=calamares' "$ROOT/scripts/build-forja-iso.sh" || fail "atalho gráfico não verifica o Calamares"
 grep -Fq 'rm -f "$EOS_DIR/airootfs/etc/skel/.config/gtk-3.0/settings.ini"' "$ROOT/scripts/build-forja-iso.sh" || fail "configuração GTK3 duplicada pode conflitar com endeavouros-skel-liveuser"
 grep -Fq 'rm -f "$EOS_DIR/airootfs/etc/skel/.config/gtk-4.0/settings.ini"' "$ROOT/scripts/build-forja-iso.sh" || fail "configuração GTK4 duplicada pode conflitar com endeavouros-skel-liveuser"
@@ -84,9 +90,14 @@ fi
 grep -Fq 'CMAKE_BUILD_TYPE=Release' "$ROOT/scripts/build-forja-iso.sh" || fail "Calamares não está configurado para build Release"
 grep -Fq 'patch-calamares.py' "$ROOT/scripts/build-forja-iso.sh" || fail "patch de branding e validação do Calamares não será aplicado"
 grep -Fq 'branding: forja' "$ROOT/scripts/patch-calamares.py" || fail "configuração offline não aponta para o branding Forja"
-grep -Fq '  - usersq
-  - partition
-  - summary' "$ROOT/scripts/patch-calamares.py" || fail "telas do Calamares não seguem usuário, disco e resumo"
+python - "$ROOT/scripts/patch-calamares.py" <<'PY'
+import pathlib, sys
+source = pathlib.Path(sys.argv[1]).read_text()
+sequence = "  - usersq\\n  - partition\\n  - summary"
+if sequence not in source:
+    raise SystemExit("Telas do Calamares não seguem usuário, disco e resumo.")
+print("OK: fluxo visual usuário -> disco -> resumo")
+PY
 if grep -Fq '  - packagechooser' "$ROOT/scripts/patch-calamares.py" || grep -Fq '  - netinstall' "$ROOT/scripts/patch-calamares.py"; then
   fail "telas de seleção de pacotes ou Netinstall ainda aparecem no fluxo"
 fi
@@ -96,7 +107,7 @@ grep -Fq 'maximumLength: 31' "$ROOT/scripts/patch-calamares.py" || fail "limite 
 grep -Fq 'maximumLength: 63' "$ROOT/scripts/patch-calamares.py" || fail "limite de hostname não está alinhado ao Calamares"
 grep -Fq 'nobody' "$ROOT/scripts/patch-calamares.py" || fail "nomes reservados do sistema não estão bloqueados na interface"
 grep -Fq 're.subn(r"(?m)^    - wheel\n' "$ROOT/scripts/patch-calamares.py" || fail "duplicidade do grupo wheel não será removida"
-grep -Fq 'background-color: #11151b' "$ROOT/build/calamares/branding/forja/stylesheet.qss" || fail "tema escuro Forja ausente"
+grep -Fq 'background-color: #101010' "$ROOT/build/calamares/branding/forja/stylesheet.qss" || fail "tema monocromático Forja ausente"
 python - "$ROOT/scripts/patch-calamares.py" <<'PY'
 import pathlib, sys
 compile(pathlib.Path(sys.argv[1]).read_text(), sys.argv[1], "exec")
@@ -117,12 +128,13 @@ grep -Fq 'pacman-key --populate archlinux' "$ROOT/scripts/build-forja-iso.sh" ||
 grep -Fq 'Forja OS uses the complete ISO filesystem' "$ROOT/scripts/build-forja-iso.sh" || fail "a preparação ainda não declara a instalação pela imagem completa"
 grep -Fq 'settings_online.write_text(settings_common)' "$ROOT/scripts/patch-calamares.py" || fail "configuração online própria ausente"
 grep -Fq 'settings_offline.write_text(settings_common)' "$ROOT/scripts/patch-calamares.py" || fail "configuração offline própria ausente"
-grep -Fq 'packages@online' "$ROOT/scripts/patch-calamares.py" || fail "modo online não atualiza a base de pacotes Arch"
+grep -Fq 'efiBootLoader: "grub"' "$ROOT/scripts/patch-calamares.py" || fail "GRUB não está fixado no fluxo sem seletor de bootloader"
 grep -Fq 'efiBootloaderId: "Forja OS"' "$ROOT/scripts/patch-calamares.py" || fail "identificação do GRUB/EFI não é Forja OS"
 grep -Fq 'displaymanagers:' "$ROOT/scripts/patch-calamares.py" || fail "gerenciador de sessão fixo não foi configurado"
-grep -Fq 'skip_if_no_internet: true' "$ROOT/scripts/patch-calamares.py" || fail "modo offline não tolera ausência de rede"
+grep -Fq 'A instalação da imagem completa não pode depender de atualização de pacotes online.' "$ROOT/scripts/patch-calamares.py" || fail "o instalador ainda pode depender de atualização online"
 grep -Fq 'shellprocess@forja_cleanup' "$ROOT/scripts/patch-calamares.py" || fail "limpeza final da instalação Forja ausente"
 grep -Fq 'pacman -Rdd --noconfirm calamares' "$ROOT/scripts/patch-calamares.py" || fail "Calamares não será removido do sistema instalado"
+grep -Fq 'rm -f /etc/polkit-1/rules.d/49-forja-calamares.rules' "$ROOT/scripts/patch-calamares.py" || fail "regra temporária Polkit não será removida do sistema instalado"
 grep -Fq 'rm -f /etc/pacman.d/endeavouros-mirrorlist' "$ROOT/scripts/patch-calamares.py" || fail "mirrorlist EndeavourOS não será removida do sistema instalado"
 
 if grep -Eq 'endeavouros|eos-' "$ROOT/build/packages.mate"; then
