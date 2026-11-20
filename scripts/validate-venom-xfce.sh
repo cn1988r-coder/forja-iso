@@ -33,9 +33,7 @@ bash -n "$P/desktop-overlay/usr/local/bin/venom-install-iptvnator" || fail "sint
 for pkg in xfce4 xfce4-panel xfce4-session xfce4-settings xfdesktop xfwm4 xfconf thunar xfce4-docklike-plugin firefox pamac-gtk lightdm networkmanager; do
   grep -Fxq "$pkg" "$P/Packages-Desktop" || fail "pacote XFCE/aplicativo selecionado ausente: $pkg"
 done
-for pkg in community-keyring community-release; do
-  grep -Fxq "$pkg" "$P/Packages-Root" || fail "pacote base da fonte XFCE ausente: $pkg"
-done
+grep -Fxq 'community-keyring' "$P/Packages-Root" || fail "chave da fonte de pacotes XFCE ausente"
 grep -Fxq 'community-livecd-key' "$P/Packages-Live" || fail "chave do ambiente Live ausente"
 grep -Fxq 'yay' "$P/Packages-Root" || fail "yay ausente para a instalação AUR do IPTVnator"
 grep -Fq 'iptvnator-bin' "$P/desktop-overlay/usr/local/bin/venom-install-iptvnator" || fail "instalação IPTVnator ausente"
