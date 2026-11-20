@@ -49,6 +49,7 @@ jobs:
           branch: stable
           scope: full
           kernel: linux618
+          additional-trusted-gpg: AECEEE84E52BBFAA9F1C9DF01EA0CEEEB09B44A3
       - name: Publish VENOM OS ISO and checksums
         uses: actions/upload-artifact@v4
         with:
