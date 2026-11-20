@@ -110,3 +110,13 @@ Atualizado em 20/11/2026.
 - A documentação oficial do Manjaro descreve o uso de manjaro-tools/buildiso e perfis iso-profiles, em vez de mkarchiso. A migração do pipeline e do perfil ainda está pendente.
 - Nenhuma alteração de código, nenhum commit de implementação, nenhuma compilação ISO e nenhuma alteração em main foram feitas durante esta auditoria.
 
+## Configuração MATE preparada para validação do usuário em 20/11/2026
+- Branch: optimize/venom-iso-size.
+- HEAD verificado antes deste registro: 942dbbac8c8ebeab62fc8b2cc79b36b19d8f0bc2.
+- A configuração de primeiro login do MATE foi integrada em build/airootfs/usr/local/bin/venom-mate-first-login, com autostart em build/airootfs/etc/skel/.config/autostart/venom-mate-first-login.desktop.
+- A configuração aplica Materia Dark, Papirus-Dark, cursor Bibata Modern Classic, Brisk Menu e wallpaper da Lua baseado no script fornecido pelo usuário.
+- O layout permanece próprio da VENOM OS. A área de notificação existente foi preservada; não recriar nem duplicar os indicadores de rede, Bluetooth e volume, que o usuário confirmou já estarem habilitados.
+- O primeiro login instala os componentes AUR necessários quando há conexão e permissões sudo. O script não executa atualização geral do sistema com pacman -Syu.
+- O Dockerfile inclui verificações estáticas do script, mas isso não substitui teste numa sessão gráfica MATE.
+- Situação solicitada pelo usuário: AGUARDANDO VALIDAÇÃO VISUAL DO USUÁRIO.
+- Próximo passo: o usuário examina a configuração e informa se aprova ou pede ajustes. Somente depois da aprovação explícita, prosseguir com a compilação da ISO. Nenhuma ISO foi compilada por este registro.
