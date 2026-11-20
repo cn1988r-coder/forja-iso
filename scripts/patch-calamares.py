@@ -290,7 +290,7 @@ timeout: 180
 verbose: true
 script:
   - 'if pacman -Q calamares >/dev/null 2>&1; then pacman -Rdd --noconfirm calamares; fi'
-  - 'packages=$(pacman -Qq | grep -E "^(endeavouros-|eos-)" || true); if [ -n "$packages" ]; then pacman -Rdd --noconfirm $packages; fi'
+  - 'packages=$(pacman -Qq | grep -E "^(endeavouros-|eos-|yay$|rate-mirrors$|reflector-simple$|welcome$|iso-create-ml$)" || true); if [ -n "$packages" ]; then pacman -Rdd --noconfirm $packages; fi'
   - 'rm -rf /etc/calamares /usr/share/calamares /usr/lib/calamares /usr/share/endeavouros /usr/share/eos /usr/share/forja/packages'
   - 'rm -f /etc/pacman.d/endeavouros-mirrorlist /usr/lib/endeavouros-release /etc/polkit-1/rules.d/49-forja-calamares.rules'
 """)
