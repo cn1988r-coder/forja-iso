@@ -40,6 +40,16 @@ jobs:
           python "$RUNNER_TEMP/patch-calamares.py" "$RUNNER_TEMP/calamares"
 
           EOS="$RUNNER_TEMP/calamares/data/eos"
+          ruby -ryaml -e 'ARGV.each { |path| YAML.load_file(path) }' \
+            "$EOS/settings_online.conf" \
+            "$EOS/settings_offline.conf" \
+            "$EOS/modules/packages_online.conf" \
+            "$EOS/modules/welcome_forja_online.conf" \
+            "$EOS/modules/shellprocess_forja_bootstrap.conf" \
+            "$EOS/modules/shellprocess_forja_stage_packages.conf" \
+            "$EOS/modules/shellprocess_forja_local_packages.conf" \
+            "$EOS/modules/shellprocess_forja_grub_defaults.conf" \
+            "$EOS/modules/shellprocess_forja_cleanup.conf"
           grep -Fxq 'branding: forja' "$EOS/settings_online.conf"
           grep -Fxq 'branding: forja' "$EOS/settings_offline.conf"
           grep -Fq 'welcome@forja_welcome' "$EOS/settings_online.conf"
