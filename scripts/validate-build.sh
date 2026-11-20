@@ -168,7 +168,7 @@ grep -Fxq 'materia-gtk-theme' "$ROOT/build/packages.mate" || fail "Materia ausen
 grep -Fxq 'papirus-icon-theme' "$ROOT/build/packages.mate" || fail "Papirus ausente"
 grep -Fq "picture-filename='/usr/share/backgrounds/forja/forja-wallpaper.png'" "$ROOT/build/airootfs/etc/dconf/db/local.d/00-forja" || fail "wallpaper padrão Forja ausente"
 grep -Fq "picture-options='zoom'" "$ROOT/build/airootfs/etc/dconf/db/local.d/00-forja" || fail "ajuste do wallpaper MATE ausente"
-grep -Fq "magick -size 1920x1080 xc:'#101010' \"$FORJA_WALLPAPER\"" "$ROOT/scripts/build-forja-iso.sh" || fail "geração do wallpaper preto Forja ausente"
+grep -Fq 'magick -size 1920x1080 xc:'"'"'#101010'"'"' "$FORJA_WALLPAPER"' "$ROOT/scripts/build-forja-iso.sh" || fail "geração do wallpaper preto Forja ausente"
 grep -Fq 'install -Dm644 /etc/pacman.d/mirrorlist "$EOS_DIR/airootfs/etc/pacman.d/mirrorlist"' "$ROOT/scripts/build-forja-iso.sh" || fail "mirrorlist Arch não é incorporada à ISO"
 grep -Fq 'grep -Eiq '\''endeavouros'\'' /etc/pacman.d/mirrorlist' "$ROOT/scripts/build-forja-iso.sh" || fail "mirrorlist final não é protegida contra servidores EndeavourOS"
 grep -Fq 'cp "$FORJA_WALLPAPER" "$EOS_DIR/airootfs/root/livewall.png"' "$ROOT/scripts/build-forja-iso.sh" || fail "wallpaper não substitui o fundo gerado pelo prepare.sh"
