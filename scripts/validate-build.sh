@@ -183,7 +183,7 @@ fi
 pass "arquivos e escopo do build presentes"
 pass "sintaxe Bash e blocos Python do compilador válidos"
 printf 'AVISO: esta validação estática não executa makepkg, mkarchiso ou testes de VM.\n'
- "$ROOT/scripts/patch-calamares.py" || fail "ferramentas EndeavourOS não são removidas do destino offline"
+grep -Fq 'rate-mirrors$|reflector-simple$|welcome$|iso-create-ml$' "$ROOT/scripts/patch-calamares.py" || fail "ferramentas EndeavourOS não são removidas do destino offline"
 grep -Fq '/etc/polkit-1/rules.d/49-forja-calamares.rules' "$ROOT/scripts/patch-calamares.py" || fail "regra temporária Polkit não será removida do sistema instalado"
 grep -Fq 'rm -f /etc/pacman.d/endeavouros-mirrorlist' "$ROOT/scripts/patch-calamares.py" || fail "mirrorlist EndeavourOS não será removida do sistema instalado"
 
