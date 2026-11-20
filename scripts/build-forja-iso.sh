@@ -148,6 +148,14 @@ if [[ ! -x /usr/bin/calamares ]]; then
   echo "Calamares executable is missing: /usr/bin/calamares" >&2
   exit 1
 fi
+if ! command -v pacstrap >/dev/null 2>&1; then
+  echo "Arch pacstrap is missing from the Live environment." >&2
+  exit 1
+fi
+if [[ ! -s /etc/pacman.conf || ! -s /etc/pacman.d/mirrorlist ]] || ! grep -Eq '^Server[[:space:]]*=' /etc/pacman.d/mirrorlist; then
+  echo "The Live environment does not have an active official Arch mirrorlist." >&2
+  exit 1
+fi
 # Default launcher is the real Arch online installer. Keep a separate offline profile.
 cp -a /etc/calamares /etc/calamares-online
 install -m 0644 /etc/calamares/settings_online.conf /etc/calamares-online/settings.conf
