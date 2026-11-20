@@ -14,5 +14,9 @@ command -v buildiso >/dev/null 2>&1 || {
   exit 1
 }
 
-printf '[VENOM] Construindo perfil Manjaro MATE com buildiso oficial.\n'
+config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/manjaro-tools"
+mkdir -p "$config_dir"
+printf 'run_dir=%s\\n' "$ROOT" > "$config_dir/iso-profiles.conf"
+
+printf '[VENOM] Construindo perfil Manjaro MATE com buildiso oficial.\\n'
 exec buildiso -f -p venom-mate -b stable -k linux618
