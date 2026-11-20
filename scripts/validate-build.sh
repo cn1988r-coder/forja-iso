@@ -2,8 +2,8 @@
 set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-fail() { printf 'FALHA: %s\\n' "$*" >&2; exit 1; }
-pass() { printf 'OK: %s\\n' "$*"; }
+fail() { printf 'FALHA: %s\n' "$*" >&2; exit 1; }
+pass() { printf 'OK: %s\n' "$*"; }
 
 required=(
   "$ROOT/build/profiledef.sh"
@@ -52,5 +52,5 @@ pass "pacotes e indicadores MATE presentes"
 pass "estrutura C + GTK4 presente; instalação continua bloqueada"
 pass "workflow de compilação ISO permanece bloqueado"
 
-printf 'PENDENTE: perfil Archiso completo, backend do instalador e testes em VM.\\n'
-printf 'ISO: nenhuma compilação executada por este validador.\\n'
+printf 'PENDENTE: perfil Archiso completo, backend do instalador e testes em VM.\n'
+printf 'ISO: nenhuma compilação executada por este validador.\n'
