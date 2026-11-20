@@ -230,6 +230,6 @@ if "packages@online" in settings_offline.read_text() or "packages@online" in set
     raise SystemExit("A instalação da imagem completa não pode depender de atualização de pacotes online.")
 for config in (settings_offline, settings_online):
     data = config.read_text()
-    for inherited in ("  - locale\\n", "  - keyboard\\n", "  - localecfg\\n"):
-        if inherited in data:
-            raise SystemExit(f"Idioma e teclado devem ser herdados da imagem Live, não reconfigurados: {inherited.strip()}")
+    for inherited in ("locale", "keyboard", "localecfg"):
+        if f"  - {inherited}" + chr(10) in data:
+            raise SystemExit(f"Idioma e teclado devem ser herdados da imagem Live, não reconfigurados: {inherited}")
