@@ -43,6 +43,17 @@ if not blocks:
 for index, block in enumerate(blocks, 1):
     compile(block, f"build-venom-iso.sh:python-block-{index}", "exec")
 print(f"OK: {len(blocks)} blocos Python embutidos válidos")
+lightdm = source.split('python - "$EOS_DIR/run_before_squashfs.sh" <<\'PY\'\\n', 1)[1].split("\\nPY", 1)[0]
+if "import pathlib, re, sys" not in lightdm:
+    raise SystemExit("Bloco LightDM usa re sem importar o módulo.")
+match = re.search(r"calamares_install_pattern = re\\.compile\\(\\s*(r'[^']+')", source)
+if not match:
+    raise SystemExit("Regex de pacotes locais do Calamares não foi encontrada.")
+pattern = re.compile(match.group(1)[1:-1])
+fixture = '  pacman -U --noconfirm --needed -- "/root/packages/"*".pkg.tar.zst"\\n'
+if len(list(pattern.finditer(fixture))) != 1:
+    raise SystemExit("Regex de pacotes locais não reconhece o comando upstream fixado.")
+print("OK: import re e regex de pacotes locais do Calamares")
 PY
 
 grep -Fq 'EOS_COMMIT="90376d8f52ab19e19073eed33d6f36c46ec7c409"' "$ROOT/scripts/build-venom-iso.sh" || fail "framework EndeavourOS sem revisão fixada"
@@ -161,6 +172,11 @@ grep -Fq '  - internet' "$ROOT/scripts/patch-calamares.py" || fail "o instalador
 grep -Fq 'update_db: true' "$ROOT/scripts/patch-calamares.py" || fail "o instalador online não atualiza a base do Pacman"
 grep -Fq 'networkmanager' "$ROOT/build/packages.arch" || fail "NetworkManager ausente do sistema Arch da VENOM"
 grep -Fxq 'pacman-mirrorlist' "$ROOT/build/packages.arch" || fail "mirrorlist oficial Arch ausente do instalador online"
+for package in linux linux-headers linux-lts linux-lts-headers; do
+  grep -Fxq "$package" "$ROOT/build/packages.arch" || fail "pacote de kernel ausente do manifesto online: $package"
+  grep -Fxq "$package" "$ROOT/build/packages.mate" || fail "pacote de kernel ausente do manifesto Live: $package"
+done
+grep -Fq 'GRUB_DEFAULT="VENOM OS, with Linux linux-lts"' "$ROOT/scripts/patch-calamares.py" || fail "kernel LTS não está definido como padrão do GRUB"
 grep -Fq 'shellprocess_venom_sudoers.conf' "$ROOT/scripts/patch-calamares.py" || fail "usuário VENOM não recebe sudo"
 grep -Fq "wheel ALL=(ALL:ALL) ALL" "$ROOT/scripts/patch-calamares.py" || fail "grupo wheel não é habilitado no sudoers"
 grep -Fq '  - unpackfs' "$ROOT/scripts/patch-calamares.py" || fail "o instalador online não copia a imagem VENOM"

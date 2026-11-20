@@ -6,6 +6,8 @@ pacman-mirrorlist
 linux
 linux-firmware
 linux-headers
+linux-lts
+linux-lts-headers
 sudo
 bash-completion
 ca-certificates

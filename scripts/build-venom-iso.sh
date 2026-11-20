@@ -130,7 +130,7 @@ PY
 
 log "Configurando LightDM, removendo sobras KDE e alvo gráfico"
 python - "$EOS_DIR/run_before_squashfs.sh" <<'PY'
-import pathlib, sys
+import pathlib, re, sys
 p = pathlib.Path(sys.argv[1])
 s = p.read_text()
 old = 'systemctl set-default multi-user.target'
@@ -147,7 +147,7 @@ if motd_marker not in s:
     raise SystemExit('Não foi possível localizar a etapa do motd.')
 s = s.replace(motd_marker, 'printf "VENOM OS\\nBase Arch Linux\\n" > "/usr/lib/venom-release"\n' + motd_marker, 1)
 calamares_install_pattern = re.compile(
-    r'(?m)^(?P<indent>[ \\t]*)pacman[ \\t]+-U[ \\t]+--noconfirm(?:[ \\t]+--needed)?[ \\t]+--[ \\t]+"/root/packages/"\\*"\\.pkg\\.tar\\.zst"[ \\t]*\\n'
+    r'(?m)^(?P<indent>[ \t]*)pacman[ \t]+-U[ \t]+--noconfirm(?:[ \t]+--needed)?[ \t]+--[ \t]+"/root/packages/"\*"\.pkg\.tar\.zst"[ \t]*\n'
 )
 calamares_patch = """if [[ ! -r /etc/calamares/settings_offline.conf || ! -r /etc/calamares/settings_online.conf ]]; then
   echo "Calamares VENOM online/offline settings are missing." >&2
@@ -242,10 +242,6 @@ if len(calamares_install_matches) != 1:
         'O script upstream mudou; revisar sua estrutura antes de continuar.'
     )
 install_match = calamares_install_matches[0]
-install_command = (
-    install_match.group('indent')
-    + 'pacman -U --noconfirm -- -- "/root/packages/"*".pkg.tar.zst"\\n'
-)
 # Local package installation must not use --needed: the Live image must
 # reinstall the exact package payload even if pacman already considers it installed.
 s = calamares_install_pattern.sub(

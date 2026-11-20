@@ -23,26 +23,26 @@ Este documento é a referência operacional para retomar o desenvolvimento sem d
 - Estado: `failure`, encerrada em 2026-11-20 04:53:34 UTC.
 - Erro registrado: `NameError: name 're' is not defined` no bloco Python que personaliza `run_before_squashfs.sh`, durante a configuração do LightDM.
 - A execução não chegou ao `mkarchiso`. Não há ISO nem hash produzido pela build #43.
-- A validação estática paralela #1142 havia passado, mas isso não substitui a compilação nem testes reais.
+- A validação estática #1142 passou; a validação #1143 também passou após o commit de documentação. Nenhuma delas substitui compilação ou testes reais.
+- HEAD verificado antes desta atualização: `9b95f2687e4e9ab0f4eefb739034035975cdf548` (commit `docs: add permanent VENOM OS continuity record`).
 
-## Correções solicitadas, ainda não gravadas/confirmadas
+## Correções aplicadas neste commit, aguardando validação e build
 
-O usuário autorizou aproveitar a falha da build #43 para:
-1. corrigir a importação ausente de `re` no bloco Python;
-2. adicionar `linux-lts` e `linux-lts-headers` ao ambiente Live/ISO e ao manifesto do instalador online;
-3. manter kernel normal e LTS instalados;
-4. configurar o kernel LTS como padrão no GRUB, mantendo o kernel normal como alternativa;
-5. registrar as alterações e o estado no GitHub para continuidade.
+O usuário autorizou corrigir a falha #43 e instalar os dois kernels, com LTS como padrão:
+1. O bloco Python do LightDM agora importa `re`.
+2. A regex do comando upstream `pacman -U --noconfirm --needed -- "/root/packages/"*".pkg.tar.zst"` foi corrigida para reconhecer o asterisco e a extensão literal. A variável `install_command` não utilizada foi removida.
+3. `linux`, `linux-headers`, `linux-lts` e `linux-lts-headers` são exigidos nos manifestos Live e online.
+4. A configuração gerada do GRUB define `VENOM OS, with Linux linux-lts` como entrada padrão e mantém o kernel normal instalado como alternativa.
+5. A validação estática foi ampliada para testar a importação, a regex, os quatro pacotes nos dois manifestos e o padrão LTS do GRUB.
 
-**Estado real neste momento:** nenhuma dessas alterações foi confirmada no repositório. A tentativa anterior de preparar um commit foi interrompida por uma verificação de texto que não encontrou o trecho esperado. O HEAD da branch continua em `0357b885d0496ad21691b09af3871764a5b6dcc1`. Não afirmar que a correção, os pacotes LTS ou o GRUB padrão LTS já estão implementados.
+**Estado:** alterações incluídas neste commit. A validação estática e a compilação ISO disparadas pelo push ainda precisam terminar. Mesmo com build bem-sucedida, a entrada real do GRUB deve ser conferida no `grub.cfg` gerado e os dois kernels precisam ser testados em VM antes de declarar o LTS como padrão funcional.
 
 ## Arquivos a revisar na próxima intervenção
 
-- `scripts/build-venom-iso.sh`: bloco Python de LightDM; corrigir importação de `re`; revisar regex do patch Calamares e remover código morto somente após confirmar o conteúdo exato.
-- `build/packages.mate`: manifesto mesclado ao perfil Live/ISO. Verificar inclusão de `linux-lts` e `linux-lts-headers`.
-- `build/packages.arch`: manifesto do instalador online. Verificar inclusão de `linux-lts` e `linux-lts-headers`.
-- `scripts/patch-calamares.py`: confirmar que o manifesto online instala ambos os kernels e headers.
-- Configuração de GRUB/initramfs: verificar como o perfil gera entradas para múltiplos kernels; não presumir que um texto `GRUB_DEFAULT` corresponda ao nome real da entrada. Confirmar `/boot/grub/grub.cfg` gerado e testar boot em VM antes de declarar LTS como padrão funcional.
+- `scripts/build-venom-iso.sh`: importação `re` e regex corrigidas neste commit; confirmar que o build ultrapassa a etapa de LightDM.
+- `build/packages.mate` e `build/packages.arch`: quatro pacotes de kernel exigidos em ambos os manifestos.
+- `scripts/patch-calamares.py`: valida os kernels e gera `GRUB_DEFAULT="VENOM OS, with Linux linux-lts"`.
+- Configuração de GRUB/initramfs: confirmar a entrada exata em `/boot/grub/grub.cfg` gerado e testar boot dos dois kernels em VM antes de declarar LTS como padrão funcional.
 
 ## Decisões arquiteturais permanentes
 

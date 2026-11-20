@@ -93,6 +93,11 @@ def read_packages(path):
 arch_packages = read_packages(packages_arch)
 mate_packages = read_packages(packages_mate)
 online_packages = list(dict.fromkeys(arch_packages + mate_packages))
+required_kernel_packages = {"linux", "linux-headers", "linux-lts", "linux-lts-headers"}
+for manifest_name, manifest in (("build/packages.arch", arch_packages), ("build/packages.mate", mate_packages)):
+    missing_kernels = sorted(required_kernel_packages - set(manifest))
+    if missing_kernels:
+        raise SystemExit(f"Manifesto {manifest_name} sem pacotes de kernel obrigatórios: {', '.join(missing_kernels)}")
 if not online_packages or any(not re.fullmatch(r"[a-zA-Z0-9@._+-]+", p) for p in online_packages):
     raise SystemExit("Manifesto online contém nome de pacote vazio ou inválido.")
 if any(p.startswith(("eos-", "endeavouros-")) for p in online_packages):
@@ -331,7 +336,7 @@ script:
   - "install -d -m 0755 /etc/default"
   - |
     cat > /etc/default/grub <<'GRUB'
-    GRUB_DEFAULT=0
+    GRUB_DEFAULT="VENOM OS, with Linux linux-lts"
     GRUB_TIMEOUT=5
     GRUB_DISTRIBUTOR="VENOM OS"
     GRUB_CMDLINE_LINUX_DEFAULT="quiet loglevel=3"

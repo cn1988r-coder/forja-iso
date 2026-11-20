@@ -1,4 +1,9 @@
 # MATE desktop and session
+# Keep both standard and LTS kernels available in the Live image.
+linux
+linux-headers
+linux-lts
+linux-lts-headers
 firefox
 mkinitcpio
 grub
