@@ -146,7 +146,9 @@ motd_marker = 'echo "---> Add builddate to motd --->"'
 if motd_marker not in s:
     raise SystemExit('Não foi possível localizar a etapa do motd.')
 s = s.replace(motd_marker, 'printf "VENOM OS\\nBase Arch Linux\\n" > "/usr/lib/venom-release"\n' + motd_marker, 1)
-calamares_marker = 'pacman -U --noconfirm -- "/root/packages/"*".pkg.tar.zst"\n'
+calamares_install_pattern = re.compile(
+    r'(?m)^(?P<indent>[ \\t]*)pacman[ \\t]+-U[ \\t]+--noconfirm(?:[ \\t]+--needed)?[ \\t]+--[ \\t]+"/root/packages/"\\*"\\.pkg\\.tar\\.zst"[ \\t]*\\n'
+)
 calamares_patch = """if [[ ! -r /etc/calamares/settings_offline.conf || ! -r /etc/calamares/settings_online.conf ]]; then
   echo "Calamares VENOM online/offline settings are missing." >&2
   exit 1
@@ -231,9 +233,28 @@ grep -Fq 'subject.user === "liveuser"' /etc/polkit-1/rules.d/49-venom-calamares.
   exit 1
 }
 """
-if calamares_marker not in s:
-    raise SystemExit('Não foi possível localizar a instalação dos pacotes locais para ativar o Calamares offline.')
-s = s.replace(calamares_marker, calamares_marker + calamares_patch, 1)
+calamares_install_matches = list(calamares_install_pattern.finditer(s))
+if len(calamares_install_matches) != 1:
+    raise SystemExit(
+        'Contrato de instalação local do Calamares inválido: '
+        f'esperada exatamente 1 ocorrência do comando pacman -U de /root/packages, '
+        f'encontradas {len(calamares_install_matches)}. '
+        'O script upstream mudou; revisar sua estrutura antes de continuar.'
+    )
+install_match = calamares_install_matches[0]
+install_command = (
+    install_match.group('indent')
+    + 'pacman -U --noconfirm -- -- "/root/packages/"*".pkg.tar.zst"\\n'
+)
+# Local package installation must not use --needed: the Live image must
+# reinstall the exact package payload even if pacman already considers it installed.
+s = calamares_install_pattern.sub(
+    lambda match: install_match.group('indent')
+    + 'pacman -U --noconfirm -- "/root/packages/"*".pkg.tar.zst"\\n'
+    + calamares_patch,
+    s,
+    count=1,
+)
 package_archive_marker = 'rm -rf "/root/packages/"\n'
 package_archive_copy = 'mkdir -p "/usr/share/venom/packages"\ncp /root/packages/shelly-git-*.pkg.tar.zst /root/packages/ferdium-bin-*.pkg.tar.zst /root/packages/iptvnator-bin-*.pkg.tar.zst /root/packages/bibata-cursor-theme-bin-*.pkg.tar.zst "/usr/share/venom/packages/"\nrm -rf "/root/packages/"\n'
 if package_archive_marker not in s:
@@ -301,7 +322,7 @@ python - "$EOS_DIR/profiledef.sh" <<'PY'
 import pathlib, re, sys
 p = pathlib.Path(sys.argv[1])
 s = p.read_text()
-s = s.replace('iso_name="EndeavourOS_Triton"', 'iso_name="VENOMOS_MATE"')
+s = s.replace('iso_name="EndeavourOS_Triton"', 'iso_name="VENOM-OS-MATE"')
 s = s.replace('iso_label="EOS_$(date +%Y%m)"', 'iso_label="VENOM_$(date +%Y%m)"')
 s = s.replace('iso_publisher="EndeavourOS <https://endeavouros.com>"', 'iso_publisher="VENOM OS"')
 s = s.replace('iso_application="EndeavourOS Live/Rescue CD"', 'iso_application="VENOM OS Live/Install"')
