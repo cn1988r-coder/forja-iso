@@ -76,9 +76,6 @@ settings_common = """# Forja OS installer: one guided flow, user credentials fir
 modules-search: [ local ]
 
 instances:
-- id: online
-  module: packages
-  config: packages_online.conf
 - id: forja_cleanup
   module: shellprocess
   config: shellprocess_forja_cleanup.conf
@@ -92,7 +89,6 @@ sequence:
   - partition
   - mount
   - unpackfs
-  - packages@online
   - machineid
   - locale
   - keyboard
@@ -128,21 +124,32 @@ settings_offline.write_text(settings_common)
 settings_online.write_text(settings_common)
 
 modules = source / "data/eos/modules"
-# The same installer automatically works with or without a network connection.
-(modules / "packages_online.conf").write_text("""---
-backend: pacman
-skip_if_no_internet: true
-update_db: true
-update_system: false
-pacman:
-    num_retries: 6
-    disable_download_timeout: true
-    needed_only: true
-""")
+# No package transaction is performed: both paths install the complete ISO image unchanged.
+
+# Keep partitioning safe and independent of the removed package/bootloader chooser.
+partition_config = modules / "partition.conf"
+partition_text = partition_config.read_text()
+partition_text, removed = re.subn(r"(?m)^efiBootLoaderVar:.*\\n", "", partition_text, count=1)
+if removed != 1:
+    raise SystemExit("A referência obsoleta ao seletor de bootloader não foi encontrada em partition.conf.")
+partition_text, fs_count = re.subn(
+    r"(?m)^availableFileSystemTypes:\\s+\\[.*\\]$",
+    'availableFileSystemTypes:  ["ext4"]',
+    partition_text,
+    count=1,
+)
+if fs_count != 1:
+    raise SystemExit("A lista de sistemas de arquivos de partition.conf mudou inesperadamente.")
+partition_text = partition_text.replace("recommendedSize:    2048MiB", "recommendedSize:    512MiB", 1)
+partition_text = partition_text.replace("minimumSize:        500MiB", "minimumSize:        300MiB", 1)
+partition_text = partition_text.replace('name: "endeavouros"', 'name: "forja"', 1)
+partition_config.write_text(partition_text)
 
 # Fixed Forja boot policy: no desktop/package/bootloader chooser.
 modules = source / "data/eos/modules"
 (modules / "bootloader.conf").write_text("""---
+# No bootloader chooser is shown. Always install GRUB on BIOS and UEFI systems.
+efiBootLoader: "grub"
 kernelSearchPath: "/usr/lib/modules"
 kernelPattern: "^vmlinuz.*"
 kernelParams: [ "quiet", "loglevel=3" ]
@@ -183,6 +190,7 @@ script:
   - "pacman -Rdd --noconfirm calamares"
   - "rm -rf /etc/calamares /usr/share/calamares /usr/lib/calamares /usr/share/endeavouros"
   - "rm -f /etc/pacman.d/endeavouros-mirrorlist /usr/lib/endeavouros-release"
+  - "rm -f /etc/polkit-1/rules.d/49-forja-calamares.rules"
 """)
 (modules / "services-systemd.conf").write_text("""---
 units:
@@ -212,10 +220,17 @@ for config in (settings_offline, settings_online):
     for forbidden in ("packagechooser", "netinstall", "eos_pacman", "pacstrap", "eos_script", "cleaner_script"):
         if forbidden in data:
             raise SystemExit(f"Fluxo EndeavourOS não removido de {config.name}: {forbidden}")
-    if "branding: forja" not in data or "  - unpackfs" not in data or "  - usersq" not in data:
+    if "branding: forja" not in data or "  - unpackfs" not in data or "  - usersq" not in data or "  - bootloader" not in data:
         raise SystemExit(f"Fluxo Forja incompleto em {config.name}.")
 for config in (settings_offline, settings_online):
     if "packages@online" not in config.read_text():
         raise SystemExit(f"{config.name} não executa a etapa de rede opcional.")
-if "skip_if_no_internet: true" not in (modules / "packages_online.conf").read_text():
-    raise SystemExit("A instalação sem internet não está protegida contra falha de rede.")
+partition_data = partition_config.read_text()
+if "efiBootLoaderVar:" in partition_data:
+    raise SystemExit("partition.conf ainda depende do seletor de bootloader removido.")
+if 'availableFileSystemTypes:  ["ext4"]' not in partition_data:
+    raise SystemExit("A instalação Forja deve usar ext4 como único sistema de arquivos selecionável.")
+if 'efiBootLoader: "grub"' not in (modules / "bootloader.conf").read_text():
+    raise SystemExit("GRUB não está definido como bootloader fixo.")
+if "packages@online" in settings_offline.read_text() or "packages@online" in settings_online.read_text():
+    raise SystemExit("A instalação da imagem completa não pode depender de atualização de pacotes online.")
