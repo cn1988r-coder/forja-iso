@@ -43,7 +43,7 @@ if grep -R -Eiq 'unpackfs|rsync|manjaro|endeavouros|biglinux|mhwd' "$ROOT/instal
   fail "Referência proibida ou instalação por cópia detectada."
 fi
 grep -Fxq 'user-session=windowmaker' "$P/airootfs/etc/lightdm/lightdm.conf.d/50-venom-live.conf" || fail "LightDM live não inicia Window Maker."
-for script in "$P/airootfs/usr/local/bin/venom-windowmaker-session"; do bash -n "$script" || fail "Sintaxe Bash inválida: $script"; done
+bash -n "$P/airootfs/usr/local/bin/venom-windowmaker-session" || fail "Sintaxe Bash inválida no launcher Window Maker."
 for package in base linux linux-firmware archlinux-keyring arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils nbd windowmaker xorg-server lightdm lightdm-gtk-greeter networkmanager bluez blueman gtk4 qt6-base tint2 xterm; do
   grep -Fxq "$package" "$PKG" || fail "Pacote obrigatório ausente do manifest live: $package"
 done
