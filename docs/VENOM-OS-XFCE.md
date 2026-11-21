@@ -17,7 +17,7 @@ A edição VENOM OS XFCE é baseada no Arch Linux oficial, construída com Archi
 
 O perfil visual oficial chama-se **VENOM Calypso**. A base é XFCE com uma barra inferior única em estilo Windows: Whisker como menu Iniciar, lista de janelas agrupadas, separador expansível, bandeja do sistema, áudio, energia, clipboard e relógio com hora/data.
 
-A aparência usa Adwaita-dark para GTK, Papirus-Dark para ícones e Bibata-Modern-Ice para o cursor. O pacote Adwaita-dark é fornecido por `gnome-themes-extra`; o cursor Bibata Modern Ice é obtido da release upstream v2.0.7 e incluído diretamente na imagem, sem AUR. O script `scripts/setup-xfce-windows-dark.sh` gera a mesma configuração no ambiente Live e no overlay do sistema instalado.
+A identidade visual usa Adwaita Dark para GTK, Yaru Blue exclusivamente para os ícones e Bibata Modern Ice para o cursor. O tema Yaru Blue é obtido do repositório upstream do Ubuntu durante o workflow e copiado para o ambiente Live e para o overlay instalado. O wallpaper vetorial VENOM apresenta uma serpente metálica que se morde, com brilho azul, e o botão do Whisker usa o V azul próprio da distribuição. O script `scripts/setup-xfce-windows-dark.sh` aplica o perfil sem alterar a geometria aprovada do painel inferior de 40 px.
 
 O terminal permanece instalado para manutenção e recuperação, mas não deve ser necessário nas tarefas cotidianas nem ficar entre os favoritos do menu.
 
