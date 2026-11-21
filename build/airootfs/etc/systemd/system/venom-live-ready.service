@@ -1,0 +1,10 @@
+[Unit]
+Description=VENOM OS live readiness verification
+Requires=lightdm.service
+After=lightdm.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash /usr/local/lib/venom/venom-live-ready
+StandardOutput=journal+console
+StandardError=journal+console
