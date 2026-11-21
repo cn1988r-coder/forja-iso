@@ -8,7 +8,7 @@ A interface oferece:
 - detecção e seleção visual de discos inteiros;
 - cadastro do usuário, hostname e senha;
 - confirmação explícita antes de apagar o disco;
-- chamada do backend por sudo não interativo, restrito ao executável do instalador no sudoers;
+- chamada do backend por sudo não interativo, restrito ao executável do instalador e ao Pacman no sudoers da sessão live;
 - apresentação do resultado e gravação de log em /var/log/venom-installer/.
 
 O backend de instalação automática:
