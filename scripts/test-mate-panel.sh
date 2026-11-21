@@ -94,7 +94,10 @@ if command -v pacman >/dev/null 2>&1; then
   require_arch_file network-manager-applet etc/xdg/autostart/nm-applet.desktop
   require_arch_file network-manager-applet usr/bin/nm-applet
   require_arch_file network-manager-applet usr/share/icons/hicolor/22x22/apps/nm-device-wired.png
+  require_arch_file network-manager-applet usr/share/icons/hicolor/22x22/apps/nm-signal-00.png
+  require_arch_file network-manager-applet usr/share/icons/hicolor/22x22/apps/nm-signal-100.png
   require_arch_file network-manager-applet usr/share/icons/hicolor/22x22/apps/nm-no-connection.png
+  require_arch_file nm-connection-editor usr/bin/nm-connection-editor
 
   # BLUETOOTH: autostart, applet, ícone de bandeja e serviço BlueZ.
   require_arch_file blueman etc/xdg/autostart/blueman.desktop
