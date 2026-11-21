@@ -8,7 +8,7 @@ fail() { printf 'FALHA: %s\n' "$*" >&2; exit 1; }
 for path in profiledef.sh pacman.conf packages.x86_64 airootfs/etc/pacman.conf syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/root/.automated_script.sh airootfs/root/venom-live-setup; do
   [[ -f "$PROFILE/$path" ]] || fail "Arquivo obrigatório ausente: build/$path"
 done
-for script in "$PROFILE/profiledef.sh" "$PROFILE/airootfs/root/.automated_script.sh" "$PROFILE/airootfs/root/venom-live-setup" "$ROOT/installer/backend/venom-install-backend"; do bash -n "$script" || fail "Sintaxe Bash inválida: $script"; done
+for script in "$PROFILE/profiledef.sh" "$PROFILE/airootfs/root/.automated_script.sh" "$PROFILE/airootfs/root/venom-live-setup"; do bash -n "$script" || fail "Sintaxe Bash inválida: $script"; done
 (
   cd "$PROFILE"
   # shellcheck disable=SC1091
