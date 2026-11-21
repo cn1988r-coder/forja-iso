@@ -6,7 +6,7 @@ Wants=NetworkManager.service bluetooth.service
 
 [Service]
 Type=oneshot
-ExecStart=/root/venom-live-setup
+ExecStart=/usr/bin/bash /usr/local/lib/venom/venom-live-setup
 StandardOutput=journal+console
 StandardError=journal+console
 
