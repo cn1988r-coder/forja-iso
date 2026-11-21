@@ -1,29 +1,14 @@
-name: Validar VENOM OS Manjaro
+name: VENOM OS legacy validation (retired)
 
 on:
-  push:
-    branches:
-      - optimize/venom-iso-size
-    paths:
-      - "manjaro/venom-mate/**"
-      - "scripts/manjaro-mate-dark-complete.sh"
-      - "scripts/build-venom-iso.sh"
-      - "scripts/validate-manjaro-profile.sh"
-      - "README.md"
-      - ".github/workflows/**"
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  validar:
+  retired:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Validar perfil Manjaro e script original
-        run: bash scripts/validate-manjaro-profile.sh
+      - name: Explain retirement
+        run: echo "This legacy Manjaro validation is retired. The supported VENOM OS build is the official Arch Linux workflow build-arch-iso.yml."
