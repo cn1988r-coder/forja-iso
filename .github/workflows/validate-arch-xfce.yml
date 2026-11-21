@@ -1,0 +1,44 @@
+name: Validate VENOM Arch XFCE profile
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/venom-community-xfce
+    paths:
+      - 'build/**'
+      - 'installer/**'
+      - 'scripts/validate-xfce-profile.sh'
+      - '.github/workflows/validate-arch-xfce.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: venom-static-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Install static validation tools
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm git archiso python python-yaml shellcheck
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate profile and official package availability
+        run: |
+          chmod +x scripts/validate-xfce-profile.sh
+          bash scripts/validate-xfce-profile.sh
+
+      - name: Check shell syntax
+        run: |
+          bash -n scripts/build-venom-iso.sh
+          bash -n scripts/validate-xfce-profile.sh
+          shellcheck scripts/build-venom-iso.sh scripts/validate-xfce-profile.sh
