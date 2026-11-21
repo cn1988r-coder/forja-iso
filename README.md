@@ -1,47 +1,54 @@
-# VENOM OS 1.0
+# VENOM OS
 
-A VENOM OS 1.0 usa **Manjaro Linux** como base, com desktop MATE e LightDM. A imagem é construída com os perfis e ferramentas oficiais do Manjaro.
+A VENOM OS é um projeto de distribuição independente baseada diretamente no **Arch Linux oficial**, com desktop MATE, LightDM, identidade própria e instalador gráfico desenvolvido pelo projeto.
 
-## Base e desktop
-- Distribuição base: Manjaro Linux, repositórios oficiais Manjaro.
-- Perfil próprio: `manjaro/venom-mate`, construído pelo `manjaro-tools/buildiso` oficial.
-- Desktop: MATE + MATE Extra.
+## Arquitetura definida
+
+- Base: Arch Linux oficial e seus repositórios oficiais.
+- Construção da mídia: perfil próprio baseado no Archiso oficial.
+- Desktop: MATE.
 - Gerenciador de login: LightDM.
-- Rede/Wi-Fi: NetworkManager e nm-applet na bandeja do sistema.
-- Bluetooth: BlueZ e Blueman com ícone de bandeja.
-- Áudio: PipeWire, WirePlumber e applet de volume MATE no painel.
-- Idioma padrão: Português do Brasil.
-- Teclado padrão: Brasil ABNT2.
+- Idioma: Português do Brasil.
+- Teclado: Brasil ABNT2.
+- Instalador: próprio, em C + GTK4, com backend separado.
+- Instalação offline a partir da própria mídia é requisito obrigatório.
+- Não usar Calamares, EndeavourOS, ferramentas de construção Manjaro ou componentes de outras distribuições na arquitetura final.
 
-## Instalador integrado
-- O **Calamares oficial do Manjaro** é incluído em `Packages-Live`, portanto faz parte da própria ISO Live.
-- O instalador fica disponível no ambiente Live pelo lançador fornecido pelo pacote Manjaro.
-- O perfil mantém a configuração de boot GRUB e os componentes Live exigidos pelo fluxo de instalação.
-- O GParted também fica disponível na sessão Live.
-- O Calamares não é instalado posteriormente nem substituído por um instalador externo.
+## Estado real do desenvolvimento
 
-## Configuração MATE
-O script `scripts/manjaro-mate-dark-complete.sh` foi mantido com sua lógica original. A única correção foi retirar `manjaro-mate-settings`, pacote que o Manjaro informa não oferecer atualmente para MATE. O layout `manjaro` usado pelo script é fornecido diretamente no perfil. A cópia instalada em `/usr/local/bin/manjaro-mate-dark-complete.sh` é verificada byte a byte contra o arquivo de origem.
+**A VENOM OS ainda não está pronta para instalação ou distribuição.**
 
-No menu do MATE existe o atalho **Configurar MATE**. Ele abre um terminal e executa o script original, permitindo que os comandos sudo do script solicitem autenticação quando necessário. O script não é executado silenciosamente no primeiro login.
+O perfil Archiso em `build/` está incompleto. O instalador em `installer/` é somente um protótipo de interface: detecta discos e apresenta opções, mas não particiona, não formata e não instala o sistema. Não existe ainda uma ISO Arch independente validada.
 
-Os padrões atuais do desktop são Materia-dark, Papirus-Dark e Bibata Modern Classic. A estrutura do painel e os indicadores de volume, rede e Bluetooth da ISO de referência #21 são preservados.
+A ISO VENOM OS Manjaro MATE #21 é mantida apenas como referência histórica testada do desktop MATE e dos indicadores. Ela não representa a arquitetura final Arch e não deve ser apresentada como a VENOM OS independente.
 
-## Construção
-- Workflow: `.github/workflows/build-manjaro-iso.yml`.
-- Ferramenta de construção: ação oficial `manjaro/manjaro-iso-action`, baseada em `manjaro-tools/buildiso`.
-- Perfil: `venom-mate`.
-- Canal: `stable`.
-- Kernel: `linux618`.
-- Identificação de versão: `/etc/venom-release`.
-- Artefato ISO temporário do GitHub Actions: retenção de 3 dias.
+## Componentes do projeto
 
-## Referência de estabilidade
-A ISO Manjaro MATE #21 testada pelo usuário permanece preservada como referência de funcionamento do MATE, painel e indicadores. Builds posteriores não são consideradas aprovadas pelo simples fato de o workflow terminar com sucesso. A ISO 1.0 só será considerada pronta após validação do workflow, inspeção do artefato e teste de inicialização e instalação.
+- `build/`: perfil Archiso em desenvolvimento.
+- `installer/`: protótipo do instalador próprio C + GTK4.
+- `docs/PROJECT-CONTINUITY.md`: registro técnico do estado, decisões, testes e bloqueios.
+- `AGENTS.md`: regras obrigatórias de arquitetura e trabalho.
 
 ## Atualizações
-O Pacman administra o sistema e os aplicativos: `sudo pacman -Syu`.
 
-O VENON continua sendo um mecanismo separado, manual e independente do Pacman:
+O Pacman administra as atualizações normais do sistema e dos aplicativos:
+
+```bash
+sudo pacman -Syu
+```
+
+O VENON é separado do Pacman e acionado manualmente:
+
 - `venon-upgrade`: consulta e lista atualizações disponíveis, sem instalar.
 - `venon-update`: instala atualizações VENON somente após confirmação explícita.
+
+## Critérios para declarar uma versão pronta
+
+1. Perfil Archiso completo e validado com as ferramentas oficiais do Arch.
+2. Mídia inicializável testada em BIOS e UEFI.
+3. Sessão Live MATE, rede, Bluetooth, áudio e configurações verificadas.
+4. Instalador próprio com backend concluído, testado em discos virtuais descartáveis e capaz de instalar offline.
+5. Instalação concluída em VM, com boot do sistema instalado e validação pós-instalação.
+6. ISO, checksum e logs de validação preservados.
+
+Nenhum arquivo de ISO deve ser anunciado como pronto sem essas verificações reais.
