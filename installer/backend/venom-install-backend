@@ -74,7 +74,7 @@ genfstab -U "$TARGET" >>"$TARGET/etc/fstab"
 rm -f "$TARGET/etc/systemd/system/getty@tty1.service.d/autologin.conf" "$TARGET/etc/lightdm/lightdm.conf.d/50-venom-live.conf" "$TARGET/etc/sudoers.d/10-venom-live" "$TARGET/etc/mkinitcpio.conf.d/archiso.conf"
 rm -f "$TARGET/root/.automated_script.sh" "$TARGET/root/venom-live-setup"
 if arch-chroot "$TARGET" id venom >/dev/null 2>&1; then arch-chroot "$TARGET" userdel --remove venom || true; fi
-arch-chroot "$TARGET" useradd --create-home --groups wheel,audio,video,storage,power --shell /bin/bash "$USERNAME"
+arch-chroot "$TARGET" useradd --create-home --groups wheel,audio,video,storage --shell /bin/bash "$USERNAME"
 printf '%s:%s\n' "$USERNAME" "$PASSWORD" | arch-chroot "$TARGET" chpasswd
 arch-chroot "$TARGET" passwd --lock root
 printf '%%wheel ALL=(ALL:ALL) ALL\n' >"$TARGET/etc/sudoers.d/10-venom-wheel"
