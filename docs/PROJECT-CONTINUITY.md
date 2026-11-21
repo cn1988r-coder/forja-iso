@@ -34,15 +34,16 @@ Atualizado em 21/11/2026.
 - A validação estática anterior `44857473296` também passou.
 - Essa validação não compila a ISO nem testa boot ou instalação real.
 
-## Validação de mídia: primeira compilação ISO XFCE
-- Run `44859735918` (21/11/2026), commit `205097039701b5fd7d4ee6efb19aae66e8749a80`: falhou na etapa `Verify Calamares payload`.
-- Calamares upstream 3.3.14 compilou; validação estática do perfil Arch passou; `mkarchiso` concluiu e gerou no runner `out/venom-2026.11.21-x86_64.iso` (2,1 GiB; SHA-256 `3f124c8d4c96037bec31eec2d123146889a92da67cd1434e5391e1760e2a27f4`).
-- A verificação falhou porque o workflow exigia literalmente `Exec=calamares`, mas o lançador válido usa `Exec=sudo -n /usr/bin/calamares`. O ISO não foi publicado como artefato; os testes BIOS/UEFI foram ignorados.
-- Correção preparada no workflow: validar uma linha `Exec` que aponte para `calamares`, aceitando o caminho absoluto e o prefixo `sudo`.
-- Próximo passo: executar novamente a compilação após autorização, confirmar a verificação do payload, executar os testes BIOS/UEFI e publicar o artefato somente se todos passarem.
-- A imagem gerada no runner foi descartada ao encerrar o job; não há link de download disponível.
+## Validação de mídia: builds ISO XFCE
 
-- Após autorização, validar boot BIOS/UEFI e instalação completa em VM descartável, incluindo primeiro login XFCE.
+- Run #45, ID `44859735918`, falhou na verificação do atalho Calamares, embora Calamares 3.3.14, validação estática e geração da ISO tenham concluído. Correção da expressão de validação do `Exec` já incorporada ao workflow.
+- Run #46, ID `44861586446`, commit `9514ba889b3ca1b5db30ef1b81e5fb51e383af57`: compilação Calamares, validação Arch, geração da ISO (2,1 GiB) e verificação do payload passaram. O teste BIOS executou 240 segundos, mas falhou porque não encontrou mensagens systemd esperadas no console serial. O teste UEFI e o upload da ISO foram ignorados. SHA-256 da ISO temporária: `9f351d480b86964b34e98d27d5c5e15bed1a0a30a276457635e24e6c0ac950eb`. O runner descartou a ISO ao encerrar o job; não há artefato de instalação disponível dessa execução.
+- Diagnóstico: o teste anterior dependia de mensagens systemd no serial, enquanto o script live redirecionava sua saída para arquivo. Isso não permitia distinguir ausência de log de falha real na inicialização gráfica.
+- Correção aplicada após #46: o script `build/airootfs/root/venom-live-setup` agora emite marcadores explícitos `VENOM_LIVE_SETUP_STARTED`, `VENOM_LIVE_READY` ou `VENOM_LIVE_LIGHTDM_FAILED` no console serial e no log. O marcador READY só é emitido quando LightDM está ativo.
+- Workflow atualizado: testes BIOS e UEFI independentes, ambos executados mesmo se o outro falhar; cada um exige timeout esperado e marcador `VENOM_LIVE_READY`. Registros seriais são apresentados no log e publicados em artefato diagnóstico mesmo quando os testes falham. A ISO de instalação só é publicada se BIOS e UEFI passarem.
+- Essa verificação confirma que o script live alcançou LightDM ativo; não substitui o teste visual manual da sessão XFCE nem a validação de instalação real no hardware.
+- Próximo passo: executar a build XFCE autorizada, acompanhar ambos os testes e disponibilizar a ISO somente se o gate final passar. Se falhar, usar os registros BIOS/UEFI para identificar a etapa real do problema.
+- Após o usuário baixar, instalar e testar a XFCE, revisar o resultado com ele. Só depois iniciar o desenvolvimento visual aprofundado do Window Maker, preservando a identidade VENOM e a personalidade OpenStep. A edição MATE permanece na sequência planejada.
 
 ## Identidade visual e interfaces VENOM OS
 Palavra-chave de recuperação solicitada pelo usuário: **INTERFACES**. Quando o usuário disser “chat, interfaces” ou pedir “as interfaces”, recuperar e apresentar este acordo.
