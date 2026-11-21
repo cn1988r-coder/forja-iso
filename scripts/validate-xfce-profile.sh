@@ -7,11 +7,11 @@ INSTALL_PKG="$P/install-packages.x86_64"
 OVERLAY="$P/install-overlay"
 fail(){ printf 'FALHA: %s
 ' "$*" >&2; exit 1; }
-for f in profiledef.sh pacman.conf packages.x86_64 install-packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.automated_script.sh airootfs/root/.bash_profile airootfs/root/venom-live-setup airootfs/etc/systemd/system/venom-live-setup.service syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
+for f in profiledef.sh pacman.conf packages.x86_64 install-packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.automated_script.sh airootfs/root/.bash_profile airootfs/usr/local/lib/venom/venom-live-setup airootfs/etc/systemd/system/venom-live-setup.service syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
   [[ -s "$P/$f" ]] || fail "Arquivo obrigatório ausente: build/$f"
 done
 [[ -d "$OVERLAY" ]] || fail "Overlay do sistema instalado ausente."
-for script in "$P/profiledef.sh" "$P/airootfs/root/.automated_script.sh" "$P/airootfs/root/.bash_profile" "$P/airootfs/root/venom-live-setup"; do
+for script in "$P/profiledef.sh" "$P/airootfs/root/.automated_script.sh" "$P/airootfs/root/.bash_profile" "$P/airootfs/usr/local/lib/venom/venom-live-setup"; do
   bash -n "$script" || fail "Sintaxe Bash inválida: $script"
 done
 python -m py_compile "$ROOT/installer/modules/venominstall/main.py" || fail "Sintaxe Python do módulo venominstall inválida."
@@ -30,7 +30,7 @@ grep -Fxq 'pt_BR.UTF-8 UTF-8' "$P/airootfs/etc/locale.gen" || fail "Locale pt_BR
 grep -Fxq 'KEYMAP=br-abnt2' "$P/airootfs/etc/vconsole.conf" || fail "Teclado ABNT2 ausente."
 grep -Fq 'systemctl start venom-live-setup.service' "$P/airootfs/root/.bash_profile" || fail "tty1 não inicia setup via systemd."
 grep -Fq '/dev/tty1' "$P/airootfs/root/.bash_profile" || fail "Setup live deve ser disparado somente no tty1."
-grep -Fq 'ExecStart=/root/venom-live-setup' "$P/airootfs/etc/systemd/system/venom-live-setup.service" || fail "Unit systemd não chama setup live."
+grep -Fq 'ExecStart=/usr/bin/bash /usr/local/lib/venom/venom-live-setup' "$P/airootfs/etc/systemd/system/venom-live-setup.service" || fail "Unit systemd não chama setup live."
 grep -Fq 'StandardOutput=journal+console' "$P/airootfs/etc/systemd/system/venom-live-setup.service" || fail "Unit live não encaminha logs ao console."
 grep -q '^HOOKS=.*archiso' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Hooks Archiso ausentes."
 grep -Fxq 'COMPRESSION="zstd"' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Compressão do initramfs inválida."
