@@ -28,7 +28,7 @@ jobs:
       - name: Install Arch build and test tools
         run: |
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm git archiso base-devel cmake ninja extra-cmake-modules qt6-base qt6-declarative qt6-svg kconfig kcoreaddons kcrash kparts kirigami kpackage kpmcore yaml-cpp python python-pyyaml python-jsonschema libpwquality hwinfo parted polkit-qt6 appstream-qt qt6-tools shellcheck qemu-system-x86 edk2-ovmf grub syslinux
+          pacman -S --needed --noconfirm git archiso base-devel cmake ninja extra-cmake-modules qt6-base qt6-declarative qt6-svg kconfig kcoreaddons kcrash kparts kirigami kpackage kpmcore yaml-cpp python python-yaml python-jsonschema libpwquality hwinfo parted polkit-qt6 appstream-qt qt6-tools shellcheck qemu-system-x86 edk2-ovmf grub syslinux
 
       - name: Checkout
         uses: actions/checkout@v4
