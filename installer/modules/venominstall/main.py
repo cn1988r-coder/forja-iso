@@ -1,11 +1,31 @@
 #!/usr/bin/env python3
-"""Instala VENOM OS com pacstrap dos repositórios oficiais Arch."""
+"""Instala VENOM OS por pacstrap e aplica somente o overlay de configuração VENOM."""
 
 import os
+import shutil
 import subprocess
 import urllib.request
 
 import libcalamares
+
+
+def copy_install_overlay(source, target, executable_files):
+    if not os.path.isdir(source):
+        raise FileNotFoundError("Overlay de instalação VENOM ausente: " + source)
+    for current, directories, files in os.walk(source):
+        relative = os.path.relpath(current, source)
+        destination_dir = target if relative == "." else os.path.join(target, relative)
+        os.makedirs(destination_dir, exist_ok=True)
+        for filename in files:
+            source_file = os.path.join(current, filename)
+            destination_file = os.path.join(destination_dir, filename)
+            shutil.copy2(source_file, destination_file)
+
+    for relative_path in executable_files:
+        destination_file = os.path.join(target, relative_path.lstrip("/"))
+        if not os.path.isfile(destination_file):
+            raise FileNotFoundError("Executável do overlay ausente: " + relative_path)
+        os.chmod(destination_file, 0o755)
 
 
 def run():
@@ -19,8 +39,14 @@ def run():
     packages_file = config.get(
         "installPackagesFile", "/usr/share/venom/install-packages.x86_64"
     )
+    overlay_dir = config.get(
+        "installOverlay", "/usr/share/venom/install-overlay"
+    )
+    executable_files = config.get("executableFiles", [])
     if not os.path.isfile(packages_file):
         return ("Manifesto ausente", "Não foi encontrado o manifesto de instalação VENOM.")
+    if not os.path.isdir(overlay_dir):
+        return ("Configuração ausente", "Não foi encontrado o overlay de instalação VENOM.")
 
     probe = config.get(
         "mirrorProbe", "https://geo.mirror.pkgbuild.com/core/os/x86_64/core.db"
@@ -34,7 +60,7 @@ def run():
         return (
             "Sem acesso aos repositórios oficiais Arch",
             "A instalação exige internet. Não haverá instalação offline nem cópia "
-            "do sistema live. " + str(exc),
+            "da raiz live. " + str(exc),
         )
 
     with open(packages_file, encoding="utf-8") as stream:
@@ -47,7 +73,7 @@ def run():
         return ("Manifesto vazio", "A lista de pacotes de instalação VENOM está vazia.")
 
     try:
-        libcalamares.utils.debug("VENOM: iniciando pacstrap no destino " + root)
+        libcalamares.utils.debug("VENOM: instalando pacotes oficiais com pacstrap em " + root)
         subprocess.run(
             ["pacstrap", "-K", "-C", "/etc/pacman.conf", root, *packages],
             check=True,
@@ -63,10 +89,17 @@ def run():
             ],
             check=True,
         )
-    except (subprocess.CalledProcessError, OSError) as exc:
+        libcalamares.utils.debug("VENOM: aplicando somente o overlay de configuração da edição.")
+        copy_install_overlay(overlay_dir, root, executable_files)
+
+        dconf_db = os.path.join(root, "etc/dconf/db/local.d")
+        if os.path.isdir(dconf_db) and os.path.isfile(os.path.join(root, "usr/bin/dconf")):
+            subprocess.run(["chroot", root, "dconf", "update"], check=True)
+    except (subprocess.CalledProcessError, OSError, shutil.Error) as exc:
         code = getattr(exc, "returncode", 127)
         return (
-            "Falha no pacstrap",
-            "A instalação dos pacotes oficiais falhou. Código: " + str(code),
+            "Falha na instalação VENOM",
+            "Pacotes oficiais ou configurações da edição não puderam ser aplicados. "
+            + str(exc) + " (código " + str(code) + ")",
         )
     return None
