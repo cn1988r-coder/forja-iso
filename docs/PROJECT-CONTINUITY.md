@@ -34,7 +34,12 @@ Atualizado em 21/11/2026.
 - A validação estática anterior `44857473296` também passou.
 - Essa validação não compila a ISO nem testa boot ou instalação real.
 
-## Validação de mídia pendente
-- Build ISO e instalação real em VM ainda não foram executados.
-- Não iniciar build ISO sem autorização expressa.
+## Validação de mídia: primeira compilação ISO XFCE
+- Run `44859735918` (21/11/2026), commit `205097039701b5fd7d4ee6efb19aae66e8749a80`: falhou na etapa `Verify Calamares payload`.
+- Calamares upstream 3.3.14 compilou; validação estática do perfil Arch passou; `mkarchiso` concluiu e gerou no runner `out/venom-2026.11.21-x86_64.iso` (2,1 GiB; SHA-256 `3f124c8d4c96037bec31eec2d123146889a92da67cd1434e5391e1760e2a27f4`).
+- A verificação falhou porque o workflow exigia literalmente `Exec=calamares`, mas o lançador válido usa `Exec=sudo -n /usr/bin/calamares`. O ISO não foi publicado como artefato; os testes BIOS/UEFI foram ignorados.
+- Correção preparada no workflow: validar uma linha `Exec` que aponte para `calamares`, aceitando o caminho absoluto e o prefixo `sudo`.
+- Próximo passo: executar novamente a compilação após autorização, confirmar a verificação do payload, executar os testes BIOS/UEFI e publicar o artefato somente se todos passarem.
+- A imagem gerada no runner foi descartada ao encerrar o job; não há link de download disponível.
+
 - Após autorização, validar boot BIOS/UEFI e instalação completa em VM descartável, incluindo primeiro login XFCE.
