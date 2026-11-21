@@ -44,6 +44,14 @@ jobs:
           cp -a "$BIBATA_DIR" build/airootfs/usr/share/icons/Bibata-Modern-Ice
           cp -a "$BIBATA_DIR" build/install-overlay/usr/share/icons/Bibata-Modern-Ice
 
+      - name: Stage Yaru Blue icon theme
+        run: |
+          git clone --depth 1 https://github.com/ubuntu/yaru.git "$RUNNER_TEMP/yaru"
+          test -f "$RUNNER_TEMP/yaru/icons/Yaru-blue/index.theme"
+          mkdir -p build/airootfs/usr/share/icons build/install-overlay/usr/share/icons
+          cp -a "$RUNNER_TEMP/yaru/icons/Yaru-blue" build/airootfs/usr/share/icons/Yaru-blue
+          cp -a "$RUNNER_TEMP/yaru/icons/Yaru-blue" build/install-overlay/usr/share/icons/Yaru-blue
+
       - name: Mandatory VENOM preflight gate (no ISO build if rejected)
         run: python scripts/venom-preflight.py
 
