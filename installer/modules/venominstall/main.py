@@ -89,6 +89,24 @@ def run():
             ],
             check=True,
         )
+        # The live-only local repository is used to install the prebuilt
+        # Arch AUR Pamac packages. Do not leave that ISO-local source configured
+        # in the installed system; normal updates use official Arch repos.
+        target_pacman_conf = os.path.join(root, "etc/pacman.conf")
+        with open(target_pacman_conf, encoding="utf-8") as stream:
+            pacman_lines = stream.readlines()
+        cleaned_lines = []
+        skip_local_repo = False
+        for line in pacman_lines:
+            if line.strip() == "[venom-aur]":
+                skip_local_repo = True
+                continue
+            if skip_local_repo and line.lstrip().startswith("["):
+                skip_local_repo = False
+            if not skip_local_repo:
+                cleaned_lines.append(line)
+        with open(target_pacman_conf, "w", encoding="utf-8") as stream:
+            stream.writelines(cleaned_lines)
         libcalamares.utils.debug("VENOM: aplicando somente o overlay de configuração da edição.")
         copy_install_overlay(overlay_dir, root, executable_files)
 
