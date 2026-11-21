@@ -1,6 +1,6 @@
 # Continuidade técnica: VENOM OS Window Maker
 
-Atualizado em 20/11/2026.
+Atualizado em 21/11/2026.
 
 ## Arquitetura
 - Branch: `feature/forja-window-maker-endeavouros`.
@@ -21,10 +21,15 @@ Atualizado em 20/11/2026.
 - Launcher inicia Tint2, applets de rede/Bluetooth e agente Polkit, define wallpaper e executa `wmaker`.
 - Módulo VENOM usa pacstrap e copia somente o overlay explícito, antes da criação do usuário. Não copia a raiz live.
 - Sequência Calamares executa locale, keyboard e users, além de fstab, displaymanager, serviços, initramfs e bootloader.
-- Workflow Archiso e validador específico `scripts/validate-windowmaker-profile.sh`; nenhum build ISO foi iniciado.
+- Workflow Archiso e validador específico `scripts/validate-windowmaker-profile.sh`.
 
-## Validação
-- Validação estática aprovada no workflow `44857321135`: manifestos live/instalado, disponibilidade de pacotes oficiais, overlay, sessão Window Maker, menu, sequência Calamares, sintaxe Bash/Python e ShellCheck passaram.
+## Validação estática atual
+- Run `44857753360`, commit `134ff5bd5627c1b9388136959fac8423a3e6a5c1`: sucesso.
+- Instalação das ferramentas, validação do perfil e disponibilidade dos pacotes oficiais, sintaxe dos scripts e conclusão do job passaram.
+- Validações anteriores `44857321135` e `44857174391` também passaram.
+- Essa validação não compila a ISO nem testa boot ou instalação real.
+
+## Validação de mídia pendente
 - Build ISO e instalação real em VM ainda não foram executados.
 - Não iniciar build ISO sem autorização expressa.
-- Após build autorizado, validar boot BIOS/UEFI e instalação completa em VM descartável, incluindo primeiro login gráfico Window Maker.
+- Após autorização de build, validar boot BIOS/UEFI e instalação completa em VM descartável, incluindo primeiro login gráfico Window Maker.
