@@ -99,6 +99,7 @@ if command -v pacman >/dev/null 2>&1; then
   # BLUETOOTH: autostart, applet, ícone de bandeja e serviço BlueZ.
   require_arch_file blueman etc/xdg/autostart/blueman.desktop
   require_arch_file blueman usr/bin/blueman-applet
+  require_arch_file blueman usr/bin/blueman-manager
   require_arch_file blueman usr/share/icons/hicolor/22x22/status/blueman-tray.png
   require_arch_file bluez usr/lib/systemd/system/bluetooth.service
 
@@ -109,8 +110,8 @@ if command -v pacman >/dev/null 2>&1; then
   # VOLUME/ÁUDIO: applet MATE, ativação D-Bus, mascaramento do ícone duplicado
   # e ícones de volume fornecidos pelo tema Papirus-Dark selecionado.
   require_arch_file mate-media usr/share/mate-panel/applets/org.mate.applets.GvcApplet.mate-panel-applet
-  require_arch_file mate-media usr/share/dbus-1/services/org.mate.panel.applet.GvcAppletFactory.service
-  require_arch_file mate-media usr/lib/mate-media/mate-volume-control-applet
+  require_arch_file mate-media usr/lib/libmate-volume-control-applet.so
+  require_arch_file mate-media usr/bin/mate-volume-control
   require_arch_file mate-media etc/xdg/autostart/mate-volume-control-status-icon.desktop
   require_arch_file papirus-icon-theme usr/share/icons/Papirus-Dark/22x22/actions/audio-volume-high.svg
   require_arch_file papirus-icon-theme usr/share/icons/Papirus-Dark/22x22/actions/audio-volume-muted.svg
@@ -128,6 +129,6 @@ fi
 
 printf 'OK: REDE: pacote, autostart, executável, ícones, Notification Area e serviço conferidos estaticamente.\n'
 printf 'OK: BLUETOOTH: BlueZ, Blueman, autostart, executável, ícone, Notification Area e serviço conferidos estaticamente.\n'
-printf 'OK: VOLUME/ÁUDIO: Gvc, ativação D-Bus, PipeWire, WirePlumber, sockets, ícones Papirus e ausência de ícone duplicado conferidos estaticamente.\n'
+printf 'OK: VOLUME/ÁUDIO: Gvc, biblioteca do applet, controle de dispositivos, PipeWire, WirePlumber, sockets, ícones Papirus e ausência de ícone duplicado conferidos estaticamente.\n'
 printf 'OK: AUTORIZAÇÃO GRÁFICA: agente MATE Polkit e grupos do usuário live conferidos estaticamente.\n'
 printf 'PENDENTE: comprovar os três indicadores visíveis e funcionais após login e reinicialização em sessão gráfica/VM.\n'
