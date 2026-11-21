@@ -33,7 +33,13 @@ grep -Fq '/dev/tty1' "$P/airootfs/root/.bash_profile" || fail "Setup live deve s
 grep -Fq 'ExecStart=/usr/bin/bash /usr/local/lib/venom/venom-live-setup' "$P/airootfs/etc/systemd/system/venom-live-setup.service" || fail "Unit systemd não chama setup live."
 grep -Fq 'StandardOutput=journal+console' "$P/airootfs/etc/systemd/system/venom-live-setup.service" || fail "Unit live não encaminha logs ao console."
 grep -Fq 'After=lightdm.service' "$P/airootfs/etc/systemd/system/venom-live-ready.service" || fail "Verificador de prontidão não aguarda LightDM."
+[[ "$(head -n1 "$P/syslinux/archiso_sys.cfg")" == "SERIAL 0 115200" ]] || fail "SERIAL precisa ser a primeira diretiva do Syslinux BIOS para inicializar a porta COM1."
+if grep -Fxq 'SERIAL 0 115200' "$P/syslinux/archiso_head.cfg"; then fail "SERIAL não pode ficar apenas em arquivo incluído; deve ser a primeira diretiva do arquivo de configuração BIOS."; fi
 grep -Fq 'VENOM_LIVE_READY' "$P/airootfs/usr/local/lib/venom/venom-live-ready" || fail "Marcador de prontidão ausente do verificador."
+for process in xfce4-session xfce4-panel xfdesktop; do
+  grep -Fq "pgrep -u venom -x $process" "$P/airootfs/usr/local/lib/venom/venom-live-ready" || fail "Prontidão não verifica o processo XFCE $process."
+done
+grep -Fxq 'TimeoutStartSec=150' "$P/airootfs/etc/systemd/system/venom-live-ready.service" || fail "Timeout do verificador XFCE insuficiente."
 grep -q '^HOOKS=.*archiso' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Hooks Archiso ausentes."
 grep -Fxq 'COMPRESSION="zstd"' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Compressão do initramfs inválida."
 grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/pacman.conf" || fail "Mirror oficial Arch ausente."

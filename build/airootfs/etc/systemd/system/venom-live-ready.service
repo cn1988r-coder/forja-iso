@@ -1,10 +1,11 @@
 [Unit]
-Description=VENOM OS live readiness verification
+Description=VENOM OS live XFCE desktop readiness verification
 Requires=lightdm.service
 After=lightdm.service
 
 [Service]
 Type=oneshot
+TimeoutStartSec=150
 ExecStart=/usr/bin/bash /usr/local/lib/venom/venom-live-ready
 StandardOutput=journal+console
 StandardError=journal+console

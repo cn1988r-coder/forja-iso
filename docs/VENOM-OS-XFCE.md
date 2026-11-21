@@ -29,7 +29,7 @@ O grupo oficial `xfce4-goodies` fornece os plugins adicionais do XFCE utilizados
 
 ## Inicialização e instalação
 
-O root login shell no tty1 chama `/root/.automated_script.sh`, que executa diretamente o caminho indicado por `script=` ou utiliza fallback para `/root/venom-live-setup`. O setup cria a sessão Live e habilita NetworkManager, Bluetooth e LightDM. `VENOM_LIVE_READY` só é emitido após LightDM ficar ativo.
+O root login shell no tty1 chama `/root/.automated_script.sh`, que executa `/root/venom-live-setup`. O setup cria a sessão Live e habilita NetworkManager, Bluetooth e LightDM. `VENOM_LIVE_READY` só é emitido depois que LightDM está ativo e os processos `xfce4-session`, `xfce4-panel` e `xfdesktop` estão rodando para o usuário `venom`. O teste BIOS exige a diretiva `SERIAL 0 115200` como primeira diretiva do arquivo Syslinux efetivamente carregado, para que os logs do boot sejam observáveis na porta COM1.
 
 O Calamares prepara partições e montagem, executa o módulo VENOM para instalar pacotes oficiais via pacstrap e aplicar somente o overlay, depois configura fstab, locale, teclado, usuário, display manager, serviços, initramfs e bootloader.
 
@@ -39,7 +39,7 @@ Não declarar a ISO pronta apenas com validação estática ou compilação. Exi
 1. Validação estática e de sintaxe.
 2. Manifestos, XML, tema e painel coerentes entre Live e instalado.
 3. ISO gerada e SHA-256 registrado.
-4. Boot BIOS e UEFI com `VENOM_LIVE_READY` e LightDM ativo.
+4. Boot BIOS e UEFI com `VENOM_LIVE_READY`, LightDM ativo e sessão XFCE, painel e desktop efetivamente iniciados.
 5. Inspeção visual da sessão XFCE.
 6. Instalação completa em VM e primeiro boot do sistema instalado.
 
