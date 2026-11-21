@@ -9,6 +9,7 @@ A edição VENOM OS XFCE é baseada no Arch Linux oficial, construída com Archi
 - Boot: BIOS/Syslinux e UEFI/GRUB.
 - Idioma: pt_BR.UTF-8; teclado: br-abnt2.
 - Rede: NetworkManager; Bluetooth: BlueZ; áudio: PipeWire/WirePlumber.
+- Snapshots do sistema: Timeshift, incluído no ambiente Live e no sistema instalado para criar e restaurar snapshots.
 - Instalador: Calamares upstream 3.3.14 com módulo VENOM próprio.
 - Instalação online via pacstrap/Pacman. Não copiar a raiz Live.
 - Atualizações normais pelo Pacman; VENON permanece separado e manual.
