@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=VENOM Window Maker
+Comment=VENOM OS Window Maker session
+Exec=/usr/local/bin/venom-windowmaker-session
+TryExec=wmaker
+Type=Application
+DesktopNames=WindowMaker

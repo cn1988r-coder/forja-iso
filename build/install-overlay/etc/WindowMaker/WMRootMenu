@@ -1,0 +1,10 @@
+(
+  "VENOM OS" MENU
+    "Terminal" EXEC xterm
+    "Firefox" EXEC firefox
+    "Window Maker Preferences" EXEC WPrefs
+    "Refresh" REFRESH
+    "Restart Window Maker" RESTART
+    "Exit" EXIT
+  "VENOM OS" END
+)
