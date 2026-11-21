@@ -1,5 +1,4 @@
-# Desktop MATE e sessão da VENOM OS.
-# Ferramentas usadas pelo setup de primeiro login: AUR helper, cursor Bibata e wallpaper.
+# Pacotes do desktop MATE e seus três indicadores.
 linux
 linux-headers
 linux-lts
@@ -23,7 +22,9 @@ blueman
 network-manager-applet
 bluez
 bluez-utils
+networkmanager
 pipewire
+pipewire-audio
 pipewire-alsa
 pipewire-pulse
 pipewire-jack
@@ -49,6 +50,3 @@ materia-gtk-theme
 papirus-icon-theme
 dconf
 dconf-editor
-curl
-git
-base-devel

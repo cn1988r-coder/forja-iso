@@ -1,3 +1,6 @@
+# Ícones de rede e Bluetooth são iniciados pelos arquivos XDG oficiais dos pacotes
+# network-manager-applet e blueman; a Notification Area exibe os dois no MATE.
+# O volume usa o applet Gvc do painel, sem um segundo ícone de status.
 [Toplevel top]
 expand=true
 orientation=top

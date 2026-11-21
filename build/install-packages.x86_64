@@ -24,6 +24,7 @@ bluez
 bluez-utils
 blueman
 pipewire
+pipewire-audio
 pipewire-alsa
 pipewire-pulse
 pipewire-jack
