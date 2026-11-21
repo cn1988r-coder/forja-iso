@@ -4,7 +4,7 @@ Atualizado em 20/11/2026.
 
 ## Arquitetura definitiva
 
-- Sistema: **VENOM OS**.
+- Sistema: VENOM OS.
 - Base: Arch Linux oficial.
 - Repositórios: somente os oficiais do Arch Linux.
 - Desktop: MATE.
@@ -12,72 +12,60 @@ Atualizado em 20/11/2026.
 - Idioma: Português do Brasil.
 - Teclado: Brasil ABNT2.
 - Mídia: perfil próprio baseado no Archiso oficial.
-- Instalador: próprio, C + GTK4, com backend separado.
-- Instalação offline a partir da mídia é obrigatória.
-- Calamares, EndeavourOS, Manjaro e instaladores de terceiros não fazem parte da arquitetura final.
+- Instalador: próprio, C + GTK4, backend separado.
+- Instalação offline a partir da própria mídia.
+- Calamares, EndeavourOS e Manjaro não fazem parte da arquitetura final.
 
-## Estado confirmado nesta revisão
+## Branch e alterações desta etapa
 
-Branch de trabalho: `optimize/venom-iso-size`.
+Branch autorizada: optimize/venom-iso-size.
 
-HEAD auditado antes desta atualização documental: `af236c33d84a63e2076e793ed3469660b7346285`.
+Implementações registradas nesta etapa:
+- perfil Archiso x86_64 com boot BIOS/Syslinux e UEFI/GRUB;
+- manifest unificado de pacotes oficiais Arch;
+- initramfs Archiso e configuração da sessão live;
+- criação da sessão temporária MATE com LightDM, rede e Bluetooth;
+- frontend C/GTK4 e backend separado para instalação automática offline;
+- validação estática do perfil e workflow de compilação/testes QEMU.
 
-### Perfil Archiso
+## Estado do instalador
 
-Existem `build/profiledef.sh`, `build/pacman.conf`, manifests de pacotes e configurações parciais em `build/airootfs/`.
+Implementado no código:
+- detecção visual de discos;
+- formulário de usuário, hostname e senha;
+- confirmação explícita de apagamento;
+- backend privilegiado chamado por pkexec;
+- particionamento automático GPT para BIOS/UEFI;
+- cópia offline do sistema live para o destino;
+- configuração de locale, teclado, usuário, serviços, GRUB e initramfs;
+- logs em /var/log/venom-installer/.
 
-**Ainda não está completo nem validado como perfil Archiso.** O próprio `build/README.md` registra que faltam componentes de boot e integração do instalador. Nenhuma ISO Arch independente foi gerada ou validada nesta revisão.
+Pendente:
+- particionamento personalizado;
+- testes em discos virtuais descartáveis;
+- validar primeiro boot instalado em BIOS e UEFI;
+- testar falhas e recuperação;
+- inspecionar MATE, indicadores, áudio, rede e Bluetooth após reinicialização.
 
-### Instalador
+## Build e validação
 
-O aplicativo em `installer/` é um protótipo de interface GTK4 em C.
+Workflow: .github/workflows/build-arch-iso.yml.
 
-Já presente:
-- interface gráfica em português;
-- enumeração informativa de discos via `lsblk`;
-- seleção visual de disco;
-- escolha visual entre instalação automática e personalizada;
-- botão de instalação bloqueado para operações reais.
+O workflow foi criado para validar pacotes/estrutura, executar ShellCheck, compilar o instalador com Meson, gerar ISO via mkarchiso e realizar smoke tests BIOS/UEFI com QEMU. A execução precisa terminar com sucesso e publicar o artefato para que a ISO possa ser considerada compilada. Não registrar sucesso antes de consultar o resultado real.
 
-Ainda ausente:
-- backend privilegiado;
-- particionamento e formatação;
-- cópia offline do sistema;
-- criação de usuário e configuração do sistema instalado;
-- instalação e configuração de GRUB;
-- progresso real, logs transacionais e recuperação segura;
-- testes de integração em VM e discos virtuais descartáveis.
+## Estado confirmado nesta atualização
 
-Portanto, **não é um instalador funcional** e não pode ser anunciado como tal.
-
-### Pipelines
-
-Os workflows legados `.github/workflows/build-manjaro-iso.yml` e `.github/workflows/validate.yml` foram desativados para execuções automáticas e não constroem nem validam a arquitetura Arch definida. O primeiro ainda é mantido apenas como referência de pipeline antigo; não deve ser usado como prova de progresso da VENOM OS independente. Não existe ainda um workflow de build Archiso aprovado.
-
-Os arquivos e a ISO Manjaro MATE #21 permanecem apenas como referência histórica de desktop. Não confundir essa referência com a edição Arch final.
+- Código de perfil, inicialização live, frontend e backend foram adicionados/alterados na branch autorizada.
+- A ISO ainda não foi confirmada como compilada ou testada com sucesso.
+- O instalador ainda não foi validado em VM.
+- A sessão MATE ainda não foi validada visualmente em VM.
+- A ISO Manjaro MATE #21 permanece como referência histórica, sem alteração.
+- main e outras branches não foram modificadas.
 
 ## Atualizações
 
-- Pacman administra o sistema e aplicativos: `sudo pacman -Syu`.
+- Pacman administra o sistema e aplicativos: sudo pacman -Syu.
 - VENON é independente do Pacman e acionado manualmente.
-- `venon-upgrade` apenas consulta e lista atualizações disponíveis.
-- `venon-update` instala atualizações VENON somente após confirmação explícita.
+- venon-upgrade apenas consulta e lista atualizações disponíveis.
+- venon-update instala atualizações VENON somente após confirmação explícita.
 - Não criar atualizações automáticas ou timers para o VENON.
-
-## Critérios de conclusão
-
-1. Perfil Archiso completo e validado com ferramentas oficiais.
-2. Mídia inicializável em BIOS e UEFI.
-3. Ambiente Live MATE validado, incluindo rede, Bluetooth, áudio e configurações.
-4. Backend do instalador concluído e protegido contra seleção/alteração indevida de discos.
-5. Instalação offline testada em VM descartável, incluindo boot pós-instalação.
-6. ISO final, SHA256, logs e resultados dos testes preservados.
-
-## Registro desta revisão
-
-- Branch e HEAD consultados diretamente no GitHub.
-- Arquivos de arquitetura, perfil, instalador e workflows inspecionados.
-- Nenhuma ISO foi compilada, publicada ou declarada pronta.
-- A ISO Manjaro MATE #21 não foi alterada.
-- Os workflows automáticos legados de build e validação Manjaro foram desativados na branch de trabalho.
-- Nenhuma outra branch ou `main` foi modificada.
