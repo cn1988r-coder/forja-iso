@@ -1,11 +1,11 @@
 # Continuidade técnica: VENOM OS XFCE
 
-Atualizado em 20/11/2026.
+Atualizado em 21/11/2026.
 
 ## Arquitetura
 - Branch: `feature/venom-community-xfce`.
 - Base: Arch Linux oficial e repositórios oficiais.
-- Desktop: XFCE real + LightDM; sem MATE.
+- Desktop: XFCE real + LightDM; sem MATE ou Window Maker.
 - Idioma pt_BR.UTF-8; teclado br-abnt2.
 - Mídia Archiso oficial.
 - Instalador Calamares upstream 3.3.14, branding VENOM e módulo `venominstall`.
@@ -23,13 +23,18 @@ Atualizado em 20/11/2026.
 - Removidos workflows e diretórios operacionais Manjaro, perfis antigos, Pamac, MHWD e credenciais padrão.
 - Workflow Archiso e validador específico `scripts/validate-xfce-profile.sh`.
 
-## Estado anterior
+## Histórico de migração
 - Run #76, ID `44843598356`, falhou por pacote `adwaita-gtk-theme` não encontrado.
 - Perfil antigo continha `mhwd`, autologin e senha padrão `venom`.
 - Nenhuma ISO desse estado é considerada instalável.
 
-## Validação
-- Validação estática aprovada no workflow `44857473296`: manifestos live/instalado, disponibilidade de pacotes oficiais, overlay, sequência Calamares, sintaxe Bash/Python e ShellCheck passaram.
+## Validação estática atual
+- Run `44857750371`, commit `66210f76e6d2e50981d414081123782fc519467d`: sucesso.
+- Instalação das ferramentas, validação do perfil e disponibilidade dos pacotes oficiais, sintaxe dos scripts e conclusão do job passaram.
+- A validação estática anterior `44857473296` também passou.
+- Essa validação não compila a ISO nem testa boot ou instalação real.
+
+## Validação de mídia pendente
 - Build ISO e instalação real em VM ainda não foram executados.
 - Não iniciar build ISO sem autorização expressa.
-- Após build autorizado, validar BIOS/UEFI e instalação completa em VM descartável, incluindo primeiro login XFCE.
+- Após autorização, validar boot BIOS/UEFI e instalação completa em VM descartável, incluindo primeiro login XFCE.
