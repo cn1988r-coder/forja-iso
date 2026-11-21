@@ -17,9 +17,9 @@ A edição VENOM OS XFCE é baseada no Arch Linux oficial e construída com Arch
 
 ## Experiência XFCE
 
-O perfil visual oficial chama-se **VENOM Calypso**. A base é XFCE com uma barra inferior única em estilo Windows: Whisker como menu Iniciar, lista de janelas agrupadas, separador expansível, bandeja do sistema, áudio, energia, clipboard e relógio com hora/data.
+O perfil visual oficial chama-se **VENOM Calypso**. A base é XFCE com uma barra inferior única de 40 px, largura total, escura e translúcida, com Whisker como menu Iniciar, Docklike Taskbar para ícones compactos e janelas agrupadas, separador expansível, bandeja do sistema, áudio, energia, clipboard e relógio digital 24h.
 
-A identidade visual usa Adwaita Dark para GTK, Yaru Blue exclusivamente para os ícones e Bibata Modern Ice para o cursor. O tema Yaru Blue é obtido do repositório upstream do Ubuntu durante o workflow e copiado para o ambiente Live e para o overlay instalado. O wallpaper vetorial VENOM apresenta uma serpente metálica que se morde, com brilho azul, e o botão do Whisker usa o V azul próprio da distribuição. O script `scripts/setup-xfce-windows-dark.sh` aplica o perfil sem alterar a geometria aprovada do painel inferior de 40 px.
+A identidade visual usa Adwaita Dark para GTK, Yaru Blue exclusivamente para os ícones e Bibata Modern Ice para o cursor. O tema Yaru Blue é obtido do repositório upstream do Ubuntu durante o workflow e copiado para o ambiente Live e para o overlay instalado. O wallpaper vetorial VENOM apresenta uma serpente metálica que se morde, com brilho azul, e o botão do Whisker usa o V azul próprio da distribuição. O painel recebe acabamento escuro com contorno azul discreto. A Docklike Taskbar é fornecida pelo pacote oficial `xfce4-docklike-plugin`; os atalhos Firefox e Thunar ficam pré-fixados, com ícones de 32 px e indicadores azuis. O script `scripts/setup-xfce-windows-dark.sh` aplica o perfil tanto ao Live quanto ao overlay instalado, sem alterar a geometria aprovada do painel inferior de 40 px.
 
 O terminal permanece instalado para manutenção e recuperação, mas não deve ser necessário nas tarefas cotidianas nem ficar entre os favoritos do menu.
 
