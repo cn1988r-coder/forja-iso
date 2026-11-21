@@ -19,4 +19,5 @@ declare -A file_permissions=(
  ["/root"]="0:0:750"
  ["/root/.automated_script.sh"]="0:0:755"
  ["/root/venom-live-setup"]="0:0:755"
+ ["/usr/local/bin/venom-mate-first-login"]="0:0:755"
 )
