@@ -88,7 +88,7 @@ ttf-dejavu
 ttf-roboto
 fastfetch
 
-# Pamac packages built from Arch AUR recipes.
+# Pamac packages built from Arch AUR PKGBUILDs.
 libpamac-aur
 pamac-aur
 base-devel
