@@ -54,5 +54,6 @@ jobs:
       - name: Check shell syntax
         run: |
           bash -n scripts/build-venom-iso.sh
+          bash -n scripts/setup-xfce-windows-dark.sh
           bash -n scripts/validate-xfce-profile.sh
-          shellcheck -S error scripts/build-venom-iso.sh scripts/build-pamac-aur.sh scripts/validate-xfce-profile.sh build/profiledef.sh build/airootfs/root/.bash_profile build/airootfs/usr/local/lib/venom/venom-live-setup build/airootfs/usr/local/lib/venom/venom-live-ready
+          shellcheck -S error scripts/build-venom-iso.sh scripts/setup-xfce-windows-dark.sh scripts/build-pamac-aur.sh scripts/validate-xfce-profile.sh build/profiledef.sh build/airootfs/root/.bash_profile build/airootfs/usr/local/lib/venom/venom-live-setup build/airootfs/usr/local/lib/venom/venom-live-ready
