@@ -23,7 +23,7 @@
 
 - Interface nativa em C + GTK4.
 - Separar interface, descoberta de dispositivos, plano de instalação e backend privilegiado.
-- O protótipo atual só enumera discos em modo de leitura. O botão de instalação deve permanecer desabilitado até que o backend seja implementado e testado.
+- O protótipo atual enumera discos em modo de leitura e contém um planejador declarativo em memória para layouts automáticos UEFI/BIOS e personalizados. O planejador valida caminhos, capacidade, alinhamento, funções e exigência de confirmação, mas não executa operações de disco. A interface ainda não apresenta a revisão do plano nem chama um backend. O botão de instalação deve permanecer desabilitado até que o fluxo completo seja implementado e testado.
 - O instalador final deverá oferecer instalação automática e personalizada, particionamento revisável, confirmação explícita antes de qualquer escrita, criação de usuário, configuração de locale/teclado, MATE, LightDM, serviços, initramfs, GRUB, progresso, logs, erros compreensíveis e reinicialização.
 - A instalação deverá funcionar offline usando um repositório local de pacotes oficiais e assinados, incluído na própria mídia. Não depender da rede durante a instalação e não copiar a raiz live como substituto da instalação por pacotes.
 - Operações destrutivas nunca podem ser executadas sem revisão e confirmação explícita.
