@@ -51,6 +51,7 @@ def main():
     required = [
         "AGENTS.md", "README.md", "build/profiledef.sh", "build/pacman.conf",
         "build/packages.x86_64", "build/install-packages.x86_64", "build/aur-packages.x86_64",
+        "build/airootfs/etc/pamac.conf", "build/airootfs/usr/share/venom/aur-repo/venom-aur.db",
         "build/airootfs/etc/pacman.conf", "build/airootfs/etc/mkinitcpio.conf.d/archiso.conf",
         "build/airootfs/etc/locale.conf", "build/airootfs/etc/locale.gen",
         "build/airootfs/etc/vconsole.conf", "build/airootfs/root/.bash_profile",
@@ -170,6 +171,8 @@ def main():
         ('COMPRESSION="zstd"' in initramfs, "Initramfs", "Compressão initramfs zstd configurada"),
         ("geo.mirror.pkgbuild.com" in (read("build/pacman.conf") or ""), "Repositórios", "Mirror oficial Arch configurado no perfil"),
         ("geo.mirror.pkgbuild.com" in (read("build/airootfs/etc/pacman.conf") or ""), "Repositórios", "Mirror oficial Arch configurado no live"),
+        ("EnableAUR = true" in (read("build/airootfs/etc/pamac.conf") or ""), "Pamac/AUR", "AUR habilitado no Pamac Live"),
+        ("/usr/share/venom/aur-repo" in (read("build/airootfs/etc/pacman.conf") or ""), "Pamac/AUR", "Repositório AUR local da ISO configurado"),
         ("systemd.firstboot=headless" in profile, "Boot", "First boot headless configurado"),
         ("zstd" in profile and "squashfs" in profile.lower(), "Archiso", "SquashFS com compressão zstd configurado")
     ]:
