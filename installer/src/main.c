@@ -73,7 +73,7 @@ static void start_install(Installer *app, const char *disk) {
     const char *username = gtk_editable_get_text(GTK_EDITABLE(app->username));
     const char *hostname = gtk_editable_get_text(GTK_EDITABLE(app->hostname));
     const char *password = gtk_editable_get_text(GTK_EDITABLE(app->password));
-    const char *argv[] = {"/usr/bin/pkexec", "/usr/lib/venom/venom-install-backend", NULL};
+    const char *argv[] = {"/usr/bin/sudo", "-n", "/usr/lib/venom/venom-install-backend", NULL};
     GError *error = NULL;
     gchar *input = g_strdup_printf("%s\n%s\n%s\n%s\nAPAGAR\n", disk, username, hostname, password);
     app->process = g_subprocess_newv(argv, G_SUBPROCESS_FLAGS_STDIN_PIPE |
