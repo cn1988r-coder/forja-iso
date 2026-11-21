@@ -10,3 +10,6 @@ Diagnóstico #56: o build nem chegou à compilação ISO. O erro era uma valida�
 
 Correção #58: diagnóstico #57 confirmou que o setup iniciado pelo shell de login tty1 perde a sessão systemd (session-1.scope) durante as chamadas de systemctl. Setup movido para unit systemd independente venom-live-setup.service, acionado pelo tty1; removido parâmetro kernel script= para evitar execução duplicada; logs e trap de erro encaminhados ao serial/journal; validator atualizado. Compilar/testar BIOS+UEFI, sem publicar ISO. 21/11/2026.
 Correção #59: mover o setup live para /usr/local/lib/venom, fora de /root, e iniciar com /usr/bin/bash para eliminar bloqueio de travessia/permissão no ExecStart. Validador e ShellCheck apontam para o novo caminho. 2026-11-21.
+
+
+Correção #60: logs #59 revelaram deadlock de ordenação: venom-live-setup.service tinha Before=lightdm.service e chamava systemctl start lightdm de forma síncrona. Agora LightDM é enfileirado sem bloqueio e um serviço separado, ordenado After=lightdm, confirma VENOM_LIVE_READY. Atualizar validador e ShellCheck; executar nova compilação e gates BIOS/UEFI, sem publicar até ambos passarem. 2026-11-21.
