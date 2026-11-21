@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-printf '%s\n' 'VENON: o repositório independente ainda não foi configurado.'
-printf '%s\n' 'Nenhuma consulta remota foi realizada e nenhum arquivo foi alterado.'
-printf '%s\n' 'Este comando será habilitado quando o servidor, os metadados assinados e o verificador independente estiverem prontos.'
+if [[ "${EUID}" -ne 0 ]]; then
+  printf '%s\n' 'VENON: execute com sudo para instalar atualizações quando o mecanismo estiver disponível.' >&2
+  exit 1
+fi
+
+printf '%s\n' 'VENON: o mecanismo independente ainda não está configurado.'
+printf '%s\n' 'Nenhum pacote foi baixado, instalado ou alterado.'
+printf '%s\n' 'Quando estiver implementado, este comando só instalará atualizações após confirmação explícita.'
 exit 2

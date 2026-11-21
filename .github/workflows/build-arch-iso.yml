@@ -1,0 +1,132 @@
+name: VENOM OS Arch ISO
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - optimize/venom-iso-size
+    paths:
+      - '.github/trigger-final-build.txt'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: venom-arch-iso-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-build:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+      options: --privileged
+    steps:
+      - name: Install Arch build and test tools
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm git archiso base-devel cmake ninja extra-cmake-modules qt6-base qt6-declarative qt6-svg kconfig kcoreaddons kcrash kparts kirigami kpackage kpmcore yaml-cpp python python-yaml python-jsonschema libpwquality hwinfo parted polkit-qt6 appstream-qt qt6-tools shellcheck qemu-system-x86 edk2-ovmf grub syslinux
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build upstream Calamares 3.3.14
+        run: |
+          git clone --filter=blob:none --no-checkout https://github.com/calamares/calamares.git "$RUNNER_TEMP/calamares-src"
+          git -C "$RUNNER_TEMP/calamares-src" fetch --depth=1 origin refs/tags/v3.3.14:refs/tags/v3.3.14
+          test "$(git -C "$RUNNER_TEMP/calamares-src" rev-parse refs/tags/v3.3.14)" = "e3a5e603af8202e426adb171475b79357a5b1431"
+          test "$(git -C "$RUNNER_TEMP/calamares-src" rev-parse 'refs/tags/v3.3.14^{}')" = "21ea803527735cfaf54fa6059e71d1ef65004864"
+          git -C "$RUNNER_TEMP/calamares-src" checkout --detach 21ea803527735cfaf54fa6059e71d1ef65004864
+          cmake -S "$RUNNER_TEMP/calamares-src" -B "$RUNNER_TEMP/calamares-build" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr \
+            -DWITH_QT6=ON -DWITH_PYTHON=ON -DWITH_PYBIND11=ON -DWITH_QML=ON \
+            -DBUILD_SCHEMA_TESTING=OFF -DBUILD_CRASH_REPORTING=OFF -DINSTALL_CONFIG=OFF
+          cmake --build "$RUNNER_TEMP/calamares-build" --parallel 2
+          DESTDIR="$GITHUB_WORKSPACE/build/airootfs" cmake --install "$RUNNER_TEMP/calamares-build"
+          test -x build/airootfs/usr/bin/calamares
+          test -d build/airootfs/usr/lib/calamares/modules/partition
+          test -d build/airootfs/usr/lib/calamares/modules/mount
+          test -d build/airootfs/usr/lib/calamares/modules/bootloader
+
+      - name: Stage VENOM Calamares configuration
+        run: |
+          install -d build/airootfs/etc/calamares/modules
+          install -Dm644 installer/settings.conf build/airootfs/etc/calamares/settings.conf
+          install -Dm644 installer/branding/branding.desc build/airootfs/usr/share/calamares/branding/venom/branding.desc
+          cp -a installer/modules/venominstall build/airootfs/usr/lib/calamares/modules/
+          install -Dm644 build/packages.x86_64 build/airootfs/usr/share/venom/packages.x86_64
+          install -Dm644 installer/venom-installer.desktop build/airootfs/usr/share/applications/venom-installer.desktop
+          for module in partition keyboard locale localecfg fstab displaymanager services-systemd bootloader grubcfg initcpiocfg users venominstall; do
+            config="$module.conf"
+            if [ "$module" = localecfg ]; then config=localecfg.conf; fi
+            install -Dm644 "installer/modules/$module/$config" "build/airootfs/etc/calamares/modules/$config"
+          done
+          python -m py_compile installer/modules/venominstall/main.py
+          python - <<'PY'
+          import yaml
+          from pathlib import Path
+          for p in [Path("installer/settings.conf"), *Path("installer/modules").rglob("*.conf"), Path("installer/branding/branding.desc")]:
+              yaml.safe_load(p.read_text())
+              print("YAML OK:", p)
+          PY
+
+      - name: Validate Arch profile
+        run: |
+          chmod +x scripts/validate-arch-profile.sh
+          scripts/validate-arch-profile.sh
+
+      - name: Build VENOM OS ISO with official Archiso
+        run: |
+          mkdir -p out work
+          mkarchiso -v -w work -o out build
+          ISO="$(find out -maxdepth 1 -type f -name '*.iso' -print -quit)"
+          test -n "$ISO"
+          sha256sum "$ISO" | tee "$ISO.sha256"
+
+      - name: Verify Calamares payload
+        run: |
+          test -x build/airootfs/usr/bin/calamares
+          test -f build/airootfs/etc/calamares/settings.conf
+          test -f build/airootfs/usr/lib/calamares/modules/venominstall/main.py
+          grep -q 'Exec=calamares' build/airootfs/usr/share/applications/venom-installer.desktop
+          grep -q 'pacstrap' installer/modules/venominstall/main.py
+          ! grep -Eq 'unpackfs|rsync' installer/settings.conf
+
+      - name: BIOS boot smoke test
+        run: |
+          ISO="$(find out -maxdepth 1 -type f -name '*.iso' -print -quit)"
+          set +e
+          timeout 240s qemu-system-x86_64 -machine accel=tcg -m 4096 -smp 2 -cdrom "$ISO" -boot d -display none -serial file:bios-serial.log -monitor none -no-reboot -no-shutdown
+          QEMU_STATUS=$?
+          set -e
+          test "$QEMU_STATUS" -eq 124
+          grep -E 'Reached target Graphical Interface|Started Light Display Manager' bios-serial.log
+
+      - name: UEFI boot smoke test
+        run: |
+          ISO="$(find out -maxdepth 1 -type f -name '*.iso' -print -quit)"
+          OVMF_CODE="$(find /usr/share/edk2 -type f -iname 'OVMF_CODE*.fd' | head -n 1)"
+          OVMF_VARS="$(find /usr/share/edk2 -type f -iname 'OVMF_VARS*.fd' | head -n 1)"
+          test -n "$OVMF_CODE" && test -n "$OVMF_VARS"
+          cp "$OVMF_VARS" /tmp/OVMF_VARS.fd
+          set +e
+          timeout 240s qemu-system-x86_64 -machine q35,accel=tcg -m 4096 -smp 2 \
+            -drive if=pflash,format=raw,readonly=on,file="$OVMF_CODE" \
+            -drive if=pflash,format=raw,file=/tmp/OVMF_VARS.fd \
+            -cdrom "$ISO" -boot d -display none -serial file:uefi-serial.log -monitor none -no-reboot -no-shutdown
+          QEMU_STATUS=$?
+          set -e
+          test "$QEMU_STATUS" -eq 124
+          grep -E 'Reached target Graphical Interface|Started Light Display Manager' uefi-serial.log
+
+      - name: Upload ISO and validation evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: venom-os-arch-iso
+          path: |
+            out/*.iso
+            out/*.sha256
+            bios-serial.log
+            uefi-serial.log
+          if-no-files-found: error
+          retention-days: 14
