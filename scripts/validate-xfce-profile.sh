@@ -41,7 +41,8 @@ grep -Fxq 'INCLUDE archiso_sys.cfg' "$P/syslinux/syslinux.cfg" || fail "syslinux
 grep -Fxq 'INCLUDE archiso_head.cfg' "$P/syslinux/archiso_sys.cfg" || fail "archiso_sys.cfg não inclui archiso_head.cfg."
 grep -Fxq 'INCLUDE archiso_sys-linux.cfg' "$P/syslinux/archiso_sys.cfg" || fail "archiso_sys.cfg não inclui as entradas de kernel."
 grep -Fxq 'SERIAL 0 115200' "$P/syslinux/archiso_head.cfg" || fail "SERIAL 0 115200 ausente do cabeçalho Syslinux."
-serial_count="$(grep -hEc '^SERIAL 0 115200
+serial_count=$(grep -h '^SERIAL 0 115200' "$P"/syslinux/*.cfg | wc -l)
+[[ "$serial_count" -eq 1 ]] || fail "Esperada uma única diretiva SERIAL no conjunto Syslinux; encontradas $serial_count."
 grep -Fq 'VENOM_LIVE_READY' "$P/airootfs/usr/local/lib/venom/venom-live-ready" || fail "Marcador de prontidão ausente do verificador."
 for process in xfce4-session xfce4-panel xfdesktop; do
   grep -Fq "pgrep -u venom -x $process" "$P/airootfs/usr/local/lib/venom/venom-live-ready" || fail "Prontidão não verifica o processo XFCE $process."
