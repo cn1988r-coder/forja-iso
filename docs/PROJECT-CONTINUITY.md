@@ -16,56 +16,69 @@ Atualizado em 20/11/2026.
 - Instalação offline a partir da própria mídia.
 - Calamares, EndeavourOS e Manjaro não fazem parte da arquitetura final.
 
-## Branch e alterações desta etapa
+## Branch e HEAD
 
-Branch autorizada: optimize/venom-iso-size.
+- Repositório: cn1988r-coder/forja-iso.
+- Branch de trabalho: optimize/venom-iso-size.
+- HEAD auditado antes deste registro: 4792c81da635a7a83ace7d02514d0d14bdfe9f2c.
+- main e as demais branches não foram modificadas nesta etapa.
 
-Implementações registradas nesta etapa:
-- perfil Archiso x86_64 com boot BIOS/Syslinux e UEFI/GRUB;
-- manifest unificado de pacotes oficiais Arch;
-- initramfs Archiso e configuração da sessão live;
-- criação da sessão temporária MATE com LightDM, rede e Bluetooth;
-- frontend C/GTK4 e backend separado para instalação automática offline;
-- validação estática do perfil e workflow de compilação/testes QEMU.
+## Implementações realizadas
 
-## Estado do instalador
+### Perfil Archiso
 
-Implementado no código:
-- detecção visual de discos;
-- formulário de usuário, hostname e senha;
-- confirmação explícita de apagamento;
-- backend privilegiado chamado por pkexec;
-- particionamento automático GPT para BIOS/UEFI;
-- cópia offline do sistema live para o destino;
-- configuração de locale, teclado, usuário, serviços, GRUB e initramfs;
-- logs em /var/log/venom-installer/.
+- Perfil x86_64 com BIOS via Syslinux e UEFI via GRUB.
+- Manifest de pacotes MATE/LightDM, GTK4, ferramentas de instalação, rede, Bluetooth e áudio.
+- Initramfs configurado com hooks oficiais do Archiso.
+- Locale pt_BR.UTF-8 e teclado br-abnt2.
+- Configuração de boot com parâmetro de inicialização da sessão live.
+- Script de inicialização cria usuário temporário venom, prepara MATE/LightDM e ativa NetworkManager e Bluetooth.
+- Launcher gráfico do instalador adicionado ao menu.
 
-Pendente:
-- particionamento personalizado;
-- testes em discos virtuais descartáveis;
-- validar primeiro boot instalado em BIOS e UEFI;
-- testar falhas e recuperação;
-- inspecionar MATE, indicadores, áudio, rede e Bluetooth após reinicialização.
+### Instalador
 
-## Build e validação
+- Frontend C + GTK4 compilável via Meson.
+- Backend separado em Bash, chamado pelo sudo não interativo com regra restrita ao instalador e Pacman na sessão live.
+- Detecção visual de discos inteiros.
+- Formulário para usuário, hostname e senha.
+- Confirmação explícita de apagamento.
+- Particionamento automático GPT para BIOS (partição BIOS Boot + raiz) e UEFI (ESP + raiz).
+- Formatação ext4/FAT32 e cópia offline da árvore live via rsync.
+- Configuração de fstab, usuário, senha, hostname, locale, ABNT2, LightDM, NetworkManager, Bluetooth, GRUB e initramfs.
+- Log de execução em /var/log/venom-installer/.
 
-Workflow: .github/workflows/build-arch-iso.yml.
+### Validação e compilação automatizadas
 
-O workflow foi criado para validar pacotes/estrutura, executar ShellCheck, compilar o instalador com Meson, gerar ISO via mkarchiso e realizar smoke tests BIOS/UEFI com QEMU. A execução precisa terminar com sucesso e publicar o artefato para que a ISO possa ser considerada compilada. Não registrar sucesso antes de consultar o resultado real.
+- scripts/validate-arch-profile.sh valida estrutura, bootmodes, locale, teclado, hooks, repositórios oficiais e disponibilidade dos pacotes quando executado em Arch.
+- Workflow .github/workflows/build-arch-iso.yml executa ShellCheck, compila o instalador, integra os binários ao overlay, gera a ISO com mkarchiso, testa boot BIOS/UEFI em QEMU e publica ISO + SHA-256 como artefato.
+- O workflow é acionado por push na branch autorizada e também oferece workflow_dispatch.
+- Foi configurada concorrência para manter somente a execução mais recente da branch.
 
-## Estado confirmado nesta atualização
+## Verificações executadas nesta sessão
 
-- Código de perfil, inicialização live, frontend e backend foram adicionados/alterados na branch autorizada.
-- A ISO ainda não foi confirmada como compilada ou testada com sucesso.
-- O instalador ainda não foi validado em VM.
-- A sessão MATE ainda não foi validada visualmente em VM.
-- A ISO Manjaro MATE #21 permanece como referência histórica, sem alteração.
-- main e outras branches não foram modificadas.
+- Inspeção dos arquivos e do HEAD diretamente no GitHub.
+- bash -n passou localmente para o backend do instalador e profiledef.sh.
+- bash -n passou localmente para o script validador após corrigir o tratamento de linhas comentadas.
+- O ambiente local desta sessão não possui GTK4/meson, ShellCheck, mkarchiso ou QEMU; portanto, não foi possível compilar ou gerar a ISO localmente.
+- A execução do GitHub Actions precisa ser consultada para confirmar o resultado real do build e dos smoke tests. Não registrar sucesso sem artefato e logs.
+
+## Pendências reais
+
+1. Confirmar a execução do workflow: validação de pacotes, ShellCheck, compilação C/GTK4, mkarchiso, testes QEMU BIOS/UEFI e artefato SHA-256.
+2. Implementar particionamento personalizado; atualmente a interface oferece somente instalação automática.
+3. Testar a instalação em discos virtuais descartáveis nos dois modos de firmware.
+4. Validar o primeiro boot do sistema instalado, não apenas o boot da mídia live.
+5. Inspecionar visualmente MATE, painel e indicadores de rede/Bluetooth/volume, áudio e persistência após reinicialização.
+6. Simular falhas do backend e validar recuperação e logs.
 
 ## Atualizações
 
-- Pacman administra o sistema e aplicativos: sudo pacman -Syu.
-- VENON é independente do Pacman e acionado manualmente.
-- venon-upgrade apenas consulta e lista atualizações disponíveis.
+- Pacman administra atualizações normais: sudo pacman -Syu.
+- VENON é separado do Pacman e acionado manualmente.
+- venon-upgrade apenas consulta/lista atualizações disponíveis.
 - venon-update instala atualizações VENON somente após confirmação explícita.
-- Não criar atualizações automáticas ou timers para o VENON.
+- Não criar timers nem atualizações automáticas do VENON.
+
+## Referência histórica
+
+A ISO VENOM OS Manjaro MATE #21 e o script manjaro-mate-dark-complete.sh permanecem como referência histórica de desktop, sem alteração e sem serem usados como base de build da edição Arch.
