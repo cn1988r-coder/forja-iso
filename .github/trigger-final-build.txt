@@ -3,3 +3,5 @@ Correção complementar: indentação YAML do workflow validada; smoke tests exi
 Correção #52: adicionar fallback explícito para /root/venom-live-setup no dispatcher Archiso quando script= estiver ausente ou inválido; emitir marcadores seriais de diagnóstico para identificar a rota executada. Nova compilação autorizada pela continuidade do projeto. 2026-11-21.\n\n\nBuild solicitada em 21/11/2026 após aprovação das validações #400 e #401. Commit-base: b4afa765a8fdcb1986dcbdab71f3d7bc1b14c8dd. Executar compilação Archiso oficial e gates de boot BIOS/UEFI, sem alterar main.
 
 Correção #53: simplificado o dispatcher Live para executar diretamente /root/venom-live-setup, removendo parsing de cmdline que estava escapado incorretamente e evitando nova falha antes do setup. Sintaxe Bash local verificada. Compilar ISO e executar testes BIOS/UEFI, sem publicar. 2026-11-21.
+
+Correção #54: .bash_profile agora chama diretamente /usr/bin/bash /root/venom-live-setup no tty1, removendo completamente o dispatcher intermediário; adicionados marcadores seriais de lançamento. Validar e compilar ISO Arch oficial, executar gates BIOS/UEFI. Sem alterar main e sem publicar. 2026-11-21.
