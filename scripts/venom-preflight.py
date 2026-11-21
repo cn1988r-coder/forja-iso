@@ -191,8 +191,11 @@ def main():
                 f"Unit válida: {path.name}" if valid else f"Unit sem seções [Unit]/[Service]: {path.name}")
             for executable in re.findall(r"^Exec(?:Start|StartPre|StartPost|Stop|Reload)=([^\s]+)", text, re.M):
                 if executable.startswith("/") and not (ROOT / "build/airootfs" / executable.lstrip("/")).exists():
-                    add("WARNING", "systemd",
-                        f"Executável pode vir de pacote (não está no overlay): {path.name}: {executable}")
+                    if executable == "/usr/bin/bash" and "bash" in live:
+                        add("OK", "systemd", f"Executável fornecido pelo pacote bash: {path.name}")
+                    else:
+                        add("WARNING", "systemd",
+                            f"Executável pode vir de pacote (não está no overlay): {path.name}: {executable}")
     graph = defaultdict(set)
     for name, text in units.items():
         for key, value in re.findall(r"^(After|Before)=([^\n]+)", text, re.M):
@@ -265,9 +268,15 @@ def main():
     for base in ("scripts", "build"):
         folder = ROOT / base
         if folder.exists():
-            shell_files.extend(p for p in folder.rglob("*") if p.is_file() and
-                               (p.suffix == ".sh" or p.name in
-                                {".bash_profile", "venom-live-setup", "venom-live-ready"}))
+            for path in folder.rglob("*"):
+                if not path.is_file():
+                    continue
+                try:
+                    first_line = path.open(encoding="utf-8", errors="ignore").readline().strip()
+                except OSError:
+                    continue
+                if path.suffix == ".sh" or path.name in {".bash_profile", "venom-live-setup", "venom-live-ready"} or (first_line.startswith("#!") and "bash" in first_line):
+                    shell_files.append(path)
     for path in shell_files:
         result = run(["bash", "-n", str(path)])
         add("OK" if result and result.returncode == 0 else "ERROR", "Scripts",
@@ -276,11 +285,11 @@ def main():
             "" if result and result.returncode == 0 else (result.stdout if result else "bash indisponível/timeout"))
     python_files = list((ROOT / "installer").rglob("*.py")) if (ROOT / "installer").exists() else []
     for path in python_files:
-        result = run([sys.executable, "-m", "py_compile", str(path)])
-        add("OK" if result and result.returncode == 0 else "ERROR", "Python",
-            f"Python válido: {path.relative_to(ROOT)}" if result and result.returncode == 0
-            else f"Erro de sintaxe Python: {path.relative_to(ROOT)}",
-            "" if result and result.returncode == 0 else (result.stdout if result else "python indisponível/timeout"))
+        try:
+            compile(path.read_text(encoding="utf-8"), str(path), "exec")
+            add("OK", "Python", f"Python válido: {path.relative_to(ROOT)}")
+        except (OSError, SyntaxError) as exc:
+            add("ERROR", "Python", f"Erro de sintaxe Python: {path.relative_to(ROOT)}", str(exc))
     if shutil.which("shellcheck"):
         for path in shell_files:
             result = run(["shellcheck", "-S", "error", str(path)])
@@ -330,6 +339,34 @@ def main():
     agents = read("AGENTS.md") or ""
     if re.search(r"Instalador:.*Calamares", agents, re.I):
         add("ERROR", "Política", "AGENTS.md ainda define Calamares como instalador, contrariando a arquitetura final independente")
+    continuity = read("docs/PROJECT-CONTINUITY.md") or ""
+    if re.search(r"Instalador Calamares|Calamares upstream", continuity, re.I):
+        add("ERROR", "Continuidade", "docs/PROJECT-CONTINUITY.md ainda registra Calamares como instalador da arquitetura")
+
+    # VENON must remain isolated from Pacman and must not run automatically.
+    venon_paths = ["build/airootfs/usr/bin/venon-upgrade", "build/airootfs/usr/bin/venon-update"]
+    venon_contents = {}
+    for rel in venon_paths:
+        content = read(rel)
+        if content is None:
+            add("ERROR", "VENON", f"Comando obrigatório ausente: {rel}")
+            continue
+        venon_contents[rel] = content
+        if re.search(r"\b(pacman|pacman-key|libalpm)\b", content):
+            add("ERROR", "VENON", f"Comando VENON viola a separação do Pacman: {rel}")
+        else:
+            add("OK", "VENON", f"Sem chamadas ao Pacman/libalpm: {rel}")
+    upgrade = venon_contents.get(venon_paths[0], "")
+    update = venon_contents.get(venon_paths[1], "")
+    if upgrade and re.search(r"\b(pacman|pacman-key|libalpm|install|upgrade-package)\b", upgrade):
+        add("ERROR", "VENON", "venon-upgrade contém ação de instalação ou dependência proibida")
+    if update and not re.search(r"confirmação explícita|confirm", update, re.I):
+        add("WARNING", "VENON", "venon-update ainda não documenta confirmação explícita")
+    systemd_dir = ROOT / "build/airootfs/etc/systemd/system"
+    automatic = list(systemd_dir.glob("venon*.service")) + list(systemd_dir.glob("venon*.timer"))
+    add("ERROR" if automatic else "OK", "VENON",
+        "Serviço/timer VENON automático encontrado" if automatic
+        else "Nenhum serviço ou timer VENON automático")
 
     # Security and workflow trigger protection.
     tty = read("build/airootfs/etc/systemd/system/getty@tty1.service.d/autologin.conf") or ""

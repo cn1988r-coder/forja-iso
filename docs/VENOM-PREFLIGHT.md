@@ -10,6 +10,7 @@ O comando `python scripts/venom-preflight.py` executa a auditoria estática ante
 - Estrutura e ordenação das units systemd, com detecção de ciclos locais.
 - XMLs de configuração XFCE, sintaxe Bash/Python, ShellCheck e YAML quando as ferramentas estão disponíveis.
 - Regras de arquitetura: somente base Arch oficial, sem dependências finais de Manjaro, EndeavourOS ou Calamares.
+- Isolamento do VENON: os comandos não podem chamar Pacman/libalpm nem iniciar automaticamente por serviço ou timer.
 - Proteção dos gatilhos de build e avisos de segurança.
 
 ## Resultado
