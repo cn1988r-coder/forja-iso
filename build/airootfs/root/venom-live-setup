@@ -15,6 +15,7 @@ install -d -m 0755 /etc/sudoers.d
 printf 'venom ALL=(root) NOPASSWD: /usr/bin/calamares, /usr/bin/pacman\n' >/etc/sudoers.d/10-venom-live
 chmod 0440 /etc/sudoers.d/10-venom-live
 visudo -cf /etc/sudoers.d/10-venom-live
+if command -v dconf >/dev/null 2>&1; then dconf update; fi
 systemctl set-default graphical.target
 systemctl enable NetworkManager.service bluetooth.service lightdm.service
 systemctl start NetworkManager.service || true
