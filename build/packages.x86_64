@@ -101,7 +101,7 @@ kpackage
 kpmcore
 yaml-cpp
 python
-python-pyyaml
+python-yaml
 python-jsonschema
 libpwquality
 hwinfo
