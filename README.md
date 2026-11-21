@@ -15,9 +15,9 @@ Distribuição independente baseada diretamente no **Arch Linux oficial**, com i
 
 ## Instalador VENOM
 
-O instalador próprio está em desenvolvimento em C + GTK4. A interface gráfica está em Português do Brasil e a descoberta de discos é somente leitura. Um segundo incremento adicionou um planejador declarativo para layouts automáticos UEFI/BIOS e personalizados, com validação de capacidade, tamanhos, alinhamento, partições obrigatórias e confirmação explícita.
+O instalador próprio está em desenvolvimento em C + GTK4. A interface gráfica está em Português do Brasil, enumera discos em modo somente leitura e apresenta uma prévia dos planos automáticos UEFI/BIOS e personalizados. O modo personalizado atual permite ajustar o tamanho da raiz e incluir swap opcional; a partição de boot é fixa nesta etapa.
 
-**A instalação permanece desabilitada.** O planejador ainda não está integrado à interface e não executa operações. Faltam a revisão visual do plano, backend privilegiado, particionamento real, repositório local de pacotes oficiais assinados para instalação offline, configuração do usuário e do sistema, GRUB, progresso real, recuperação de falhas e testes em VM. A aplicação não deve ser apresentada como instalador funcional.
+**A instalação permanece desabilitada.** Os planos são apenas propostas em memória. Ainda faltam o editor completo de partições, backend privilegiado, particionamento real, repositório local de pacotes oficiais assinados para instalação offline, configuração do usuário e do sistema, GRUB, progresso real, recuperação de falhas e testes em VM. A aplicação não deve ser apresentada como instalador funcional.
 
 ## Painel MATE
 
@@ -31,4 +31,4 @@ A validação automatizada confere pacotes oficiais, arquivos de autostart, exec
 
 ## Estado do projeto
 
-Em desenvolvimento. O perfil Archiso próprio existe, o instalador C/GTK4 possui interface inicial e planejador declarativo testado, e a validação estática é separada da geração da mídia. Nenhuma ISO foi gerada nesta etapa. A compilação permanece bloqueada até autorização expressa do usuário.
+Em desenvolvimento. O perfil Archiso próprio existe, o instalador C/GTK4 possui interface de prévia e planejador declarativo, e a validação estática é separada da geração da mídia. Nenhuma ISO foi gerada nesta etapa. A compilação permanece bloqueada até autorização expressa do usuário.
