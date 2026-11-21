@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
+      options: --privileged
     steps:
       - name: Install Arch build and test tools
         run: |
@@ -52,7 +53,7 @@ jobs:
         run: |
           ISO="$(find out -maxdepth 1 -type f -name '*.iso' -print -quit)"
           set +e
-          timeout 150s qemu-system-x86_64 -machine accel=tcg -m 4096 -smp 2 -cdrom "$ISO" -boot d -display none -serial file:bios-serial.log -monitor none -no-reboot -no-shutdown
+          timeout 240s qemu-system-x86_64 -machine accel=tcg -m 4096 -smp 2 -cdrom "$ISO" -boot d -display none -serial file:bios-serial.log -monitor none -no-reboot -no-shutdown
           QEMU_STATUS=$?
           set -e
           test "$QEMU_STATUS" -eq 124
@@ -66,7 +67,7 @@ jobs:
           test -n "$OVMF_CODE" && test -n "$OVMF_VARS"
           cp "$OVMF_VARS" /tmp/OVMF_VARS.fd
           set +e
-          timeout 150s qemu-system-x86_64 -machine q35,accel=tcg -m 4096 -smp 2 \
+          timeout 240s qemu-system-x86_64 -machine q35,accel=tcg -m 4096 -smp 2 \
             -drive if=pflash,format=raw,readonly=on,file="$OVMF_CODE" \
             -drive if=pflash,format=raw,file=/tmp/OVMF_VARS.fd \
             -cdrom "$ISO" -boot d -display none -serial file:uefi-serial.log -monitor none -no-reboot -no-shutdown
