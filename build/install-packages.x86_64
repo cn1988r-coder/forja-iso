@@ -50,6 +50,16 @@ xorg-server
 xorg-xauth
 xorg-xrandr
 firefox
+vte3
+libnotify
+libhandy
+libadwaita
+gnutls
+desktop-file-utils
+dbus-glib
+archlinux-appstream-data
+appstream-glib
+appstream
 xdg-utils
 xdg-user-dirs
 lightdm
@@ -76,7 +86,7 @@ ttf-dejavu
 ttf-roboto
 fastfetch
 
-# Pamac built from the Arch User Repository, not from Manjaro.
+# Pamac packages built from Arch AUR recipes.
 libpamac-aur
 pamac-aur
 base-devel
