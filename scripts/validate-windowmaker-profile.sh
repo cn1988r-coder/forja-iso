@@ -4,12 +4,13 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 P="$ROOT/build"
 PKG="$P/packages.x86_64"
 INSTALL_PKG="$P/install-packages.x86_64"
+OVERLAY="$P/install-overlay"
 fail(){ printf 'FALHA: %s\n' "$*" >&2; exit 1; }
-
 for f in profiledef.sh pacman.conf packages.x86_64 install-packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.automated_script.sh airootfs/root/venom-live-setup syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
   [[ -s "$P/$f" ]] || fail "Arquivo obrigatório ausente: build/$f"
 done
-for script in "$P/profiledef.sh" "$P/airootfs/root/.automated_script.sh" "$P/airootfs/root/venom-live-setup" "$P/airootfs/usr/local/bin/venom-windowmaker-session"; do
+[[ -d "$OVERLAY" ]] || fail "Overlay do sistema instalado ausente."
+for script in "$P/profiledef.sh" "$P/airootfs/root/.automated_script.sh" "$P/airootfs/root/venom-live-setup"; do
   bash -n "$script" || fail "Sintaxe Bash inválida: $script"
 done
 python -m py_compile "$ROOT/installer/modules/venominstall/main.py" || fail "Sintaxe Python do módulo venominstall inválida."
@@ -23,43 +24,44 @@ python -m py_compile "$ROOT/installer/modules/venominstall/main.py" || fail "Sin
   [[ " ${airootfs_image_tool_options[*]} " == *" zstd "* ]] || fail "SquashFS deve usar zstd."
 )
 grep -Fxq 'LANG=pt_BR.UTF-8' "$P/airootfs/etc/locale.conf" || fail "Locale incorreto."
-grep -Fxq 'pt_BR.UTF-8 UTF-8' "$P/airootfs/etc/locale.gen" || fail "Locale pt_BR não habilitado."
+grep -Fxq 'pt_BR.UTF-8 UTF-8' "$P/airootfs/etc/locale.gen" || fail "Locale pt_BR ausente."
 grep -Fxq 'KEYMAP=br-abnt2' "$P/airootfs/etc/vconsole.conf" || fail "Teclado ABNT2 ausente."
 grep -q '^HOOKS=.*archiso' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Hooks Archiso ausentes."
 grep -Fxq 'COMPRESSION="zstd"' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Compressão do initramfs inválida."
 grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/pacman.conf" || fail "Mirror oficial Arch ausente."
-grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/airootfs/etc/pacman.conf" || fail "Mirror oficial Arch ausente na sessão live."
-grep -Fxq 'user-session=windowmaker' "$P/airootfs/etc/lightdm/lightdm.conf.d/50-venom-live.conf" || fail "LightDM não inicia Window Maker."
-
+grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/airootfs/etc/pacman.conf" || fail "Mirror oficial Arch ausente no live."
+grep -Fq 'install -Dm644 build/install-packages.x86_64 build/airootfs/usr/share/venom/install-packages.x86_64' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não prepara o manifesto de instalação."
+grep -Fq 'cp -a build/install-overlay/. build/airootfs/usr/share/venom/install-overlay/' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não prepara o overlay de instalação."
+grep -Fxq 'installPackagesFile: /usr/share/venom/install-packages.x86_64' "$ROOT/installer/modules/venominstall/venominstall.conf" || fail "Manifesto de instalação não configurado."
+grep -Fxq 'installOverlay: /usr/share/venom/install-overlay' "$ROOT/installer/modules/venominstall/venominstall.conf" || fail "Overlay de instalação não configurado."
+grep -q 'copy_install_overlay' "$ROOT/installer/modules/venominstall/main.py" || fail "Módulo VENOM não aplica o overlay."
+grep -q 'pacstrap' "$ROOT/installer/modules/venominstall/main.py" || fail "Instalador online pacstrap ausente."
+grep -q '      - locale' "$ROOT/installer/settings.conf" || fail "Módulo locale ausente da execução Calamares."
+grep -q '      - keyboard' "$ROOT/installer/settings.conf" || fail "Módulo keyboard ausente da execução Calamares."
+grep -q '      - users' "$ROOT/installer/settings.conf" || fail "Módulo users ausente da execução Calamares."
+if grep -R -Eiq 'unpackfs|rsync|manjaro|endeavouros|biglinux|mhwd' "$ROOT/installer/settings.conf" "$ROOT/installer/modules/venominstall" "$PKG" "$INSTALL_PKG" "$P/pacman.conf"; then
+  fail "Referência proibida ou instalação por cópia detectada."
+fi
+grep -Fxq 'user-session=windowmaker' "$P/airootfs/etc/lightdm/lightdm.conf.d/50-venom-live.conf" || fail "LightDM live não inicia Window Maker."
+for script in "$P/airootfs/usr/local/bin/venom-windowmaker-session"; do bash -n "$script" || fail "Sintaxe Bash inválida: $script"; done
 for package in base linux linux-firmware archlinux-keyring arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils nbd windowmaker xorg-server lightdm lightdm-gtk-greeter networkmanager bluez blueman gtk4 qt6-base tint2 xterm; do
   grep -Fxq "$package" "$PKG" || fail "Pacote obrigatório ausente do manifest live: $package"
 done
 for package in base linux linux-firmware archlinux-keyring pacman-mirrorlist grub efibootmgr mkinitcpio xorg-server lightdm lightdm-gtk-greeter networkmanager bluez pipewire windowmaker tint2 xterm; do
   grep -Fxq "$package" "$INSTALL_PKG" || fail "Pacote obrigatório ausente do manifest de instalação: $package"
 done
-if grep -Eiq '^(mate-session-manager|mate-panel|mate-control-center|caja|marco|xfce4|xfce4-panel|xfce4-session|xfdesktop|xfwm4|lxqt|lxqt-session|manjaro|endeavouros|biglinux|mhwd|pamac-gtk)$' "$PKG" "$INSTALL_PKG"; then
-  fail "Desktop adicional ou resíduo de outra distribuição no manifest."
-fi
-if grep -Eiq '^(archiso|mkinitcpio-archiso|mkinitcpio-nfs-utils|nbd|squashfs-tools|syslinux|base-devel|linux-headers|linux-lts|linux-lts-headers)$' "$INSTALL_PKG"; then
-  fail "Manifesto de instalação contém ferramentas exclusivas da ISO/live."
-fi
-grep -Fq 'install -Dm644 build/install-packages.x86_64 build/airootfs/usr/share/venom/install-packages.x86_64' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não prepara o manifesto de instalação."
-grep -Fxq 'installPackagesFile: /usr/share/venom/install-packages.x86_64' "$ROOT/installer/modules/venominstall/venominstall.conf" || fail "Calamares não aponta para o manifesto de instalação."
-grep -q 'installPackagesFile' "$ROOT/installer/modules/venominstall/main.py" || fail "Módulo VENOM não usa installPackagesFile."
-grep -q 'pacstrap' "$ROOT/installer/modules/venominstall/main.py" || fail "Instalador online pacstrap ausente."
-if grep -R -Eiq 'unpackfs|rsync|manjaro|endeavouros|biglinux|mhwd' "$ROOT/installer/settings.conf" "$ROOT/installer/modules/venominstall" "$PKG" "$INSTALL_PKG" "$P/pacman.conf"; then
-  fail "Referência proibida ou instalação por cópia detectada."
-fi
-[[ -s "$P/airootfs/usr/share/xsessions/windowmaker.desktop" ]] || fail "Sessão Window Maker do LightDM ausente."
-[[ -s "$P/airootfs/usr/local/bin/venom-windowmaker-session" ]] || fail "Launcher da sessão Window Maker ausente."
-[[ -s "$P/airootfs/usr/share/backgrounds/venom/venom-windowmaker.svg" ]] || fail "Wallpaper VENOM Window Maker ausente."
-grep -Fq '"/etc/WindowMaker/WMRootMenu"' "$P/airootfs/etc/skel/GNUstep/Defaults/WMRootMenu" || fail "Menu de usuário não aponta para o menu do sistema."
-grep -Fq '"VENOM OS" END' "$P/airootfs/etc/WindowMaker/WMRootMenu" || fail "Menu Window Maker não fecha o submenu VENOM."
-
-duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$PKG" | sort | uniq -d)"
-[[ -z "$duplicates" ]] || fail "Pacotes duplicados no manifest live: $duplicates"
-install_duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$INSTALL_PKG" | sort | uniq -d)"
-[[ -z "$install_duplicates" ]] || fail "Pacotes duplicados no manifest de instalação: $install_duplicates"
+if grep -Eiq '^(mate-session-manager|mate-panel|mate-control-center|caja|marco|xfce4|xfce4-panel|xfce4-session|xfdesktop|xfwm4|lxqt|lxqt-session|manjaro|endeavouros|biglinux|mhwd|pamac-gtk)$' "$PKG" "$INSTALL_PKG"; then fail "Desktop adicional ou resíduo de outra distribuição no manifest."; fi
+if grep -Eiq '^(archiso|mkinitcpio-archiso|mkinitcpio-nfs-utils|nbd|squashfs-tools|syslinux|base-devel|linux-headers|linux-lts|linux-lts-headers)$' "$INSTALL_PKG"; then fail "Manifesto de instalação contém ferramentas exclusivas da ISO/live."; fi
+for f in etc/lightdm/lightdm-gtk-greeter.conf etc/lightdm/lightdm.conf.d/50-venom-session.conf etc/skel/.config/gtk-3.0/settings.ini etc/skel/.config/gtk-4.0/settings.ini etc/skel/.config/tint2/tint2rc etc/skel/GNUstep/Defaults/WMRootMenu etc/WindowMaker/WMRootMenu usr/local/bin/venom-windowmaker-session usr/share/xsessions/windowmaker.desktop usr/share/backgrounds/venom/venom-windowmaker.svg; do
+  [[ -s "$OVERLAY/$f" ]] || fail "Arquivo Window Maker ausente no overlay: $f"
+done
+grep -q 'user-session=windowmaker' "$OVERLAY/etc/lightdm/lightdm.conf.d/50-venom-session.conf" || fail "Sessão Window Maker instalada não configurada."
+grep -q '"/etc/WindowMaker/WMRootMenu"' "$OVERLAY/etc/skel/GNUstep/Defaults/WMRootMenu" || fail "Menu do usuário não aponta para menu do sistema."
+grep -q '"VENOM OS" END' "$OVERLAY/etc/WindowMaker/WMRootMenu" || fail "Menu Window Maker não fecha o submenu."
+for manifest in "$PKG" "$INSTALL_PKG"; do
+  duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$manifest" | sort | uniq -d)"
+  [[ -z "$duplicates" ]] || fail "Pacotes duplicados em $manifest: $duplicates"
+done
 if command -v pacman >/dev/null 2>&1; then
   for manifest in "$PKG" "$INSTALL_PKG"; do
     while IFS= read -r package; do
@@ -70,4 +72,4 @@ if command -v pacman >/dev/null 2>&1; then
     done < "$manifest"
   done
 fi
-printf 'OK: perfil Archiso Window Maker, manifesto de instalação mínimo, BIOS/UEFI, locale, teclado, PXE e Calamares online passaram na validação estática.\n'
+printf 'OK: perfil Archiso, manifestos separados, overlay, Calamares online e desktop passaram na validação estática.\n'
