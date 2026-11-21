@@ -109,8 +109,10 @@ static void confirm_install(GObject *source, GAsyncResult *result, gpointer data
 static gboolean valid_field(const char *value, gboolean hostname) {
     if (!value || !*value) return FALSE;
     for (const char *p = value; *p; p++) {
-        if (hostname) { if (!(g_ascii_isalnum(*p) || *p == '-')) return FALSE; }
-        else if (!(g_ascii_islower(*p) || g_ascii_isdigit(*p) || *p == '_' || *p == '-')) return FALSE;
+        if (hostname) {
+            if (!(g_ascii_isalnum(*p) || *p == '-')) return FALSE;
+            if ((p == value || p[1] == '\\0') && !g_ascii_isalnum(*p)) return FALSE;
+        } else if (!(g_ascii_islower(*p) || g_ascii_isdigit(*p) || *p == '_' || *p == '-')) return FALSE;
     }
     return TRUE;
 }
@@ -125,7 +127,7 @@ static void install_clicked(GtkButton *button, gpointer data) {
     if (selected == GTK_INVALID_LIST_POSITION || selected >= count) {
         show_message(app, "Selecione um disco", "Nenhum disco de destino foi selecionado."); return;
     }
-    if (!valid_field(username, FALSE) || !valid_field(hostname, TRUE) ||
+    if (!valid_field(username, FALSE) || g_str_equal(username, "root") || g_str_equal(username, "nobody") || !valid_field(hostname, TRUE) ||
         strlen(password) < 8 || strchr(password, '\n')) {
         show_message(app, "Dados inválidos", "Informe usuário válido, hostname sem espaços e senha com pelo menos 8 caracteres."); return;
     }
