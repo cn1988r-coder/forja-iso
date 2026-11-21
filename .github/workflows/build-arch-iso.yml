@@ -35,6 +35,8 @@ jobs:
           scripts/build-pamac-aur.sh
           install -d build/airootfs/usr/share/venom/aur-repo
           cp -a /tmp/venom-aur-repo/. build/airootfs/usr/share/venom/aur-repo/
+          test -s build/airootfs/usr/share/venom/aur-repo/venom-aur.db
+          test -s build/airootfs/usr/share/venom/aur-repo/venom-aur.files
           pacman --config build/pacman.conf -Sy --noconfirm
           pacman --config build/pacman.conf -Si libpamac-aur pamac-aur
 
