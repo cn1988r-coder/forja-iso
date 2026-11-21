@@ -61,3 +61,14 @@ Elementos comuns às três edições:
 
 Esta seção registra a direção visual aprovada pelo usuário. As referências são especificações conceituais, não evidência de que todos os elementos já estejam implementados ou testados nas ISOs.
 
+## Preparação para retomada em 22/11/2026
+- Prioridade: concluir a edição VENOM XFCE e entregar uma ISO verificável para o usuário testar.
+- Correção do validador Calamares já está registrada no workflow, commit b943267bba0fb05a6152346ceca538c94f4b979a.
+- O arquivo de trigger foi atualizado no commit 9514ba889b3ca1b5db30ef1b81e5fb51e383af57, mas a consulta posterior não mostrou uma nova execução do Actions. Portanto, a compilação #46 ainda não começou.
+- Antes de iniciar: conferir se não há workflow ativo na branch e se o HEAD contém as correções esperadas.
+- Iniciar manualmente o workflow VENOM OS XFCE Arch ISO em feature/venom-community-xfce usando Run workflow (workflow_dispatch). Não alterar arquivos enquanto a compilação estiver ativa, devido ao cancelamento automático por concorrência.
+- Acompanhar a execução até o fim. Se passar: verificar testes BIOS/UEFI e artefato ISO, tamanho e SHA-256; só então fornecer o link do artefato para download.
+- Se falhar: ler o log da etapa com erro, corrigir e registrar o resultado real. Não declarar ISO pronta sem artefato validado.
+- Após o usuário baixar, instalar e testar a XFCE, revisar o resultado com ele. Só depois iniciar o desenvolvimento visual aprofundado do Window Maker, preservando a identidade VENOM e a personalidade OpenStep. A edição MATE permanece na sequência planejada.
+- Limitação operacional: não existe compilação em segundo plano nesta conversa. A preparação fica registrada no repositório; a execução precisa ser iniciada e acompanhada quando a conversa for retomada.
+
