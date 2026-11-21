@@ -58,6 +58,7 @@ libadwaita
 gnutls
 desktop-file-utils
 dbus-glib
+libsoup3
 archlinux-appstream-data
 appstream-glib
 appstream
