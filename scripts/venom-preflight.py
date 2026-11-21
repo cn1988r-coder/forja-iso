@@ -122,12 +122,12 @@ def main():
             if name in aur_names and name in live and name in installed
             else f"Pacote AUR ausente do manifesto AUR/Live/instalação: {name}")
     must_live = {"base", "linux", "linux-firmware", "archlinux-keyring",
-                 "mkinitcpio-archiso", "syslinux", "grub", "xfce4",
+                 "mkinitcpio-archiso", "syslinux", "grub", "xfce4", "xfce4-docklike-plugin",
                  "lightdm", "lightdm-gtk-greeter", "networkmanager",
                  "bluez", "pipewire"}
     must_install = {"base", "linux", "linux-firmware", "archlinux-keyring",
                     "grub", "efibootmgr", "xorg-server", "lightdm",
-                    "xfce4", "networkmanager"}
+                    "xfce4", "xfce4-docklike-plugin", "networkmanager"}
     for name in sorted(must_live - live):
         add("ERROR", "Pacotes", f"Pacote obrigatório ausente no live: {name}")
     for name in sorted(must_install - installed):
@@ -283,6 +283,31 @@ def main():
         "build/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml"
     ):
         require_file(item, "XFCE")
+
+    # VENOM Docklike Taskbar and panel identity.
+    for rel in (
+        "build/airootfs/etc/xdg/xfce4/panel/docklike.rc",
+        "build/install-overlay/etc/xdg/xfce4/panel/docklike.rc",
+    ):
+        content = read(rel) or ""
+        valid = ("pinned=firefox.desktop;thunar.desktop;" in content and
+                 "indicatorColor=rgb(22,143,255)" in content)
+        add("OK" if valid else "ERROR", "Docklike",
+            f"Configuração Docklike presente: {rel}" if valid else
+            f"Configuração Docklike ausente/incompleta: {rel}")
+    for rel in (
+        "build/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml",
+        "build/install-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml",
+    ):
+        try:
+            root = ET.fromstring(read(rel) or "")
+            dock = root.find("./property[@name='plugins']/property[@name='plugin-11']")
+            valid = dock is not None and dock.attrib.get("value") == "docklike"
+        except ET.ParseError:
+            valid = False
+        add("OK" if valid else "ERROR", "Docklike",
+            f"Docklike no nível correto do painel: {rel}" if valid else
+            f"Docklike ausente ou aninhada incorretamente: {rel}")
 
     # Shell and Python syntax.
     shell_files = []
