@@ -18,7 +18,7 @@ fail() {
 
 for package in networkmanager network-manager-applet bluez bluez-utils blueman \
                pipewire pipewire-audio pipewire-alsa pipewire-pulse wireplumber \
-               mate-panel mate-media; do
+               mate-panel mate-media papirus-icon-theme; do
   grep -Fxq "$package" "$ROOT/build/packages.x86_64" ||
     fail "pacote live ausente: $package"
   grep -Fxq "$package" "$ROOT/build/install-packages.x86_64" ||
@@ -34,6 +34,11 @@ live_layout_hash="$(sha256sum "$LIVE_LAYOUT" | awk '{print $1}')"
 installed_layout_hash="$(sha256sum "$INSTALLED_LAYOUT" | awk '{print $1}')"
 [[ "$live_layout_hash" == "$installed_layout_hash" ]] ||
   fail "layout do painel live e instalado divergem"
+
+live_dconf_hash="$(sha256sum "$LIVE_DCONF" | awk '{print $1}')"
+installed_dconf_hash="$(sha256sum "$INSTALLED_DCONF" | awk '{print $1}')"
+[[ "$live_dconf_hash" == "$installed_dconf_hash" ]] ||
+  fail "preferências dconf live e instaladas divergem"
 
 for layout in "$LIVE_LAYOUT" "$INSTALLED_LAYOUT"; do
   [[ "$(grep -Fc 'NotificationAreaAppletFactory::NotificationArea' "$layout")" -eq 1 ]] ||
@@ -55,36 +60,59 @@ done
 grep -Fq 'systemctl enable NetworkManager.service bluetooth.service lightdm.service' \
   "$LIVE/root/venom-live-setup" ||
   fail "serviços de rede, Bluetooth e LightDM não são habilitados na sessão live"
+grep -Fq 'systemctl start NetworkManager.service' "$LIVE/root/venom-live-setup" ||
+  fail "NetworkManager não é iniciado na sessão live"
+grep -Fq 'systemctl start bluetooth.service' "$LIVE/root/venom-live-setup" ||
+  fail "Bluetooth não é iniciado na sessão live"
 
 for service in NetworkManager bluetooth; do
   link="$OVERLAY/etc/systemd/system/multi-user.target.wants/$service.service"
   [[ -L "$link" ]] || fail "serviço $service não está habilitado no overlay instalado"
 done
 
+require_arch_file() {
+  local package="$1"
+  local expected_path="$2"
+
+  pacman -Fl "$package" |
+    awk -v expected="$expected_path" '$2 == expected { found=1 } END { exit !found }' ||
+    fail "arquivo oficial ausente: $package/$expected_path"
+}
+
 if command -v pacman >/dev/null 2>&1; then
-  if pacman -Fl network-manager-applet >/dev/null 2>&1; then
-    pacman -Fl network-manager-applet | grep -Fq 'etc/xdg/autostart/nm-applet.desktop' ||
-      fail "pacote oficial não fornece autostart do nm-applet"
-    pacman -Fl network-manager-applet | grep -Fq 'usr/bin/nm-applet' ||
-      fail "executável nm-applet ausente no pacote oficial"
-    pacman -Fl blueman | grep -Fq 'etc/xdg/autostart/blueman.desktop' ||
-      fail "pacote oficial não fornece autostart do Blueman"
-    pacman -Fl blueman | grep -Fq 'usr/bin/blueman-applet' ||
-      fail "executável blueman-applet ausente no pacote oficial"
-    pacman -Fl networkmanager | grep -Fq 'usr/lib/systemd/system/NetworkManager.service' ||
-      fail "serviço NetworkManager.service ausente no pacote oficial"
-    pacman -Fl bluez | grep -Fq 'usr/lib/systemd/system/bluetooth.service' ||
-      fail "serviço bluetooth.service ausente no pacote oficial"
-    pacman -Fl mate-media | grep -Fq 'usr/share/mate-panel/applets/org.mate.applets.GvcApplet.mate-panel-applet' ||
-      fail "pacote oficial não fornece o applet Gvc do painel"
-    pacman -Fl mate-media | grep -Fq 'etc/xdg/autostart/mate-volume-control-status-icon.desktop' ||
-      fail "arquivo de autostart do ícone de volume não foi localizado para mascaramento"
-  else
-    printf 'AVISO: banco de arquivos do Pacman indisponível; verificação dos arquivos upstream foi ignorada.\n'
-  fi
+  pacman -Fl network-manager-applet >/dev/null 2>&1 ||
+    fail "banco de arquivos dos repositórios Arch indisponível; execute pacman -Fy antes da validação"
+
+  # REDE: autostart, executável e ícones de estado Wi-Fi/Ethernet.
+  require_arch_file network-manager-applet etc/xdg/autostart/nm-applet.desktop
+  require_arch_file network-manager-applet usr/bin/nm-applet
+  require_arch_file network-manager-applet usr/share/icons/hicolor/22x22/apps/nm-device-wired.png
+  require_arch_file network-manager-applet usr/share/icons/hicolor/22x22/apps/nm-no-connection.png
+
+  # BLUETOOTH: autostart, applet, ícone de bandeja e serviço BlueZ.
+  require_arch_file blueman etc/xdg/autostart/blueman.desktop
+  require_arch_file blueman usr/bin/blueman-applet
+  require_arch_file blueman usr/share/icons/hicolor/22x22/status/blueman-tray.png
+  require_arch_file bluez usr/lib/systemd/system/bluetooth.service
+
+  # VOLUME/ÁUDIO: applet MATE, ativação D-Bus, mascaramento do ícone duplicado
+  # e ícones de volume fornecidos pelo tema Papirus-Dark selecionado.
+  require_arch_file mate-media usr/share/mate-panel/applets/org.mate.applets.GvcApplet.mate-panel-applet
+  require_arch_file mate-media usr/share/dbus-1/services/org.mate.panel.applet.GvcAppletFactory.service
+  require_arch_file mate-media etc/xdg/autostart/mate-volume-control-status-icon.desktop
+  require_arch_file papirus-icon-theme usr/share/icons/Papirus-Dark/22x22/actions/audio-volume-high.svg
+  require_arch_file papirus-icon-theme usr/share/icons/Papirus-Dark/22x22/actions/audio-volume-muted.svg
+
+  # Serviços e pilha de áudio dos repositórios oficiais.
+  require_arch_file networkmanager usr/lib/systemd/system/NetworkManager.service
+  require_arch_file pipewire usr/lib/systemd/user/pipewire.service
+  require_arch_file pipewire-pulse usr/lib/systemd/user/pipewire-pulse.service
+  require_arch_file wireplumber usr/lib/systemd/user/wireplumber.service
+else
+  printf 'AVISO: Pacman ausente; a conferência dos arquivos oficiais foi ignorada.\n'
 fi
 
-printf 'OK: REDE: NetworkManager, nm-applet e Notification Area configurados estaticamente.\n'
-printf 'OK: BLUETOOTH: BlueZ, Blueman, autostart e serviço configurados estaticamente.\n'
-printf 'OK: VOLUME/ÁUDIO: Gvc no painel, PipeWire com áudio e ícone duplicado desativado.\n'
+printf 'OK: REDE: pacote, autostart, executável, ícones, Notification Area e serviço conferidos estaticamente.\n'
+printf 'OK: BLUETOOTH: BlueZ, Blueman, autostart, executável, ícone, Notification Area e serviço conferidos estaticamente.\n'
+printf 'OK: VOLUME/ÁUDIO: Gvc, ativação D-Bus, PipeWire, WirePlumber, ícones Papirus e ausência de ícone duplicado conferidos estaticamente.\n'
 printf 'PENDENTE: comprovar os três indicadores visíveis e funcionais após login e reinicialização em sessão gráfica/VM.\n'

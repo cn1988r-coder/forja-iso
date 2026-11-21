@@ -21,6 +21,10 @@ required=(
   "$P/airootfs/etc/locale.gen"
   "$P/airootfs/etc/vconsole.conf"
   "$P/airootfs/etc/X11/xorg.conf.d/00-keyboard.conf"
+  "$OVERLAY/etc/locale.conf"
+  "$OVERLAY/etc/locale.gen"
+  "$OVERLAY/etc/vconsole.conf"
+  "$OVERLAY/etc/X11/xorg.conf.d/00-keyboard.conf"
   "$P/airootfs/root/.automated_script.sh"
   "$P/airootfs/root/venom-live-setup"
   "$P/airootfs/usr/share/mate-panel/layouts/venom.layout"
@@ -63,28 +67,51 @@ done
   [[ " ${airootfs_image_tool_options[*]} " == *" zstd "* ]] || fail "SquashFS deve usar Zstandard"
 )
 
-grep -Fxq 'LANG=pt_BR.UTF-8' "$P/airootfs/etc/locale.conf" || fail "locale pt_BR ausente"
-grep -Fxq 'pt_BR.UTF-8 UTF-8' "$P/airootfs/etc/locale.gen" || fail "locale pt_BR não habilitado"
-grep -Fxq 'KEYMAP=br-abnt2' "$P/airootfs/etc/vconsole.conf" || fail "teclado de console ABNT2 ausente"
-grep -Fq 'Option "XkbLayout" "br"' "$P/airootfs/etc/X11/xorg.conf.d/00-keyboard.conf" || fail "layout X11 Brasil ausente"
-grep -Fq 'Option "XkbVariant" "abnt2"' "$P/airootfs/etc/X11/xorg.conf.d/00-keyboard.conf" || fail "variante X11 ABNT2 ausente"
-grep -Fq 'Server = https://geo.mirror.pkgbuild.com/' "$P/pacman.conf" || fail "mirror oficial Arch ausente"
-grep -Fq 'Server = https://geo.mirror.pkgbuild.com/' "$P/airootfs/etc/pacman.conf" || fail "mirror oficial Arch ausente no live"
-grep -Fq 'COMPRESSION="zstd"' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "compressão do initramfs inválida"
+for root in "$P/airootfs" "$OVERLAY"; do
+  grep -Fxq 'LANG=pt_BR.UTF-8' "$root/etc/locale.conf" ||
+    fail "locale pt_BR ausente em $root"
+  grep -Fxq 'pt_BR.UTF-8 UTF-8' "$root/etc/locale.gen" ||
+    fail "locale pt_BR não habilitado em $root"
+  active_locales="$(grep -Ev '^[[:space:]]*(#|$)' "$root/etc/locale.gen")"
+  [[ "$active_locales" == "pt_BR.UTF-8 UTF-8" ]] ||
+    fail "a configuração deve habilitar exclusivamente pt_BR.UTF-8 em $root"
+  grep -Fxq 'KEYMAP=br-abnt2' "$root/etc/vconsole.conf" ||
+    fail "teclado de console ABNT2 ausente em $root"
+  grep -Fq 'Option "XkbLayout" "br"' "$root/etc/X11/xorg.conf.d/00-keyboard.conf" ||
+    fail "layout X11 Brasil ausente em $root"
+  grep -Fq 'Option "XkbVariant" "abnt2"' "$root/etc/X11/xorg.conf.d/00-keyboard.conf" ||
+    fail "variante X11 ABNT2 ausente em $root"
+done
+
+for relative in etc/locale.conf etc/locale.gen etc/vconsole.conf \
+                etc/X11/xorg.conf.d/00-keyboard.conf; do
+  live_hash="$(sha256sum "$P/airootfs/$relative" | awk '{print $1}')"
+  installed_hash="$(sha256sum "$OVERLAY/$relative" | awk '{print $1}')"
+  [[ "$live_hash" == "$installed_hash" ]] ||
+    fail "configuração live e instalada diverge: $relative"
+done
+
+grep -Fq 'Server = https://geo.mirror.pkgbuild.com/' "$P/pacman.conf" ||
+  fail "mirror oficial Arch ausente"
+grep -Fq 'Server = https://geo.mirror.pkgbuild.com/' "$P/airootfs/etc/pacman.conf" ||
+  fail "mirror oficial Arch ausente no live"
+grep -Fq 'COMPRESSION="zstd"' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" ||
+  fail "compressão do initramfs inválida"
 
 live_required=(
   base linux linux-firmware archlinux-keyring arch-install-scripts
   mkinitcpio-archiso mkinitcpio-nfs-utils nbd grub efibootmgr
   gtk4 json-glib lightdm networkmanager network-manager-applet
-  bluez bluez-utils blueman pipewire pipewire-audio pipewire-pulse
-  wireplumber mate-session-manager mate-panel mate-media caja marco
+  bluez bluez-utils blueman pipewire pipewire-audio pipewire-alsa
+  pipewire-pulse wireplumber mate-session-manager mate-panel mate-media
+  caja marco papirus-icon-theme
 )
 installed_required=(
   base linux linux-firmware archlinux-keyring pacman-mirrorlist
   grub efibootmgr mkinitcpio xorg-server lightdm lightdm-gtk-greeter
   networkmanager network-manager-applet bluez bluez-utils blueman
-  pipewire pipewire-audio pipewire-pulse wireplumber
-  mate-session-manager mate-panel mate-media caja marco
+  pipewire pipewire-audio pipewire-alsa pipewire-pulse wireplumber
+  mate-session-manager mate-panel mate-media caja marco papirus-icon-theme
 )
 for package in "${live_required[@]}"; do
   grep -Fxq "$package" "$PKG" || fail "pacote live ausente: $package"
@@ -112,6 +139,10 @@ for relative in \
   etc/xdg/autostart/mate-volume-control-status-icon.desktop \
   etc/systemd/system/multi-user.target.wants/NetworkManager.service \
   etc/systemd/system/multi-user.target.wants/bluetooth.service \
+  etc/locale.conf \
+  etc/locale.gen \
+  etc/vconsole.conf \
+  etc/X11/xorg.conf.d/00-keyboard.conf \
   usr/local/bin/venom-mate-first-login \
   usr/share/mate-panel/layouts/venom.layout \
   usr/share/backgrounds/venom/venom-wallpaper.svg \
@@ -136,16 +167,17 @@ grep -Fq '"lsblk"' "$ROOT/installer/src/disk.c" ||
   fail "descoberta de discos somente leitura ausente"
 grep -Fq 'aguarda autorização expressa' "$ROOT/.github/workflows/build-arch-iso.yml" ||
   fail "workflow de mídia não informa o bloqueio"
-if grep -Eiq 'mkarchiso|qemu-system|upload-artifact' "$ROOT/.github/workflows/build-arch-iso.yml"; then
-  fail "workflow bloqueada contém etapa de compilação/publicação"
+if grep -Eiq 'mkarchiso|qemu-system|upload-artifact|^[[:space:]]*(push|schedule):' \
+    "$ROOT/.github/workflows/build-arch-iso.yml"; then
+  fail "workflow de mídia não está completamente bloqueada"
 fi
 
-# Os tokens são divididos no código para que a própria validação possa procurar
-# referências residuais sem se encontrar no resultado.
+# A varredura cobre todas as áreas operacionais e todos os documentos do projeto.
+# Os termos são divididos para que o próprio validador não encontre suas regras.
 for forbidden in "cala""mares" "endea""vouros"; do
   scan_paths=(
     "$ROOT/AGENTS.md" "$ROOT/README.md" "$ROOT/build" "$ROOT/installer"
-    "$ROOT/scripts" "$ROOT/docs/PROJECT-CONTINUITY.md" "$ROOT/.github/workflows"
+    "$ROOT/scripts" "$ROOT/docs" "$ROOT/.github/workflows"
   )
   while IFS= read -r -d '' file; do
     if output="$(grep -I -n -i -F "$forbidden" "$file" 2>&1)"; then
@@ -169,7 +201,7 @@ if command -v pacman >/dev/null 2>&1; then
   done
 fi
 
-pass "perfil Archiso, locale pt_BR e teclado ABNT2"
+pass "perfil Archiso, locale pt_BR exclusivo e teclado ABNT2 no live e no overlay instalado"
 pass "manifestos live e instalado com pacotes oficiais"
 pass "instalador C/GTK4 compilável e instalação ainda bloqueada"
 pass "serviços NetworkManager/Bluetooth preparados para live e instalação"

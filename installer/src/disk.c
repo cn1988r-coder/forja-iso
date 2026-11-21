@@ -4,6 +4,77 @@
 #include <json-glib/json-glib.h>
 #include <string.h>
 
+static const gchar *
+json_string_member(JsonObject *object, const gchar *name)
+{
+    JsonNode *node = json_object_get_member(object, name);
+
+    if (node == NULL || !JSON_NODE_HOLDS_VALUE(node) ||
+        json_node_get_value_type(node) != G_TYPE_STRING) {
+        return NULL;
+    }
+
+    return json_node_get_string(node);
+}
+
+static gboolean
+json_integer_node(JsonNode *node, gint64 *value)
+{
+    GType value_type;
+
+    if (node == NULL || JSON_NODE_HOLDS_NULL(node)) {
+        *value = 0;
+        return TRUE;
+    }
+
+    if (!JSON_NODE_HOLDS_VALUE(node)) {
+        return FALSE;
+    }
+
+    value_type = json_node_get_value_type(node);
+    if (value_type != G_TYPE_INT64 && value_type != G_TYPE_INT) {
+        return FALSE;
+    }
+
+    *value = json_node_get_int(node);
+    return TRUE;
+}
+
+static gboolean
+json_boolean_node(JsonNode *node, gboolean *value)
+{
+    GType value_type;
+    gint64 integer;
+
+    if (node == NULL || JSON_NODE_HOLDS_NULL(node)) {
+        *value = FALSE;
+        return TRUE;
+    }
+
+    if (!JSON_NODE_HOLDS_VALUE(node)) {
+        return FALSE;
+    }
+
+    value_type = json_node_get_value_type(node);
+    if (value_type == G_TYPE_BOOLEAN) {
+        *value = json_node_get_boolean(node);
+        return TRUE;
+    }
+
+    /* Compatibilidade com versões/saídas que representem ro como 0 ou 1. */
+    if (value_type == G_TYPE_INT64 || value_type == G_TYPE_INT) {
+        integer = json_node_get_int(node);
+        if (integer != 0 && integer != 1) {
+            return FALSE;
+        }
+
+        *value = integer != 0;
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 void
 venom_disk_free(gpointer data)
 {
@@ -62,41 +133,47 @@ venom_disk_list_from_json(const gchar *json, GError **error)
         const gchar *path;
         const gchar *model;
         gint64 size_bytes = 0;
-        gint64 read_only = 0;
+        gboolean read_only = FALSE;
         VenomDisk *disk;
 
-        if (item == NULL || !json_object_has_member(item, "type")) {
+        if (item == NULL) {
             continue;
         }
 
-        type = json_object_get_string_member(item, "type");
+        type = json_string_member(item, "type");
+        path = json_string_member(item, "path");
         if (g_strcmp0(type, "disk") != 0 ||
-            !json_object_has_member(item, "path")) {
+            path == NULL || !g_str_has_prefix(path, "/dev/")) {
             continue;
         }
 
-        path = json_object_get_string_member(item, "path");
-        if (path == NULL || !g_str_has_prefix(path, "/dev/")) {
-            continue;
+        if (!json_integer_node(json_object_get_member(item, "size"),
+                               &size_bytes) ||
+            size_bytes < 0) {
+            g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_INVALID_DATA,
+                                "O tamanho de um disco contém um valor inválido.");
+            g_ptr_array_unref(result);
+            g_object_unref(parser);
+            return NULL;
         }
 
-        model = json_object_has_member(item, "model")
-                    ? json_object_get_string_member(item, "model")
-                    : NULL;
-        if (json_object_has_member(item, "size")) {
-            size_bytes = json_object_get_int_member(item, "size");
-        }
-        if (json_object_has_member(item, "ro")) {
-            read_only = json_object_get_int_member(item, "ro");
+        if (!json_boolean_node(json_object_get_member(item, "ro"),
+                               &read_only)) {
+            g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_INVALID_DATA,
+                                "O estado somente leitura de um disco contém um valor inválido.");
+            g_ptr_array_unref(result);
+            g_object_unref(parser);
+            return NULL;
         }
 
+        model = json_string_member(item, "model");
         disk = g_new0(VenomDisk, 1);
         disk->path = g_strdup(path);
         disk->model = g_strdup(model != NULL && *model != '\0'
                                    ? model
                                    : "Modelo não informado");
-        disk->size_bytes = size_bytes > 0 ? (guint64) size_bytes : 0;
-        disk->read_only = read_only != 0;
+        disk->size_bytes = (guint64) size_bytes;
+        disk->read_only = read_only;
         g_ptr_array_add(result, disk);
     }
 
