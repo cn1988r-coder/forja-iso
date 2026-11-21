@@ -20,7 +20,7 @@ Atualizado em 20/11/2026.
 
 Branch de trabalho: `optimize/venom-iso-size`.
 
-HEAD verificado: `af236c33d84a63e2076e793ed3469660b7346285`.
+HEAD auditado antes desta atualização documental: `af236c33d84a63e2076e793ed3469660b7346285`.
 
 ### Perfil Archiso
 
@@ -52,7 +52,7 @@ Portanto, **não é um instalador funcional** e não pode ser anunciado como tal
 
 ### Pipelines
 
-O workflow legado `.github/workflows/build-manjaro-iso.yml` ainda usa `manjaro/manjaro-iso-action` e o perfil Manjaro `venom-mate`. Esse fluxo não constrói a arquitetura Arch definida e não deve ser usado como prova de progresso da VENOM OS independente.
+Os workflows legados `.github/workflows/build-manjaro-iso.yml` e `.github/workflows/validate.yml` foram desativados para execuções automáticas e não constroem nem validam a arquitetura Arch definida. O primeiro ainda é mantido apenas como referência de pipeline antigo; não deve ser usado como prova de progresso da VENOM OS independente. Não existe ainda um workflow de build Archiso aprovado.
 
 Os arquivos e a ISO Manjaro MATE #21 permanecem apenas como referência histórica de desktop. Não confundir essa referência com a edição Arch final.
 
@@ -79,4 +79,5 @@ Os arquivos e a ISO Manjaro MATE #21 permanecem apenas como referência históri
 - Arquivos de arquitetura, perfil, instalador e workflows inspecionados.
 - Nenhuma ISO foi compilada, publicada ou declarada pronta.
 - A ISO Manjaro MATE #21 não foi alterada.
+- Os workflows automáticos legados de build e validação Manjaro foram desativados na branch de trabalho.
 - Nenhuma outra branch ou `main` foi modificada.
