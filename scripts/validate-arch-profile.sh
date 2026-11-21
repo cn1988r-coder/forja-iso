@@ -5,7 +5,7 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 PROFILE="$ROOT/build"
 PACKAGES="$PROFILE/packages.x86_64"
 fail() { printf 'FALHA: %s\n' "$*" >&2; exit 1; }
-for path in profiledef.sh pacman.conf packages.x86_64 airootfs/etc/pacman.conf syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/root/.automated_script.sh airootfs/root/venom-live-setup; do
+for path in profiledef.sh pacman.conf packages.x86_64 install-packages.x86_64 install-packages.x86_64 airootfs/etc/pacman.conf syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/root/.automated_script.sh airootfs/root/venom-live-setup; do
   [[ -f "$PROFILE/$path" ]] || fail "Arquivo obrigatório ausente: build/$path"
 done
 for script in "$PROFILE/profiledef.sh" "$PROFILE/airootfs/root/.automated_script.sh" "$PROFILE/airootfs/root/venom-live-setup"; do bash -n "$script" || fail "Sintaxe Bash inválida: $script"; done
@@ -33,6 +33,8 @@ done
 if grep -Eiq 'manjaro|endeavouros|biglinux' "$PACKAGES" "$PROFILE/pacman.conf"; then
   fail "Foi encontrada referência de distribuição proibida no perfil."
 fi
+install_duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$INSTALL_PKG" | sort | uniq -d)"
+[[ -z "$install_duplicates" ]] || fail "Pacotes duplicados no manifesto de instalação: $install_duplicates"
 duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$PACKAGES" | sort | uniq -d)"
 [[ -z "$duplicates" ]] || fail "Pacotes duplicados: $duplicates"
 if command -v pacman >/dev/null 2>&1; then
