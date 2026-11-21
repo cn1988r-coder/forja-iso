@@ -21,6 +21,7 @@ python -m py_compile "$ROOT/installer/modules/venominstall/main.py" || fail "Sin
   [[ "$iso_name" == venom && "$arch" == x86_64 ]] || fail "Identidade/arquitetura inválida."
   [[ " ${bootmodes[*]} " == *" bios.syslinux "* && " ${bootmodes[*]} " == *" uefi.grub "* ]] || fail "Boot BIOS/UEFI incompleto."
   [[ "$packages" == packages.x86_64 ]] || fail "Manifest live incorreto."
+  [[ "$kernel_params_x86_64" == *"systemd.firstboot=headless"* ]] || fail "First boot do live não pode solicitar configuração interativa."
   [[ " ${airootfs_image_tool_options[*]} " == *" zstd "* ]] || fail "SquashFS deve usar zstd."
 )
 grep -Fxq 'LANG=pt_BR.UTF-8' "$P/airootfs/etc/locale.conf" || fail "Locale incorreto."
