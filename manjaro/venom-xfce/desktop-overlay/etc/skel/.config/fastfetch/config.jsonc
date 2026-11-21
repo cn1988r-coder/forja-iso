@@ -14,32 +14,32 @@
       "type": "title",
       "format": "{user-name}@{host-name}",
       "key": "VENOM",
-      "keyColor": "bright-white"
+      "keyColor": "bright_white"
     },
     {
       "type": "os",
       "key": "OS",
-      "keyColor": "bright-black"
+      "keyColor": "bright_black"
     },
     {
       "type": "host",
       "key": "MACHINE",
-      "keyColor": "bright-black"
+      "keyColor": "bright_black"
     },
     {
       "type": "kernel",
       "key": "KERNEL",
-      "keyColor": "bright-black"
+      "keyColor": "bright_black"
     },
     {
       "type": "uptime",
       "key": "UPTIME",
-      "keyColor": "bright-black"
+      "keyColor": "bright_black"
     },
     {
       "type": "packages",
       "key": "PACKAGES",
-      "keyColor": "bright-black"
+      "keyColor": "bright_black"
     },
     "break",
     {
@@ -71,22 +71,22 @@
     {
       "type": "cpu",
       "key": "CPU",
-      "keyColor": "bright-white"
+      "keyColor": "bright_white"
     },
     {
       "type": "gpu",
       "key": "GPU",
-      "keyColor": "bright-white"
+      "keyColor": "bright_white"
     },
     {
       "type": "memory",
       "key": "MEMORY",
-      "keyColor": "bright-white"
+      "keyColor": "bright_white"
     },
     {
       "type": "disk",
       "key": "DISK",
-      "keyColor": "bright-white"
+      "keyColor": "bright_white"
     },
     "break"
   ]
