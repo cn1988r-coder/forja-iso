@@ -36,9 +36,9 @@ jobs:
 
       - name: Compile GTK4 installer and stage live system
         run: |
-          meson setup installer/.build installer --prefix=/usr
-          meson compile -C installer/.build
-          DESTDIR="$GITHUB_WORKSPACE/build/airootfs" meson install -C installer/.build
+          meson setup "$RUNNER_TEMP/venom-installer-build" installer --prefix=/usr
+          meson compile -C "$RUNNER_TEMP/venom-installer-build"
+          DESTDIR="$GITHUB_WORKSPACE/build/airootfs" meson install -C "$RUNNER_TEMP/venom-installer-build"
 
       - name: Build VENOM OS ISO with official Archiso
         run: |
