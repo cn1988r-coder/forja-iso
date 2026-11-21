@@ -1,0 +1,24 @@
+# VENOM Window Maker panel
+panel_items = TSC
+panel_monitor = all
+panel_position = bottom center horizontal
+panel_size = 100% 34
+panel_margin = 0 0
+panel_padding = 8 2 8
+panel_background_id = 1
+wm_menu = 0
+panel_dock = 0
+panel_layer = top
+panel_background_id = 1
+urgent_nb_of_blink = 7
+autohide = 0
+strut_policy = follow_size
+mouse_effects = 0
+rounded = 0
+border_width = 0
+background_color = #080d14 92
+foreground_color = #e5edf5 100
+font = Noto Sans 9
+clock_format = %H:%M
+clock_font = Noto Sans 9
+clock_tooltip = %A, %d/%m/%Y
