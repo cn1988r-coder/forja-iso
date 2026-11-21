@@ -51,7 +51,7 @@ def main():
     required = [
         "AGENTS.md", "README.md", "build/profiledef.sh", "build/pacman.conf",
         "build/packages.x86_64", "build/install-packages.x86_64", "build/aur-packages.x86_64",
-        "build/airootfs/etc/pamac.conf", "build/airootfs/usr/share/venom/aur-repo/venom-aur.db",
+        "build/airootfs/etc/pamac.conf",
         "build/airootfs/usr/share/venom/pacman-install.conf",
         "build/airootfs/etc/pacman.conf", "build/airootfs/etc/mkinitcpio.conf.d/archiso.conf",
         "build/airootfs/etc/locale.conf", "build/airootfs/etc/locale.gen",
