@@ -5,6 +5,7 @@ linux-firmware
 archlinux-keyring
 pacman-mirrorlist
 sudo
+timeshift
 bash-completion
 ca-certificates
 curl
