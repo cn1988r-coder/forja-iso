@@ -11,6 +11,8 @@ linux-lts
 linux-lts-headers
 mkinitcpio
 mkinitcpio-archiso
+mkinitcpio-nfs-utils
+nbd
 squashfs-tools
 syslinux
 grub
