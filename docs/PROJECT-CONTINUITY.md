@@ -1,3 +1,84 @@
+# Atualização de continuidade em 21/11/2026 20:50 BRT
+
+## Referência desta execução
+
+- Repositório: `cn1988r-coder/forja-iso`.
+- Branch exclusiva: `optimize/venom-iso-size`.
+- HEAD-base antes deste incremento: `76abc033ab48ad37349ac8a1bd25c701829dd55b`.
+- HEAD de implementação antes desta atualização documental: `791662d326dff87cc09a0ad3391750bc2437f3be`.
+- Nenhuma outra branch foi alterada.
+
+## Alterações de código
+
+- Adicionado `installer/src/plan.h` e `installer/src/plan.c`: modelo declarativo de plano de partições, sem chamadas privilegiadas ou escrita em disco.
+- Plano automático UEFI: GPT, EFI FAT32 de 1 GiB e raiz ext4; plano automático BIOS: GPT, partição BIOS GRUB de 2 MiB e raiz ext4.
+- Plano personalizado inicial: EFI/BIOS boot fixo, tamanho de raiz definido em GiB e swap opcional. Validação de capacidade, alinhamento de 1 MiB, tamanho mínimo, duplicatas, papel das partições, caminho de dispositivo e discos somente leitura.
+- Adicionados `installer/tests/test-plan.c` e alvo Meson próprio para testes do planejador.
+- A interface GTK4 agora oferece seleção de modo automático/personalizado, detecta UEFI/BIOS e apresenta uma prévia em Português do Brasil com partições, tamanhos, sistemas de arquivos e pontos de montagem.
+- O botão “Instalar VENOM OS” continua desabilitado. O planejador e a prévia não executam particionamento, formatação, montagem ou escrita.
+- Atualizada a API de CSS GTK4 para `gtk_css_provider_load_from_string`, removendo a chamada depreciada identificada na primeira compilação.
+- Atualizados `AGENTS.md`, `README.md`, `build/README.md` e `installer/README.md` para descrever somente o que existe.
+
+## Commits desta execução
+
+- `65122c6a0ed86581aee346cf42514d93c2f6fdaf`: cabeçalho do planejador.
+- `3349a1e3ab5335b8b3c33cd1ceef0617e3377713`: implementação declarativa.
+- `40d86a80cd9cb13ae7cad09901ee316ed9007989`: testes do planejador.
+- `4912c2620448db119a6e9c26fa099c8452d63d79` e `c11d5f08cb1952a8fbf3f69a5b3a76065f3b11c3`: correção e teste do modo automático.
+- `2b1f41fa0d50d3c8a5d85447e3c16930f2aee308`: integração Meson.
+- `6a8c73e9b376e75a1727d12a5dc758ac6f8299bf`: validações estáticas do planejador.
+- `87490092e8e24c81b63c17f9f2fb57fd5afe62eb`: documentação do primeiro incremento do planejador.
+- `fc0ca6f57f8337ae5db80ceef36e623b169ff2fb`: API GTK4 de CSS atual.
+- `a1b9d1bf43b8179bdf05edcd03ce4bed46e6c9ba` e `791662d326dff87cc09a0ad3391750bc2437f3be`: prévia gráfica e correção de escapes/seleção inicial.
+- Commits de documentação e continuidade subsequentes permanecem nesta mesma branch.
+
+## Validação realmente executada
+
+- Workflow de validação #44962821058, commit `87490092e8e24c81b63c17f9f2fb57fd5afe62eb`: **sucesso**.
+- Perfil Archiso, locale exclusivo `pt_BR.UTF-8`, teclado ABNT2, manifestos oficiais e bloqueio da mídia: aprovados.
+- Varredura de referências operacionais proibidas nas áreas do produto/documentação: aprovada.
+- Teste estático do painel MATE: aprovado.
+- Compilação C/GTK4: aprovada.
+- Testes Meson: 2 executáveis aprovados (parser de discos e planejador de partições).
+- ShellCheck dos scripts ativos: aprovado.
+- A primeira compilação registrou aviso de API GTK4 depreciada em `main.c`; a chamada foi substituída por `gtk_css_provider_load_from_string`. A validação posterior da prévia gráfica deve confirmar a ausência do aviso.
+
+## Painel MATE: resultados individuais
+
+1. **REDE:** validação estática aprovada. Pacote `network-manager-applet`, `nm-applet`, autostart oficial, ícones de conexão, Notification Area e serviço NetworkManager conferidos no perfil live e no sistema instalado.
+2. **BLUETOOTH:** validação estática aprovada. BlueZ, Blueman, `blueman-applet`, `blueman-manager`, autostart, ícone de bandeja, Notification Area e serviço Bluetooth conferidos.
+3. **VOLUME/ÁUDIO:** validação estática aprovada. Applet Gvc do `mate-media`, biblioteca e controle de dispositivos, PipeWire, PipeWire Pulse, WirePlumber, sockets, ícones Papirus e desativação do ícone de status duplicado conferidos.
+
+**Pendente para os três:** não houve sessão gráfica/VM com login e reinicialização. Portanto, visibilidade e funcionamento real dos indicadores não estão comprovados.
+
+## Pendências e bloqueios
+
+- O modo personalizado atual é inicial: não é ainda um editor completo de partições arbitrárias.
+- Não existe backend privilegiado; nenhuma operação de escrita está implementada.
+- Repositório local de pacotes oficiais assinados e instalação offline ainda não implementados.
+- Criação de usuário, configuração do destino, initramfs, GRUB, progresso real, cancelamento e recuperação ainda pendentes.
+- Nenhuma VM de instalação BIOS/UEFI foi executada.
+- Nenhuma sessão gráfica MATE foi executada para comprovar os três indicadores após reinicialização.
+
+## Segurança e mídia
+
+- Nenhuma operação de particionamento ou formatação foi executada.
+- Nenhuma workflow de geração de ISO foi disparada.
+- Nenhuma ISO foi iniciada ou gerada.
+- A workflow de mídia continua bloqueada e o script exige autorização explícita.
+
+## Próximos passos
+
+1. Confirmar na workflow de validação a compilação da interface com a prévia gráfica e os testes atualizados.
+2. Expandir o editor personalizado para plano completo e revisão de todas as operações destrutivas.
+3. Implementar o backend privilegiado separado, com confirmação vinculada ao disco/plano.
+4. Implementar o repositório local assinado e a instalação offline por pacotes oficiais.
+5. Testar em VMs descartáveis BIOS e UEFI.
+6. Validar visualmente REDE, BLUETOOTH e VOLUME/ÁUDIO após login e reinicialização MATE.
+7. Aguardar autorização expressa antes de qualquer geração de ISO.
+
+---
+
 # Continuidade técnica da VENOM OS
 
 Atualizado em 21/11/2026 (BRT).
