@@ -6,11 +6,6 @@ on:
   push:
     branches:
       - optimize/venom-iso-size
-    paths:
-      - 'build/**'
-      - 'installer/**'
-      - 'scripts/validate-arch-profile.sh'
-      - '.github/workflows/validate-arch-mate.yml'
 
 permissions:
   contents: read
