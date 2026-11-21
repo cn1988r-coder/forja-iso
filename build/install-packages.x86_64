@@ -70,6 +70,7 @@ polkit
 # Desktop VENOM XFCE.
 xfce4
 xfce4-goodies
+xfce4-docklike-plugin
 thunar
 thunar-archive-plugin
 thunar-volman
