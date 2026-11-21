@@ -73,9 +73,11 @@ done
 require_arch_file() {
   local package="$1"
   local expected_path="$2"
+  local result
 
-  pacman -Fl "$package" |
-    awk -v expected="$expected_path" '$2 == expected { found=1 } END { exit !found }' ||
+  result="$(pacman -F "$expected_path" 2>/dev/null)" ||
+    fail "não foi possível consultar o arquivo oficial: $expected_path"
+  [[ "$result" == *"/$package "* ]] ||
     fail "arquivo oficial ausente: $package/$expected_path"
 }
 
@@ -99,6 +101,7 @@ if command -v pacman >/dev/null 2>&1; then
   # e ícones de volume fornecidos pelo tema Papirus-Dark selecionado.
   require_arch_file mate-media usr/share/mate-panel/applets/org.mate.applets.GvcApplet.mate-panel-applet
   require_arch_file mate-media usr/share/dbus-1/services/org.mate.panel.applet.GvcAppletFactory.service
+  require_arch_file mate-media usr/lib/mate-media/mate-volume-control-applet
   require_arch_file mate-media etc/xdg/autostart/mate-volume-control-status-icon.desktop
   require_arch_file papirus-icon-theme usr/share/icons/Papirus-Dark/22x22/actions/audio-volume-high.svg
   require_arch_file papirus-icon-theme usr/share/icons/Papirus-Dark/22x22/actions/audio-volume-muted.svg
