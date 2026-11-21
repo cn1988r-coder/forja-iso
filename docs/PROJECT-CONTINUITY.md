@@ -1,63 +1,80 @@
 # Continuidade técnica da VENOM OS
 
-Atualizado em 21/11/2026.
+Atualizado em 21/11/2026 (BRT).
 
-## Arquitetura definitiva
-- Sistema: VENOM OS.
-- Base: Arch Linux oficial e repositórios oficiais.
-- Edições: VENOM MATE, VENOM XFCE e VENOM Window Maker.
-- MATE é a edição principal, com LightDM, pt_BR.UTF-8 e teclado br-abnt2.
-- Instalador: Calamares upstream 3.3.14, branding VENOM e módulo customizado `venominstall`.
-- Instalação exclusivamente online via pacstrap/Pacman. Sem instalação offline, unpackfs, rsync ou cópia da raiz live.
-- Pacman atualiza o sistema: `sudo pacman -Syu`.
-- VENON é independente e manual: `venon-upgrade` consulta; `venon-update` instala somente após confirmação.
-- Sem timers nem atualização automática.
+## Referência desta execução
 
-## Branch e repositório
 - Repositório: `cn1988r-coder/forja-iso`.
-- Branch Arch/MATE: `optimize/venom-iso-size`.
-- Preservar `main`, branches e histórico.
-- Não publicar ISO/release nem iniciar build ISO sem autorização expressa.
+- Branch autorizada: `optimize/venom-iso-size`.
+- HEAD-base confirmado antes das alterações: `a0f50214587a0e4947383528bf9c221c2f5abe90`.
+- Commit do primeiro incremento C/GTK4: `f220ccd224b444779fbf67405a5e3a00904ac398`.
+- Commit de configuração estática do painel MATE: `dcc2a58d4dfc0a45e6b6dfdc7cefab701b79548c`.
 
-## Execução #44
-- Workflow `.github/workflows/build-arch-iso.yml`, run ID `44852869086`.
-- Compilação Calamares 3.3.14, staging e validação do perfil passaram.
-- mkinitcpio falhou por falta de `ipconfig`, `nfsmount` e `nbd-client` exigidos pelos hooks PXE.
-- SquashFS falhou durante XZ com `xz uncompress failed with error code 9`, por volta de 78%.
-- Sem ISO/artefatos. Smoke tests BIOS/UEFI e upload foram ignorados.
-- Link: https://github.com/cn1988r-coder/forja-iso/actions/runs/44852869086
+## Arquitetura vigente
 
-## Correções da mídia Arch/MATE
-- Manifest live inclui `mkinitcpio-nfs-utils` e `nbd` para os hooks PXE.
-- Initramfs e SquashFS usam Zstandard.
-- Script de build usa Archiso oficial.
-- Validador específico verifica BIOS/UEFI, locale, teclado, hooks PXE, manifestos, pacotes oficiais e Calamares.
-- A edição MATE não usa AUR. O script de primeiro login aplica Materia-dark, Papirus-Dark, cursor Adwaita e wallpaper local.
-- Layout MATE usa MenuBar oficial, área de notificação, controle de volume, relógio, lista de janelas e seletor de áreas de trabalho.
+- Base única: Arch Linux oficial.
+- Desktop único: MATE + LightDM.
+- Idioma único: Português do Brasil (`pt_BR.UTF-8`).
+- Teclado padrão: Brasil ABNT2 (`br-abnt2`).
+- Perfil de mídia: Archiso oficial em `build/`.
+- Instalador próprio: C + GTK4.
+- Instalação final prevista: offline, por repositório local com pacotes oficiais assinados.
+- Atualizações normais: Pacman. VENON continua separado e manual.
+- Nenhuma ISO pode ser gerada sem autorização expressa posterior.
 
-## Instalação no disco
-- Separados `build/packages.x86_64` (mídia live) e `build/install-packages.x86_64` (sistema instalado). O destino não recebe ferramentas de build como Archiso, Syslinux, squashfs-tools ou base-devel.
-- O workflow prepara o manifesto de destino e `build/install-overlay`.
-- O módulo `venominstall` verifica HTTPS, executa pacstrap com pacotes oficiais, copia somente o overlay de configuração VENOM e compila dconf quando necessário. Não copia a raiz live.
-- O overlay MATE inclui LightDM sem autologin, dconf, tema, ícones, wallpaper, layout do painel e configuração de primeiro login.
-- A sequência Calamares executa também locale, keyboard e users, além de fstab, displaymanager, serviços, initramfs e bootloader.
+## Instalador: primeiro incremento
 
-## Validação estática
-- Run `44857746827`, commit `6e5865d307533e56828165a89570d087875e0eba`: sucesso.
-- Instalação das ferramentas, validação do perfil e disponibilidade dos pacotes oficiais, sintaxe dos scripts e conclusão do job passaram.
-- Essa validação não compila a ISO nem testa boot ou instalação real.
+Implementado:
+- Aplicação GTK4 com navegação gráfica em Português do Brasil.
+- Descoberta de discos por `lsblk`, sem executar operações de escrita.
+- Parser JSON que filtra dispositivos do tipo disco e preserva tamanho, modelo e estado somente leitura.
+- Testes unitários para filtragem de partições, estado somente leitura e respostas JSON inválidas.
+- Entrada de menu própria para a aplicação.
+- Removidos os arquivos de configuração, módulos, branding e dependências do instalador anterior.
+- Script de mídia protegido por verificação explícita de autorização e preparado para compilar/instalar a aplicação em um perfil temporário.
 
-## Validação de mídia pendente
-- Não foi iniciado novo build ISO após a execução #44.
-- Não iniciar build ISO sem autorização expressa.
-- Após autorização: confirmar ISO/SHA256, boot BIOS/UEFI e instalação completa em VM descartável, incluindo reboot, primeiro login e serviços.
-- Não declarar a ISO pronta antes de todos os testes.
+Ainda pendente:
+- Backend privilegiado separado da interface.
+- Instalação automática e particionamento personalizado.
+- Plano de partições revisável e confirmação destrutiva.
+- Repositório local de pacotes oficiais assinados na mídia e instalação completamente offline.
+- Criação de usuário, configuração do destino, fstab, locale, teclado, MATE, LightDM, serviços, initramfs e GRUB.
+- Progresso real, logs, recuperação de falhas, cancelamento seguro e reinicialização.
+- Testes completos em VMs BIOS e UEFI.
 
-## Branches históricas arquivadas
-- Um conjunto de aliases antigos `feature/forja-*` foi identificado com a mesma árvore histórica `3fde0b6`. Eles foram alinhados ao commit de arquivo `bf404ef`, preservando todas as branches e seus históricos.
-- Esses aliases agora documentam que não são edições ativas, mantêm build bloqueado e apontam para as três branches canônicas.
-- `feature/venom-bigcommunity-mate` também foi arquivada separadamente, sem apagar seu conteúdo.
-- A branch `feature/forja-window-maker-endeavouros` permanece ativa como edição Window Maker já migrada para Arch.
+A aplicação atual é um protótipo gráfico de navegação e descoberta de discos somente leitura. O botão de instalação permanece desabilitado. Não declarar o instalador funcional.
 
-## Referência histórica
-A ISO VENOM OS Manjaro MATE #21 e o script `manjaro-mate-dark-complete.sh` permanecem apenas como referências históricas de configuração MATE. Não são base operacional.
+## Auditoria estática do painel MATE
+
+Pacotes e arquivos de autostart confirmados nas listas oficiais de arquivos do Arch Linux:
+- `network-manager-applet` fornece `/usr/bin/nm-applet` e `/etc/xdg/autostart/nm-applet.desktop`.
+- `blueman` fornece `/usr/bin/blueman-applet` e `/etc/xdg/autostart/blueman.desktop`.
+- `mate-media` fornece `GvcAppletFactory::GvcApplet`, `mate-volume-control` e um autostart separado para o ícone de status de volume.
+- O layout VENOM mantém uma Notification Area e um applet Gvc. O autostart separado do ícone de volume é desativado para evitar duplicidade.
+- `pipewire-audio`, `pipewire-pulse` e `wireplumber` estão incluídos nos manifestos live e do sistema instalado.
+- `NetworkManager.service` e `bluetooth.service` são habilitados na sessão live. O overlay do sistema instalado inclui os links de habilitação correspondentes.
+
+Resultados individuais:
+1. REDE: configuração estática presente; validação visual/funcional após login e reinicialização pendente.
+2. BLUETOOTH: configuração estática presente; validação visual/funcional após login e reinicialização pendente.
+3. VOLUME/ÁUDIO: applet Gvc e pilha PipeWire presentes, ícone de status duplicado desativado; validação visual/funcional após login e reinicialização pendente.
+
+O teste estático não comprova que os ícones aparecem ou que os dispositivos funcionam numa sessão gráfica. Nenhuma VM/sessão MATE foi executada nesta etapa.
+
+## Validações e bloqueios
+
+- A validação estática e a compilação do instalador C/GTK4 devem ocorrer pela workflow específica de validação.
+- Nenhum workflow de geração de ISO foi executado.
+- Nenhuma ISO foi iniciada ou gerada.
+- Não foi executado particionamento, formatação ou instalação em disco real.
+- A comprovação visual do painel e a instalação completa permanecem pendentes por falta de sessão gráfica/VM nesta execução.
+
+## Próximos passos
+
+1. Executar e registrar a validação estática, compilação C/GTK4 e testes unitários.
+2. Concluir os testes automatizados do painel e revisar qualquer falha.
+3. Implementar o backend privilegiado e o plano de partições seguro.
+4. Implementar o repositório local assinado e a instalação offline.
+5. Criar VMs descartáveis BIOS/UEFI para testar a instalação e o primeiro boot.
+6. Validar os três indicadores MATE após login e reinicialização.
+7. Aguardar autorização expressa antes de qualquer geração de ISO.

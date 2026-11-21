@@ -1,15 +1,20 @@
-name: Validate VENOM Arch MATE profile
+name: Validar VENOM OS Arch MATE
 
-# Static checks only: no ISO generation.
+# Esta workflow compila somente o componente GTK4 e executa verificações estáticas.
+# Não executa mkarchiso e não gera mídia.
 on:
   workflow_dispatch:
   push:
     branches:
       - optimize/venom-iso-size
     paths:
+      - 'AGENTS.md'
+      - 'README.md'
       - 'build/**'
       - 'installer/**'
-      - 'scripts/validate-arch-profile.sh'
+      - 'scripts/**'
+      - 'docs/PROJECT-CONTINUITY.md'
+      - '.github/workflows/build-arch-iso.yml'
       - '.github/workflows/validate-arch-mate.yml'
 
 permissions:
@@ -25,21 +30,25 @@ jobs:
     container:
       image: archlinux:latest
     steps:
-      - name: Install static validation tools
+      - name: Instalar ferramentas de validação
         run: |
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm git archiso python python-yaml shellcheck
+          pacman -Fy --noconfirm
+          pacman -S --needed --noconfirm git gcc meson ninja pkgconf gtk4 json-glib shellcheck
 
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate profile and official package availability
+      - name: Validar perfil, painel, compilação GTK4 e testes
         run: |
-          chmod +x scripts/validate-arch-profile.sh
-          bash scripts/validate-arch-profile.sh
+          chmod +x scripts/*.sh
+          scripts/validate-scope.sh
 
-      - name: Check shell syntax
+      - name: ShellCheck dos scripts ativos
         run: |
-          bash -n scripts/build-venom-iso.sh
-          bash -n scripts/validate-arch-profile.sh
-          shellcheck -S error scripts/build-venom-iso.sh scripts/validate-arch-profile.sh
+          shellcheck -S error \
+            scripts/build-venom-iso.sh \
+            scripts/validate-arch-profile.sh \
+            scripts/validate-build.sh \
+            scripts/validate-scope.sh \
+            scripts/test-mate-panel.sh

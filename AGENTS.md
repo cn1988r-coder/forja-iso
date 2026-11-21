@@ -1,39 +1,57 @@
 # AGENTS.md
 
-VENOM OS é uma distribuição independente baseada no Arch Linux oficial.
+## Identidade do produto
 
-## Edições
-- VENOM MATE: desktop principal, LightDM.
-- VENOM XFCE: edição independente com XFCE real.
-- VENOM Window Maker: edição independente com Window Maker real.
-Não misturar ambientes nem criar edições adicionais.
+- Nome: VENOM OS.
+- Base técnica única: Arch Linux oficial e seus repositórios oficiais.
+- Desktop único: MATE.
+- Gerenciador de sessão: LightDM.
+- Idioma único: Português do Brasil, `pt_BR.UTF-8`.
+- Teclado padrão: Brasil ABNT2, `br-abnt2` no console e `br` + variante `abnt2` no X11.
+- Não criar edições, sessões ou seletores de idioma/layout adicionais neste produto.
 
-## Arquitetura
-- Repositório: cn1988r-coder/forja-iso.
-- Branch principal Arch/MATE: optimize/venom-iso-size.
-- Base e repositórios: Arch Linux oficial. Não usar Manjaro, EndeavourOS ou BigLinux como base operacional.
-- Idioma: pt_BR.UTF-8; teclado: Brasil ABNT2.
-- Mídia: Archiso oficial com perfil próprio.
-- Instalador: Calamares upstream 3.3.14, branding VENOM e módulo customizado venominstall.
-- Instalação exclusivamente online por pacstrap/Pacman, usando repositórios oficiais Arch.
-- Sem internet, interromper com erro claro.
-- Calamares deve particionar/montar, instalar no rootMountPoint e configurar fstab, locale, serviços, initramfs e bootloader.
-- Proibido unpackfs, rsync ou cópia da raiz live como mecanismo de instalação.
-- Não substituir Calamares por instalador C/GTK4 sem autorização explícita.
+## Repositório e branch
+
+- Repositório: `cn1988r-coder/forja-iso`.
+- Branch de trabalho autorizada: `optimize/venom-iso-size`.
+- Confirmar HEAD e workflows ativos antes de editar.
+- Não alterar `main`, outras branches ou o repositório sem autorização.
+- Fazer commits pequenos, claros e verificáveis.
+- Não apagar branches, artefatos históricos ou arquivos fora do escopo.
+
+## Instalador próprio
+
+- Interface nativa em C + GTK4.
+- Separar interface, descoberta de dispositivos, plano de instalação e backend privilegiado.
+- O protótipo atual só enumera discos em modo de leitura. O botão de instalação deve permanecer desabilitado até que o backend seja implementado e testado.
+- O instalador final deverá oferecer instalação automática e personalizada, particionamento revisável, confirmação explícita antes de qualquer escrita, criação de usuário, configuração de locale/teclado, MATE, LightDM, serviços, initramfs, GRUB, progresso, logs, erros compreensíveis e reinicialização.
+- A instalação deverá funcionar offline usando um repositório local de pacotes oficiais e assinados, incluído na própria mídia. Não depender da rede durante a instalação e não copiar a raiz live como substituto da instalação por pacotes.
+- Operações destrutivas nunca podem ser executadas sem revisão e confirmação explícita.
+- Não usar instaladores externos, código Python para o instalador, wrappers frágeis ou permissões amplas de sudo.
+
+## Painel MATE: requisitos obrigatórios
+
+- Rede: pacote oficial `network-manager-applet`, processo `nm-applet` iniciado pelo autostart fornecido pelo pacote e Notification Area presente no layout do painel. Habilitar `NetworkManager.service`.
+- Bluetooth: `bluez`, `bluez-utils` e `blueman`; o autostart oficial inicia `blueman-applet`, exibido pela Notification Area. Habilitar `bluetooth.service`.
+- Volume/áudio: applet `GvcAppletFactory::GvcApplet` fornecido por `mate-media`, com `pipewire-audio`, `pipewire-pulse` e `wireplumber`. Não iniciar um segundo ícone de volume na bandeja.
+- Manter as mesmas configurações do painel no sistema live e no overlay do sistema instalado.
+- Validar estaticamente pacotes, arquivos de autostart, applets, serviços e ausência de duplicatas.
+- Nunca declarar os três indicadores visualmente validados sem sessão gráfica real e teste após reinicialização. Se não houver VM/sessão gráfica, registrar a validação como pendente.
 
 ## Atualizações
-- Pacman administra o sistema: sudo pacman -Syu.
-- VENON é independente e manual: sudo venom.
-- venon-upgrade apenas consulta/lista atualizações.
-- venon-update instala atualizações VENON somente após confirmação.
-- Sem timers ou atualização automática.
 
-## Segurança e validação
-- Não alterar main.
-- Antes de editar uma branch, verificar workflows ativos.
-- Não interromper builds ativos.
-- Não publicar ISO/release nem iniciar novo build sem autorização expressa.
-- Não declarar funcionalidade ou teste sem evidência.
-- Não remover branches, ISOs ou documentos sem autorização inequívoca.
-- Não declarar a distribuição pronta antes de instalação completa em VMs BIOS e UEFI e validação do primeiro boot.
-- Registrar testes, pendências e hashes em docs/PROJECT-CONTINUITY.md.
+- Pacman administra atualizações normais: `sudo pacman -Syu`.
+- VENON é independente e manual: `venon-upgrade` apenas consulta/lista; `venon-update` instala somente após confirmação.
+- Não criar timers, atualização automática ou integração do VENON com Pacman.
+
+## Builds e validação
+
+- Não gerar, publicar, solicitar nem disparar ISO sem autorização expressa posterior do usuário.
+- A workflow de ISO permanece bloqueada. O script exige uma autorização explícita antes de qualquer compilação.
+- Compilar e testar componentes C/GTK4, executar testes unitários, validações estáticas e ShellCheck é permitido.
+- Não executar particionamento em discos reais. Testes futuros do backend devem usar mocks, imagens descartáveis e VMs isoladas.
+- Nunca afirmar que o instalador, a ISO, o boot ou os indicadores gráficos funcionam sem executar e registrar o teste correspondente.
+
+## Registro de continuidade
+
+Atualizar `docs/PROJECT-CONTINUITY.md` com branch, HEAD-base, commits, arquivos alterados, testes realmente executados, falhas, bloqueios, próximos passos e confirmação explícita de que nenhuma ISO foi gerada.

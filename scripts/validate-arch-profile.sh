@@ -1,73 +1,170 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 P="$ROOT/build"
 PKG="$P/packages.x86_64"
 INSTALL_PKG="$P/install-packages.x86_64"
 OVERLAY="$P/install-overlay"
-fail(){ printf 'FALHA: %s\n' "$*" >&2; exit 1; }
-for f in profiledef.sh pacman.conf packages.x86_64 install-packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.automated_script.sh airootfs/root/venom-live-setup syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
-  [[ -s "$P/$f" ]] || fail "Arquivo obrigatório ausente: build/$f"
+
+fail() { printf 'FALHA: %s\n' "$*" >&2; exit 1; }
+pass() { printf 'OK: %s\n' "$*"; }
+
+required=(
+  "$P/profiledef.sh"
+  "$P/pacman.conf"
+  "$PKG"
+  "$INSTALL_PKG"
+  "$P/airootfs/etc/pacman.conf"
+  "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf"
+  "$P/airootfs/etc/locale.conf"
+  "$P/airootfs/etc/locale.gen"
+  "$P/airootfs/etc/vconsole.conf"
+  "$P/airootfs/etc/X11/xorg.conf.d/00-keyboard.conf"
+  "$P/airootfs/root/.automated_script.sh"
+  "$P/airootfs/root/venom-live-setup"
+  "$P/airootfs/usr/share/mate-panel/layouts/venom.layout"
+  "$P/airootfs/etc/xdg/autostart/mate-volume-control-status-icon.desktop"
+  "$OVERLAY/usr/share/mate-panel/layouts/venom.layout"
+  "$OVERLAY/etc/xdg/autostart/mate-volume-control-status-icon.desktop"
+  "$ROOT/installer/meson.build"
+  "$ROOT/installer/src/main.c"
+  "$ROOT/installer/src/disk.c"
+  "$ROOT/installer/src/disk.h"
+  "$ROOT/installer/tests/test-disk.c"
+  "$ROOT/installer/README.md"
+  "$ROOT/scripts/build-venom-iso.sh"
+  "$ROOT/scripts/test-mate-panel.sh"
+  "$ROOT/.github/workflows/build-arch-iso.yml"
+)
+for file in "${required[@]}"; do
+  [[ -s "$file" ]] || fail "arquivo obrigatório ausente: $file"
 done
-[[ -d "$OVERLAY" ]] || fail "Overlay do sistema instalado ausente."
-for script in "$P/profiledef.sh" "$P/airootfs/root/.automated_script.sh" "$P/airootfs/root/venom-live-setup"; do
-  bash -n "$script" || fail "Sintaxe Bash inválida: $script"
+
+for script in "$ROOT"/scripts/build-venom-iso.sh \
+              "$ROOT"/scripts/validate-arch-profile.sh \
+              "$ROOT"/scripts/validate-build.sh \
+              "$ROOT"/scripts/validate-scope.sh \
+              "$ROOT"/scripts/test-mate-panel.sh \
+              "$P/profiledef.sh" \
+              "$P/airootfs/root/.automated_script.sh" \
+              "$P/airootfs/root/venom-live-setup"; do
+  bash -n "$script" || fail "sintaxe Bash inválida: $script"
 done
-python -m py_compile "$ROOT/installer/modules/venominstall/main.py" || fail "Sintaxe Python do módulo venominstall inválida."
+
 (
   cd "$P"
   # shellcheck disable=SC1091
   source ./profiledef.sh
-  [[ "$iso_name" == venom && "$arch" == x86_64 ]] || fail "Identidade/arquitetura inválida."
-  [[ " ${bootmodes[*]} " == *" bios.syslinux "* && " ${bootmodes[*]} " == *" uefi.grub "* ]] || fail "Boot BIOS/UEFI incompleto."
-  [[ "$packages" == packages.x86_64 ]] || fail "Manifest live incorreto."
-  [[ " ${airootfs_image_tool_options[*]} " == *" zstd "* ]] || fail "SquashFS deve usar zstd."
+  [[ "$iso_name" == venom && "$arch" == x86_64 ]] || fail "identidade ou arquitetura inválida"
+  [[ " ${bootmodes[*]} " == *" bios.syslinux "* ]] || fail "boot BIOS ausente"
+  [[ " ${bootmodes[*]} " == *" uefi.grub "* ]] || fail "boot UEFI ausente"
+  [[ "$packages" == packages.x86_64 ]] || fail "manifesto live incorreto"
+  [[ " ${airootfs_image_tool_options[*]} " == *" zstd "* ]] || fail "SquashFS deve usar Zstandard"
 )
-grep -Fxq 'LANG=pt_BR.UTF-8' "$P/airootfs/etc/locale.conf" || fail "Locale incorreto."
-grep -Fxq 'pt_BR.UTF-8 UTF-8' "$P/airootfs/etc/locale.gen" || fail "Locale pt_BR ausente."
-grep -Fxq 'KEYMAP=br-abnt2' "$P/airootfs/etc/vconsole.conf" || fail "Teclado ABNT2 ausente."
-grep -q '^HOOKS=.*archiso' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Hooks Archiso ausentes."
-grep -Fxq 'COMPRESSION="zstd"' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Compressão do initramfs inválida."
-grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/pacman.conf" || fail "Mirror oficial Arch ausente."
-grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/airootfs/etc/pacman.conf" || fail "Mirror oficial Arch ausente no live."
-grep -Fq 'install -Dm644 build/install-packages.x86_64 build/airootfs/usr/share/venom/install-packages.x86_64' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não prepara o manifesto de instalação."
-grep -Fq 'cp -a build/install-overlay/. build/airootfs/usr/share/venom/install-overlay/' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não prepara o overlay de instalação."
-grep -Fxq 'installPackagesFile: /usr/share/venom/install-packages.x86_64' "$ROOT/installer/modules/venominstall/venominstall.conf" || fail "Manifesto de instalação não configurado."
-grep -Fxq 'installOverlay: /usr/share/venom/install-overlay' "$ROOT/installer/modules/venominstall/venominstall.conf" || fail "Overlay de instalação não configurado."
-grep -q 'copy_install_overlay' "$ROOT/installer/modules/venominstall/main.py" || fail "Módulo VENOM não aplica o overlay."
-grep -q 'pacstrap' "$ROOT/installer/modules/venominstall/main.py" || fail "Instalador online pacstrap ausente."
-grep -q '      - locale' "$ROOT/installer/settings.conf" || fail "Módulo locale ausente da execução Calamares."
-grep -q '      - keyboard' "$ROOT/installer/settings.conf" || fail "Módulo keyboard ausente da execução Calamares."
-grep -q '      - users' "$ROOT/installer/settings.conf" || fail "Módulo users ausente da execução Calamares."
-if grep -R -Eiq 'unpackfs|rsync|manjaro|endeavouros|biglinux|mhwd' "$ROOT/installer/settings.conf" "$ROOT/installer/modules/venominstall" "$PKG" "$INSTALL_PKG" "$P/pacman.conf"; then
-  fail "Referência proibida ou instalação por cópia detectada."
-fi
-for package in base linux linux-firmware archlinux-keyring arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils nbd grub efibootmgr gtk4 lightdm networkmanager bluez mate-session-manager mate-panel caja marco; do
-  grep -Fxq "$package" "$PKG" || fail "Pacote obrigatório ausente do manifest live: $package"
+
+grep -Fxq 'LANG=pt_BR.UTF-8' "$P/airootfs/etc/locale.conf" || fail "locale pt_BR ausente"
+grep -Fxq 'pt_BR.UTF-8 UTF-8' "$P/airootfs/etc/locale.gen" || fail "locale pt_BR não habilitado"
+grep -Fxq 'KEYMAP=br-abnt2' "$P/airootfs/etc/vconsole.conf" || fail "teclado de console ABNT2 ausente"
+grep -Fq 'Option "XkbLayout" "br"' "$P/airootfs/etc/X11/xorg.conf.d/00-keyboard.conf" || fail "layout X11 Brasil ausente"
+grep -Fq 'Option "XkbVariant" "abnt2"' "$P/airootfs/etc/X11/xorg.conf.d/00-keyboard.conf" || fail "variante X11 ABNT2 ausente"
+grep -Fq 'Server = https://geo.mirror.pkgbuild.com/' "$P/pacman.conf" || fail "mirror oficial Arch ausente"
+grep -Fq 'Server = https://geo.mirror.pkgbuild.com/' "$P/airootfs/etc/pacman.conf" || fail "mirror oficial Arch ausente no live"
+grep -Fq 'COMPRESSION="zstd"' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "compressão do initramfs inválida"
+
+live_required=(
+  base linux linux-firmware archlinux-keyring arch-install-scripts
+  mkinitcpio-archiso mkinitcpio-nfs-utils nbd grub efibootmgr
+  gtk4 json-glib lightdm networkmanager network-manager-applet
+  bluez bluez-utils blueman pipewire pipewire-audio pipewire-pulse
+  wireplumber mate-session-manager mate-panel mate-media caja marco
+)
+installed_required=(
+  base linux linux-firmware archlinux-keyring pacman-mirrorlist
+  grub efibootmgr mkinitcpio xorg-server lightdm lightdm-gtk-greeter
+  networkmanager network-manager-applet bluez bluez-utils blueman
+  pipewire pipewire-audio pipewire-pulse wireplumber
+  mate-session-manager mate-panel mate-media caja marco
+)
+for package in "${live_required[@]}"; do
+  grep -Fxq "$package" "$PKG" || fail "pacote live ausente: $package"
 done
-for package in base linux linux-firmware archlinux-keyring pacman-mirrorlist grub efibootmgr mkinitcpio xorg-server lightdm lightdm-gtk-greeter networkmanager bluez pipewire mate-session-manager mate-panel caja marco adwaita-cursors; do
-  grep -Fxq "$package" "$INSTALL_PKG" || fail "Pacote obrigatório ausente do manifest de instalação: $package"
+for package in "${installed_required[@]}"; do
+  grep -Fxq "$package" "$INSTALL_PKG" || fail "pacote do sistema instalado ausente: $package"
 done
-if grep -Eiq '^(archiso|mkinitcpio-archiso|mkinitcpio-nfs-utils|nbd|squashfs-tools|syslinux|base-devel|linux-headers|linux-lts|linux-lts-headers)$' "$INSTALL_PKG"; then fail "Manifesto de instalação contém ferramentas exclusivas da ISO/live."; fi
-for f in etc/dconf/db/local.d/00-venom etc/dconf/profile/user etc/skel/.config/autostart/venom-mate-first-login.desktop etc/skel/.config/gtk-3.0/settings.ini etc/skel/.config/gtk-4.0/settings.ini usr/local/bin/venom-mate-first-login usr/share/mate-panel/layouts/venom.layout usr/share/backgrounds/venom/venom-wallpaper.svg etc/lightdm/lightdm-gtk-greeter.conf etc/lightdm/lightdm.conf.d/50-venom-session.conf; do
-  [[ -s "$OVERLAY/$f" ]] || fail "Arquivo MATE ausente no overlay: $f"
-done
-grep -q 'user-session=mate' "$OVERLAY/etc/lightdm/lightdm.conf.d/50-venom-session.conf" || fail "Sessão MATE instalada não configurada."
-if grep -Eiq 'yay|paru|aur\.archlinux\.org|brisk-menu-git|bibata-cursor-theme-bin|BriskMenu' "$P/airootfs/usr/local/bin/venom-mate-first-login" "$P/airootfs/usr/share/mate-panel/layouts/venom.layout"; then
-  fail "Configuração MATE depende de AUR ou applet não oficial."
-fi
+
 for manifest in "$PKG" "$INSTALL_PKG"; do
   duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$manifest" | sort | uniq -d)"
-  [[ -z "$duplicates" ]] || fail "Pacotes duplicados em $manifest: $duplicates"
+  [[ -z "$duplicates" ]] || fail "pacotes duplicados em $manifest: $duplicates"
 done
+
+if grep -Eiq '^(archiso|mkinitcpio-archiso|mkinitcpio-nfs-utils|nbd|squashfs-tools|syslinux|base-devel|linux-headers|linux-lts|linux-lts-headers)$' "$INSTALL_PKG"; then
+  fail "manifesto do sistema instalado contém ferramentas exclusivas da mídia"
+fi
+
+for relative in \
+  etc/dconf/db/local.d/00-venom \
+  etc/dconf/profile/user \
+  etc/skel/.config/autostart/venom-mate-first-login.desktop \
+  etc/skel/.config/gtk-3.0/settings.ini \
+  etc/skel/.config/gtk-4.0/settings.ini \
+  etc/skel/.icons/default/index.theme \
+  etc/xdg/autostart/mate-volume-control-status-icon.desktop \
+  etc/systemd/system/multi-user.target.wants/NetworkManager.service \
+  etc/systemd/system/multi-user.target.wants/bluetooth.service \
+  usr/local/bin/venom-mate-first-login \
+  usr/share/mate-panel/layouts/venom.layout \
+  usr/share/backgrounds/venom/venom-wallpaper.svg \
+  etc/lightdm/lightdm-gtk-greeter.conf \
+  etc/lightdm/lightdm.conf.d/50-venom-session.conf; do
+  [[ -s "$OVERLAY/$relative" || -L "$OVERLAY/$relative" ]] ||
+    fail "arquivo do overlay ausente: $relative"
+done
+
+for service in NetworkManager bluetooth; do
+  link="$OVERLAY/etc/systemd/system/multi-user.target.wants/$service.service"
+  [[ -L "$link" ]] || fail "serviço não habilitado no sistema instalado: $service"
+  [[ "$(readlink "$link")" == "/usr/lib/systemd/system/$service.service" ]] ||
+    fail "destino incorreto do link de serviço: $link"
+done
+
+grep -Fq 'VENOM_ISO_BUILD_AUTHORIZED' "$ROOT/scripts/build-venom-iso.sh" ||
+  fail "script de mídia não exige autorização expressa"
+grep -Fq 'gtk_widget_set_sensitive(state->install_button, FALSE)' "$ROOT/installer/src/main.c" ||
+  fail "botão de instalação do protótipo deve permanecer desabilitado"
+grep -Fq '"lsblk"' "$ROOT/installer/src/disk.c" ||
+  fail "descoberta de discos somente leitura ausente"
+grep -Fq 'aguarda autorização expressa' "$ROOT/.github/workflows/build-arch-iso.yml" ||
+  fail "workflow de mídia não informa o bloqueio"
+if grep -Eiq 'mkarchiso|qemu-system|upload-artifact' "$ROOT/.github/workflows/build-arch-iso.yml"; then
+  fail "workflow bloqueada contém etapa de compilação/publicação"
+fi
+
+# Os tokens são divididos no código para que a própria validação possa procurar
+# referências residuais sem se encontrar no resultado.
+for forbidden in "cala""mares" "endea""vouros"; do
+  if grep -R -I -n -i -F "$forbidden" \
+      "$ROOT/AGENTS.md" "$ROOT/README.md" "$ROOT/build" "$ROOT/installer" \
+      "$ROOT/scripts" "$ROOT/docs/PROJECT-CONTINUITY.md" \
+      "$ROOT/.github/workflows/build-arch-iso.yml" \
+      "$ROOT/.github/workflows/validate-arch-mate.yml"; then
+    fail "referência legada encontrada: $forbidden"
+  fi
+done
+
 if command -v pacman >/dev/null 2>&1; then
   for manifest in "$PKG" "$INSTALL_PKG"; do
     while IFS= read -r package; do
       [[ -z "$package" || "$package" == \#* ]] && continue
-      if ! pacman -Si "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" | grep -q .; then
-        fail "Pacote/grupo não encontrado nos repositórios oficiais Arch: $package"
-      fi
+      pacman -Si "$package" >/dev/null 2>&1 ||
+        pacman -Sgq "$package" | grep -q . ||
+        fail "pacote não encontrado nos repositórios oficiais: $package"
     done < "$manifest"
   done
 fi
-printf 'OK: perfil Archiso, manifestos separados, overlay, Calamares online e desktop passaram na validação estática.\n'
+
+pass "perfil Archiso, locale pt_BR e teclado ABNT2"
+pass "manifestos live e instalado com pacotes oficiais"
+pass "instalador C/GTK4 compilável e instalação ainda bloqueada"
+pass "serviços NetworkManager/Bluetooth preparados para live e instalação"
+pass "workflow de ISO bloqueada; nenhuma compilação foi iniciada"
