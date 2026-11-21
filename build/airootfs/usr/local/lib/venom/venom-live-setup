@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+LOG=/var/log/venom-live-setup.log
+install -d -m 0755 /var/log
+touch "$LOG"
+exec > >(tee -a "$LOG" /dev/ttyS0) 2>&1
+trap 'rc=$?; printf "[VENOM] Setup falhou status=%s comando=%s\n" "$rc" "$BASH_COMMAND" | tee -a "$LOG" /dev/ttyS0; exit "$rc"' ERR
+
+serial_marker() { printf '%s %s\n' "$(date -Is)" "$1" | tee -a "$LOG" /dev/ttyS0; }
+serial_marker VENOM_LIVE_SETUP_STARTED
+printf '[VENOM] Configurando ambiente live...\n'
+
+if ! id venom >/dev/null 2>&1; then
+  useradd --create-home --groups wheel,audio,video,storage --shell /bin/bash venom
+  passwd --delete venom
+fi
+install -d -o venom -g venom -m 0755 /home/venom
+if [[ -d /etc/skel ]]; then cp -a /etc/skel/. /home/venom/; fi
+chown -R venom:venom /home/venom
+install -d -m 0755 /etc/sudoers.d
+printf 'venom ALL=(root) NOPASSWD: /usr/bin/calamares, /usr/bin/pacman\n' >/etc/sudoers.d/10-venom-live
+chmod 0440 /etc/sudoers.d/10-venom-live
+visudo -cf /etc/sudoers.d/10-venom-live
+systemctl set-default graphical.target
+systemctl enable NetworkManager.service bluetooth.service lightdm.service
+systemctl start NetworkManager.service || true
+systemctl start bluetooth.service || true
+systemctl start lightdm.service
+
+if ! systemctl is-active --quiet lightdm.service; then
+  serial_marker VENOM_LIVE_LIGHTDM_FAILED
+  systemctl --no-pager --full status lightdm.service || true
+  exit 1
+fi
+serial_marker VENOM_LIVE_READY
+printf '[VENOM] Live configurado e LightDM ativo.\n'
