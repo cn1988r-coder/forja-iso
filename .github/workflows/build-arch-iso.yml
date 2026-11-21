@@ -29,6 +29,21 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Apply VENOM Calypso XFCE profile and stage Bibata cursor
+        run: |
+          chmod +x scripts/setup-xfce-windows-dark.sh
+          scripts/setup-xfce-windows-dark.sh --root build/airootfs
+          scripts/setup-xfce-windows-dark.sh --root build/install-overlay
+          mkdir -p build/airootfs/usr/share/icons build/install-overlay/usr/share/icons
+          curl --fail --location --retry 3 --output "$RUNNER_TEMP/Bibata-Modern-Ice.tar.xz" https://github.com/ful1e5/Bibata_Cursor/releases/download/v2.0.7/Bibata-Modern-Ice.tar.xz
+          test "$(stat -c %s "$RUNNER_TEMP/Bibata-Modern-Ice.tar.xz")" -eq 1701468
+          mkdir -p "$RUNNER_TEMP/bibata"
+          tar -xJf "$RUNNER_TEMP/Bibata-Modern-Ice.tar.xz" -C "$RUNNER_TEMP/bibata"
+          BIBATA_DIR="$(find "$RUNNER_TEMP/bibata" -type d -name Bibata-Modern-Ice -print -quit)"
+          test -n "$BIBATA_DIR"
+          cp -a "$BIBATA_DIR" build/airootfs/usr/share/icons/Bibata-Modern-Ice
+          cp -a "$BIBATA_DIR" build/install-overlay/usr/share/icons/Bibata-Modern-Ice
+
       - name: Mandatory VENOM preflight gate (no ISO build if rejected)
         run: python scripts/venom-preflight.py
 
