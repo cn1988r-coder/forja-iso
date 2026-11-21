@@ -325,6 +325,11 @@ venom_install_plan_automatic(const VenomDisk *disk,
     inputs[1].size_bytes =
         (disk_mib - boot_mib - RESERVED_TAIL_SIZE / MIB) * MIB;
 
-    return venom_install_plan_custom(
+    VenomInstallPlan *plan = venom_install_plan_custom(
         disk, firmware, inputs, G_N_ELEMENTS(inputs), error);
+
+    if (plan != NULL) {
+        plan->mode = VENOM_INSTALL_AUTOMATIC;
+    }
+    return plan;
 }
