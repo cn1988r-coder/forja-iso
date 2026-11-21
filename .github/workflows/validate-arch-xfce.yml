@@ -47,4 +47,4 @@ jobs:
         run: |
           bash -n scripts/build-venom-iso.sh
           bash -n scripts/validate-xfce-profile.sh
-          shellcheck -S error scripts/build-venom-iso.sh scripts/validate-xfce-profile.sh build/profiledef.sh build/airootfs/root/.automated_script.sh build/airootfs/root/.bash_profile build/airootfs/root/venom-live-setup
+          shellcheck -S error scripts/build-venom-iso.sh scripts/validate-xfce-profile.sh build/profiledef.sh build/airootfs/root/.bash_profile build/airootfs/usr/local/lib/venom/venom-live-setup build/airootfs/usr/local/lib/venom/venom-live-ready
