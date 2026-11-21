@@ -31,7 +31,7 @@ test_automatic_uefi_plan(void)
     g_assert_no_error(error);
     g_assert_nonnull(plan);
     g_assert_true(plan->requires_confirmation);
-    g_assert_true(plan->mode == VENOM_INSTALL_CUSTOM);
+    g_assert_true(plan->mode == VENOM_INSTALL_AUTOMATIC);
     g_assert_cmpuint(plan->partitions->len, ==, 2);
 
     efi = g_ptr_array_index(plan->partitions, 0);
