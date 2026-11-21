@@ -43,7 +43,7 @@ grep -q 'pacstrap' "$ROOT/installer/modules/venominstall/main.py" || fail "Insta
 if grep -R -Eiq 'unpackfs|rsync|manjaro|endeavouros|biglinux|mhwd' "$ROOT/installer/settings.conf" "$ROOT/installer/modules/venominstall" "$PKG" "$P/pacman.conf"; then
   fail "Referência proibida ou instalação por cópia detectada."
 fi
-[[ -s "$P/airootfs/usr/share/xsessions/venom-windowmaker.desktop" ]] || fail "Sessão Window Maker do LightDM ausente."
+[[ -s "$P/airootfs/usr/share/xsessions/windowmaker.desktop" ]] || fail "Sessão Window Maker do LightDM ausente."
 grep -Fxq 'user-session=windowmaker' "$P/airootfs/etc/lightdm/lightdm.conf.d/50-venom-live.conf" || fail "LightDM não inicia Window Maker."
 [[ -s "$P/airootfs/usr/local/bin/venom-windowmaker-session" ]] || fail "Launcher da sessão Window Maker ausente."
 [[ -s "$P/airootfs/usr/share/backgrounds/venom/venom-windowmaker.svg" ]] || fail "Wallpaper VENOM Window Maker ausente."
