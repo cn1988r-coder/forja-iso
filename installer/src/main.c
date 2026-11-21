@@ -83,7 +83,7 @@ static void start_install(Installer *app, const char *disk) {
         g_clear_error(&error); g_free(input); return;
     }
     gtk_widget_set_sensitive(app->install_button, FALSE);
-    set_status(app, "Instalando VENOM OS offline. Não desligue o computador.");
+    set_status(app, "Conectando aos repositórios oficiais do Arch e instalando a VENOM OS. Não desligue o computador.");
     g_subprocess_communicate_utf8_async(app->process, input, NULL, install_finished, app);
     gtk_editable_set_text(GTK_EDITABLE(app->password), "");
     memset(input, 0, strlen(input));
@@ -133,7 +133,7 @@ static void install_clicked(GtkButton *button, gpointer data) {
     }
     GtkAlertDialog *dialog = gtk_alert_dialog_new("Apagar o disco selecionado?");
     gtk_alert_dialog_set_detail(dialog, "A instalação automática recriará as partições e apagará TODOS os dados do disco. "
-        "O sistema será copiado da própria mídia, sem baixar pacotes. Confira o modelo e o tamanho antes de confirmar.");
+        "O instalador baixará os pacotes diretamente dos repositórios oficiais do Arch Linux. Confira o modelo e o tamanho antes de confirmar.");
     const char *buttons[] = {"Cancelar", "Apagar e instalar", NULL};
     gtk_alert_dialog_set_buttons(dialog, buttons);
     gtk_alert_dialog_set_cancel_button(dialog, 0);
@@ -180,7 +180,7 @@ static void activate(GtkApplication *application, gpointer user_data) {
     GtkWidget *title = gtk_label_new("VENOM OS");
     gtk_widget_add_css_class(title, "title-1"); gtk_widget_set_halign(title, GTK_ALIGN_START);
     gtk_box_append(GTK_BOX(root), title);
-    GtkWidget *subtitle = gtk_label_new("Instalação offline do sistema");
+    GtkWidget *subtitle = gtk_label_new("Instalação online pelos repositórios oficiais do Arch Linux");
     gtk_widget_add_css_class(subtitle, "dim-label"); gtk_widget_set_halign(subtitle, GTK_ALIGN_START);
     gtk_box_append(GTK_BOX(root), subtitle);
     gtk_box_append(GTK_BOX(root), section_title("Disco de destino"));
@@ -197,7 +197,7 @@ static void activate(GtkApplication *application, gpointer user_data) {
     gtk_box_append(GTK_BOX(root), app->username); gtk_box_append(GTK_BOX(root), app->hostname);
     gtk_box_append(GTK_BOX(root), app->password);
     GtkWidget *notice = gtk_label_new("A instalação automática apaga integralmente o disco selecionado. "
-        "A mídia será copiada para o disco sem baixar pacotes. Mantenha o computador ligado.");
+        "É necessária conexão com a internet para baixar e instalar os pacotes oficiais do Arch Linux.");
     gtk_label_set_wrap(GTK_LABEL(notice), TRUE); gtk_widget_add_css_class(notice, "warning");
     gtk_widget_set_halign(notice, GTK_ALIGN_START); gtk_box_append(GTK_BOX(root), notice);
     app->status = gtk_label_new("Detectando discos...");
