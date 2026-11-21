@@ -25,7 +25,7 @@ locked=true
 
 [Object volume-control]
 object-type=applet
-applet-iid=VolumeControlAppletFactory::VolumeControlApplet
+applet-iid=GvcAppletFactory::GvcApplet
 toplevel-id=top
 pack-type=end
 pack-index=1
