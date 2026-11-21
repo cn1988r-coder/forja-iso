@@ -1,6 +1,7 @@
 # Sistema instalado: base Arch e componentes comuns da VENOM OS.
 base
 linux
+linux-lts
 linux-firmware
 archlinux-keyring
 pacman-mirrorlist
