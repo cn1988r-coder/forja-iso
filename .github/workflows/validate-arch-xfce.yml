@@ -6,11 +6,6 @@ on:
   push:
     branches:
       - feature/venom-community-xfce
-    paths:
-      - 'build/**'
-      - 'installer/**'
-      - 'scripts/validate-xfce-profile.sh'
-      - '.github/workflows/validate-arch-xfce.yml'
 
 permissions:
   contents: read
