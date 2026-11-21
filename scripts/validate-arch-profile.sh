@@ -143,13 +143,19 @@ fi
 # Os tokens são divididos no código para que a própria validação possa procurar
 # referências residuais sem se encontrar no resultado.
 for forbidden in "cala""mares" "endea""vouros"; do
-  if grep -R -I -n -i -F "$forbidden" \
-      "$ROOT/AGENTS.md" "$ROOT/README.md" "$ROOT/build" "$ROOT/installer" \
-      "$ROOT/scripts" "$ROOT/docs/PROJECT-CONTINUITY.md" \
-      "$ROOT/.github/workflows/build-arch-iso.yml" \
-      "$ROOT/.github/workflows/validate-arch-mate.yml"; then
-    fail "referência legada encontrada: $forbidden"
-  fi
+  scan_paths=(
+    "$ROOT/AGENTS.md" "$ROOT/README.md" "$ROOT/build" "$ROOT/installer"
+    "$ROOT/scripts" "$ROOT/docs/PROJECT-CONTINUITY.md" "$ROOT/.github/workflows"
+  )
+  while IFS= read -r -d '' file; do
+    if output="$(grep -I -n -i -F "$forbidden" "$file" 2>&1)"; then
+      printf '%s\n' "$output" >&2
+      fail "referência legada encontrada: $forbidden"
+    else
+      status=$?
+      [[ "$status" -eq 1 ]] || fail "não foi possível examinar $file"
+    fi
+  done < <(find "${scan_paths[@]}" -type f -print0)
 done
 
 if command -v pacman >/dev/null 2>&1; then

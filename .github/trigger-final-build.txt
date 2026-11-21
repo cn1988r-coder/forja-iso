@@ -1,2 +1,0 @@
-Authorized VENOM OS Arch ISO build retry after correcting the Arch profile validator to permit the selected Calamares installer.
-Triggered at 2026-11-21T01:54Z.

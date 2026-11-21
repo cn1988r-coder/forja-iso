@@ -69,6 +69,14 @@ O teste estático não comprova que os ícones aparecem ou que os dispositivos f
 - Não foi executado particionamento, formatação ou instalação em disco real.
 - A comprovação visual do painel e a instalação completa permanecem pendentes por falta de sessão gráfica/VM nesta execução.
 
+## Registro da primeira validação automatizada
+
+- Run `44959078183`, commit `e93b2fb09ba8d9a10c4590b537982eb65c72726a`: falhou no teste estático do painel.
+- O perfil Arch, os manifestos de pacotes, locale, ABNT2, links de serviços e bloqueio da mídia passaram.
+- A falha ocorreu porque o container de validação não tinha `cmp`, a busca recursiva atravessou links absolutos do overlay e ainda existiam arquivos de uma edição histórica fora do escopo Arch/MATE. A compilação C/GTK4 não chegou a ser executada.
+- Correções preparadas: comparação de layouts por SHA-256, varredura apenas de arquivos regulares, verificação explícita dos executáveis/autostarts/serviços dos pacotes oficiais e remoção dos arquivos/workflows legados desta branch.
+- Nenhuma ISO foi iniciada ou gerada.
+
 ## Próximos passos
 
 1. Executar e registrar a validação estática, compilação C/GTK4 e testes unitários.

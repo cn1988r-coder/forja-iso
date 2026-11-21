@@ -30,7 +30,9 @@ for file in "$LIVE_LAYOUT" "$INSTALLED_LAYOUT" "$LIVE_DCONF" "$INSTALLED_DCONF" 
   [[ -s "$file" ]] || fail "configuração ausente: $file"
 done
 
-cmp -s "$LIVE_LAYOUT" "$INSTALLED_LAYOUT" ||
+live_layout_hash="$(sha256sum "$LIVE_LAYOUT" | awk '{print $1}')"
+installed_layout_hash="$(sha256sum "$INSTALLED_LAYOUT" | awk '{print $1}')"
+[[ "$live_layout_hash" == "$installed_layout_hash" ]] ||
   fail "layout do painel live e instalado divergem"
 
 for layout in "$LIVE_LAYOUT" "$INSTALLED_LAYOUT"; do
@@ -63,8 +65,16 @@ if command -v pacman >/dev/null 2>&1; then
   if pacman -Fl network-manager-applet >/dev/null 2>&1; then
     pacman -Fl network-manager-applet | grep -Fq 'etc/xdg/autostart/nm-applet.desktop' ||
       fail "pacote oficial não fornece autostart do nm-applet"
+    pacman -Fl network-manager-applet | grep -Fq 'usr/bin/nm-applet' ||
+      fail "executável nm-applet ausente no pacote oficial"
     pacman -Fl blueman | grep -Fq 'etc/xdg/autostart/blueman.desktop' ||
       fail "pacote oficial não fornece autostart do Blueman"
+    pacman -Fl blueman | grep -Fq 'usr/bin/blueman-applet' ||
+      fail "executável blueman-applet ausente no pacote oficial"
+    pacman -Fl networkmanager | grep -Fq 'usr/lib/systemd/system/NetworkManager.service' ||
+      fail "serviço NetworkManager.service ausente no pacote oficial"
+    pacman -Fl bluez | grep -Fq 'usr/lib/systemd/system/bluetooth.service' ||
+      fail "serviço bluetooth.service ausente no pacote oficial"
     pacman -Fl mate-media | grep -Fq 'usr/share/mate-panel/applets/org.mate.applets.GvcApplet.mate-panel-applet' ||
       fail "pacote oficial não fornece o applet Gvc do painel"
     pacman -Fl mate-media | grep -Fq 'etc/xdg/autostart/mate-volume-control-status-icon.desktop' ||
