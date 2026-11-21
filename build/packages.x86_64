@@ -1,4 +1,4 @@
-# Pacotes da sessão live VENOM OS, dos repositórios oficiais Arch.
+# VENOM Window Maker live system, exclusively from official Arch repositories.
 base
 base-devel
 archlinux-keyring
@@ -60,37 +60,30 @@ rtkit
 xorg-server
 xorg-xauth
 xorg-xrandr
-mate-session-manager
-mate-panel
-mate-control-center
-caja
-marco
-mate-settings-daemon
-mate-terminal
-mate-themes
-mate-applets
-mate-notification-daemon
-mate-media
-mate-power-manager
-mate-screensaver
-mate-system-monitor
-mate-utils
-atril
-eom
-engrampa
-pluma
+xorg-xset
+xorg-xinit
+windowmaker
 lightdm
 lightdm-gtk-greeter
 polkit
-mate-polkit
-materia-gtk-theme
-papirus-icon-theme
-dconf
-dconf-editor
+polkit-gnome
+tint2
+dmenu
+feh
+xterm
+pavucontrol
+playerctl
 firefox
+adw-gtk-theme
+papirus-icon-theme
+adwaita-icon-theme
+noto-fonts
+ttf-dejavu
+ttf-roboto
+fastfetch
 xdg-utils
 xdg-user-dirs
-# Runtime dependencies for upstream Calamares built into the live image.
+# Runtime dependencies for upstream Calamares 3.3.14.
 gtk4
 qt6-base
 qt6-declarative
