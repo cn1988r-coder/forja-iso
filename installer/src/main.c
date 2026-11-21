@@ -209,7 +209,7 @@ install_style(void)
     GtkCssProvider *provider = gtk_css_provider_new();
     GdkDisplay *display = gdk_display_get_default();
 
-    gtk_css_provider_load_from_data(provider, css, -1);
+    gtk_css_provider_load_from_string(provider, css);
     if (display != NULL) {
         gtk_style_context_add_provider_for_display(
             display,
