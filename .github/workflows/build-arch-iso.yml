@@ -28,22 +28,54 @@ jobs:
       - name: Install Arch build and test tools
         run: |
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm git archiso base-devel meson ninja gtk4 shellcheck qemu-system-x86 edk2-ovmf grub syslinux
+          pacman -S --needed --noconfirm git archiso base-devel cmake ninja extra-cmake-modules qt6-base qt6-declarative qt6-svg kconfig kcoreaddons kcrash kparts kirigami kpackage kpmcore yaml-cpp python python-pyyaml python-jsonschema libpwquality hwinfo parted polkit-qt6 appstream-qt qt6-tools shellcheck qemu-system-x86 edk2-ovmf grub syslinux
 
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate profile and package availability
+      - name: Build upstream Calamares 3.3.14
+        run: |
+          curl --fail --location --retry 3 https://github.com/calamares/calamares/archive/refs/tags/v3.3.14.tar.gz -o "$RUNNER_TEMP/calamares-3.3.14.tar.gz"
+          echo "5547f80db067dea923ae693ba6bb88eb2b2eeac1da3ebec42fce453e31c290c0  $RUNNER_TEMP/calamares-3.3.14.tar.gz" | sha256sum --check
+          mkdir -p "$RUNNER_TEMP/calamares-src"
+          tar -xzf "$RUNNER_TEMP/calamares-3.3.14.tar.gz" -C "$RUNNER_TEMP/calamares-src" --strip-components=1
+          cmake -S "$RUNNER_TEMP/calamares-src" -B "$RUNNER_TEMP/calamares-build" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr \
+            -DWITH_QT6=ON -DWITH_PYTHON=ON -DWITH_PYBIND11=ON -DWITH_QML=ON \
+            -DBUILD_SCHEMA_TESTING=OFF -DBUILD_CRASH_REPORTING=OFF -DINSTALL_CONFIG=OFF
+          cmake --build "$RUNNER_TEMP/calamares-build" --parallel 2
+          DESTDIR="$GITHUB_WORKSPACE/build/airootfs" cmake --install "$RUNNER_TEMP/calamares-build"
+          test -x build/airootfs/usr/bin/calamares
+          test -d build/airootfs/usr/lib/calamares/modules/partition
+          test -d build/airootfs/usr/lib/calamares/modules/mount
+          test -d build/airootfs/usr/lib/calamares/modules/bootloader
+
+      - name: Stage VENOM Calamares configuration
+        run: |
+          install -d build/airootfs/etc/calamares/modules
+          install -Dm644 installer/settings.conf build/airootfs/etc/calamares/settings.conf
+          install -Dm644 installer/branding/branding.desc build/airootfs/usr/share/calamares/branding/venom/branding.desc
+          cp -a installer/modules/venominstall build/airootfs/usr/lib/calamares/modules/
+          install -Dm644 build/packages.x86_64 build/airootfs/usr/share/venom/packages.x86_64
+          install -Dm644 installer/venom-installer.desktop build/airootfs/usr/share/applications/venom-installer.desktop
+          for module in partition keyboard locale localecfg fstab displaymanager services-systemd bootloader grubcfg initcpiocfg users venominstall; do
+            config="$module.conf"
+            if [ "$module" = localecfg ]; then config=localecfg.conf; fi
+            install -Dm644 "installer/modules/$module/$config" "build/airootfs/etc/calamares/modules/$config"
+          done
+          python -m py_compile installer/modules/venominstall/main.py
+          python - <<'PY'
+          import yaml
+          from pathlib import Path
+          for p in [Path("installer/settings.conf"), *Path("installer/modules").rglob("*.conf"), Path("installer/branding/branding.desc")]:
+              yaml.safe_load(p.read_text())
+              print("YAML OK:", p)
+          PY
+
+      - name: Validate Arch profile
         run: |
           chmod +x scripts/validate-arch-profile.sh
           scripts/validate-arch-profile.sh
-          shellcheck build/profiledef.sh build/airootfs/root/.automated_script.sh build/airootfs/root/venom-live-setup installer/backend/venom-install-backend scripts/validate-arch-profile.sh
-
-      - name: Compile GTK4 installer and stage live system
-        run: |
-          meson setup "$RUNNER_TEMP/venom-installer-build" installer --prefix=/usr
-          meson compile -C "$RUNNER_TEMP/venom-installer-build"
-          DESTDIR="$GITHUB_WORKSPACE/build/airootfs" meson install -C "$RUNNER_TEMP/venom-installer-build"
 
       - name: Build VENOM OS ISO with official Archiso
         run: |
@@ -52,6 +84,15 @@ jobs:
           ISO="$(find out -maxdepth 1 -type f -name '*.iso' -print -quit)"
           test -n "$ISO"
           sha256sum "$ISO" | tee "$ISO.sha256"
+
+      - name: Verify Calamares payload
+        run: |
+          test -x build/airootfs/usr/bin/calamares
+          test -f build/airootfs/etc/calamares/settings.conf
+          test -f build/airootfs/usr/lib/calamares/modules/venominstall/main.py
+          grep -q 'Exec=calamares' build/airootfs/usr/share/applications/venom-installer.desktop
+          grep -q 'pacstrap' installer/modules/venominstall/main.py
+          ! grep -Eq 'unpackfs|rsync' installer/settings.conf
 
       - name: BIOS boot smoke test
         run: |

@@ -1,7 +1,6 @@
-# Pacotes da mídia live VENOM OS. Apenas pacotes/grupos dos repositórios oficiais Arch.
+# Pacotes da sessão live VENOM OS, dos repositórios oficiais Arch.
 base
 base-devel
-gtk4
 archlinux-keyring
 arch-install-scripts
 pacman-mirrorlist
@@ -27,7 +26,6 @@ nano
 which
 man-db
 man-pages
-rsync
 parted
 gptfdisk
 dosfstools
@@ -90,3 +88,22 @@ dconf-editor
 firefox
 xdg-utils
 xdg-user-dirs
+# Runtime dependencies for upstream Calamares built into the live image.
+qt6-base
+qt6-declarative
+qt6-svg
+kconfig
+kcoreaddons
+kcrash
+kparts
+kirigami
+kpackage
+kpmcore
+yaml-cpp
+python
+python-pyyaml
+python-jsonschema
+libpwquality
+hwinfo
+polkit-qt6
+appstream-qt

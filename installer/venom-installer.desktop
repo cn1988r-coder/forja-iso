@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
 Name=Instalar VENOM OS
-Comment=Instalador gráfico online da VENOM OS
-Exec=venom-installer
+Comment=Instalador gráfico Calamares da VENOM OS
+Exec=calamares
 Icon=system-software-install
 Terminal=false
 Categories=System;

@@ -2,61 +2,33 @@
 
 Atualizado em 20/11/2026.
 
-## Arquitetura definitiva
+## Arquitetura
+- Base: Arch Linux oficial e repositórios oficiais.
+- Desktop: MATE; login: LightDM.
+- Idioma: pt_BR.UTF-8; teclado: Brasil ABNT2.
+- Mídia: perfil próprio Archiso.
+- Instalador: Calamares upstream, branding VENOM e módulo Python venominstall.
+- Instalação exclusivamente online: o módulo verifica HTTPS e executa pacstrap sobre rootMountPoint.
+- Não usar unpackfs, rsync ou cópia da raiz live para instalar.
 
-- Sistema: VENOM OS.
-- Base: Arch Linux oficial.
-- Repositórios: somente os oficiais do Arch Linux.
-- Desktop: MATE.
-- Gerenciador de login: LightDM.
-- Idioma: Português do Brasil.
-- Teclado: Brasil ABNT2.
-- Mídia: perfil próprio baseado no Archiso oficial.
-- Instalador: próprio, C + GTK4, backend separado.
-- **Instalação exclusivamente online:** pacstrap/Pacman baixa os pacotes diretamente dos repositórios oficiais Arch.
-- Não existe instalação offline nem cópia do sistema live para o disco.
-- Calamares, EndeavourOS e Manjaro não fazem parte da arquitetura final.
+## Repositório
+cn1988r-coder/forja-iso, branch optimize/venom-iso-size. Preservar main e demais branches.
 
-## Branch e repositório
+## Alterações desta revisão
+- Retirado o instalador C/GTK4 de dentro da ISO.
+- Adicionada configuração Calamares, branding VENOM e módulo online pacstrap.
+- Desktop entry inicia Calamares.
+- Workflow compila Calamares upstream 3.3.14 com Qt6 e Python, fixa checksum do tarball e instala na mídia live.
 
-- Repositório: cn1988r-coder/forja-iso.
-- Branch de trabalho: optimize/venom-iso-size.
-- main e as demais branches permanecem preservadas.
+## Limitações e validação pendente
+- Calamares não está disponível como pacote binário nos repositórios oficiais Arch nesta revisão; o workflow compila o upstream. Dependências são instaladas dos repositórios oficiais.
+- O repositório upstream oficial está arquivado/read-only desde agosto de 2025; 3.3.14 é a última release listada. A manutenção de longo prazo precisa considerar isso.
+- Validar build CMake, YAML, carregamento dos módulos e inicialização gráfica.
+- Ainda não foi realizada instalação completa em VM BIOS/UEFI, nem validado o primeiro boot. Boot live não prova instalação funcional.
+- Não anunciar ISO pronta até completar esses testes.
 
-## Correção arquitetural aplicada
-
-O backend anterior apagava o disco, copiava a árvore do sistema live com rsync e configurava essa cópia como instalação. Essa abordagem foi removida.
-
-O backend atual:
-- exige conectividade HTTPS com o mirror oficial do Arch;
-- usa a configuração oficial Arch em /etc/pacman.conf;
-- instala os pacotes de build/packages.x86_64 com pacstrap;
-- não copia a raiz live e não possui caminho alternativo offline;
-- configura sistema, usuário, locale, serviços, GRUB e initramfs após a instalação dos pacotes.
-
-O Meson instala o manifest de pacotes em /usr/share/venom/packages.x86_64 para uso pelo backend na sessão live.
-
-## Pendências de validação
-
-1. Executar ShellCheck e bash -n no backend atualizado.
-2. Compilar o frontend C/GTK4.
-3. Gerar a ISO com mkarchiso.
-4. Testar o boot live BIOS e UEFI.
-5. Executar instalação real em discos virtuais descartáveis, conectados à internet, nos modos BIOS e UEFI.
-6. Simular ausência de rede e indisponibilidade do mirror: o instalador deve falhar com mensagem clara sem tentar instalar offline.
-7. Validar o primeiro boot do sistema instalado, MATE, LightDM, rede, áudio, Bluetooth e persistência.
-8. Implementar particionamento personalizado, se mantido como requisito do produto.
-
-Não declarar build, testes ou instalação concluídos sem logs e artefatos verificáveis.
-
-## Atualizações do sistema
-
-- Pacman administra atualizações normais: sudo pacman -Syu.
-- VENON é separado do Pacman e acionado manualmente.
-- venon-upgrade apenas consulta/lista atualizações disponíveis.
-- venon-update instala atualizações VENON somente após confirmação explícita.
-- Não criar timers nem atualizações automáticas do VENON.
+## Atualizações
+Pacman administra o sistema: sudo pacman -Syu. VENON é independente e manual: venon-upgrade consulta; venon-update instala após confirmação. Sem timers.
 
 ## Referência histórica
-
-A ISO VENOM OS Manjaro MATE #21 e o script manjaro-mate-dark-complete.sh permanecem como referência histórica de desktop, sem alteração e sem serem usados como base da edição Arch.
+A ISO Manjaro MATE #21 e scripts de referência permanecem intocados e não são a base da edição Arch.
