@@ -50,6 +50,7 @@ xorg-server
 xorg-xauth
 xorg-xrandr
 firefox
+gtk4
 vte3
 libnotify
 libhandy
