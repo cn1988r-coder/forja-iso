@@ -90,7 +90,7 @@ jobs:
           test -x build/airootfs/usr/bin/calamares
           test -f build/airootfs/etc/calamares/settings.conf
           test -f build/airootfs/usr/lib/calamares/modules/venominstall/main.py
-          grep -q 'Exec=calamares' build/airootfs/usr/share/applications/venom-installer.desktop
+          grep -Eq '^Exec=.*(/usr/bin/)?calamares([[:space:]]|$)' build/airootfs/usr/share/applications/venom-installer.desktop
           grep -q 'pacstrap' installer/modules/venominstall/main.py
           ! grep -Eq 'unpackfs|rsync' installer/settings.conf
 
