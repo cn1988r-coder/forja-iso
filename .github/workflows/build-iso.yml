@@ -1,8 +1,7 @@
-name: Compilar ISO VENOM OS
+name: Legacy snapshot build disabled
 
-# Bloqueio intencional: nenhuma compilação de ISO pode ocorrer enquanto
-# o instalador próprio VENOM não estiver implementado, validado e autorizado.
-# O workflow permanece visível para auditoria, mas não aceita gatilhos de push.
+# Branch histórica. A arquitetura ativa usa Archiso e Calamares online
+# nas três branches canônicas documentadas em README.md.
 on:
   workflow_dispatch:
 
@@ -10,12 +9,11 @@ permissions:
   contents: read
 
 jobs:
-  build-iso:
+  disabled:
     if: false
     runs-on: ubuntu-latest
     steps:
-      - name: Compilação bloqueada por decisão do projeto
+      - name: Build disabled
         run: |
-          echo "Build bloqueada: instalador próprio VENOM ainda não foi implementado e validado."
-          echo "A compilação também depende de autorização expressa do usuário."
+          echo "Esta branch é somente histórica; nenhuma ISO pode ser gerada aqui."
           exit 1
