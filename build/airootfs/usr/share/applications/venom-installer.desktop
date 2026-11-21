@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Instalar VENOM OS
+Comment=Instalador gráfico offline da VENOM OS
+Exec=venom-installer
+Icon=system-software-install
+Terminal=false
+Categories=System;
