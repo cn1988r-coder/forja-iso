@@ -28,7 +28,7 @@ jobs:
       - name: Install Arch build and test tools
         run: |
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm git archiso base-devel meson ninja gtk4 shellcheck qemu-system-x86 edk2-ovmf
+          pacman -S --needed --noconfirm git archiso base-devel meson ninja gtk4 shellcheck qemu-system-x86 edk2-ovmf grub syslinux
 
       - name: Checkout
         uses: actions/checkout@v4
