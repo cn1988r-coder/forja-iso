@@ -8,7 +8,7 @@ done
 [[ -n "$ROOT" && -d "$ROOT" ]] || exit 2
 SKEL="$ROOT/etc/skel"
 XFCE="$SKEL/.config/xfce4/xfconf/xfce-perchannel-xml"
-install -d "$XFCE" "$SKEL/.config/gtk-3.0" "$SKEL/.config/gtk-4.0" "$ROOT/usr/share/backgrounds/venom" "$ROOT/usr/share/icons/hicolor/scalable/apps"
+install -d "$XFCE" "$SKEL/.config/gtk-3.0" "$SKEL/.config/gtk-4.0" "$ROOT/etc/xdg/xfce4/panel" "$ROOT/usr/share/backgrounds/venom" "$ROOT/usr/share/icons/hicolor/scalable/apps"
 PANEL="$XFCE/xfce4-panel.xml"
 if [[ -f "$PANEL" ]]; then
  sed -i 's/value="org.xfce.panel.applicationsmenu"/value="venom-menu"/; s/value="start-here"/value="venom-menu"/' "$PANEL"
@@ -32,6 +32,32 @@ gtk-font-name=Noto Sans 10
 gtk-application-prefer-dark-theme=true
 GTK
 done
+cat >"$SKEL/.config/gtk-3.0/gtk.css" <<'CSS'
+/* VENOM Calypso: restrained blue edge and dark glass panel. */
+#XfcePanelWindow {
+  background-color: rgba(5, 9, 15, 0.94);
+  border-top: 1px solid rgba(22, 143, 255, 0.58);
+}
+#XfcePanelWindow button {
+  background-color: transparent;
+  border: 0;
+  box-shadow: none;
+}
+#XfcePanelWindow button:hover {
+  background-color: rgba(22, 143, 255, 0.18);
+}
+CSS
+cat >"$ROOT/etc/xdg/xfce4/panel/docklike.rc" <<'RC'
+[user]
+pinned=firefox.desktop;thunar.desktop;
+forceIconSize=true
+iconSize=32
+showPreviews=true
+showWindowCount=false
+indicatorColorFromTheme=false
+indicatorColor=rgb(22,143,255)
+inactiveColor=rgb(6,65,143)
+RC
 cat >"$XFCE/xfwm4.xml" <<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="xfwm4" version="1.0"><property name="general" type="empty"><property name="theme" type="string" value="Default"/><property name="button_layout" type="string" value="|HMC"/><property name="use_compositing" type="bool" value="true"/><property name="snap_to_border" type="bool" value="true"/><property name="snap_to_windows" type="bool" value="true"/><property name="tile_on_move" type="bool" value="true"/></property></channel>
