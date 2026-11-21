@@ -46,6 +46,16 @@ Este arquivo é a referência versionada para as decisões do projeto. Deve ser 
 - **APROVADO:** manter histórico técnico de alterações, commits, testes e resultados, distinguindo planejamento de implementação e validação.
 - **APROVADO:** este arquivo, `docs/REGISTRO-DE-DECISOES.md`, é o local oficial no repositório para registrar e atualizar as decisões.
 
+
+### 2026-11-21 | Kernel principal e kernel de reserva
+
+- **APROVADO:** o kernel estável oficial do Arch Linux, pacote `linux`, é o kernel principal da VENOM OS.
+- **APROVADO:** o kernel de suporte prolongado, pacote `linux-lts`, deve permanecer instalado como alternativa de recuperação, não como opção padrão.
+- **APROVADO:** nos menus de inicialização Live BIOS e UEFI, a entrada padrão deve usar `linux`; o `linux-lts` deve aparecer como opção identificada de reserva.
+- **APROVADO:** o sistema instalado deve receber ambos os kernels, mantendo o kernel estável como primeira opção do GRUB e o LTS como alternativa.
+- **JUSTIFICATIVA:** o usuário relatou falhas intermitentes no teclado interno e desligamentos no Dell Inspiron 5458. Isso ainda não comprova defeito no LTS; a mudança estabelece uma opção principal e uma rota de recuperação, permitindo comparação real entre os kernels.
+- **IMPLEMENTAÇÃO:** manifesto de instalação, entradas Syslinux/GRUB Live e validador atualizados na branch de trabalho. A geração da ISO e os testes em hardware ainda precisam confirmar os arquivos e o comportamento de boot.
+
 ## 5. Estado inicial deste registro
 
 Este documento registra as decisões confirmadas nesta conversa em 2026-11-21. Não presume que funcionalidades ou etapas técnicas estejam implementadas apenas por estarem descritas aqui. Para o estado de implementação, verificar a branch, os arquivos, os commits e os resultados dos testes.
