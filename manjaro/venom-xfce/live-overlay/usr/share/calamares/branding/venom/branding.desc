@@ -1,0 +1,22 @@
+---
+componentName: venom
+
+strings:
+    productName:         VENOM OS
+    shortProductName:    VENOM OS
+    version:             "1.0"
+    shortVersion:        "1.0"
+    versionedName:       VENOM OS 1.0
+    shortVersionedName:  VENOM OS 1.0
+    bootloaderEntryName: VENOM OS
+
+images:
+    productLogo:         "logo.svg"
+    productIcon:         "logo.svg"
+    productWelcome:      "welcome.svg"
+
+style:
+    sidebarBackground:    "#111111"
+    sidebarText:          "#eeeeee"
+    sidebarTextSelect:    "#3b3b3b"
+    sidebarTextHighlight: "#ffffff"
