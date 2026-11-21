@@ -80,13 +80,13 @@ parse_gib_entry(GtkWidget *entry, guint64 *size_bytes)
     gchar *end = NULL;
     guint64 gib;
 
-    if (text == NULL || *text == '\\0') {
+    if (text == NULL || *text == '\0') {
         return FALSE;
     }
 
     errno = 0;
     gib = g_ascii_strtoull(text, &end, 10);
-    if (errno != 0 || end == text || *end != '\\0' ||
+    if (errno != 0 || end == text || *end != '\0' ||
         gib == 0 || gib > G_MAXUINT64 / (1024ULL * 1024ULL * 1024ULL)) {
         return FALSE;
     }
@@ -206,8 +206,8 @@ update_plan_preview(AppState *state)
     summary = g_string_new(NULL);
     g_string_append_printf(
         summary,
-        "Modo: %s\\nInicialização detectada: %s\\nTabela: GPT\\n"
-        "Disco: %s\\n\\nPartições propostas:\\n",
+        "Modo: %s\nInicialização detectada: %s\nTabela: GPT\n"
+        "Disco: %s\n\nPartições propostas:\n",
         state->plan->mode == VENOM_INSTALL_AUTOMATIC
             ? "Automático" : "Personalizado",
         state->firmware == VENOM_FIRMWARE_UEFI ? "UEFI" : "BIOS",
@@ -230,14 +230,14 @@ update_plan_preview(AppState *state)
                                    partition->mount_point);
         }
         g_string_append(summary,
-                        partition->format ? ", será formatada\\n"
-                                          : ", sem formatação\\n");
+                        partition->format ? ", será formatada\n"
+                                          : ", sem formatação\n");
         g_free(size_text);
     }
 
     g_string_append(
         summary,
-        "\\nEsta proposta é somente uma prévia. Nenhuma partição será criada ou formatada."
+        "\nEsta proposta é somente uma prévia. Nenhuma partição será criada ou formatada."
     );
     gtk_label_set_text(GTK_LABEL(state->plan_details), summary->str);
     g_string_free(summary, TRUE);
@@ -275,7 +275,7 @@ update_disk_details(AppState *state)
     disk = g_ptr_array_index(state->disks, selected);
     size_text = g_format_size(disk->size_bytes);
     details = g_strdup_printf(
-        "Dispositivo: %s\\nModelo: %s\\nTamanho: %s\\nEstado: %s",
+        "Dispositivo: %s\nModelo: %s\nTamanho: %s\nEstado: %s",
         disk->path,
         disk->model,
         size_text,
@@ -523,6 +523,7 @@ on_activate(GtkApplication *application, gpointer user_data)
     gtk_box_append(GTK_BOX(page), mode_label);
     state->mode_dropdown = gtk_drop_down_new(
         G_LIST_MODEL(state->mode_model), NULL);
+    gtk_drop_down_set_selected(GTK_DROP_DOWN(state->mode_dropdown), 0);
     gtk_box_append(GTK_BOX(page), state->mode_dropdown);
 
     firmware_label = gtk_label_new(
