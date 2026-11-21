@@ -1,1 +1,1 @@
-Build autorizada pelo usuário para a edição VENOM XFCE. Diagnóstico de boot atualizado: marcadores explícitos de prontidão live e testes BIOS/UEFI independentes. Disparar compilação e validar LightDM ativo. 2026-11-21.
+Build autorizada pelo usuário para a edição VENOM XFCE. Correção: systemd.firstboot=headless para impedir prompt interativo no live; validador exige o parâmetro; executar testes BIOS e UEFI e liberar ISO somente após ambos alcançarem VENOM_LIVE_READY. 2026-11-21.
