@@ -62,6 +62,16 @@ Elementos comuns às três edições:
 
 Esta seção registra a direção visual aprovada pelo usuário. As referências são especificações conceituais, não evidência de que todos os elementos já estejam implementados ou testados nas ISOs.
 
+
+## Correção da falha de boot da compilação #47
+
+- Run #47, ID `44863728291`, commit `c53b5d9f37ac52b1d89353ac8916b11ac48f886f`, terminou com falha nos testes BIOS e UEFI.
+- Os logs seriais mostram que o boot parou no serviço `systemd-firstboot.service`, que abriu o assistente interativo "Please enter the new timezone name or number". Por isso o script `/root/venom-live-setup` não chegou a emitir `VENOM_LIVE_READY`.
+- Correção aplicada em `build/profiledef.sh`: adicionar `systemd.firstboot=headless` aos parâmetros de kernel comuns a BIOS e UEFI. Esse modo suprime perguntas interativas do systemd-firstboot, preservando a configuração automática que não exige entrada.
+- O validador `scripts/validate-xfce-profile.sh` agora exige explicitamente esse parâmetro, para evitar regressão.
+- Critério da próxima compilação: validação estática aprovada; ISO gerada; Calamares 3.3.14 e configuração VENOM verificados; BIOS e UEFI devem alcançar `VENOM_LIVE_READY` e LightDM ativo; gate final deve aprovar ambos antes de publicar o artefato ISO.
+- A correção não desativa nem remove os testes. Se algum modo falhar novamente, preservar os logs seriais e investigar a nova causa antes de outra tentativa.
+
 ## Preparação para retomada em 22/11/2026
 - Prioridade: concluir a edição VENOM XFCE e entregar uma ISO verificável para o usuário testar.
 - Correção do validador Calamares já está registrada no workflow, commit b943267bba0fb05a6152346ceca538c94f4b979a.
