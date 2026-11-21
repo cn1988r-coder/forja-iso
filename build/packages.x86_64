@@ -62,6 +62,7 @@ xorg-xauth
 xorg-xrandr
 xfce4
 xfce4-goodies
+thunar
 thunar-archive-plugin
 thunar-volman
 gvfs
