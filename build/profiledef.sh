@@ -13,7 +13,7 @@ pacman_conf="pacman.conf"
 airootfs_image_type="squashfs"
 airootfs_image_tool_options=('-comp' 'xz' '-Xbcj' 'x86' '-b' '1M' '-Xdict-size' '1M')
 kernel_params_x86_64="script=/root/venom-live-setup console=tty0 console=ttyS0,115200n8 systemd.log_target=console systemd.log_level=info"
-file_permissions=(
+declare -A file_permissions=(
  ["/etc/shadow"]="0:0:400"
  ["/root"]="0:0:750"
  ["/root/.automated_script.sh"]="0:0:755"
