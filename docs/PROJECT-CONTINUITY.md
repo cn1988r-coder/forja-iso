@@ -43,3 +43,21 @@ Atualizado em 21/11/2026.
 - A imagem gerada no runner foi descartada ao encerrar o job; não há link de download disponível.
 
 - Após autorização, validar boot BIOS/UEFI e instalação completa em VM descartável, incluindo primeiro login XFCE.
+
+## Identidade visual e interfaces VENOM OS
+Palavra-chave de recuperação solicitada pelo usuário: **INTERFACES**. Quando o usuário disser “chat, interfaces” ou pedir “as interfaces”, recuperar e apresentar este acordo.
+
+Princípio: **uma identidade visual VENOM compartilhada, com três experiências de desktop distintas**. Não padronizar os três ambientes a ponto de parecerem cópias uns dos outros.
+
+- **VENOM XFCE:** experiência moderna e objetiva; painel inferior robusto, menu próprio VENOM e identidade azul metálica.
+- **VENOM MATE:** experiência elegante, familiar e organizada; preservar a personalidade e os recursos próprios do MATE, mantendo a identidade VENOM.
+- **VENOM Window Maker:** experiência própria do Window Maker, inspirada na filosofia OpenStep; valorizar o Dock, o menu raiz e os elementos característicos do ambiente, sem imitar XFCE ou LXQt.
+
+Elementos comuns às três edições:
+- Identidade VENOM OS, com preto e azul metálico como cores principais e a marca/serpente VENOM nos elementos próprios do sistema.
+- Aplicativos mantêm seus ícones e marcas originais. Não aplicar máscara ou recoloração que descaracterize Firefox e outros aplicativos.
+- Usar base, ferramentas e pacotes do Arch Linux oficial. Não incluir identidade, ferramentas ou dependências operacionais do Manjaro.
+- Manter consistência de marca sem apagar a identidade funcional e visual de cada ambiente.
+
+Esta seção registra a direção visual aprovada pelo usuário. As referências são especificações conceituais, não evidência de que todos os elementos já estejam implementados ou testados nas ISOs.
+
