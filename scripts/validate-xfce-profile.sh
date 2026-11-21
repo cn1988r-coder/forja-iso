@@ -31,6 +31,8 @@ grep -Fxq 'KEYMAP=br-abnt2' "$P/airootfs/etc/vconsole.conf" || fail "Teclado ABN
 grep -Fq 'systemctl start venom-live-setup.service' "$P/airootfs/root/.bash_profile" || fail "tty1 não inicia setup via systemd."
 grep -Fq '/dev/tty1' "$P/airootfs/root/.bash_profile" || fail "Setup live deve ser disparado somente no tty1."
 grep -Fq 'ExecStart=/usr/bin/bash /usr/local/lib/venom/venom-live-setup' "$P/airootfs/etc/systemd/system/venom-live-setup.service" || fail "Unit systemd não chama setup live."
+grep -Fq 'groupadd --system autologin' "$P/airootfs/usr/local/lib/venom/venom-live-setup" || fail "Grupo exigido pelo PAM do LightDM não é criado."
+grep -Fq 'usermod --append --groups autologin venom' "$P/airootfs/usr/local/lib/venom/venom-live-setup" || fail "Usuário live não recebe o grupo autologin."
 grep -Fq 'StandardOutput=journal+console' "$P/airootfs/etc/systemd/system/venom-live-setup.service" || fail "Unit live não encaminha logs ao console."
 grep -Fq 'After=lightdm.service' "$P/airootfs/etc/systemd/system/venom-live-ready.service" || fail "Verificador de prontidão não aguarda LightDM."
 [[ "$(head -n1 "$P/syslinux/archiso_sys.cfg")" == "SERIAL 0 115200" ]] || fail "SERIAL precisa ser a primeira diretiva do Syslinux BIOS para inicializar a porta COM1."

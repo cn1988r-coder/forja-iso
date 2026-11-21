@@ -94,3 +94,8 @@ Esta seção registra a direção visual aprovada pelo usuário. As referências
 - Correção aplicada na branch XFCE: adicionar `build/airootfs/root/.bash_profile` para disparar o hook Archiso no tty1 e emitir `VENOM_AUTOMATED_SCRIPT_DISPATCHED` no serial; ampliar o validador para exigir o arquivo, verificar sua sintaxe e confirmar que ele chama `/root/.automated_script.sh`.
 - O parâmetro `systemd.firstboot=headless` permanece obrigatório e não foi removido.
 - Próxima validação: reconstruir e executar novamente BIOS e UEFI. Exigir os marcadores de despacho, início do setup e `VENOM_LIVE_READY`, além de LightDM ativo. A ISO só pode ser publicada se ambos os modos passarem. O log BIOS vazio ainda precisa ser reavaliado na nova execução.
+
+## Diagnóstico da compilação #61
+- Run #61, ID 44929473954: pré-check, compilação Calamares 3.3.14, staging do branding, validação Archiso, geração da ISO e verificação do payload passaram. Os testes de boot chegaram ao sistema e iniciaram LightDM, mas ambos reprovaram na prontidão XFCE.
+- Log PAM do LightDM: requisito user ingroup autologin não atendido para venom; o script criava venom nos grupos wheel/audio/video/storage, sem autologin. A sessão gráfica não iniciou e não houve processos xfce4-session, xfce4-panel ou xfdesktop.
+- Correção: criar o grupo autologin se ausente e adicionar venom a ele mesmo se a conta já existir. O validador passa a exigir essas operações. Nova compilação e testes BIOS/UEFI necessários; nenhuma ISO publicada.
