@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+P="$ROOT/build"
+PKG="$P/packages.x86_64"
+fail(){ printf 'FALHA: %s\n' "$*" >&2; exit 1; }
+for f in profiledef.sh pacman.conf packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.automated_script.sh airootfs/root/venom-live-setup syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
+  [[ -s "$P/$f" ]] || fail "Arquivo obrigatório ausente: build/$f"
+done
+bash -n "$P/profiledef.sh" "$P/airootfs/root/.automated_script.sh" "$P/airootfs/root/venom-live-setup" "$ROOT/installer/modules/venominstall/main.py" 2>/dev/null || {
+  python -m py_compile "$ROOT/installer/modules/venominstall/main.py" || fail "Sintaxe do módulo venominstall inválida."
+}
+(
+  cd "$P"
+  # shellcheck disable=SC1091
+  source ./profiledef.sh
+  [[ "$iso_name" == venom && "$arch" == x86_64 ]] || fail "Identidade/arquitetura inválida."
+  [[ " ${bootmodes[*]} " == *" bios.syslinux "* && " ${bootmodes[*]} " == *" uefi.grub "* ]] || fail "Boot BIOS/UEFI incompleto."
+  [[ "$packages" == packages.x86_64 ]] || fail "Manifest incorreto."
+  [[ " ${airootfs_image_tool_options[*]} " == *" zstd "* ]] || fail "SquashFS deve usar zstd."
+)
+grep -Fxq 'LANG=pt_BR.UTF-8' "$P/airootfs/etc/locale.conf" || fail "Locale incorreto."
+grep -Fxq 'pt_BR.UTF-8 UTF-8' "$P/airootfs/etc/locale.gen" || fail "Locale pt_BR não habilitado."
+grep -Fxq 'KEYMAP=br-abnt2' "$P/airootfs/etc/vconsole.conf" || fail "Teclado ABNT2 ausente."
+grep -q '^HOOKS=.*archiso' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Hooks Archiso ausentes."
+grep -Fxq 'COMPRESSION="zstd"' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Compressão do initramfs inválida."
+for p in base linux linux-firmware archlinux-keyring arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils nbd xfce4 xfce4-goodies thunar lightdm lightdm-gtk-greeter networkmanager bluez blueman gtk4 qt6-base; do
+  grep -Fxq "$p" "$PKG" || fail "Pacote/grupo obrigatório ausente: $p"
+done
+if grep -Eiq '^(mate-session-manager|mate-panel|mate-control-center|caja|marco|mate-settings-daemon|manjaro|endeavouros|biglinux|mhwd|pamac-gtk)$' "$PKG"; then
+  fail "Pacote de desktop incorreto ou resíduo de outra distribuição no manifest."
+fi
+grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/pacman.conf" || fail "Mirror oficial Arch ausente."
+grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/airootfs/etc/pacman.conf" || fail "Mirror oficial Arch ausente na sessão live."
+for f in "$ROOT/installer/settings.conf" "$ROOT/installer/branding/branding.desc" "$ROOT"/installer/modules/*/*.conf; do
+  [[ -f "$f" ]] || continue
+  python - "$f" <<'PY'
+import pathlib, sys, yaml
+yaml.safe_load(pathlib.Path(sys.argv[1]).read_text())
+PY
+done
+python -m py_compile "$ROOT/installer/modules/venominstall/main.py"
+grep -q 'pacstrap' "$ROOT/installer/modules/venominstall/main.py" || fail "Instalador online pacstrap ausente."
+if grep -Eiq 'unpackfs|rsync|manjaro|endeavouros|biglinux|mhwd' "$ROOT/installer/settings.conf" "$ROOT/installer/modules/venominstall" "$PKG" "$P/pacman.conf"; then
+  fail "Referência proibida ou instalação por cópia detectada."
+fi
+for f in "$P/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" "$P/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfsettingsd.xml" "$P/airootfs/etc/skel/.config/gtk-3.0/settings.ini"; do
+  [[ -s "$f" ]] || fail "Configuração XFCE ausente: $f"
+done
+duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$PKG" | sort | uniq -d)"
+[[ -z "$duplicates" ]] || fail "Pacotes duplicados: $duplicates"
+printf 'OK: perfil Archiso XFCE, BIOS/UEFI, locale, teclado, PXE, Calamares online e manifest passaram na validação estática.\n'
