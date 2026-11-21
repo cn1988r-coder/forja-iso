@@ -27,7 +27,7 @@ python -m py_compile "$ROOT/installer/modules/venominstall/main.py" || fail "Sin
 grep -Fxq 'LANG=pt_BR.UTF-8' "$P/airootfs/etc/locale.conf" || fail "Locale incorreto."
 grep -Fxq 'pt_BR.UTF-8 UTF-8' "$P/airootfs/etc/locale.gen" || fail "Locale pt_BR ausente."
 grep -Fxq 'KEYMAP=br-abnt2' "$P/airootfs/etc/vconsole.conf" || fail "Teclado ABNT2 ausente."
-grep -Fq '/root/.automated_script.sh' "$P/airootfs/root/.bash_profile" || fail "Login Bash do root não dispara o setup live do Archiso."
+grep -Fq 'exec /usr/bin/bash /root/venom-live-setup' "$P/airootfs/root/.bash_profile" || fail "Login Bash do root não inicia diretamente o setup live."
 grep -Fq '/dev/tty1' "$P/airootfs/root/.bash_profile" || fail "Setup live deve ser disparado somente no tty1."
 grep -q '^HOOKS=.*archiso' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Hooks Archiso ausentes."
 grep -Fxq 'COMPRESSION="zstd"' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Compressão do initramfs inválida."
