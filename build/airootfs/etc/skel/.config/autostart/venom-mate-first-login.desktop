@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
-Name=VENOM MATE First Login Setup
-Comment=Aplica tema escuro, ícones, cursor, Brisk Menu e wallpaper da VENOM OS
+Name=Configuração inicial do MATE VENOM
+Comment=Aplica as preferências visuais da VENOM OS no primeiro acesso
 Exec=/usr/bin/bash /usr/local/bin/venom-mate-first-login
 OnlyShowIn=MATE;
 X-MATE-Autostart-enabled=true

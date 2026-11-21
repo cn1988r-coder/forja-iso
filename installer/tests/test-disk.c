@@ -1,5 +1,6 @@
 #include "../src/disk.h"
 
+#include <gio/gio.h>
 #include <glib.h>
 
 static const gchar fixture[] =
