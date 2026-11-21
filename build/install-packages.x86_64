@@ -75,3 +75,8 @@ noto-fonts
 ttf-dejavu
 ttf-roboto
 fastfetch
+
+# Pamac built from the Arch User Repository, not from Manjaro.
+libpamac-aur
+pamac-aur
+base-devel
