@@ -28,7 +28,8 @@ Atualizado em 20/11/2026.
 - Perfil antigo continha `mhwd`, autologin e senha padrão `venom`.
 - Nenhuma ISO desse estado é considerada instalável.
 
-## Validação pendente
-- Concluir validação estática em container Arch, incluindo disponibilidade dos pacotes dos dois manifestos e sintaxe dos scripts.
+## Validação
+- Validação estática aprovada no workflow `44857473296`: manifestos live/instalado, disponibilidade de pacotes oficiais, overlay, sequência Calamares, sintaxe Bash/Python e ShellCheck passaram.
+- Build ISO e instalação real em VM ainda não foram executados.
 - Não iniciar build ISO sem autorização expressa.
 - Após build autorizado, validar BIOS/UEFI e instalação completa em VM descartável, incluindo primeiro login XFCE.
