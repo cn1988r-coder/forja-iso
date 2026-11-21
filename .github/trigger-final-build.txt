@@ -26,3 +26,6 @@ Correção Yaru Blue: gerar index.theme com o gerador oficial do tema Yaru e ins
 Modernização visual completa do XFCE solicitada pelo usuário em 21/11/2026: aplicar tema adw-gtk3-dark, paleta grafite/azul/prata em GTK3/GTK4 e menus Whisker, manter uma única barra inferior de 40px com botão circular V Venom e Docklike integrada (Firefox/Thunar), atualizar molduras de janela, Thunar e wallpaper Venom. Preservar XFCE e funções existentes. Rodar build Archiso e gates definidos no workflow; não alterar main nem publicar release. 2026-11-21.
 
 Correção BIOS #62: diagnóstico do artefato de boot mostrou bios-serial.log vazio, enquanto UEFI atingiu VENOM_LIVE_READY. Ajustada a configuração Syslinux para colocar SERIAL 0 115200 como primeira diretiva em archiso_head.cfg, seguindo o perfil oficial Archiso, e removida a diretiva CONSOLE 0 que estava antes do menu. Removida a duplicação SERIAL em archiso_sys.cfg. Recompilar e validar BIOS e UEFI; não publicar sem ambos passarem. 2026-11-21.
+
+
+Build solicitada em 21/11/2026: preflight atual #498 aprovado no HEAD da branch. Iniciar agora a compilação Archiso, Calamares 3.3.14 e testes BIOS/UEFI; preservar a branch main. Só disponibilizar ISO se ambos os testes de boot passarem.
