@@ -56,6 +56,15 @@ Este arquivo é a referência versionada para as decisões do projeto. Deve ser 
 - **JUSTIFICATIVA:** o usuário relatou falhas intermitentes no teclado interno e desligamentos no Dell Inspiron 5458. Isso ainda não comprova defeito no LTS; a mudança estabelece uma opção principal e uma rota de recuperação, permitindo comparação real entre os kernels.
 - **IMPLEMENTAÇÃO:** manifesto de instalação, entradas Syslinux/GRUB Live e validador atualizados na branch de trabalho. A geração da ISO e os testes em hardware ainda precisam confirmar os arquivos e o comportamento de boot.
 
+
+### 2026-11-21 | Comunicação do andamento para o usuário
+
+- **APROVADO:** nas atualizações do projeto, priorizar informações sobre compilação e validação em linguagem simples, sem exigir que o usuário acompanhe ou interprete hashes, identificadores ou detalhes de commits.
+- **APROVADO:** informar principalmente o estado da compilação (não iniciada, em andamento, concluída ou falhou), o resultado de cada etapa, erros relevantes, se a ISO foi gerada e se os testes de inicialização/instalação foram realizados.
+- **APROVADO:** quando útil, apresentar um resumo organizado dos resultados das compilações e validações, destacando o que passou, o que falhou e o que ainda falta. Não chamar isso de conclusão se houver etapas pendentes.
+- **ORIENTAÇÃO:** detalhes de commits podem ser omitidos das atualizações comuns. Só apresentar esses dados se o usuário pedir ou se forem indispensáveis para explicar uma alteração.
+- **REGRA:** nunca confundir validação estática, compilação bem-sucedida, ISO gerada e teste real em hardware. São etapas diferentes e devem ser comunicadas separadamente.
+
 ## 5. Estado inicial deste registro
 
 Este documento registra as decisões confirmadas nesta conversa em 2026-11-21. Não presume que funcionalidades ou etapas técnicas estejam implementadas apenas por estarem descritas aqui. Para o estado de implementação, verificar a branch, os arquivos, os commits e os resultados dos testes.
