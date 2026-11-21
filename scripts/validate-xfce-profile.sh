@@ -47,6 +47,14 @@ fi
 for f in "$P/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" "$P/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml" "$P/airootfs/etc/skel/.config/gtk-3.0/settings.ini"; do
   [[ -s "$f" ]] || fail "Configuração XFCE ausente: $f"
 done
+if command -v pacman >/dev/null 2>&1; then
+  while IFS= read -r package; do
+    [[ -z "$package" || "$package" == \\#* ]] && continue
+    if ! pacman -Si "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" | grep -q .; then
+      fail "Pacote/grupo ausente dos repositórios oficiais Arch: $package"
+    fi
+  done < "$PKG"
+fi
 duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$PKG" | sort | uniq -d)"
 [[ -z "$duplicates" ]] || fail "Pacotes duplicados: $duplicates"
 printf 'OK: perfil Archiso XFCE, BIOS/UEFI, locale, teclado, PXE, Calamares online e manifest passaram na validação estática.\n'
