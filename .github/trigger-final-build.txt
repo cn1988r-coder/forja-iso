@@ -5,3 +5,5 @@ Correção #52: adicionar fallback explícito para /root/venom-live-setup no dis
 Correção #53: simplificado o dispatcher Live para executar diretamente /root/venom-live-setup, removendo parsing de cmdline que estava escapado incorretamente e evitando nova falha antes do setup. Sintaxe Bash local verificada. Compilar ISO e executar testes BIOS/UEFI, sem publicar. 2026-11-21.
 
 Correção #54: .bash_profile agora chama diretamente /usr/bin/bash /root/venom-live-setup no tty1, removendo completamente o dispatcher intermediário; adicionados marcadores seriais de lançamento. Validar e compilar ISO Arch oficial, executar gates BIOS/UEFI. Sem alterar main e sem publicar. 2026-11-21.
+
+Diagnóstico #56: o build nem chegou à compilação ISO. O erro era uma validação estática desatualizada em scripts/validate-xfce-profile.sh, que ainda exigia que .bash_profile chamasse .automated_script.sh, embora a correção intencional passe a executar diretamente /usr/bin/bash /root/venom-live-setup. Atualizado o teste para verificar o novo fluxo direto. Nova compilação solicitada após corrigir a validação. 2026-11-21.
