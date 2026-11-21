@@ -13,3 +13,5 @@ Correção #59: mover o setup live para /usr/local/lib/venom, fora de /root, e i
 
 
 Correção #60: logs #59 revelaram deadlock de ordenação: venom-live-setup.service tinha Before=lightdm.service e chamava systemctl start lightdm de forma síncrona. Agora LightDM é enfileirado sem bloqueio e um serviço separado, ordenado After=lightdm, confirma VENOM_LIVE_READY. Atualizar validador e ShellCheck; executar nova compilação e gates BIOS/UEFI, sem publicar até ambos passarem. 2026-11-21.
+
+Build autorizada pelo usuário em 21/11/2026: manter Calamares oficial upstream 3.3.14, com identidade visual VENOM OS e módulo venominstall; corrigir o pré-check para aceitar Calamares e iniciar nova compilação Archiso com testes BIOS e UEFI. Publicar ISO somente se os dois testes passarem.

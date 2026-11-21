@@ -321,8 +321,8 @@ def main():
     except ImportError:
         add("INCONCLUSIVE", "YAML", "PyYAML não instalado; sintaxe YAML não verificada")
 
-    # Enforce the agreed independent-Arch architecture.
-    forbidden = re.compile(r"calamares|manjaro|endeavouros|mhwd|biglinux", re.I)
+    # Enforce the agreed Arch-only base while allowing the official, VENOM-branded Calamares installer.
+    forbidden = re.compile(r"manjaro|endeavouros|mhwd|biglinux", re.I)
     hits = []
     for rel in ("build", "installer", ".github/workflows"):
         folder = ROOT / rel
@@ -339,15 +339,24 @@ def main():
                 if forbidden.search(line):
                     hits.append(f"{path.relative_to(ROOT)}:{number}: {line.strip()[:180]}")
     add("ERROR" if hits else "OK", "Arquitetura",
-        "Referências proibidas na arquitetura ativa encontradas" if hits
-        else "Nenhuma dependência proibida encontrada nas áreas auditadas",
+        "Referências de outras distribuições na arquitetura ativa encontradas" if hits
+        else "Nenhuma dependência de outras distribuições encontrada nas áreas auditadas",
         "\n".join(hits[:50]))
-    agents = read("AGENTS.md") or ""
-    if re.search(r"Instalador:.*Calamares", agents, re.I):
-        add("ERROR", "Política", "AGENTS.md ainda define Calamares como instalador, contrariando a arquitetura final independente")
-    continuity = read("docs/PROJECT-CONTINUITY.md") or ""
-    if re.search(r"^\\s*-\\s*Instalador Calamares", continuity, re.I | re.M):
-        add("ERROR", "Continuidade", "docs/PROJECT-CONTINUITY.md ainda registra Calamares como instalador da arquitetura")
+    # Calamares is the official upstream installer, branded for VENOM OS.
+    build_workflow = read(".github/workflows/build-arch-iso.yml") or ""
+    branding = read("installer/branding/branding.desc") or ""
+    installer_module = read("installer/modules/venominstall/main.py") or ""
+    pinned_calamres = "Build upstream Calamares 3.3.14" in build_workflow and "refs/tags/v3.3.14" in build_workflow
+    add("OK" if pinned_calamres else "ERROR", "Instalador",
+        "Calamares oficial 3.3.14 fixado no workflow" if pinned_calamres
+        else "Calamares oficial 3.3.14 não está fixado no workflow")
+    branded = "productName: VENOM OS" in branding and "sidebarBackground" in branding
+    add("OK" if branded else "ERROR", "Identidade",
+        "Branding VENOM OS do Calamares presente" if branded
+        else "Branding VENOM OS do Calamares ausente")
+    add("OK" if "pacstrap" in installer_module else "ERROR", "Instalador",
+        "Módulo VENOM de instalação via pacstrap presente" if "pacstrap" in installer_module
+        else "Módulo venominstall sem pacstrap")
 
     # VENON must remain isolated from Pacman and must not run automatically.
     venon_paths = ["build/airootfs/usr/bin/venon-upgrade", "build/airootfs/usr/bin/venon-update"]

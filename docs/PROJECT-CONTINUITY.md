@@ -1,6 +1,6 @@
 # Continuidade técnica: VENOM OS XFCE
 
-Atualizado em 21/11/2026.
+Atualizado em 21/11/2026, decisão do usuário: Calamares oficial com personalização VENOM.
 
 ## Arquitetura
 - Branch: `feature/venom-community-xfce`.
@@ -8,7 +8,7 @@ Atualizado em 21/11/2026.
 - Desktop: XFCE real + LightDM; sem MATE ou Window Maker.
 - Idioma pt_BR.UTF-8; teclado br-abnt2.
 - Mídia Archiso oficial.
-- Instalador final próprio e independente: pendente de implementação. A configuração Calamares atual é transitória e bloqueia qualquer build.
+- Instalador oficial: Calamares upstream 3.3.14, compilado a partir da tag oficial fixada no workflow, com branding VENOM OS e módulo próprio `venominstall`. Esta é a escolha aprovada para esta edição XFCE.
 - Instalação exclusivamente online via pacstrap/Pacman. Sem unpackfs, rsync ou cópia da raiz live.
 - Atualizações normais pelo Pacman; VENON separado e manual.
 
