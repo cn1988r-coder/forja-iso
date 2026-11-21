@@ -49,7 +49,7 @@ for f in "$P/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-pa
 done
 if command -v pacman >/dev/null 2>&1; then
   while IFS= read -r package; do
-    [[ -z "$package" || "$package" == \\#* ]] && continue
+    [[ -z "$package" || "$package" == \#* ]] && continue
     if ! pacman -Si "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" | grep -q .; then
       fail "Pacote/grupo ausente dos repositórios oficiais Arch: $package"
     fi
