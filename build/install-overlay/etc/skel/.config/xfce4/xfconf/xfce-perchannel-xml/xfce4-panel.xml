@@ -33,7 +33,7 @@
   </property>
   <property name="plugins" type="empty">
     <property name="plugin-1" type="string" value="whiskermenu">
-      <property name="button-icon" type="string" value="org.xfce.panel.applicationsmenu"/>
+      <property name="button-icon" type="string" value="venom-menu"/>
       <property name="button-single-row" type="bool" value="false"/>
       <property name="command-switchuser" type="string" value="dm-tool switch-to-greeter"/>
       <property name="show-command-lockscreen" type="bool" value="false"/>
@@ -114,13 +114,7 @@
       <property name="tweaks" type="empty">
         <property name="popup-at-pointer" type="bool" value="true"/>
       </property>
-      <property name="plugin-11" type="string" value="tasklist">
-        <property name="flat-buttons" type="bool" value="true"/>
-        <property name="grouping" type="uint" value="1"/>
-        <property name="show-handle" type="bool" value="false"/>
-        <property name="show-labels" type="bool" value="false"/>
-        <property name="show-only-minimized" type="bool" value="false"/>
-      </property>
     </property>
+    <property name="plugin-11" type="string" value="docklike"/>
   </property>
 </channel>
