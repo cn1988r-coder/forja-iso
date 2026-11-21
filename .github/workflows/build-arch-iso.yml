@@ -35,6 +35,8 @@ jobs:
           scripts/build-pamac-aur.sh
           install -d build/airootfs/usr/share/venom/aur-repo
           cp -a /tmp/venom-aur-repo/. build/airootfs/usr/share/venom/aur-repo/
+          pacman --config build/pacman.conf -Sy --noconfirm
+          pacman --config build/pacman.conf -Si libpamac-aur pamac-aur
 
       - name: Apply VENOM Calypso XFCE profile and stage Bibata cursor
         run: |
