@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#08090b"/><stop offset=".52" stop-color="#14171b"/><stop offset="1" stop-color="#050607"/>
+  </linearGradient>
+  <radialGradient id="glow" cx="72%" cy="47%" r="58%">
+    <stop offset="0" stop-color="#4a5058" stop-opacity=".32"/><stop offset=".55" stop-color="#22272d" stop-opacity=".12"/><stop offset="1" stop-color="#08090b" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#f4f5f6"/><stop offset=".45" stop-color="#8d969f"/><stop offset="1" stop-color="#353b42"/>
+  </linearGradient>
+  <linearGradient id="edge" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset=".5" stop-color="#dce1e6" stop-opacity=".55"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+  </linearGradient>
+  <filter id="soft"><feGaussianBlur stdDeviation="22"/></filter>
+</defs>
+<rect width="1920" height="1080" fill="url(#bg)"/>
+<rect width="1920" height="1080" fill="url(#glow)"/>
+<path d="M0 0H1920L1510 1080H0Z" fill="#fff" opacity=".018"/>
+<path d="M0 860L780 0h210L250 1080H0Z" fill="#fff" opacity=".018"/>
+<path d="M1160 0h760v1080h-420L900 0Z" fill="#fff" opacity=".018"/>
+<g fill="none" stroke="#aeb6bf" opacity=".10">
+  <path d="M1040 -80L1840 1080M1120 -80L1920 1080M930 -80L1730 1080" stroke-width="2"/>
+  <path d="M1220 0L1920 1000M1300 0L1920 900" stroke-width="1"/>
+  <path d="M0 910L910 0M0 1000L1000 0" stroke-width="1"/>
+</g>
+<ellipse cx="1390" cy="520" rx="430" ry="330" fill="#c8d0d8" opacity=".08" filter="url(#soft)"/>
+<g transform="translate(1370 520)">
+  <path d="M-285 -245L-30 -330L265 -205L350 20L235 260L0 345L-255 235L-355 0Z" fill="#080a0d" stroke="#aab2bb" stroke-opacity=".34" stroke-width="3"/>
+  <path d="M-245 -215L-28 -285L220 -180L300 20L205 215L0 290L-220 190L-300 0Z" fill="none" stroke="url(#metal)" stroke-width="9" opacity=".65"/>
+  <path d="M-225 -155L-55 -225L-5 -105L-120 5L-45 175L-210 105L-285 -5Z" fill="url(#metal)" opacity=".92"/>
+  <path d="M225 -155L55 -225L5 -105L120 5L45 175L210 105L285 -5Z" fill="url(#metal)" opacity=".92"/>
+  <path d="M-155 -45L-25 -112L-5 -60L-110 20Z" fill="#050607"/>
+  <path d="M155 -45L25 -112L5 -60L110 20Z" fill="#050607"/>
+  <path d="M-110 70L0 175L110 70L35 220L0 245L-35 220Z" fill="#0a0c0f" stroke="#b5bdc5" stroke-opacity=".65" stroke-width="5"/>
+  <path d="M-310 0L-210 190M310 0L210 190M-28 -285L0 -330L28 -285" stroke="#e4e8ec" stroke-width="4" opacity=".65"/>
+</g>
+<path d="M90 170H550" stroke="url(#edge)" stroke-width="2"/>
+<path d="M90 184H330" stroke="#dce1e6" stroke-opacity=".18" stroke-width="1"/>
+<g font-family="DejaVu Sans, sans-serif">
+  <text x="96" y="690" fill="#f1f3f5" font-size="76" font-weight="700" letter-spacing="13">VENOM</text>
+  <text x="102" y="755" fill="#aab2bb" font-size="27" font-weight="400" letter-spacing="12">OPERATING SYSTEM</text>
+  <path d="M100 800H480" stroke="#cbd2d9" stroke-opacity=".55" stroke-width="2"/>
+  <text x="100" y="850" fill="#727b85" font-size="18" letter-spacing="5">ARCH LINUX  /  MATE DESKTOP</text>
+</g>
+<g fill="none" stroke="#cbd2d9" opacity=".12">
+  <path d="M90 980H660M90 1000H430" stroke-width="1"/>
+  <path d="M1800 90V330M1780 90V230" stroke-width="1"/>
+</g>
+</svg>

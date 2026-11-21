@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Aplica somente preferências VENOM suportadas pelos pacotes oficiais Arch.
+set -Eeuo pipefail
+
+[[ "$EUID" -ne 0 ]] || exit 1
+command -v gsettings >/dev/null 2>&1 || exit 0
+marker="$HOME/.config/venom-mate-setup.done"
+[[ -e "$marker" ]] && exit 0
+
+set_setting() {
+  local schema="$1" key="$2" value="$3"
+  if gsettings list-schemas | grep -Fxq "$schema"; then
+    gsettings set "$schema" "$key" "$value" || true
+  fi
+}
+
+set_setting org.mate.interface gtk-theme "'Materia-dark'"
+set_setting org.mate.Marco.general theme "'Materia-dark'"
+set_setting org.mate.interface metacity-theme "'Materia-dark'"
+set_setting org.mate.interface icon-theme "'Papirus-Dark'"
+set_setting org.mate.peripherals-mouse cursor-theme "'Adwaita'"
+set_setting org.mate.peripherals-mouse cursor-size "24"
+set_setting org.mate.interface gtk-application-prefer-dark-theme "true"
+set_setting org.mate.desktop.background picture-filename "'/usr/share/backgrounds/venom/venom-wallpaper.svg'"
+set_setting org.mate.panel default-layout "'venom'"
+
+mkdir -p "$HOME/.config"
+touch "$marker"
