@@ -1,6 +1,7 @@
 # Pacotes da mídia live VENOM OS. Apenas pacotes/grupos dos repositórios oficiais Arch.
 base
 base-devel
+gtk4
 archlinux-keyring
 arch-install-scripts
 pacman-mirrorlist
