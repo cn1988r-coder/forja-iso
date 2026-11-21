@@ -6,6 +6,7 @@
 typedef struct {
     GtkWidget *window, *disk_list, *username, *hostname, *password, *status, *install_button;
     GSubprocess *process;
+    gboolean dialog_pending;
 } Installer;
 
 static void set_status(Installer *app, const char *message) {
@@ -84,12 +85,15 @@ static void start_install(Installer *app, const char *disk) {
     gtk_widget_set_sensitive(app->install_button, FALSE);
     set_status(app, "Instalando VENOM OS offline. Não desligue o computador.");
     g_subprocess_communicate_utf8_async(app->process, input, NULL, install_finished, app);
+    gtk_editable_set_text(GTK_EDITABLE(app->password), "");
+    memset(input, 0, strlen(input));
     g_free(input);
 }
 static void confirm_install(GObject *source, GAsyncResult *result, gpointer data) {
     Installer *app = data;
     GError *error = NULL;
     int choice = gtk_alert_dialog_choose_finish(GTK_ALERT_DIALOG(source), result, &error);
+    app->dialog_pending = FALSE;
     if (error) { g_clear_error(&error); return; }
     if (choice != 1) return;
     const char *selected = gtk_string_list_get_string(
@@ -132,6 +136,7 @@ static void install_clicked(GtkButton *button, gpointer data) {
     gtk_alert_dialog_set_buttons(dialog, buttons);
     gtk_alert_dialog_set_cancel_button(dialog, 0);
     gtk_alert_dialog_set_default_button(dialog, 0);
+    app->dialog_pending = TRUE;
     gtk_alert_dialog_choose(dialog, GTK_WINDOW(app->window), NULL, confirm_install, app);
     g_object_unref(dialog);
 }
@@ -149,12 +154,22 @@ static GtkWidget *make_entry(const char *placeholder, gboolean secret) {
     gtk_widget_set_hexpand(entry, TRUE);
     return entry;
 }
+static gboolean close_requested(GtkWindow *window, gpointer data) {
+    (void)window;
+    Installer *app = data;
+    if (app->process || app->dialog_pending) {
+        show_message(app, "Instalação em andamento", "Não feche o instalador enquanto a operação estiver em andamento.");
+        return TRUE;
+    }
+    return FALSE;
+}
 static void activate(GtkApplication *application, gpointer user_data) {
     (void)user_data;
     Installer *app = g_new0(Installer, 1);
     app->window = gtk_application_window_new(application);
     g_object_set_data_full(G_OBJECT(app->window), "installer-state", app, g_free);
     gtk_window_set_title(GTK_WINDOW(app->window), "Instalador VENOM OS");
+    g_signal_connect(app->window, "close-request", G_CALLBACK(close_requested), app);
     gtk_window_set_default_size(GTK_WINDOW(app->window), 760, 650);
     GtkWidget *root = gtk_box_new(GTK_ORIENTATION_VERTICAL, 14);
     gtk_widget_set_margin_top(root, 26); gtk_widget_set_margin_bottom(root, 26);
