@@ -11,7 +11,7 @@ XFCE="$SKEL/.config/xfce4/xfconf/xfce-perchannel-xml"
 install -d "$XFCE" "$SKEL/.config/gtk-3.0" "$SKEL/.config/gtk-4.0" "$ROOT/etc/xdg/xfce4/panel" "$ROOT/usr/share/backgrounds/venom" "$ROOT/usr/share/icons/hicolor/scalable/apps"
 PANEL="$XFCE/xfce4-panel.xml"
 if [[ -f "$PANEL" ]]; then
- sed -i 's/value="org.xfce.panel.applicationsmenu"/value="venom-menu"/; s/value="start-here"/value="venom-menu"/' "$PANEL"
+ sed -i 's/value="org.xfce.panel.applicationsmenu"/value="venom-menu"/; s/value="start-here"/value="venom-menu"/; s/value="%I:%M %p"/value="%R"/' "$PANEL"
 fi
 cat >"$XFCE/xsettings.xml" <<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -32,21 +32,83 @@ gtk-font-name=Noto Sans 10
 gtk-application-prefer-dark-theme=true
 GTK
 done
-cat >"$SKEL/.config/gtk-3.0/gtk.css" <<'CSS'
-/* VENOM Calypso: restrained blue edge and dark glass panel. */
+for gtk in 3.0 4.0; do
+ cat >"$SKEL/.config/gtk-$gtk/gtk.css" <<'CSS'
+/* VENOM Calypso: graphite surfaces, metallic edges and restrained electric blue. */
+window, .background {
+  background-color: #0b1018;
+  color: #dce6f0;
+}
+headerbar, .titlebar {
+  background: linear-gradient(to bottom, #182331, #101720);
+  color: #edf5fc;
+  border-bottom: 1px solid rgba(22, 143, 255, 0.38);
+  box-shadow: none;
+}
+button {
+  color: #dce6f0;
+  background: linear-gradient(to bottom, #202b38, #151e29);
+  border: 1px solid #34465a;
+  border-radius: 7px;
+  box-shadow: none;
+  padding: 5px 10px;
+}
+button:hover {
+  background: #1a3855;
+  border-color: #168fff;
+  color: #ffffff;
+}
+button:checked, button:active {
+  background: #12365a;
+  border-color: #168fff;
+}
+entry, spinbutton, combobox, .view {
+  background-color: #090e15;
+  color: #e4edf6;
+  border: 1px solid #34465a;
+  border-radius: 6px;
+  caret-color: #42b5ff;
+}
+entry:focus, spinbutton:focus, combobox:focus {
+  border-color: #168fff;
+  box-shadow: 0 0 0 1px rgba(22, 143, 255, 0.28);
+}
+menu, popover, .context-menu {
+  background-color: #101823;
+  color: #dce6f0;
+  border: 1px solid #344b63;
+}
+menuitem:hover, modelbutton:hover {
+  background-color: rgba(22, 143, 255, 0.20);
+}
+*:selected, selection {
+  background-color: #14518a;
+  color: #ffffff;
+}
+tooltip {
+  background-color: #101a26;
+  color: #eaf5ff;
+  border: 1px solid #168fff;
+  border-radius: 5px;
+}
+/* The panel remains one 40px strip, never a second floating dock. */
 #XfcePanelWindow {
   background-color: rgba(5, 9, 15, 0.94);
   border-top: 1px solid rgba(22, 143, 255, 0.58);
 }
 #XfcePanelWindow button {
-  background-color: transparent;
+  background: transparent;
   border: 0;
+  border-radius: 6px;
   box-shadow: none;
+  padding: 2px;
 }
 #XfcePanelWindow button:hover {
   background-color: rgba(22, 143, 255, 0.18);
 }
 CSS
+done
+
 cat >"$ROOT/etc/xdg/xfce4/panel/docklike.rc" <<'RC'
 [user]
 pinned=firefox.desktop;thunar.desktop;
