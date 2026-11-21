@@ -48,5 +48,11 @@ Atualizado em 20/11/2026.
 - Após autorização de build: confirmar ISO/SHA256, boot BIOS/UEFI e instalação completa em VM descartável, incluindo reboot, primeiro login e serviços.
 - Não declarar a ISO pronta antes de todos os testes.
 
+## Branches históricas arquivadas
+- Um conjunto de aliases antigos `feature/forja-*` foi identificado com a mesma árvore histórica `3fde0b6`. Eles foram alinhados ao commit de arquivo `bf404ef`, preservando todas as branches e seus históricos.
+- Esses aliases agora documentam que não são edições ativas, mantêm build bloqueado e apontam para as três branches canônicas.
+- `feature/venom-bigcommunity-mate` também foi arquivada separadamente, sem apagar seu conteúdo.
+- A branch `feature/forja-window-maker-endeavouros` permanece ativa como edição Window Maker já migrada para Arch.
+
 ## Referência histórica
 A ISO VENOM OS Manjaro MATE #21 e o script `manjaro-mate-dark-complete.sh` permanecem apenas como referências históricas de configuração MATE. Não são base operacional.
