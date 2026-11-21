@@ -73,7 +73,7 @@ jobs:
       - name: Validate Arch profile
         run: |
           chmod +x scripts/validate-xfce-profile.sh
-          scripts/validate-arch-profile.sh
+          scripts/validate-xfce-profile.sh
 
       - name: Build VENOM OS ISO with official Archiso
         run: |
