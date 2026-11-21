@@ -108,3 +108,7 @@ libpwquality
 hwinfo
 polkit-qt6
 appstream-qt
+
+# Pamac built from the Arch User Repository, not from Manjaro.
+libpamac-aur
+pamac-aur
