@@ -1,0 +1,88 @@
+name: VENOM OS Arch ISO
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - optimize/venom-iso-size
+    paths:
+      - 'build/**'
+      - 'installer/**'
+      - 'scripts/validate-arch-profile.sh'
+      - '.github/workflows/build-arch-iso.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-build:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Install Arch build and test tools
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm archiso base-devel meson ninja gtk4 shellcheck qemu-system-x86 edk2-ovmf
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate profile and package availability
+        run: |
+          chmod +x scripts/validate-arch-profile.sh
+          scripts/validate-arch-profile.sh
+          shellcheck build/profiledef.sh build/airootfs/root/.automated_script.sh build/airootfs/root/venom-live-setup installer/backend/venom-install-backend scripts/validate-arch-profile.sh
+
+      - name: Compile GTK4 installer and stage live system
+        run: |
+          meson setup installer/.build installer --prefix=/usr
+          meson compile -C installer/.build
+          DESTDIR="$GITHUB_WORKSPACE/build/airootfs" meson install -C installer/.build
+
+      - name: Build VENOM OS ISO with official Archiso
+        run: |
+          mkdir -p out work
+          mkarchiso -v -w work -o out build
+          ISO="$(find out -maxdepth 1 -type f -name '*.iso' -print -quit)"
+          test -n "$ISO"
+          sha256sum "$ISO" | tee "$ISO.sha256"
+
+      - name: BIOS boot smoke test
+        run: |
+          ISO="$(find out -maxdepth 1 -type f -name '*.iso' -print -quit)"
+          set +e
+          timeout 150s qemu-system-x86_64 -machine accel=tcg -m 4096 -smp 2 -cdrom "$ISO" -boot d -display none -serial file:bios-serial.log -monitor none -no-reboot -no-shutdown
+          QEMU_STATUS=$?
+          set -e
+          test "$QEMU_STATUS" -eq 124
+          grep -E 'Reached target Graphical Interface|Started Light Display Manager' bios-serial.log
+
+      - name: UEFI boot smoke test
+        run: |
+          ISO="$(find out -maxdepth 1 -type f -name '*.iso' -print -quit)"
+          OVMF_CODE="$(find /usr/share/edk2 -type f -iname 'OVMF_CODE*.fd' | head -n 1)"
+          OVMF_VARS="$(find /usr/share/edk2 -type f -iname 'OVMF_VARS*.fd' | head -n 1)"
+          test -n "$OVMF_CODE" && test -n "$OVMF_VARS"
+          cp "$OVMF_VARS" /tmp/OVMF_VARS.fd
+          set +e
+          timeout 150s qemu-system-x86_64 -machine q35,accel=tcg -m 4096 -smp 2 \
+            -drive if=pflash,format=raw,readonly=on,file="$OVMF_CODE" \
+            -drive if=pflash,format=raw,file=/tmp/OVMF_VARS.fd \
+            -cdrom "$ISO" -boot d -display none -serial file:uefi-serial.log -monitor none -no-reboot -no-shutdown
+          QEMU_STATUS=$?
+          set -e
+          test "$QEMU_STATUS" -eq 124
+          grep -E 'Reached target Graphical Interface|Started Light Display Manager' uefi-serial.log
+
+      - name: Upload ISO and validation evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: venom-os-arch-iso
+          path: |
+            out/*.iso
+            out/*.sha256
+            bios-serial.log
+            uefi-serial.log
+          if-no-files-found: error
+          retention-days: 14
