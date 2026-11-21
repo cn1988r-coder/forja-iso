@@ -7,9 +7,8 @@ fail(){ printf 'FALHA: %s\n' "$*" >&2; exit 1; }
 for f in profiledef.sh pacman.conf packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.automated_script.sh airootfs/root/venom-live-setup syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
   [[ -s "$P/$f" ]] || fail "Arquivo obrigatório ausente: build/$f"
 done
-bash -n "$P/profiledef.sh" "$P/airootfs/root/.automated_script.sh" "$P/airootfs/root/venom-live-setup" "$ROOT/installer/modules/venominstall/main.py" 2>/dev/null || {
-  python -m py_compile "$ROOT/installer/modules/venominstall/main.py" || fail "Sintaxe do módulo venominstall inválida."
-}
+bash -n "$P/profiledef.sh" "$P/airootfs/root/.automated_script.sh" "$P/airootfs/root/venom-live-setup" || fail "Sintaxe Bash inválida."
+python -m py_compile "$ROOT/installer/modules/venominstall/main.py" || fail "Sintaxe Python do módulo venominstall inválida."
 (
   cd "$P"
   # shellcheck disable=SC1091
@@ -44,7 +43,7 @@ grep -q 'pacstrap' "$ROOT/installer/modules/venominstall/main.py" || fail "Insta
 if grep -Eiq 'unpackfs|rsync|manjaro|endeavouros|biglinux|mhwd' "$ROOT/installer/settings.conf" "$ROOT/installer/modules/venominstall" "$PKG" "$P/pacman.conf"; then
   fail "Referência proibida ou instalação por cópia detectada."
 fi
-for f in "$P/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" "$P/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfsettingsd.xml" "$P/airootfs/etc/skel/.config/gtk-3.0/settings.ini"; do
+for f in "$P/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" "$P/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml" "$P/airootfs/etc/skel/.config/gtk-3.0/settings.ini"; do
   [[ -s "$f" ]] || fail "Configuração XFCE ausente: $f"
 done
 duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$PKG" | sort | uniq -d)"
