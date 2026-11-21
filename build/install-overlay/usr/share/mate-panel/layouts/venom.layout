@@ -9,8 +9,7 @@ orientation=bottom
 size=30
 
 [Object menu-bar]
-object-type=applet
-applet-iid=MenuBarFactory::MenuBar
+object-type=menu-bar
 toplevel-id=top
 pack-index=0
 locked=true
