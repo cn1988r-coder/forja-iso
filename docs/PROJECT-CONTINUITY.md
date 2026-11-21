@@ -1,50 +1,33 @@
-# Continuidade técnica da VENOM OS
+# Continuidade técnica: VENOM OS XFCE
 
 Atualizado em 20/11/2026.
 
-## Arquitetura ativa
-- Sistema: VENOM OS.
-- Base definida nesta etapa: Manjaro Linux, repositórios oficiais Manjaro.
-- Perfil de ISO: `manjaro/venom-mate`.
-- Ferramenta oficial de construção: `manjaro-tools/buildiso`, acionada pela ação `manjaro/manjaro-iso-action`.
-- Desktop: MATE + MATE Extra.
-- Gerenciador de login: LightDM.
-- Idioma: Português do Brasil.
-- Teclado: Brasil ABNT2.
-- Não incluir Calamares nem EndeavourOS.
-- A branch de trabalho permanece `optimize/venom-iso-size`; não alterar `main`.
+## Arquitetura
+- Branch: `feature/venom-community-xfce`.
+- Base: Arch Linux oficial e repositórios oficiais.
+- Desktop: XFCE real + LightDM; sem MATE.
+- Idioma pt_BR.UTF-8; teclado br-abnt2.
+- Perfil de mídia: Archiso oficial.
+- Instalador: Calamares upstream 3.3.14, branding VENOM e módulo `venominstall`.
+- Instalação online via pacstrap/Pacman. Sem cópia da raiz live, unpackfs ou rsync.
+- Atualizações normais pelo Pacman; VENON separado e manual.
 
-## Script original do DeepSeek
-- Arquivo de origem: `scripts/manjaro-mate-dark-complete.sh`.
-- O conteúdo original foi preservado.
-- Cópia instalada no perfil: `manjaro/venom-mate/desktop-overlay/usr/local/bin/manjaro-mate-dark-complete.sh`.
-- O validador compara as duas cópias byte a byte e verifica a sintaxe Bash.
-- O menu do MATE recebe o atalho Configurar MATE, que abre um terminal e executa o script. Assim, o sudo pode solicitar autenticação.
-- O script não é iniciado automaticamente em segundo plano.
-- Nenhuma alteração foi feita no conteúdo do script original nesta integração.
+## Migração executada
+- Substituída a antiga estrutura operacional Manjaro por perfil Archiso e arquivos Calamares copiados da arquitetura aprovada na branch Arch/MATE.
+- Manifest reconstruído para XFCE, sem pacotes MATE, Pamac, MHWD ou Manjaro.
+- Dependências PXE `mkinitcpio-nfs-utils` e `nbd` adicionadas.
+- Compressão initramfs e SquashFS ajustada para zstd.
+- Configurações XFCE e GTK selecionadas foram migradas para o airootfs.
+- Removidos workflows Manjaro antigos e credenciais padrão da árvore ativa.
+- Novo workflow Archiso restrito a esta branch; não foi executado.
 
-## Construção Manjaro
-- Workflow: `.github/workflows/build-manjaro-iso.yml`.
-- Repositório de perfis fornecido à ação: este próprio repositório e a branch autorizada.
-- Perfil selecionado: `venom-mate`.
-- Canal: `stable`.
-- Kernel: `linux618`.
-- O workflow executa validação estática antes da construção e publica a ISO como artefato temporário com retenção de três dias.
-- A ferramenta oficial Manjaro usa `buildiso` e o formato de perfis `manjaro/<perfil>`, não Archiso.
+## Estado anterior
+- Run #76, ID `44843598356`, falhou na instalação de pacotes por pacote `adwaita-gtk-theme` não encontrado.
+- A branch continha workflows Manjaro, perfil MATE Manjaro e perfil XFCE com `mhwd`, autologin e senha padrão `venom`.
+- Nenhuma ISO desse estado é considerada instalável.
 
-## Limitação do instalador
-- O perfil atual é uma imagem live MATE para validar o desktop e o script.
-- Calamares foi excluído conforme a decisão do projeto.
-- O instalador próprio C + GTK4 ainda não possui backend funcional de particionamento, formatação, cópia offline, criação de usuário ou instalação do GRUB.
-- Portanto, não declarar esta ISO instalável em disco. Não executar operações destrutivas em discos reais.
-
-## Atualizações
-- Pacman administra o sistema e os aplicativos: `sudo pacman -Syu`.
-- VENON permanece independente do Pacman e acionado manualmente.
-- `venon-upgrade` apenas consulta e lista atualizações; nunca instala.
-- `venon-update` instala somente após confirmação explícita.
-
-## Histórico
-- O perfil Archiso e o Dockerfile baseados em Arch permanecem apenas como material histórico em `build/`; não fazem parte do pipeline de construção ativo.
-- A configuração MATE anterior criada pelo assistente não é chamada pelo perfil Manjaro.
-- Nenhuma ISO é declarada pronta até o workflow terminar com sucesso e o artefato ser verificado.
+## Validação pendente
+- Conferir nomes de todos os grupos/pacotes no repositório oficial Arch atual.
+- Executar o validador estático em container Arch.
+- Não iniciar build ISO sem autorização expressa.
+- Após build autorizado, validar boot BIOS/UEFI e instalação completa em VM descartável, incluindo primeiro boot.
