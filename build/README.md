@@ -7,7 +7,7 @@ Edição XFCE baseada no Arch Linux oficial e construída com Archiso oficial.
 - Boot BIOS/Syslinux e UEFI/GRUB.
 - Locale pt_BR.UTF-8 e teclado br-abnt2.
 - NetworkManager, BlueZ, PipeWire e WirePlumber.
-- Calamares upstream 3.3.14 com módulo VENOM de instalação online via pacstrap.
+- Instalador final próprio e independente: ainda não implementado. A configuração transitória existente não está liberada para build.
 - Hooks PXE e dependências NFS/NBD.
 - Compressão Zstandard no initramfs e na imagem SquashFS.
 

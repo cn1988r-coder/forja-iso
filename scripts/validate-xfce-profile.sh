@@ -7,11 +7,11 @@ INSTALL_PKG="$P/install-packages.x86_64"
 OVERLAY="$P/install-overlay"
 fail(){ printf 'FALHA: %s
 ' "$*" >&2; exit 1; }
-for f in profiledef.sh pacman.conf packages.x86_64 install-packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.automated_script.sh airootfs/root/.bash_profile airootfs/usr/local/lib/venom/venom-live-setup airootfs/usr/local/lib/venom/venom-live-ready airootfs/etc/systemd/system/venom-live-setup.service airootfs/etc/systemd/system/venom-live-ready.service syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
+for f in profiledef.sh pacman.conf packages.x86_64 install-packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.bash_profile airootfs/usr/local/lib/venom/venom-live-setup airootfs/usr/local/lib/venom/venom-live-ready airootfs/etc/systemd/system/venom-live-setup.service airootfs/etc/systemd/system/venom-live-ready.service syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
   [[ -s "$P/$f" ]] || fail "Arquivo obrigatório ausente: build/$f"
 done
 [[ -d "$OVERLAY" ]] || fail "Overlay do sistema instalado ausente."
-for script in "$P/profiledef.sh" "$P/airootfs/root/.automated_script.sh" "$P/airootfs/root/.bash_profile" "$P/airootfs/usr/local/lib/venom/venom-live-setup" "$P/airootfs/usr/local/lib/venom/venom-live-ready"; do
+for script in "$P/profiledef.sh" "$P/airootfs/root/.bash_profile" "$P/airootfs/usr/local/lib/venom/venom-live-setup" "$P/airootfs/usr/local/lib/venom/venom-live-ready"; do
   bash -n "$script" || fail "Sintaxe Bash inválida: $script"
 done
 python -m py_compile "$ROOT/installer/modules/venominstall/main.py" || fail "Sintaxe Python do módulo venominstall inválida."

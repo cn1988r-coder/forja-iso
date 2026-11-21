@@ -8,7 +8,7 @@ Atualizado em 21/11/2026.
 - Desktop: XFCE real + LightDM; sem MATE ou Window Maker.
 - Idioma pt_BR.UTF-8; teclado br-abnt2.
 - Mídia Archiso oficial.
-- Instalador Calamares upstream 3.3.14, branding VENOM e módulo `venominstall`.
+- Instalador final próprio e independente: pendente de implementação. A configuração Calamares atual é transitória e bloqueia qualquer build.
 - Instalação exclusivamente online via pacstrap/Pacman. Sem unpackfs, rsync ou cópia da raiz live.
 - Atualizações normais pelo Pacman; VENON separado e manual.
 

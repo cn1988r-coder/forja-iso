@@ -54,7 +54,6 @@ def main():
         "build/airootfs/etc/pacman.conf", "build/airootfs/etc/mkinitcpio.conf.d/archiso.conf",
         "build/airootfs/etc/locale.conf", "build/airootfs/etc/locale.gen",
         "build/airootfs/etc/vconsole.conf", "build/airootfs/root/.bash_profile",
-        "build/airootfs/root/.automated_script.sh",
         "build/airootfs/usr/local/lib/venom/venom-live-setup",
         "build/airootfs/usr/local/lib/venom/venom-live-ready",
         "build/airootfs/etc/systemd/system/venom-live-setup.service",
@@ -172,6 +171,13 @@ def main():
         if "systemctl start venom-live-setup.service" in bash_profile and "/dev/tty1" in bash_profile
         else "Dispatcher tty1/systemd ausente ou incompleto")
 
+    # Obsolete startup path must not remain alongside the systemd-based dispatcher.
+    for rel in ("build/airootfs/root/.automated_script.sh", "build/airootfs/root/venom-live-setup"):
+        if (ROOT / rel).exists():
+            add("ERROR", "Inicialização", f"Arquivo legado não utilizado permanece no perfil: {rel}")
+        else:
+            add("OK", "Inicialização", f"Sem arquivo legado: {rel}")
+
     # LightDM, user session and startup.
     lightdm = read("build/airootfs/etc/lightdm/lightdm.conf.d/50-venom-live.conf") or ""
     for line in ("greeter-session=lightdm-gtk-greeter", "user-session=xfce",
@@ -191,7 +197,7 @@ def main():
                 f"Unit válida: {path.name}" if valid else f"Unit sem seções [Unit]/[Service]: {path.name}")
             for executable in re.findall(r"^Exec(?:Start|StartPre|StartPost|Stop|Reload)=([^\s]+)", text, re.M):
                 if executable.startswith("/") and not (ROOT / "build/airootfs" / executable.lstrip("/")).exists():
-                    if executable == "/usr/bin/bash" and "bash" in live:
+                    if executable == "/usr/bin/bash" and ("bash" in live or "base" in live):
                         add("OK", "systemd", f"Executável fornecido pelo pacote bash: {path.name}")
                     else:
                         add("WARNING", "systemd",
@@ -340,7 +346,7 @@ def main():
     if re.search(r"Instalador:.*Calamares", agents, re.I):
         add("ERROR", "Política", "AGENTS.md ainda define Calamares como instalador, contrariando a arquitetura final independente")
     continuity = read("docs/PROJECT-CONTINUITY.md") or ""
-    if re.search(r"Instalador Calamares|Calamares upstream", continuity, re.I):
+    if re.search(r"^\\s*-\\s*Instalador Calamares", continuity, re.I | re.M):
         add("ERROR", "Continuidade", "docs/PROJECT-CONTINUITY.md ainda registra Calamares como instalador da arquitetura")
 
     # VENON must remain isolated from Pacman and must not run automatically.

@@ -5,7 +5,7 @@ Esta branch implementa a edição **VENOM XFCE** da VENOM OS, baseada no Arch Li
 - Desktop exclusivo desta edição: XFCE + LightDM. Não instalar MATE.
 - Base/repositórios: somente Arch Linux oficial.
 - Mídia: Archiso oficial, perfil em `build/`.
-- Instalador: Calamares upstream 3.3.14, branding VENOM e módulo `venominstall`.
+- Instalador final: implementação própria e independente da VENOM OS, ainda pendente. Não compilar enquanto houver dependência de instalador externo.
 - Instalação exclusivamente online via pacstrap/Pacman. Sem unpackfs, rsync ou cópia da raiz live.
 - Idioma pt_BR.UTF-8, teclado br-abnt2.
 - Pacman atualiza o sistema: `sudo pacman -Syu`.

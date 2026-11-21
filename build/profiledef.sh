@@ -17,7 +17,6 @@ kernel_params_x86_64="console=tty0 console=ttyS0,115200n8 systemd.log_target=con
 declare -A file_permissions=(
  ["/etc/shadow"]="0:0:400"
  ["/root"]="0:0:750"
- ["/root/.automated_script.sh"]="0:0:755"
  ["/usr/local/lib/venom/venom-live-setup"]="0:0:755"
  ["/usr/local/lib/venom/venom-live-ready"]="0:0:755"
 )
