@@ -33,7 +33,7 @@ duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$PACKAGES" | sort | uniq -d)"
 [[ -z "$duplicates" ]] || fail "Pacotes duplicados: $duplicates"
 if command -v pacman >/dev/null 2>&1; then
   while IFS= read -r package; do
-    [[ -z "$package" || "$package" == \\#* ]] && continue
+    [[ -z "$package" || "$package" == \#* ]] && continue
     if ! pacman -Si "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" | grep -q .; then
       fail "Pacote/grupo não encontrado nos repositórios configurados: $package"
     fi
