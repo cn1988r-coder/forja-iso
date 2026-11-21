@@ -2,66 +2,81 @@
 
 Atualizado em 20/11/2026.
 
-## Versão em desenvolvimento
-- Identificação: **VENOM OS 1.0**.
-- Arquivo de identificação instalado: `/etc/venom-release`.
-- Base: Manjaro Linux, repositórios oficiais Manjaro.
-- Edição: MATE.
-- Esta versão deve ser uma ISO Live instalável, com o Calamares oficial do Manjaro incluído na própria imagem.
+## Arquitetura definitiva
 
-## Arquitetura ativa
-- Perfil de ISO: `manjaro/venom-mate`.
-- Ferramenta oficial de construção: `manjaro-tools/buildiso`, acionada pela ação `manjaro/manjaro-iso-action`.
-- Desktop: MATE + MATE Extra.
+- Sistema: **VENOM OS**.
+- Base: Arch Linux oficial.
+- Repositórios: somente os oficiais do Arch Linux.
+- Desktop: MATE.
 - Gerenciador de login: LightDM.
 - Idioma: Português do Brasil.
 - Teclado: Brasil ABNT2.
-- Instalador: pacote oficial Manjaro `calamares`, incluído em `Packages-Live`.
-- Ferramenta de particionamento Live: GParted.
-- Bootloader: GRUB.
-- A branch de trabalho permanece `optimize/venom-iso-size`; não alterar `main`.
-- Não usar EndeavourOS nem Archiso no pipeline Manjaro.
+- Mídia: perfil próprio baseado no Archiso oficial.
+- Instalador: próprio, C + GTK4, com backend separado.
+- Instalação offline a partir da mídia é obrigatória.
+- Calamares, EndeavourOS, Manjaro e instaladores de terceiros não fazem parte da arquitetura final.
 
-## Integração do Calamares
-- O Calamares é instalado durante a construção da ISO, dentro da sessão Live, e não após a inicialização.
-- O pacote é listado em `manjaro/venom-mate/Packages-Live`, seguindo a organização dos perfis oficiais Manjaro.
-- A configuração de instalação é gerada pelo fluxo oficial `buildiso` a partir do perfil e de `profile.conf`.
-- O pacote Manjaro fornece o lançador do instalador e o wrapper Polkit utilizado para iniciá-lo.
-- O GParted acompanha a sessão Live.
-- Não substituir o Calamares por instalador próprio, externo ou baixado em tempo de execução.
-- A presença do pacote e a validação estática não provam por si só que a instalação real funciona. O artefato deverá ser iniciado em máquina virtual e a instalação testada antes de declarar a VENOM OS 1.0 pronta.
+## Estado confirmado nesta revisão
 
-## ISO de referência preservada
-- A ISO Manjaro MATE #21 testada pelo usuário está identificada como `VENOM-MATE-21-DEEPSEEK-BASE`.
-- Registro completo do workflow, commit, artefato, SHA256 e regras de preservação: [`docs/REFERENCIA-ISO-21-DEEPSEEK.md`](REFERENCIA-ISO-21-DEEPSEEK.md).
-- Não confundir a ISO #21 original com builds posteriores que apliquem novos temas ou modificações.
-- A ISO #31 foi testada e não apresentou todas as personalizações esperadas; não tratá-la como referência visual aprovada.
+Branch de trabalho: `optimize/venom-iso-size`.
 
-## Script original do DeepSeek
-- Arquivo de origem: `scripts/manjaro-mate-dark-complete.sh`.
-- O conteúdo original foi preservado.
-- Cópia instalada no perfil: `manjaro/venom-mate/desktop-overlay/usr/local/bin/manjaro-mate-dark-complete.sh`.
-- O validador compara as duas cópias byte a byte e verifica a sintaxe Bash.
-- O menu do MATE recebe o atalho Configurar MATE, que abre um terminal e executa o script. Assim, o sudo pode solicitar autenticação.
-- O script não é iniciado automaticamente em segundo plano.
-- Nenhuma alteração foi feita no conteúdo do script original nesta integração.
+HEAD verificado: `af236c33d84a63e2076e793ed3469660b7346285`.
 
-## Construção Manjaro
-- Workflow: `.github/workflows/build-manjaro-iso.yml`.
-- Repositório de perfis fornecido à ação: este próprio repositório e a branch autorizada.
-- Perfil selecionado: `venom-mate`.
-- Canal: `stable`.
-- Kernel: `linux618`.
-- O workflow executa validação estática antes da construção e publica a ISO como artefato temporário com retenção de três dias.
-- A ferramenta oficial Manjaro usa `buildiso` e o formato de perfis `manjaro/<perfil>`, não Archiso.
+### Perfil Archiso
+
+Existem `build/profiledef.sh`, `build/pacman.conf`, manifests de pacotes e configurações parciais em `build/airootfs/`.
+
+**Ainda não está completo nem validado como perfil Archiso.** O próprio `build/README.md` registra que faltam componentes de boot e integração do instalador. Nenhuma ISO Arch independente foi gerada ou validada nesta revisão.
+
+### Instalador
+
+O aplicativo em `installer/` é um protótipo de interface GTK4 em C.
+
+Já presente:
+- interface gráfica em português;
+- enumeração informativa de discos via `lsblk`;
+- seleção visual de disco;
+- escolha visual entre instalação automática e personalizada;
+- botão de instalação bloqueado para operações reais.
+
+Ainda ausente:
+- backend privilegiado;
+- particionamento e formatação;
+- cópia offline do sistema;
+- criação de usuário e configuração do sistema instalado;
+- instalação e configuração de GRUB;
+- progresso real, logs transacionais e recuperação segura;
+- testes de integração em VM e discos virtuais descartáveis.
+
+Portanto, **não é um instalador funcional** e não pode ser anunciado como tal.
+
+### Pipelines
+
+O workflow legado `.github/workflows/build-manjaro-iso.yml` ainda usa `manjaro/manjaro-iso-action` e o perfil Manjaro `venom-mate`. Esse fluxo não constrói a arquitetura Arch definida e não deve ser usado como prova de progresso da VENOM OS independente.
+
+Os arquivos e a ISO Manjaro MATE #21 permanecem apenas como referência histórica de desktop. Não confundir essa referência com a edição Arch final.
 
 ## Atualizações
-- Pacman administra o sistema e os aplicativos: `sudo pacman -Syu`.
-- VENON permanece independente do Pacman e acionado manualmente.
-- `venon-upgrade` apenas consulta e lista atualizações; nunca instala.
-- `venon-update` instala atualizações VENON somente após confirmação explícita.
 
-## Histórico
-- O perfil Archiso e o Dockerfile baseados em Arch permanecem apenas como material histórico em `build/`; não fazem parte do pipeline de construção ativo.
-- A configuração MATE anterior criada pelo assistente não é chamada pelo perfil Manjaro.
-- Nenhuma ISO é declarada pronta até o workflow terminar com sucesso, o artefato ser verificado e a inicialização e instalação serem testadas.
+- Pacman administra o sistema e aplicativos: `sudo pacman -Syu`.
+- VENON é independente do Pacman e acionado manualmente.
+- `venon-upgrade` apenas consulta e lista atualizações disponíveis.
+- `venon-update` instala atualizações VENON somente após confirmação explícita.
+- Não criar atualizações automáticas ou timers para o VENON.
+
+## Critérios de conclusão
+
+1. Perfil Archiso completo e validado com ferramentas oficiais.
+2. Mídia inicializável em BIOS e UEFI.
+3. Ambiente Live MATE validado, incluindo rede, Bluetooth, áudio e configurações.
+4. Backend do instalador concluído e protegido contra seleção/alteração indevida de discos.
+5. Instalação offline testada em VM descartável, incluindo boot pós-instalação.
+6. ISO final, SHA256, logs e resultados dos testes preservados.
+
+## Registro desta revisão
+
+- Branch e HEAD consultados diretamente no GitHub.
+- Arquivos de arquitetura, perfil, instalador e workflows inspecionados.
+- Nenhuma ISO foi compilada, publicada ou declarada pronta.
+- A ISO Manjaro MATE #21 não foi alterada.
+- Nenhuma outra branch ou `main` foi modificada.
