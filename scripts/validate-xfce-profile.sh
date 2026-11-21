@@ -3,8 +3,9 @@ set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 P="$ROOT/build"
 PKG="$P/packages.x86_64"
+INSTALL_PKG="$P/install-packages.x86_64"
 fail(){ printf 'FALHA: %s\n' "$*" >&2; exit 1; }
-for f in profiledef.sh pacman.conf packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.automated_script.sh airootfs/root/venom-live-setup syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
+for f in profiledef.sh pacman.conf packages.x86_64 install-packages.x86_64 install-packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.automated_script.sh airootfs/root/venom-live-setup syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
   [[ -s "$P/$f" ]] || fail "Arquivo obrigatório ausente: build/$f"
 done
 for script in "$P/profiledef.sh" "$P/airootfs/root/.automated_script.sh" "$P/airootfs/root/venom-live-setup"; do bash -n "$script" || fail "Sintaxe Bash inválida: $script"; done
@@ -41,6 +42,45 @@ PY
 done
 python -m py_compile "$ROOT/installer/modules/venominstall/main.py"
 grep -q 'pacstrap' "$ROOT/installer/modules/venominstall/main.py" || fail "Instalador online pacstrap ausente."
+[[ -s "$INSTALL_PKG" ]] || fail "Manifesto de instalação ausente."
+for package in base linux archlinux-keyring grub efibootmgr lightdm networkmanager bluez pipewire xfce4 thunar; do
+  grep -Fxq "$package" "$INSTALL_PKG" || fail "Pacote obrigatório ausente do manifesto de instalação: $package"
+done
+if grep -Eiq '^(archiso|mkinitcpio-archiso|mkinitcpio-nfs-utils|nbd|squashfs-tools|syslinux|base-devel|linux-headers|linux-lts|linux-lts-headers)
+if grep -R -Eiq 'unpackfs|rsync|manjaro|endeavouros|biglinux|mhwd' "$ROOT/installer/settings.conf" "$ROOT/installer/modules/venominstall" "$PKG" "$P/pacman.conf"; then
+  fail "Referência proibida ou instalação por cópia detectada."
+fi
+for f in "$P/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" "$P/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml" "$P/airootfs/etc/skel/.config/gtk-3.0/settings.ini"; do
+  [[ -s "$f" ]] || fail "Configuração XFCE ausente: $f"
+done
+if command -v pacman >/dev/null 2>&1; then
+  while IFS= read -r package; do
+    [[ -z "$package" || "$package" == \#* ]] && continue
+    if ! pacman -Si "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" | grep -q .; then
+      fail "Pacote/grupo ausente dos repositórios oficiais Arch: $package"
+    fi
+  done < "$PKG"
+  while IFS= read -r package; do
+    [[ -z "$package" || "$package" == \\#* ]] && continue
+    if ! pacman -Si "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" | grep -q .; then
+      fail "Pacote/grupo do sistema instalado ausente dos repositórios oficiais Arch: $package"
+    fi
+  done < "$INSTALL_PKG"
+fi
+install_duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$INSTALL_PKG" | sort | uniq -d)"
+[[ -z "$install_duplicates" ]] || fail "Pacotes duplicados no manifesto de instalação: $install_duplicates"
+duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$PKG" | sort | uniq -d)"
+[[ -z "$duplicates" ]] || fail "Pacotes duplicados: $duplicates"
+printf 'OK: perfil Archiso XFCE, BIOS/UEFI, locale, teclado, PXE, Calamares online e manifest passaram na validação estática.\n'
+ "$INSTALL_PKG"; then
+  fail "Manifesto de instalação contém ferramentas exclusivas da ISO/live."
+fi
+grep -Fq 'install -Dm644 build/install-packages.x86_64 build/airootfs/usr/share/venom/install-packages.x86_64' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não está preparando o manifesto de instalação."
+grep -Fq 'installPackagesFile: /usr/share/venom/install-packages.x86_64' "$ROOT/installer/modules/venominstall/venominstall.conf" || fail "Calamares não aponta para o manifesto de instalação."
+grep -q 'installPackagesFile' "$ROOT/installer/modules/venominstall/main.py" || fail "Módulo VENOM não usa installPackagesFile."
+  grep -Fxq "xfce4" "$INSTALL_PKG" || fail "Pacote obrigatório ausente do manifesto de instalação: xfce4"
+  grep -Fxq "thunar" "$INSTALL_PKG" || fail "Pacote obrigatório ausente do manifesto de instalação: thunar"
+
 if grep -R -Eiq 'unpackfs|rsync|manjaro|endeavouros|biglinux|mhwd' "$ROOT/installer/settings.conf" "$ROOT/installer/modules/venominstall" "$PKG" "$P/pacman.conf"; then
   fail "Referência proibida ou instalação por cópia detectada."
 fi
