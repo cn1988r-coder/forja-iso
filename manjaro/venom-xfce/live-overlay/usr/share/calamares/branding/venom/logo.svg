@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="48" fill="#111111"/>
+  <path d="M92 112h66l98 224 98-224h66L281 414h-50z" fill="#f07818"/>
+  <text x="256" y="468" text-anchor="middle" font-family="sans-serif" font-size="34" font-weight="700" letter-spacing="5" fill="#f2f2f2">VENOM OS</text>
+</svg>
