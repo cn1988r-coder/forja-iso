@@ -27,8 +27,9 @@ grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$PROFILE/airootfs/etc/pacm
 for package in base linux linux-firmware gtk4 archlinux-keyring arch-install-scripts mkinitcpio grub efibootmgr dosfstools e2fsprogs gptfdisk parted sudo curl networkmanager bluez lightdm lightdm-gtk-greeter mate-session-manager mate-panel caja marco; do
   grep -Fxq "$package" "$PACKAGES" || fail "Pacote obrigatório ausente do manifest: $package"
 done
-if grep -Eiq 'manjaro|endeavouros|calamares|biglinux' "$PACKAGES" "$PROFILE/pacman.conf"; then
-  fail "Foi encontrada referência de distribuição/instalador proibida no perfil."
+# Calamares é o instalador escolhido da VENOM OS; somente distribuições-base proibidas são bloqueadas aqui.
+if grep -Eiq 'manjaro|endeavouros|biglinux' "$PACKAGES" "$PROFILE/pacman.conf"; then
+  fail "Foi encontrada referência de distribuição proibida no perfil."
 fi
 duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$PACKAGES" | sort | uniq -d)"
 [[ -z "$duplicates" ]] || fail "Pacotes duplicados: $duplicates"
