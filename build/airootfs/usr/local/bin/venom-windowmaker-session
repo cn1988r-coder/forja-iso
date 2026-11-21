@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+WALLPAPER=/usr/share/backgrounds/venom/venom-windowmaker.svg
+if command -v feh >/dev/null 2>&1 && [[ -f "$WALLPAPER" ]]; then
+  feh --bg-fill "$WALLPAPER" >/dev/null 2>&1 &
+fi
+if command -v tint2 >/dev/null 2>&1; then tint2 >/dev/null 2>&1 & fi
+if command -v nm-applet >/dev/null 2>&1; then nm-applet --indicator >/dev/null 2>&1 & fi
+if command -v blueman-applet >/dev/null 2>&1; then blueman-applet >/dev/null 2>&1 & fi
+if [[ -x /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 ]]; then
+  /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 >/dev/null 2>&1 &
+fi
+exec wmaker
