@@ -89,6 +89,7 @@ firefox
 xdg-utils
 xdg-user-dirs
 # Runtime dependencies for upstream Calamares built into the live image.
+gtk4
 qt6-base
 qt6-declarative
 qt6-svg
