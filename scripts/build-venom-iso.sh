@@ -1,22 +1,32 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-command -v buildiso >/dev/null 2>&1 || {
-  printf 'ERRO: buildiso não encontrado. Execute em um ambiente de construção Manjaro com manjaro-tools-iso instalado.\n' >&2
+for tool in pacman mkarchiso; do
+  command -v "$tool" >/dev/null 2>&1 || {
+    printf 'ERRO: %s não encontrado. Use um ambiente Arch Linux com archiso instalado.\n' "$tool" >&2
+    exit 1
+  }
+done
+
+[[ -f build/profiledef.sh && -f build/packages.x86_64 ]] || {
+  printf 'ERRO: perfil Archiso VENOM ausente ou incompleto.\n' >&2
   exit 1
 }
 
-[[ -s manjaro/venom-mate/profile.conf ]] || {
-  printf 'ERRO: perfil Manjaro VENOM MATE não encontrado.\n' >&2
+[[ -x scripts/validate-arch-profile.sh ]] || chmod +x scripts/validate-arch-profile.sh
+scripts/validate-arch-profile.sh
+
+mkdir -p out work
+printf '[VENOM] Construindo ISO com Archiso oficial.\n'
+mkarchiso -v -w work -o out build
+
+ISO="$(find out -maxdepth 1 -type f -name '*.iso' -print -quit)"
+[[ -n "$ISO" ]] || {
+  printf 'ERRO: Archiso terminou sem gerar arquivo ISO.\n' >&2
   exit 1
 }
-
-config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/manjaro-tools"
-mkdir -p "$config_dir"
-printf 'run_dir=%s\n' "$ROOT" > "$config_dir/iso-profiles.conf"
-
-printf '[VENOM] Construindo perfil Manjaro MATE com buildiso oficial.\n'
-exec buildiso -f -p venom-mate -b stable -k linux618
+sha256sum "$ISO" | tee "$ISO.sha256"
+printf '[VENOM] ISO criada: %s\n' "$ISO"
