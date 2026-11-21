@@ -8,9 +8,9 @@ expand=true
 orientation=bottom
 size=30
 
-[Object brisk-menu]
+[Object menu-bar]
 object-type=applet
-applet-iid=BriskMenuFactory::BriskMenu
+applet-iid=MenuBarFactory::MenuBar
 toplevel-id=top
 pack-index=0
 locked=true
@@ -18,6 +18,14 @@ locked=true
 [Object notification-area]
 object-type=applet
 applet-iid=NotificationAreaAppletFactory::NotificationArea
+toplevel-id=top
+pack-type=end
+pack-index=2
+locked=true
+
+[Object volume-control]
+object-type=applet
+applet-iid=VolumeControlAppletFactory::VolumeControlApplet
 toplevel-id=top
 pack-type=end
 pack-index=1
