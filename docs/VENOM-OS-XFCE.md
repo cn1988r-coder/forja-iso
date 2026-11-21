@@ -2,7 +2,7 @@
 
 ## Arquitetura atual
 
-A edição VENOM OS XFCE é baseada no Arch Linux oficial, construída com Archiso oficial e pacotes dos repositórios oficiais. Este documento substitui as instruções históricas da antiga base Manjaro.
+A edição VENOM OS XFCE é baseada no Arch Linux oficial e construída com Archiso oficial. Os pacotes do sistema vêm dos repositórios oficiais do Arch; Pamac e sua biblioteca são compilados separadamente a partir dos PKGBUILDs do AUR. Este documento substitui as instruções históricas da antiga base Manjaro.
 
 - Branch de desenvolvimento: `feature/venom-community-xfce`.
 - Desktop: XFCE com LightDM.
@@ -10,6 +10,7 @@ A edição VENOM OS XFCE é baseada no Arch Linux oficial, construída com Archi
 - Idioma: pt_BR.UTF-8; teclado: br-abnt2.
 - Rede: NetworkManager; Bluetooth: BlueZ; áudio: PipeWire/WirePlumber.
 - Snapshots do sistema: Timeshift, incluído no ambiente Live e no sistema instalado para criar e restaurar snapshots.
+- Gerenciador gráfico de pacotes: Pamac (`pamac-aur`), compilado a partir do AUR para Arch Linux, com AUR habilitado por padrão. A instalação usa um repositório local temporário empacotado na ISO; o sistema instalado mantém somente os repositórios oficiais do Arch e acessa o AUR diretamente pelo Pamac. `base-devel` fica disponível para compilar pacotes AUR.
 - Instalador: Calamares upstream 3.3.14 com módulo VENOM próprio.
 - Instalação online via pacstrap/Pacman. Não copiar a raiz Live.
 - Atualizações normais pelo Pacman; VENON permanece separado e manual.
@@ -26,6 +27,7 @@ O terminal permanece instalado para manutenção e recuperação, mas não deve 
 
 - `build/packages.x86_64`: ambiente Live e ferramentas da mídia.
 - `build/install-packages.x86_64`: sistema instalado.
+- `build/aur-packages.x86_64`: pacotes comunitários AUR compilados pela pipeline (`libpamac-aur` e `pamac-aur`).
 - `build/install-overlay/`: configurações XFCE e identidade visual copiadas pelo módulo VENOM.
 
 O grupo oficial `xfce4-goodies` fornece os plugins adicionais do XFCE utilizados pelo painel. Verificar a composição do grupo nos repositórios oficiais antes de duplicar dependências.
