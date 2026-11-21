@@ -75,6 +75,7 @@ lightdm-gtk-greeter
 polkit
 xfce4-pulseaudio-plugin
 xfce4-whiskermenu-plugin
+xfce4-docklike-plugin
 pavucontrol
 playerctl
 firefox
