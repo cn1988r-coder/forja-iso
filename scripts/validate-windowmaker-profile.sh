@@ -49,7 +49,7 @@ grep -Fxq 'user-session=windowmaker' "$P/airootfs/etc/lightdm/lightdm.conf.d/50-
 [[ -s "$P/airootfs/usr/share/backgrounds/venom/venom-windowmaker.svg" ]] || fail "Wallpaper VENOM Window Maker ausente."
 if command -v pacman >/dev/null 2>&1; then
   while IFS= read -r package; do
-    [[ -z "$package" || "$package" == \\#* ]] && continue
+    [[ -z "$package" || "$package" == \#* ]] && continue
     if ! pacman -Si "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" | grep -q .; then
       fail "Pacote/grupo ausente dos repositórios oficiais Arch: $package"
     fi
