@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-PROFILE="$ROOT/build"
-PACKAGES="$PROFILE/packages.x86_64"
-INSTALL_PACKAGES="$PROFILE/install-packages.x86_64"
+P="$ROOT/build"
+PKG="$P/packages.x86_64"
+INSTALL_PKG="$P/install-packages.x86_64"
+OVERLAY="$P/install-overlay"
 fail(){ printf 'FALHA: %s\n' "$*" >&2; exit 1; }
-
-for path in profiledef.sh pacman.conf packages.x86_64 install-packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.automated_script.sh airootfs/root/venom-live-setup syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
-  [[ -s "$PROFILE/$path" ]] || fail "Arquivo obrigatório ausente: build/$path"
+for f in profiledef.sh pacman.conf packages.x86_64 install-packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.automated_script.sh airootfs/root/venom-live-setup syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
+  [[ -s "$P/$f" ]] || fail "Arquivo obrigatório ausente: build/$f"
 done
-for script in "$PROFILE/profiledef.sh" "$PROFILE/airootfs/root/.automated_script.sh" "$PROFILE/airootfs/root/venom-live-setup"; do
+[[ -d "$OVERLAY" ]] || fail "Overlay do sistema instalado ausente."
+for script in "$P/profiledef.sh" "$P/airootfs/root/.automated_script.sh" "$P/airootfs/root/venom-live-setup"; do
   bash -n "$script" || fail "Sintaxe Bash inválida: $script"
 done
 python -m py_compile "$ROOT/installer/modules/venominstall/main.py" || fail "Sintaxe Python do módulo venominstall inválida."
 (
-  cd "$PROFILE"
+  cd "$P"
   # shellcheck disable=SC1091
   source ./profiledef.sh
   [[ "$iso_name" == venom && "$arch" == x86_64 ]] || fail "Identidade/arquitetura inválida."
@@ -22,35 +23,45 @@ python -m py_compile "$ROOT/installer/modules/venominstall/main.py" || fail "Sin
   [[ "$packages" == packages.x86_64 ]] || fail "Manifest live incorreto."
   [[ " ${airootfs_image_tool_options[*]} " == *" zstd "* ]] || fail "SquashFS deve usar zstd."
 )
-grep -Fxq 'pt_BR.UTF-8 UTF-8' "$PROFILE/airootfs/etc/locale.gen" || fail "Locale pt_BR ausente."
-grep -Fxq 'LANG=pt_BR.UTF-8' "$PROFILE/airootfs/etc/locale.conf" || fail "locale.conf incorreto."
-grep -Fxq 'KEYMAP=br-abnt2' "$PROFILE/airootfs/etc/vconsole.conf" || fail "Teclado ABNT2 ausente."
-grep -q '^HOOKS=.*archiso' "$PROFILE/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Hooks Archiso ausentes."
-grep -Fxq 'COMPRESSION="zstd"' "$PROFILE/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Compressão initramfs deve usar zstd."
-grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$PROFILE/pacman.conf" || fail "Mirror oficial Arch ausente no perfil."
-grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$PROFILE/airootfs/etc/pacman.conf" || fail "Mirror oficial Arch ausente no live."
-for package in base linux linux-firmware gtk4 archlinux-keyring arch-install-scripts mkinitcpio mkinitcpio-archiso mkinitcpio-nfs-utils nbd grub efibootmgr dosfstools e2fsprogs gptfdisk parted sudo curl networkmanager bluez lightdm lightdm-gtk-greeter mate-session-manager mate-panel caja marco; do
-  grep -Fxq "$package" "$PACKAGES" || fail "Pacote obrigatório ausente do manifest live: $package"
-done
-for package in base linux linux-firmware archlinux-keyring pacman-mirrorlist grub efibootmgr mkinitcpio xorg-server lightdm lightdm-gtk-greeter networkmanager bluez pipewire mate-session-manager mate-panel caja marco; do
-  grep -Fxq "$package" "$INSTALL_PACKAGES" || fail "Pacote obrigatório ausente do manifest de instalação: $package"
-done
-if grep -Eiq 'manjaro|endeavouros|biglinux' "$PACKAGES" "$INSTALL_PACKAGES" "$PROFILE/pacman.conf"; then
-  fail "Foi encontrada referência de distribuição proibida na configuração operacional."
-fi
-if grep -Eiq '^(archiso|mkinitcpio-archiso|mkinitcpio-nfs-utils|nbd|squashfs-tools|syslinux|base-devel|linux-headers|linux-lts|linux-lts-headers)$' "$INSTALL_PACKAGES"; then
-  fail "Manifesto de instalação contém ferramentas exclusivas da ISO/live."
-fi
+grep -Fxq 'LANG=pt_BR.UTF-8' "$P/airootfs/etc/locale.conf" || fail "Locale incorreto."
+grep -Fxq 'pt_BR.UTF-8 UTF-8' "$P/airootfs/etc/locale.gen" || fail "Locale pt_BR ausente."
+grep -Fxq 'KEYMAP=br-abnt2' "$P/airootfs/etc/vconsole.conf" || fail "Teclado ABNT2 ausente."
+grep -q '^HOOKS=.*archiso' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Hooks Archiso ausentes."
+grep -Fxq 'COMPRESSION="zstd"' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Compressão do initramfs inválida."
+grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/pacman.conf" || fail "Mirror oficial Arch ausente."
+grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/airootfs/etc/pacman.conf" || fail "Mirror oficial Arch ausente no live."
 grep -Fq 'install -Dm644 build/install-packages.x86_64 build/airootfs/usr/share/venom/install-packages.x86_64' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não prepara o manifesto de instalação."
-grep -Fxq 'installPackagesFile: /usr/share/venom/install-packages.x86_64' "$ROOT/installer/modules/venominstall/venominstall.conf" || fail "Calamares não aponta para o manifesto de instalação."
-grep -q 'installPackagesFile' "$ROOT/installer/modules/venominstall/main.py" || fail "Módulo VENOM não usa installPackagesFile."
+grep -Fq 'cp -a build/install-overlay/. build/airootfs/usr/share/venom/install-overlay/' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não prepara o overlay de instalação."
+grep -Fxq 'installPackagesFile: /usr/share/venom/install-packages.x86_64' "$ROOT/installer/modules/venominstall/venominstall.conf" || fail "Manifesto de instalação não configurado."
+grep -Fxq 'installOverlay: /usr/share/venom/install-overlay' "$ROOT/installer/modules/venominstall/venominstall.conf" || fail "Overlay de instalação não configurado."
+grep -q 'copy_install_overlay' "$ROOT/installer/modules/venominstall/main.py" || fail "Módulo VENOM não aplica o overlay."
 grep -q 'pacstrap' "$ROOT/installer/modules/venominstall/main.py" || fail "Instalador online pacstrap ausente."
-duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$PACKAGES" | sort | uniq -d)"
-[[ -z "$duplicates" ]] || fail "Pacotes duplicados no manifest live: $duplicates"
-install_duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$INSTALL_PACKAGES" | sort | uniq -d)"
-[[ -z "$install_duplicates" ]] || fail "Pacotes duplicados no manifest de instalação: $install_duplicates"
+grep -q '      - locale' "$ROOT/installer/settings.conf" || fail "Módulo locale ausente da execução Calamares."
+grep -q '      - keyboard' "$ROOT/installer/settings.conf" || fail "Módulo keyboard ausente da execução Calamares."
+grep -q '      - users' "$ROOT/installer/settings.conf" || fail "Módulo users ausente da execução Calamares."
+if grep -R -Eiq 'unpackfs|rsync|manjaro|endeavouros|biglinux|mhwd' "$ROOT/installer/settings.conf" "$ROOT/installer/modules/venominstall" "$PKG" "$INSTALL_PKG" "$P/pacman.conf"; then
+  fail "Referência proibida ou instalação por cópia detectada."
+fi
+for package in base linux linux-firmware archlinux-keyring arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils nbd grub efibootmgr gtk4 lightdm networkmanager bluez mate-session-manager mate-panel caja marco; do
+  grep -Fxq "$package" "$PKG" || fail "Pacote obrigatório ausente do manifest live: $package"
+done
+for package in base linux linux-firmware archlinux-keyring pacman-mirrorlist grub efibootmgr mkinitcpio xorg-server lightdm lightdm-gtk-greeter networkmanager bluez pipewire mate-session-manager mate-panel caja marco adwaita-cursors; do
+  grep -Fxq "$package" "$INSTALL_PKG" || fail "Pacote obrigatório ausente do manifest de instalação: $package"
+done
+if grep -Eiq '^(archiso|mkinitcpio-archiso|mkinitcpio-nfs-utils|nbd|squashfs-tools|syslinux|base-devel|linux-headers|linux-lts|linux-lts-headers)$' "$INSTALL_PKG"; then fail "Manifesto de instalação contém ferramentas exclusivas da ISO/live."; fi
+for f in etc/dconf/db/local.d/00-venom etc/dconf/profile/user etc/skel/.config/autostart/venom-mate-first-login.desktop etc/skel/.config/gtk-3.0/settings.ini etc/skel/.config/gtk-4.0/settings.ini usr/local/bin/venom-mate-first-login usr/share/mate-panel/layouts/venom.layout usr/share/backgrounds/venom/venom-wallpaper.svg etc/lightdm/lightdm-gtk-greeter.conf etc/lightdm/lightdm.conf.d/50-venom-session.conf; do
+  [[ -s "$OVERLAY/$f" ]] || fail "Arquivo MATE ausente no overlay: $f"
+done
+grep -q 'user-session=mate' "$OVERLAY/etc/lightdm/lightdm.conf.d/50-venom-session.conf" || fail "Sessão MATE instalada não configurada."
+if grep -Eiq 'yay|paru|aur\.archlinux\.org|brisk-menu-git|bibata-cursor-theme-bin|BriskMenu' "$P/airootfs/usr/local/bin/venom-mate-first-login" "$P/airootfs/usr/share/mate-panel/layouts/venom.layout"; then
+  fail "Configuração MATE depende de AUR ou applet não oficial."
+fi
+for manifest in "$PKG" "$INSTALL_PKG"; do
+  duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$manifest" | sort | uniq -d)"
+  [[ -z "$duplicates" ]] || fail "Pacotes duplicados em $manifest: $duplicates"
+done
 if command -v pacman >/dev/null 2>&1; then
-  for manifest in "$PACKAGES" "$INSTALL_PACKAGES"; do
+  for manifest in "$PKG" "$INSTALL_PKG"; do
     while IFS= read -r package; do
       [[ -z "$package" || "$package" == \#* ]] && continue
       if ! pacman -Si "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" | grep -q .; then
@@ -59,4 +70,4 @@ if command -v pacman >/dev/null 2>&1; then
     done < "$manifest"
   done
 fi
-printf 'OK: perfil Archiso MATE, manifesto de instalação mínimo, BIOS/UEFI, locale, teclado, PXE e Calamares online passaram na validação estática.\n'
+printf 'OK: perfil Archiso, manifestos separados, overlay, Calamares online e desktop passaram na validação estática.\n'
