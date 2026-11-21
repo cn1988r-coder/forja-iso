@@ -1,0 +1,9 @@
+[user]
+pinned=firefox.desktop;thunar.desktop;
+forceIconSize=true
+iconSize=32
+showPreviews=true
+showWindowCount=false
+indicatorColorFromTheme=false
+indicatorColor=rgb(22,143,255)
+inactiveColor=rgb(6,65,143)
