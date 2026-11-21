@@ -107,7 +107,7 @@ jobs:
           cat bios-serial.log || true
           test "$QEMU_STATUS" -eq 124
           grep -Fq 'VENOM_AUTOMATED_SCRIPT_DISPATCHED' bios-serial.log
-grep -Fq 'VENOM_LIVE_SETUP_STARTED' bios-serial.log
+          grep -Fq 'VENOM_LIVE_SETUP_STARTED' bios-serial.log
           grep -Fq 'VENOM_LIVE_READY' bios-serial.log
 
       - name: UEFI boot smoke test
