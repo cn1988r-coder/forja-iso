@@ -1,29 +1,46 @@
-# VENOM OS XFCE 1.0
+# VENOM OS XFCE
 
-## Scope
+## Arquitetura atual
 
-The Community XFCE edition is based on Manjaro and preserves the upstream Community XFCE desktop layout and behavior while replacing vendor branding with VENOM OS identity.
+A edição VENOM OS XFCE é baseada no Arch Linux oficial, construída com Archiso oficial e pacotes dos repositórios oficiais. Este documento substitui as instruções históricas da antiga base Manjaro.
 
-The desktop uses one bottom panel at 100% width and 40 px height, with the upstream plugin order, Whisker menu, Docklike, system tray, audio, power, notifications, clipboard and two-line clock. The dark theme, Papient Dark icon theme, Bibata cursor and Noto Nerd fonts are installed and selected.
+- Branch de desenvolvimento: `feature/venom-community-xfce`.
+- Desktop: XFCE com LightDM.
+- Boot: BIOS/Syslinux e UEFI/GRUB.
+- Idioma: pt_BR.UTF-8; teclado: br-abnt2.
+- Rede: NetworkManager; Bluetooth: BlueZ; áudio: PipeWire/WirePlumber.
+- Instalador: Calamares upstream 3.3.14 com módulo VENOM próprio.
+- Instalação online via pacstrap/Pacman. Não copiar a raiz Live.
+- Atualizações normais pelo Pacman; VENON permanece separado e manual.
 
-Firefox and Pamac GTK are included. Ferdium and IPTVnator are installed on first login through Pamac AUR support as `ferdium-bin` and `iptvnator-bin`.
+## Experiência XFCE
 
-## Live session login
+O perfil utiliza painel inferior, menu Whisker, bandeja, áudio, energia, notificações, clipboard e relógio. O tema escuro e os ícones Papirus Dark são configurados nos perfis Live e instalado.
 
-The Manjaro profile enables `autologin="true"` for the Live session only. No automatic-login setting is placed in the desktop or root overlays, so the installed system retains its normal LightDM login screen.
+O terminal permanece instalado para manutenção e recuperação, mas não deve ser necessário nas tarefas cotidianas nem ficar entre os favoritos do menu.
 
-## Installer
+## Manifestos
 
-Calamares is included in the Live image. The Manjaro module sequence is configured in `manjaro/venom-xfce/live-overlay/etc/calamares/settings.conf`; VENOM branding and artwork are in the adjacent `branding/venom` directory. The Live application menu provides **Install VENOM OS**. MHWD integration is enabled.
+- `build/packages.x86_64`: ambiente Live e ferramentas da mídia.
+- `build/install-packages.x86_64`: sistema instalado.
+- `build/install-overlay/`: configurações XFCE e identidade visual copiadas pelo módulo VENOM.
 
-## Package signing
+O grupo oficial `xfce4-goodies` fornece os plugins adicionais do XFCE utilizados pelo painel. Verificar a composição do grupo nos repositórios oficiais antes de duplicar dependências.
 
-The Community Stable repository is configured as `community-stable`. The build workflow imports and locally signs the full fingerprint published in the upstream Community keyring repository using Manjaro's `additional-trusted-gpg` input. Signature enforcement remains enabled.
+## Inicialização e instalação
 
-## Validation and build policy
+O root login shell no tty1 chama `/root/.automated_script.sh`, que executa diretamente o caminho indicado por `script=` ou utiliza fallback para `/root/venom-live-setup`. O setup cria a sessão Live e habilita NetworkManager, Bluetooth e LightDM. `VENOM_LIVE_READY` só é emitido após LightDM ficar ativo.
 
-The strict validator checks package selections, desktop settings, panel geometry and plugin order, theme/font assets, Calamares sequence and branding, repository configuration, and the PGP trust setup.
+O Calamares prepara partições e montagem, executa o módulo VENOM para instalar pacotes oficiais via pacstrap e aplicar somente o overlay, depois configura fstab, locale, teclado, usuário, display manager, serviços, initramfs e bootloader.
 
-Push events run validation only. The build job is restricted to explicit manual dispatch. No ISO build is authorized until every mandatory validation is green.
+## Critérios de prontidão
 
-Static validation, a successful ISO build, successful Live boot and successful installation are separate evidence levels. They must never be conflated.
+Não declarar a ISO pronta apenas com validação estática ou compilação. Exigir:
+1. Validação estática e de sintaxe.
+2. Manifestos, XML, tema e painel coerentes entre Live e instalado.
+3. ISO gerada e SHA-256 registrado.
+4. Boot BIOS e UEFI com `VENOM_LIVE_READY` e LightDM ativo.
+5. Inspeção visual da sessão XFCE.
+6. Instalação completa em VM e primeiro boot do sistema instalado.
+
+Falhas devem ser investigadas e corrigidas antes de nova tentativa. Não remover gates para forçar aprovação.

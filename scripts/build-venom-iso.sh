@@ -16,8 +16,11 @@ done
   exit 1
 }
 
-[[ -x scripts/validate-xfce-profile.sh ]] || chmod +x scripts/validate-arch-profile.sh
-scripts/validate-arch-profile.sh
+[[ -x scripts/validate-xfce-profile.sh ]] || {
+  printf 'ERRO: scripts/validate-xfce-profile.sh ausente ou sem permissão.\n' >&2
+  exit 1
+}
+bash scripts/validate-xfce-profile.sh
 
 mkdir -p out work
 printf '[VENOM] Construindo ISO com Archiso oficial.\n'
