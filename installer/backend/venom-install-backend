@@ -46,8 +46,8 @@ if [[ -e /sys/firmware/efi ]]; then
   if [[ "$DISK" =~ (nvme[0-9]+n[0-9]+|mmcblk[0-9]+)$ ]]; then EFI_PART="${DISK}p1"; ROOT_PART="${DISK}p2"; fi
 else
   FIRMWARE=BIOS
-  ROOT_PART="${DISK}1"
-  [[ "$DISK" =~ (nvme[0-9]+n[0-9]+|mmcblk[0-9]+)$ ]] && ROOT_PART="${DISK}p1"
+  ROOT_PART="${DISK}2"
+  [[ "$DISK" =~ (nvme[0-9]+n[0-9]+|mmcblk[0-9]+)$ ]] && ROOT_PART="${DISK}p2"
 fi
 printf '[2/9] Recriando a tabela de partições (%s)\n' "$FIRMWARE"
 wipefs --all --force "$DISK"
@@ -55,7 +55,7 @@ sgdisk --zap-all "$DISK"
 if [[ "$FIRMWARE" == UEFI ]]; then
   sgdisk --new=1:0:+1G --typecode=1:ef00 --change-name=1:VENOM_EFI --new=2:0:0 --typecode=2:8300 --change-name=2:VENOM_ROOT "$DISK"
 else
-  sgdisk --new=1:0:0 --typecode=1:8300 --change-name=1:VENOM_ROOT "$DISK"
+  sgdisk --new=1:0:+2M --typecode=1:ef02 --change-name=1:VENOM_BIOS_BOOT --new=2:0:0 --typecode=2:8300 --change-name=2:VENOM_ROOT "$DISK"
 fi
 partprobe "$DISK"; udevadm settle
 for _ in {1..20}; do [[ -b "$ROOT_PART" ]] && break; sleep 1; done
@@ -71,6 +71,7 @@ rsync -aHAX --numeric-ids --one-file-system --exclude=/dev/ --exclude=/proc/ --e
 printf '[6/9] Configurando sistema, locale e usuário\n'
 mkdir -p "$TARGET/etc" "$TARGET/etc/sudoers.d"
 genfstab -U "$TARGET" >>"$TARGET/etc/fstab"
+rm -f "$TARGET/etc/machine-id" "$TARGET/var/lib/dbus/machine-id"
 rm -f "$TARGET/etc/systemd/system/getty@tty1.service.d/autologin.conf" "$TARGET/etc/lightdm/lightdm.conf.d/50-venom-live.conf" "$TARGET/etc/sudoers.d/10-venom-live" "$TARGET/etc/mkinitcpio.conf.d/archiso.conf"
 rm -f "$TARGET/root/.automated_script.sh" "$TARGET/root/venom-live-setup"
 if arch-chroot "$TARGET" id venom >/dev/null 2>&1; then arch-chroot "$TARGET" userdel --remove venom || true; fi
