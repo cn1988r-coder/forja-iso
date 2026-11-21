@@ -104,14 +104,14 @@ live_required=(
   gtk4 json-glib lightdm networkmanager network-manager-applet
   bluez bluez-utils blueman pipewire pipewire-audio pipewire-alsa
   pipewire-pulse wireplumber mate-session-manager mate-panel mate-media
-  caja marco papirus-icon-theme
+  polkit mate-polkit caja marco papirus-icon-theme
 )
 installed_required=(
   base linux linux-firmware archlinux-keyring pacman-mirrorlist
   grub efibootmgr mkinitcpio xorg-server lightdm lightdm-gtk-greeter
   networkmanager network-manager-applet bluez bluez-utils blueman
   pipewire pipewire-audio pipewire-alsa pipewire-pulse wireplumber
-  mate-session-manager mate-panel mate-media caja marco papirus-icon-theme
+  mate-session-manager mate-panel mate-media polkit mate-polkit caja marco papirus-icon-theme
 )
 for package in "${live_required[@]}"; do
   grep -Fxq "$package" "$PKG" || fail "pacote live ausente: $package"

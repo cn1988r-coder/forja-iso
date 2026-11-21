@@ -18,7 +18,7 @@ fail() {
 
 for package in networkmanager network-manager-applet bluez bluez-utils blueman \
                pipewire pipewire-audio pipewire-alsa pipewire-pulse wireplumber \
-               mate-panel mate-media papirus-icon-theme; do
+               mate-panel mate-media polkit mate-polkit papirus-icon-theme; do
   grep -Fxq "$package" "$ROOT/build/packages.x86_64" ||
     fail "pacote live ausente: $package"
   grep -Fxq "$package" "$ROOT/build/install-packages.x86_64" ||
@@ -64,6 +64,9 @@ grep -Fq 'systemctl start NetworkManager.service' "$LIVE/root/venom-live-setup" 
   fail "NetworkManager não é iniciado na sessão live"
 grep -Fq 'systemctl start bluetooth.service' "$LIVE/root/venom-live-setup" ||
   fail "Bluetooth não é iniciado na sessão live"
+grep -Fq 'useradd --create-home --groups wheel,audio,video,storage' \
+  "$LIVE/root/venom-live-setup" ||
+  fail "usuário live não recebe os grupos necessários para autenticação e dispositivos"
 
 for service in NetworkManager bluetooth; do
   link="$OVERLAY/etc/systemd/system/multi-user.target.wants/$service.service"
@@ -73,12 +76,14 @@ done
 require_arch_file() {
   local package="$1"
   local expected_path="$2"
-  local result
 
-  result="$(pacman -F "$expected_path" 2>/dev/null)" ||
-    fail "não foi possível consultar o arquivo oficial: $expected_path"
-  [[ "$result" == *"/$package "* ]] ||
+  if ! pacman -Fl "$package" |
+       awk -v expected="$expected_path" 'index($0, expected) { found=1 } END { exit !found }'; then
+    printf 'Arquivos relacionados encontrados em %s:\n' "$package" >&2
+    pacman -Fl "$package" |
+      awk 'tolower($0) ~ /gvc|mate-panel|dbus|volume|bluetooth|nm-applet/ { print }' >&2
     fail "arquivo oficial ausente: $package/$expected_path"
+  fi
 }
 
 if command -v pacman >/dev/null 2>&1; then
@@ -97,6 +102,10 @@ if command -v pacman >/dev/null 2>&1; then
   require_arch_file blueman usr/share/icons/hicolor/22x22/status/blueman-tray.png
   require_arch_file bluez usr/lib/systemd/system/bluetooth.service
 
+  # Agente gráfico de autorização necessário para operações administrativas.
+  require_arch_file mate-polkit etc/xdg/autostart/polkit-mate-authentication-agent-1.desktop
+  require_arch_file mate-polkit usr/lib/mate-polkit/polkit-mate-authentication-agent-1
+
   # VOLUME/ÁUDIO: applet MATE, ativação D-Bus, mascaramento do ícone duplicado
   # e ícones de volume fornecidos pelo tema Papirus-Dark selecionado.
   require_arch_file mate-media usr/share/mate-panel/applets/org.mate.applets.GvcApplet.mate-panel-applet
@@ -109,7 +118,9 @@ if command -v pacman >/dev/null 2>&1; then
   # Serviços e pilha de áudio dos repositórios oficiais.
   require_arch_file networkmanager usr/lib/systemd/system/NetworkManager.service
   require_arch_file pipewire usr/lib/systemd/user/pipewire.service
+  require_arch_file pipewire usr/lib/systemd/user/pipewire.socket
   require_arch_file pipewire-pulse usr/lib/systemd/user/pipewire-pulse.service
+  require_arch_file pipewire-pulse usr/lib/systemd/user/pipewire-pulse.socket
   require_arch_file wireplumber usr/lib/systemd/user/wireplumber.service
 else
   printf 'AVISO: Pacman ausente; a conferência dos arquivos oficiais foi ignorada.\n'
@@ -117,5 +128,6 @@ fi
 
 printf 'OK: REDE: pacote, autostart, executável, ícones, Notification Area e serviço conferidos estaticamente.\n'
 printf 'OK: BLUETOOTH: BlueZ, Blueman, autostart, executável, ícone, Notification Area e serviço conferidos estaticamente.\n'
-printf 'OK: VOLUME/ÁUDIO: Gvc, ativação D-Bus, PipeWire, WirePlumber, ícones Papirus e ausência de ícone duplicado conferidos estaticamente.\n'
+printf 'OK: VOLUME/ÁUDIO: Gvc, ativação D-Bus, PipeWire, WirePlumber, sockets, ícones Papirus e ausência de ícone duplicado conferidos estaticamente.\n'
+printf 'OK: AUTORIZAÇÃO GRÁFICA: agente MATE Polkit e grupos do usuário live conferidos estaticamente.\n'
 printf 'PENDENTE: comprovar os três indicadores visíveis e funcionais após login e reinicialização em sessão gráfica/VM.\n'

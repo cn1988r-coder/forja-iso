@@ -16,7 +16,9 @@ O instalador está sendo desenvolvido como aplicação nativa em C com GTK4. A i
 2. Implementar seleção de modo automático e personalizado, com plano de partições revisável e confirmação explícita antes de qualquer escrita.
 3. Montar uma fonte de pacotes local assinados na própria mídia e instalar sem rede, sem copiar a raiz do sistema live.
 4. Configurar usuário, senha, locale, teclado ABNT2, MATE, LightDM, serviços, initramfs e GRUB no destino.
-5. Exibir progresso real, logs úteis, erros compreensíveis e permitir abortar com segurança.
-6. Testar em discos virtuais descartáveis em BIOS e UEFI antes de habilitar o botão de instalação.
+5. Criar a conta instalada nos grupos wheel, audio, video e storage, para que as operações administrativas gráficas tenham a autorização correta.
+6. Garantir o início do agente gráfico MATE Polkit, sem regras permissivas adicionais.
+7. Exibir progresso real, logs úteis, erros compreensíveis e permitir abortar com segurança.
+8. Testar em discos virtuais descartáveis em BIOS e UEFI antes de habilitar o botão de instalação.
 
 A interface atual é um protótipo funcional de navegação e descoberta somente leitura. Ela **não é um instalador funcional** e não altera discos.
