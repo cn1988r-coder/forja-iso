@@ -1,5 +1,6 @@
 name: Validate VENOM Arch XFCE profile
 
+# Static checks only: no ISO generation.
 on:
   workflow_dispatch:
   push:
