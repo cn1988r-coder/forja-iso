@@ -50,7 +50,7 @@ def main():
 
     required = [
         "AGENTS.md", "README.md", "build/profiledef.sh", "build/pacman.conf",
-        "build/packages.x86_64", "build/install-packages.x86_64",
+        "build/packages.x86_64", "build/install-packages.x86_64", "build/aur-packages.x86_64",
         "build/airootfs/etc/pacman.conf", "build/airootfs/etc/mkinitcpio.conf.d/archiso.conf",
         "build/airootfs/etc/locale.conf", "build/airootfs/etc/locale.gen",
         "build/airootfs/etc/vconsole.conf", "build/airootfs/root/.bash_profile",
@@ -112,6 +112,13 @@ def main():
 
     live = package_sets.get(manifests[0], set())
     installed = package_sets.get(manifests[1], set())
+    aur_raw = read("build/aur-packages.x86_64") or ""
+    aur_names = {x.strip() for x in aur_raw.splitlines() if x.strip() and not x.lstrip().startswith("#")}
+    for name in {"libpamac-aur", "pamac-aur"}:
+        add("OK" if name in aur_names and name in live and name in installed else "ERROR",
+            "Pamac/AUR", f"Pacote AUR declarado para Live e instalação: {name}"
+            if name in aur_names and name in live and name in installed
+            else f"Pacote AUR ausente do manifesto AUR/Live/instalação: {name}")
     must_live = {"base", "linux", "linux-firmware", "archlinux-keyring",
                  "mkinitcpio-archiso", "syslinux", "grub", "xfce4",
                  "lightdm", "lightdm-gtk-greeter", "networkmanager",
@@ -133,6 +140,9 @@ def main():
     if shutil.which("pacman"):
         for manifest, names in package_sets.items():
             for name in sorted(names):
+                if name in aur_names:
+                    add("OK", "Pamac/AUR", f"Pacote AUR será compilado na pipeline: {name}")
+                    continue
                 result = run(["pacman", "-Si", name])
                 if result is None:
                     add("INCONCLUSIVE", "Pacotes", f"Consulta de repositório inconclusiva: {name}")
