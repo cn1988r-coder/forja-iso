@@ -1,6 +1,6 @@
 # Continuidade técnica da VENOM OS
 
-Atualizado em 20/11/2026.
+Atualizado em 21/11/2026.
 
 ## Arquitetura definitiva
 - Sistema: VENOM OS.
@@ -42,10 +42,15 @@ Atualizado em 20/11/2026.
 - O overlay MATE inclui LightDM sem autologin, dconf, tema, ícones, wallpaper, layout do painel e configuração de primeiro login.
 - A sequência Calamares executa também locale, keyboard e users, além de fstab, displaymanager, serviços, initramfs e bootloader.
 
-## Validação pendente
-- As validações estáticas estão sendo executadas em containers Arch; registrar os resultados finais após conclusão dos workflows.
-- Não foi iniciado novo build ISO.
-- Após autorização de build: confirmar ISO/SHA256, boot BIOS/UEFI e instalação completa em VM descartável, incluindo reboot, primeiro login e serviços.
+## Validação estática
+- Run `44857746827`, commit `6e5865d307533e56828165a89570d087875e0eba`: sucesso.
+- Instalação das ferramentas, validação do perfil e disponibilidade dos pacotes oficiais, sintaxe dos scripts e conclusão do job passaram.
+- Essa validação não compila a ISO nem testa boot ou instalação real.
+
+## Validação de mídia pendente
+- Não foi iniciado novo build ISO após a execução #44.
+- Não iniciar build ISO sem autorização expressa.
+- Após autorização: confirmar ISO/SHA256, boot BIOS/UEFI e instalação completa em VM descartável, incluindo reboot, primeiro login e serviços.
 - Não declarar a ISO pronta antes de todos os testes.
 
 ## Branches históricas arquivadas
