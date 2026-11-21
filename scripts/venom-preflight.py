@@ -61,8 +61,9 @@ def main():
         "build/airootfs/etc/systemd/system/venom-live-setup.service",
         "build/airootfs/etc/systemd/system/venom-live-ready.service",
         "build/airootfs/etc/lightdm/lightdm.conf.d/50-venom-live.conf",
-        "build/syslinux/archiso_sys.cfg", "build/syslinux/archiso_head.cfg",
-        "build/syslinux/archiso_sys-linux.cfg", "build/grub/grub.cfg",
+        "build/syslinux/syslinux.cfg", "build/syslinux/archiso_sys.cfg",
+        "build/syslinux/archiso_head.cfg", "build/syslinux/archiso_sys-linux.cfg",
+        "build/grub/grub.cfg",
         "installer/settings.conf", "scripts/validate-xfce-profile.sh",
         ".github/workflows/build-arch-iso.yml",
         ".github/workflows/validate-arch-xfce.yml"
@@ -81,14 +82,42 @@ def main():
     ]:
         add("OK" if token in profile else "ERROR", "Archiso",
             f"Configuração presente: {label}" if token in profile else f"Configuração ausente: {label}")
+    syslinux_main = read("build/syslinux/syslinux.cfg") or ""
     syscfg = read("build/syslinux/archiso_sys.cfg") or ""
     head = read("build/syslinux/archiso_head.cfg") or ""
-    add("OK" if syscfg.splitlines()[:1] == ["SERIAL 0 115200"] else "ERROR",
-        "BIOS", "SERIAL é a primeira diretiva do Syslinux" if syscfg.splitlines()[:1] == ["SERIAL 0 115200"]
-        else "SERIAL não é a primeira linha de archiso_sys.cfg")
-    add("ERROR" if re.search(r"^\s*SERIAL\b", head, re.M) else "OK", "BIOS",
-        "SERIAL duplicado/fora de posição em archiso_head.cfg" if re.search(r"^\s*SERIAL\b", head, re.M)
-        else "Sem diretiva SERIAL deslocada em archiso_head.cfg")
+    main_routes_to_system = bool(re.search(
+        r"^\s*INCLUDE\s+archiso_sys\.cfg\s*$", syslinux_main, re.M))
+    sys_includes_head = bool(re.search(
+        r"^\s*INCLUDE\s+archiso_head\.cfg\s*$", syscfg, re.M))
+    sys_includes_kernel = bool(re.search(
+        r"^\s*INCLUDE\s+archiso_sys-linux\.cfg\s*$", syscfg, re.M))
+    add("OK" if main_routes_to_system else "ERROR", "BIOS",
+        "Ponto de entrada syslinux.cfg encaminha para archiso_sys.cfg"
+        if main_routes_to_system else
+        "syslinux.cfg ausente ou não encaminha para archiso_sys.cfg")
+    add("OK" if sys_includes_head and sys_includes_kernel else "ERROR", "BIOS",
+        "archiso_sys.cfg inclui cabeçalho e entradas de kernel"
+        if sys_includes_head and sys_includes_kernel else
+        "archiso_sys.cfg não inclui cabeçalho e/ou entradas de kernel")
+    serial_in_header = head.splitlines()[:1] == ["SERIAL 0 115200"]
+    serial_directives = []
+    for rel, content in (
+        ("syslinux.cfg", syslinux_main), ("archiso_sys.cfg", syscfg),
+        ("archiso_head.cfg", head),
+        ("archiso_sys-linux.cfg", read("build/syslinux/archiso_sys-linux.cfg") or "")
+    ):
+        for line_number, line in enumerate(content.splitlines(), 1):
+            if re.match(r"^\s*SERIAL\b", line):
+                serial_directives.append(f"{rel}:{line_number}: {line.strip()}")
+    add("OK" if serial_in_header else "ERROR", "BIOS",
+        "SERIAL 0 115200 está na primeira linha de archiso_head.cfg, conforme o perfil Archiso"
+        if serial_in_header else
+        "archiso_head.cfg não começa com SERIAL 0 115200")
+    add("OK" if len(serial_directives) == 1 else "ERROR", "BIOS",
+        "Uma única diretiva SERIAL no conjunto Syslinux"
+        if len(serial_directives) == 1 else
+        f"Esperada uma única diretiva SERIAL; encontradas {len(serial_directives)}",
+        "\n".join(serial_directives))
     grub = read("build/grub/grub.cfg") or ""
     add("OK" if "archiso" in grub.lower() else "WARNING", "UEFI",
         "GRUB contém referência Archiso" if "archiso" in grub.lower()
