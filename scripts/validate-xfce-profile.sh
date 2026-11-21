@@ -8,7 +8,7 @@ AUR_PKG="$P/aur-packages.x86_64"
 OVERLAY="$P/install-overlay"
 fail(){ printf 'FALHA: %s
 ' "$*" >&2; exit 1; }
-for f in profiledef.sh pacman.conf packages.x86_64 install-packages.x86_64 aur-packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.bash_profile airootfs/usr/local/lib/venom/venom-live-setup airootfs/usr/local/lib/venom/venom-live-ready airootfs/etc/systemd/system/venom-live-setup.service airootfs/etc/systemd/system/venom-live-ready.service syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
+for f in profiledef.sh pacman.conf packages.x86_64 install-packages.x86_64 aur-packages.x86_64 airootfs/usr/share/venom/pacman-install.conf airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.bash_profile airootfs/usr/local/lib/venom/venom-live-setup airootfs/usr/local/lib/venom/venom-live-ready airootfs/etc/systemd/system/venom-live-setup.service airootfs/etc/systemd/system/venom-live-ready.service syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
   [[ -s "$P/$f" ]] || fail "Arquivo obrigatório ausente: build/$f"
 done
 [[ -d "$OVERLAY" ]] || fail "Overlay do sistema instalado ausente."
