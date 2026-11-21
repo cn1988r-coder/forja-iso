@@ -5,7 +5,7 @@
 - Repositório: `cn1988r-coder/forja-iso`.
 - Branch exclusiva: `optimize/venom-iso-size`.
 - HEAD-base antes deste incremento: `76abc033ab48ad37349ac8a1bd25c701829dd55b`.
-- HEAD de implementação antes desta atualização documental: `791662d326dff87cc09a0ad3391750bc2437f3be`.
+- HEAD de implementação antes desta atualização documental: `1a51ed7d7d9f2c0c918f6976d71ec9ddf2190150` (inclui reforço da verificação Wi-Fi/Ethernet).
 - Nenhuma outra branch foi alterada.
 
 ## Alterações de código
@@ -49,6 +49,8 @@
 1. **REDE:** validação estática aprovada. Pacote `network-manager-applet`, `nm-applet`, autostart oficial, ícones de conexão, Notification Area e serviço NetworkManager conferidos no perfil live e no sistema instalado.
 2. **BLUETOOTH:** validação estática aprovada. BlueZ, Blueman, `blueman-applet`, `blueman-manager`, autostart, ícone de bandeja, Notification Area e serviço Bluetooth conferidos.
 3. **VOLUME/ÁUDIO:** validação estática aprovada. Applet Gvc do `mate-media`, biblioteca e controle de dispositivos, PipeWire, PipeWire Pulse, WirePlumber, sockets, ícones Papirus e desativação do ícone de status duplicado conferidos.
+
+**Reforço recente da REDE:** o teste agora exige também os ícones de sinal Wi-Fi (`nm-signal-00.png` e `nm-signal-100.png`) e o executável `nm-connection-editor`, além do ícone Ethernet e de desconexão. Os caminhos foram conferidos na lista oficial de arquivos do pacote Arch. Essa ampliação entrou no commit `1a51ed7d7d9f2c0c918f6976d71ec9ddf2190150` após a última execução de CI aprovada e ainda aguarda nova execução automatizada.
 
 **Pendente para os três:** não houve sessão gráfica/VM com login e reinicialização. Portanto, visibilidade e funcionamento real dos indicadores não estão comprovados.
 
