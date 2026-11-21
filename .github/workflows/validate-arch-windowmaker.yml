@@ -5,11 +5,6 @@ on:
   push:
     branches:
       - feature/forja-window-maker-endeavouros
-    paths:
-      - 'build/**'
-      - 'installer/**'
-      - 'scripts/validate-windowmaker-profile.sh'
-      - '.github/workflows/validate-arch-windowmaker.yml'
 
 permissions:
   contents: read
