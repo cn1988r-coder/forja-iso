@@ -5,16 +5,16 @@
 set -Eeuo pipefail
 
 serial_marker() {
-    printf '%s\\n' "$1" >/dev/ttyS0 2>/dev/null || true
+    printf '%s\n' "$1" >/dev/ttyS0 2>/dev/null || true
 }
 
 script_cmdline() {
     local token
     local -a cmdline
     read -r -a cmdline </proc/cmdline
-    for token in "${cmdline[@]}"; do
+    for token in "\${cmdline[@]}"; do
         case "$token" in
-            script=*) printf '%s\\n' "${token#script=}"; return 0 ;;
+            script=*) printf '%s\n' "\${token#script=}"; return 0 ;;
         esac
     done
     return 1
@@ -27,7 +27,7 @@ if [[ -z "$script" || ! -x "$script" ]]; then
 fi
 if [[ ! -x "$script" ]]; then
     serial_marker VENOM_LIVE_SCRIPT_NOT_EXECUTABLE
-    printf '[VENOM] Live setup ausente ou sem permissão: %s\\n' "$script" >&2
+    printf '[VENOM] Live setup ausente ou sem permissão: %s\n' "$script" >&2
     exit 1
 fi
 
