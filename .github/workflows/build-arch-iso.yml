@@ -6,10 +6,7 @@ on:
     branches:
       - optimize/venom-iso-size
     paths:
-      - 'build/**'
-      - 'installer/**'
-      - 'scripts/validate-arch-profile.sh'
-      - '.github/workflows/build-arch-iso.yml'
+      - '.github/trigger-final-build.txt'
 
 permissions:
   contents: read

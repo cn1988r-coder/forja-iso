@@ -17,7 +17,7 @@ cn1988r-coder/forja-iso, branch optimize/venom-iso-size. Preservar main e demais
 ## Alterações desta revisão
 - Retirado o instalador C/GTK4 de dentro da ISO.
 - Adicionada configuração Calamares, branding VENOM e módulo online pacstrap.
-- Desktop entry inicia Calamares.
+- Desktop entry inicia Calamares com sudo restrito ao executável; o usuário live não recebe senha administrativa geral.
 - Workflow compila Calamares upstream 3.3.14 com Qt6 e Python, fixa checksum do tarball e instala na mídia live.
 
 ## Limitações e validação pendente
