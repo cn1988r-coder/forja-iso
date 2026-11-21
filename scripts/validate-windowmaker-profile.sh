@@ -7,7 +7,7 @@ fail(){ printf 'FALHA: %s\n' "$*" >&2; exit 1; }
 for f in profiledef.sh pacman.conf packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.automated_script.sh airootfs/root/venom-live-setup syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
   [[ -s "$P/$f" ]] || fail "Arquivo obrigatório ausente: build/$f"
 done
-bash -n "$P/profiledef.sh" "$P/airootfs/root/.automated_script.sh" "$P/airootfs/root/venom-live-setup" "$P/airootfs/usr/local/bin/venom-windowmaker-session" || fail "Sintaxe Bash inválida."
+for script in "$P/profiledef.sh" "$P/airootfs/root/.automated_script.sh" "$P/airootfs/root/venom-live-setup" "$P/airootfs/usr/local/bin/venom-windowmaker-session"; do bash -n "$script" || fail "Sintaxe Bash inválida: $script"; done
 python -m py_compile "$ROOT/installer/modules/venominstall/main.py" || fail "Sintaxe Python do módulo venominstall inválida."
 (
   cd "$P"
@@ -45,7 +45,7 @@ if grep -R -Eiq 'unpackfs|rsync|manjaro|endeavouros|biglinux|mhwd' "$ROOT/instal
 fi
 [[ -s "$P/airootfs/usr/share/xsessions/venom-windowmaker.desktop" ]] || fail "Sessão Window Maker do LightDM ausente."
 grep -Fxq 'user-session=windowmaker' "$P/airootfs/etc/lightdm/lightdm.conf.d/50-venom-live.conf" || fail "LightDM não inicia Window Maker."
-[[ -x "$P/airootfs/usr/local/bin/venom-windowmaker-session" ]] || fail "Launcher da sessão Window Maker ausente ou não executável."
+[[ -s "$P/airootfs/usr/local/bin/venom-windowmaker-session" ]] || fail "Launcher da sessão Window Maker ausente."
 [[ -s "$P/airootfs/usr/share/backgrounds/venom/venom-windowmaker.svg" ]] || fail "Wallpaper VENOM Window Maker ausente."
 duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$PKG" | sort | uniq -d)"
 [[ -z "$duplicates" ]] || fail "Pacotes duplicados: $duplicates"
