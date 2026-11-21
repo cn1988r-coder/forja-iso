@@ -4,7 +4,6 @@ Atualizado em 20/11/2026.
 
 ## Arquitetura
 - Branch: `feature/forja-window-maker-endeavouros`.
-- HEAD atual: `f88819bd8e012ab2a79bee59763d1c28a3a70b65`.
 - Base: Arch Linux oficial e repositórios oficiais.
 - Ambiente gráfico exclusivo: Window Maker, com sessão LightDM própria.
 - Não incluir MATE, XFCE ou LXQt como desktop subjacente.
@@ -15,17 +14,16 @@ Atualizado em 20/11/2026.
 
 ## Migração executada
 - Importada a estrutura Archiso e Calamares aprovada na branch Arch/MATE.
-- Manifest específico com `windowmaker`, Xorg, LightDM, Tint2, dmenu, feh, xterm, rede, Bluetooth, áudio e dependências Calamares.
-- Sem pacotes MATE, XFCE ou LXQt no manifest ativo.
-- LightDM configurado para `user-session=windowmaker` e usuário live `venom`.
-- Criados desktop entry em `/usr/share/xsessions/windowmaker.desktop`, launcher da sessão, menu Window Maker, wallpaper VENOM e configuração Tint2.
+- Manifest live separado do manifesto de pacotes do sistema instalado. O destino não recebe ferramentas exclusivas da ISO.
+- Manifest instalado contém Window Maker, Xorg, LightDM, Tint2, dmenu, feh, xterm, rede, Bluetooth, áudio, GRUB e dependências básicas, sem outro desktop.
+- LightDM configurado para `user-session=windowmaker`, sem autologin no sistema instalado.
+- Overlay de instalação inclui sessão `windowmaker.desktop`, launcher executável, menu, wallpaper, Tint2, GTK e configuração de LightDM.
 - Launcher inicia Tint2, applets de rede/Bluetooth e agente Polkit, define wallpaper e executa `wmaker`.
-- Permissão executável do launcher declarada em `profiledef.sh`.
-- Workflow antigo bloqueado removido; workflow Archiso restrito à branch e validador específico criado.
-- Script de build chama `validate-windowmaker-profile.sh`.
+- Módulo VENOM usa pacstrap e copia somente o overlay explícito, antes da criação do usuário. Não copia a raiz live.
+- Sequência Calamares executa locale, keyboard e users, além de fstab, displaymanager, serviços, initramfs e bootloader.
+- Workflow Archiso e validador específico `scripts/validate-windowmaker-profile.sh`; nenhum build ISO foi iniciado.
 
 ## Validação pendente
-- Executar `scripts/validate-windowmaker-profile.sh` em container Arch com pacman e repositórios atualizados.
-- Conferir sessão Window Maker e menu em VM após build autorizado.
+- Concluir validação estática em container Arch, incluindo pacotes dos dois manifestos, sintaxe e sessão LightDM.
 - Não iniciar build ISO sem autorização expressa.
-- Depois de build autorizado, validar BIOS/UEFI e instalação completa em VM descartável, incluindo primeiro boot e login gráfico.
+- Após build autorizado, validar boot BIOS/UEFI e instalação completa em VM descartável, incluindo primeiro login gráfico Window Maker.
