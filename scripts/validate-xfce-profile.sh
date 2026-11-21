@@ -64,19 +64,23 @@ if grep -R -Eiq 'unpackfs|rsync|manjaro|endeavouros|biglinux|mhwd' "$ROOT/instal
   fail "Referência proibida ou instalação por cópia detectada."
 fi
 grep -Fxq 'user-session=xfce' "$P/airootfs/etc/lightdm/lightdm.conf.d/50-venom-live.conf" || fail "LightDM live não inicia XFCE."
-for package in base linux linux-firmware archlinux-keyring arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils nbd xfce4 xfce4-goodies thunar lightdm lightdm-gtk-greeter networkmanager bluez blueman gtk4 qt6-base; do
+for package in base linux linux-firmware archlinux-keyring arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils nbd xfce4 xfce4-goodies xfce4-docklike-plugin thunar lightdm lightdm-gtk-greeter networkmanager bluez blueman gtk4 qt6-base; do
   grep -Fxq "$package" "$PKG" || fail "Pacote obrigatório ausente do manifest live: $package"
 done
-for package in base linux linux-firmware archlinux-keyring pacman-mirrorlist grub efibootmgr mkinitcpio xorg-server lightdm lightdm-gtk-greeter networkmanager bluez pipewire xfce4 thunar; do
+for package in base linux linux-firmware archlinux-keyring pacman-mirrorlist grub efibootmgr mkinitcpio xorg-server lightdm lightdm-gtk-greeter networkmanager bluez pipewire xfce4 xfce4-docklike-plugin thunar; do
   grep -Fxq "$package" "$INSTALL_PKG" || fail "Pacote obrigatório ausente do manifest de instalação: $package"
 done
 if grep -Eiq '^(mate-session-manager|mate-panel|mate-control-center|caja|marco|mate-settings-daemon|windowmaker|manjaro|endeavouros|biglinux|mhwd|pamac-gtk)$' "$PKG" "$INSTALL_PKG"; then fail "Desktop adicional ou resíduo de outra distribuição no manifest."; fi
 if grep -Eiq '^(archiso|mkinitcpio-archiso|mkinitcpio-nfs-utils|nbd|squashfs-tools|syslinux|linux-headers|linux-lts|linux-lts-headers)$' "$INSTALL_PKG"; then fail "Manifesto de instalação contém ferramentas exclusivas da ISO/live."; fi
-for f in etc/lightdm/lightdm-gtk-greeter.conf etc/lightdm/lightdm.conf.d/50-venom-session.conf etc/skel/.config/gtk-3.0/settings.ini etc/skel/.config/gtk-4.0/settings.ini etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml usr/share/backgrounds/venom/venom-black.svg; do
+for f in etc/lightdm/lightdm-gtk-greeter.conf etc/lightdm/lightdm.conf.d/50-venom-session.conf etc/skel/.config/gtk-3.0/settings.ini etc/skel/.config/gtk-4.0/settings.ini etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml etc/xdg/xfce4/panel/docklike.rc usr/share/backgrounds/venom/venom-black.svg; do
   [[ -s "$OVERLAY/$f" ]] || fail "Arquivo XFCE ausente no overlay: $f"
 done
 grep -q 'user-session=xfce' "$OVERLAY/etc/lightdm/lightdm.conf.d/50-venom-session.conf" || fail "Sessão XFCE instalada não configurada."
-if grep -R -Eiq 'manjaro|docklike|unpackfs|rsync' "$OVERLAY" "$P/airootfs/etc/skel/.config/xfce4" "$ROOT/installer/modules/venominstall"; then fail "Overlay XFCE contém referência proibida ou plugin ausente."; fi
+grep -Fq 'value="docklike"' "$P/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" || fail "Docklike Taskbar não está configurada no painel Live."
+grep -Fq 'value="docklike"' "$OVERLAY/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" || fail "Docklike Taskbar não está configurada no painel instalado."
+grep -Fq 'pinned=firefox.desktop;thunar.desktop;' "$P/airootfs/etc/xdg/xfce4/panel/docklike.rc" || fail "Aplicativos favoritos da Docklike não estão pré-fixados."
+grep -Fq 'indicatorColor=rgb(22,143,255)' "$P/airootfs/etc/xdg/xfce4/panel/docklike.rc" || fail "Indicador azul VENOM da Docklike ausente."
+if grep -R -Eiq 'manjaro|unpackfs|rsync' "$OVERLAY" "$P/airootfs/etc/skel/.config/xfce4" "$ROOT/installer/modules/venominstall"; then fail "Overlay XFCE contém referência proibida ou plugin ausente."; fi
 for manifest in "$PKG" "$INSTALL_PKG"; do
   duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$manifest" | sort | uniq -d)"
   [[ -z "$duplicates" ]] || fail "Pacotes duplicados em $manifest: $duplicates"
