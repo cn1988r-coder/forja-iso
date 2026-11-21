@@ -83,3 +83,14 @@ Esta seção registra a direção visual aprovada pelo usuário. As referências
 - Após o usuário baixar, instalar e testar a XFCE, revisar o resultado com ele. Só depois iniciar o desenvolvimento visual aprofundado do Window Maker, preservando a identidade VENOM e a personalidade OpenStep. A edição MATE permanece na sequência planejada.
 - Limitação operacional: não existe compilação em segundo plano nesta conversa. A preparação fica registrada no repositório; a execução precisa ser iniciada e acompanhada quando a conversa for retomada.
 
+
+
+## Diagnóstico e correção da compilação #48
+
+- Run #48, ID `44866814136`, commit `440869f80592ac6bea9f83d9dd325275f91b063c`, compilou a ISO e passou pela verificação do payload Calamares, mas falhou no gate de prontidão Live.
+- Os dois smoke tests executaram até o limite de 240 segundos. O encerramento de QEMU por SIGTERM foi provocado pelo `timeout`; o erro decisivo foi a ausência de `VENOM_LIVE_READY`, não o sinal 15 isoladamente.
+- O log UEFI confirma que o kernel e o systemd chegaram aos alvos Multi-User e Graphical Interface, mas não contém `VENOM_LIVE_SETUP_STARTED`, `VENOM_LIVE_READY` nem inicialização do LightDM. O registro BIOS ficou vazio. O artefato de diagnóstico foi preservado como `venom-xfce-boot-diagnostics`; nenhuma ISO foi publicada.
+- Causa identificada no perfil: o parâmetro `script=/root/venom-live-setup` depende de `/root/.automated_script.sh`, mas o arquivo de despacho não era chamado pelo login Bash do root. O perfil tinha autologin Bash no tty1, porém não tinha `/root/.bash_profile`. O hook upstream do Archiso é normalmente acionado por `.zlogin`, que não atende ao shell Bash usado neste perfil.
+- Correção aplicada na branch XFCE: adicionar `build/airootfs/root/.bash_profile` para disparar o hook Archiso no tty1 e emitir `VENOM_AUTOMATED_SCRIPT_DISPATCHED` no serial; ampliar o validador para exigir o arquivo, verificar sua sintaxe e confirmar que ele chama `/root/.automated_script.sh`.
+- O parâmetro `systemd.firstboot=headless` permanece obrigatório e não foi removido.
+- Próxima validação: reconstruir e executar novamente BIOS e UEFI. Exigir os marcadores de despacho, início do setup e `VENOM_LIVE_READY`, além de LightDM ativo. A ISO só pode ser publicada se ambos os modos passarem. O log BIOS vazio ainda precisa ser reavaliado na nova execução.
