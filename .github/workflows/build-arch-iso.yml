@@ -58,10 +58,21 @@ jobs:
       - name: Stage Yaru Blue icon theme
         run: |
           git clone --depth 1 https://github.com/ubuntu/yaru.git "$RUNNER_TEMP/yaru"
-          test -f "$RUNNER_TEMP/yaru/icons/Yaru-blue/index.theme"
-          mkdir -p build/airootfs/usr/share/icons build/install-overlay/usr/share/icons
-          cp -a "$RUNNER_TEMP/yaru/icons/Yaru-blue" build/airootfs/usr/share/icons/Yaru-blue
-          cp -a "$RUNNER_TEMP/yaru/icons/Yaru-blue" build/install-overlay/usr/share/icons/Yaru-blue
+          mkdir -p "$RUNNER_TEMP/yaru-built" build/airootfs/usr/share/icons build/install-overlay/usr/share/icons
+          for theme in Yaru Yaru-blue; do
+            src="$RUNNER_TEMP/yaru/icons/$theme"
+            dest="$RUNNER_TEMP/yaru-built/$theme"
+            test -d "$src"
+            cp -a "$src" "$dest"
+            python3 "$RUNNER_TEMP/yaru/icons/src/generate-index-theme.py" "$src" \
+              --source-dir "$src" --output-dir "$dest" --output-name index.theme \
+              ${theme:+--inherits Yaru}
+            test -s "$dest/index.theme"
+            cp -a "$dest" "build/airootfs/usr/share/icons/$theme"
+            cp -a "$dest" "build/install-overlay/usr/share/icons/$theme"
+          done
+          gtk-update-icon-cache -f build/airootfs/usr/share/icons/Yaru || true
+          gtk-update-icon-cache -f build/airootfs/usr/share/icons/Yaru-blue || true
 
       - name: Mandatory VENOM preflight gate (no ISO build if rejected)
         run: python scripts/venom-preflight.py
