@@ -1,9 +1,0 @@
-#!/bin/bash
-set -u
-marker="$HOME/.config/venom-apps-installed"
-[[ -e "$marker" ]] && exit 0
-command -v pamac >/dev/null 2>&1 || exit 0
-if pamac build --no-confirm iptvnator-bin ferdium-bin; then
-  mkdir -p "$HOME/.config"
-  touch "$marker"
-fi

@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Configurar MATE
-Comment=Executa o script original de configuração MATE para Manjaro
-Exec=mate-terminal --command "bash -lc 'bash /usr/local/bin/manjaro-mate-dark-complete.sh; echo; read -r -p \"Pressione Enter para fechar... \" _'"
-Icon=preferences-desktop-theme
-Terminal=false
-Categories=Settings;System;
