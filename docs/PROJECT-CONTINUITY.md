@@ -34,14 +34,15 @@
 
 ## Validação realmente executada
 
-- Workflow de validação #44962821058, commit `87490092e8e24c81b63c17f9f2fb57fd5afe62eb`: **sucesso**.
+- Workflow de validação #44962821058, commit `87490092e8e24c81b63c17f9f2fb57fd5afe62eb`: **sucesso**, incluindo o primeiro modelo de planos.
+- Workflow de validação #44963213856, commit `791662d326dff87cc09a0ad3391750bc2437f3be`: **sucesso**, incluindo a prévia gráfica automática/personalizada, compilação C/GTK4 sem o aviso de API CSS depreciada, testes Meson e ShellCheck.
 - Perfil Archiso, locale exclusivo `pt_BR.UTF-8`, teclado ABNT2, manifestos oficiais e bloqueio da mídia: aprovados.
 - Varredura de referências operacionais proibidas nas áreas do produto/documentação: aprovada.
 - Teste estático do painel MATE: aprovado.
 - Compilação C/GTK4: aprovada.
 - Testes Meson: 2 executáveis aprovados (parser de discos e planejador de partições).
 - ShellCheck dos scripts ativos: aprovado.
-- A primeira compilação registrou aviso de API GTK4 depreciada em `main.c`; a chamada foi substituída por `gtk_css_provider_load_from_string`. A validação posterior da prévia gráfica deve confirmar a ausência do aviso.
+- A primeira compilação registrou aviso de API GTK4 depreciada em `main.c`; a chamada foi substituída por `gtk_css_provider_load_from_string`. A segunda validação confirmou a compilação sem esse aviso.
 
 ## Painel MATE: resultados individuais
 
