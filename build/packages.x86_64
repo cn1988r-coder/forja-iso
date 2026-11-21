@@ -78,6 +78,16 @@ xfce4-whiskermenu-plugin
 pavucontrol
 playerctl
 firefox
+vte3
+libnotify
+libhandy
+libadwaita
+gnutls
+desktop-file-utils
+dbus-glib
+archlinux-appstream-data
+appstream-glib
+appstream
 adw-gtk-theme
 gnome-themes-extra
 adwaita-icon-theme
@@ -109,6 +119,6 @@ hwinfo
 polkit-qt6
 appstream-qt
 
-# Pamac built from the Arch User Repository, not from Manjaro.
+# Pamac packages built from Arch AUR recipes.
 libpamac-aur
 pamac-aur
