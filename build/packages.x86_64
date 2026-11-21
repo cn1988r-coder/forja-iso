@@ -50,6 +50,7 @@ bluez
 bluez-utils
 blueman
 pipewire
+pipewire-audio
 pipewire-alsa
 pipewire-pulse
 pipewire-jack
@@ -91,23 +92,6 @@ dconf-editor
 firefox
 xdg-utils
 xdg-user-dirs
-# Runtime dependencies for upstream Calamares built into the live image.
+# Interface gráfica do instalador VENOM.
 gtk4
-qt6-base
-qt6-declarative
-qt6-svg
-kconfig
-kcoreaddons
-kcrash
-kparts
-kirigami
-kpackage
-kpmcore
-yaml-cpp
-python
-python-yaml
-python-jsonschema
-libpwquality
-hwinfo
-polkit-qt6
-appstream-qt
+json-glib

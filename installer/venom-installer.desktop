@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=Instalar VENOM OS
-Comment=Instalador gráfico Calamares da VENOM OS
-Exec=sudo -n /usr/bin/calamares
+Name=Instalador VENOM OS
+Comment=Instale a VENOM OS em seu computador
+Exec=venom-installer
 Icon=system-software-install
 Terminal=false
 Categories=System;
