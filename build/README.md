@@ -12,7 +12,7 @@ A mídia usa o Archiso oficial e pacotes dos repositórios oficiais do Arch Linu
 
 ## Estado do instalador
 
-A interface identifica discos em modo somente leitura. A biblioteca de planejamento valida propostas automáticas UEFI/BIOS e layouts personalizados, sem executar operações de disco. O botão de instalação permanece desabilitado.
+A interface identifica discos em modo somente leitura e apresenta uma prévia dos planos automático e personalizado. O modo personalizado permite ajustar o tamanho da raiz e incluir uma partição swap opcional; EFI ou BIOS boot é proposto automaticamente conforme o firmware detectado. A biblioteca valida as propostas, mas não executa operações de disco. O botão de instalação permanece desabilitado.
 
 Ainda não existe backend que particione, instale pacotes offline, configure usuário, sistema e GRUB ou reinicie após a instalação. A arquitetura offline prevista usa um repositório local com pacotes oficiais assinados, incluído na mídia; a preparação e a montagem desse repositório ainda precisam ser implementadas e testadas.
 
@@ -24,7 +24,7 @@ A workflow de geração da mídia está bloqueada e apenas informa que aguarda a
 
 ## Testes ainda necessários
 
-- Integrar o planejador à revisão visual da interface.
+- Completar o editor de particionamento personalizado e a revisão destrutiva.
 - Implementar e testar o backend em discos virtuais descartáveis.
 - Validar instalação offline completa em BIOS e UEFI.
 - Confirmar primeiro boot, conta criada, LightDM, MATE e serviços.
