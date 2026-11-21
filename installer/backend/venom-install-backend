@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 umask 077
+
 LOG_DIR=/var/log/venom-installer
 install -d -m 0700 "$LOG_DIR"
 LOG_FILE="$LOG_DIR/install-$(date +%Y%m%d-%H%M%S).log"
 exec > >(tee -a "$LOG_FILE") 2>&1
+
 fail() { printf '[ERRO] %s\n' "$*" >&2; exit 1; }
 cleanup() {
   local rc=$?
@@ -13,6 +15,7 @@ cleanup() {
   if [[ $rc -ne 0 ]]; then printf '[ERRO] Instalação interrompida (código %s). Log: %s\n' "$rc" "$LOG_FILE"; fi
 }
 trap cleanup EXIT
+
 [[ $EUID -eq 0 ]] || fail "O backend precisa de privilégios administrativos."
 IFS= read -r DISK || fail "Entrada do disco ausente."
 IFS= read -r USERNAME || fail "Usuário ausente."
@@ -21,15 +24,25 @@ IFS= read -r PASSWORD || fail "Senha ausente."
 IFS= read -r CONFIRM || fail "Confirmação ausente."
 [[ "$CONFIRM" == "APAGAR" ]] || fail "Confirmação destrutiva inválida."
 [[ "$DISK" =~ ^/dev/(sd[a-z]+|vd[a-z]+|xvd[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+)$ ]] || fail "Dispositivo de disco inválido."
-[[ -b "$DISK" ]] || fail "O dispositivo selecionado não existe."
-[[ "$(lsblk -dnro TYPE "$DISK")" == "disk" ]] || fail "Selecione um disco inteiro, não uma partição."
-[[ "$USERNAME" =~ ^[a-z_][a-z0-9_-]{0,30}$ && "$USERNAME" != root && "$USERNAME" != nobody ]] || fail "Nome de usuário inválido ou reservado."
+[[ -b "$DISK" && "$(lsblk -dnro TYPE "$DISK")" == disk ]] || fail "Selecione um disco inteiro válido."
+[[ "$USERNAME" =~ ^[a-z_][a-z0-9_-]{0,30}$ && "$USERNAME" != root && "$USERNAME" != nobody ]] || fail "Nome de usuário inválido."
 [[ "$HOSTNAME" =~ ^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]$ || "$HOSTNAME" =~ ^[a-zA-Z0-9]$ ]] || fail "Hostname inválido."
 [[ ${#PASSWORD} -ge 8 && "$PASSWORD" != *$'\n'* ]] || fail "A senha deve ter pelo menos 8 caracteres."
-[[ -d /run/archiso ]] || fail "Este ambiente não parece ser a mídia live da VENOM OS."
-for cmd in lsblk findmnt wipefs sgdisk partprobe udevadm mkfs.fat mkfs.ext4 mount umount rsync genfstab arch-chroot systemctl; do
+[[ -d /run/archiso ]] || fail "Ambiente live Archiso não reconhecido."
+
+for cmd in lsblk findmnt wipefs sgdisk partprobe udevadm mkfs.fat mkfs.ext4 mount umount genfstab arch-chroot systemctl pacstrap pacman curl; do
   command -v "$cmd" >/dev/null || fail "Ferramenta obrigatória ausente: $cmd"
 done
+[[ -s /usr/share/venom/packages.x86_64 ]] || fail "Manifest de pacotes da VENOM OS ausente."
+[[ -s /etc/pacman.conf ]] || fail "Configuração do Pacman ausente."
+grep -q '^Server = https://geo.mirror.pkgbuild.com/' /etc/pacman.conf || fail "O Pacman não está configurado para os repositórios oficiais Arch."
+
+printf '[1/10] Verificando conexão com os repositórios oficiais Arch\n'
+curl --fail --silent --show-error --location --max-time 20 https://geo.mirror.pkgbuild.com/core/os/x86_64/core.db -o /dev/null || fail "Sem acesso aos repositórios oficiais. Conecte à internet e tente novamente."
+pacman -Sy --noconfirm archlinux-keyring
+pacman-key --init
+pacman-key --populate archlinux
+
 if lsblk -nrpo MOUNTPOINT "$DISK" | grep -q '[^[:space:]]'; then fail "O disco possui partições montadas."; fi
 BOOT_SOURCE="$(findmnt -nro SOURCE /run/archiso/bootmnt 2>/dev/null || true)"
 if [[ -n "$BOOT_SOURCE" ]] && lsblk -s -nrpo NAME "$BOOT_SOURCE" 2>/dev/null | grep -Fxq "$DISK"; then
@@ -37,7 +50,7 @@ if [[ -n "$BOOT_SOURCE" ]] && lsblk -s -nrpo NAME "$BOOT_SOURCE" 2>/dev/null | g
 fi
 SIZE="$(lsblk -dnbo SIZE "$DISK")"
 (( SIZE >= 20 * 1024 * 1024 * 1024 )) || fail "O disco precisa ter pelo menos 20 GiB."
-printf '[1/9] Validando disco %s\n' "$DISK"
+
 TARGET=/mnt/venom
 mkdir -p "$TARGET"
 if [[ -e /sys/firmware/efi ]]; then
@@ -49,7 +62,8 @@ else
   ROOT_PART="${DISK}2"
   [[ "$DISK" =~ (nvme[0-9]+n[0-9]+|mmcblk[0-9]+)$ ]] && ROOT_PART="${DISK}p2"
 fi
-printf '[2/9] Recriando a tabela de partições (%s)\n' "$FIRMWARE"
+
+printf '[2/10] Criando tabela GPT para %s\n' "$FIRMWARE"
 wipefs --all --force "$DISK"
 sgdisk --zap-all "$DISK"
 if [[ "$FIRMWARE" == UEFI ]]; then
@@ -57,43 +71,45 @@ if [[ "$FIRMWARE" == UEFI ]]; then
 else
   sgdisk --new=1:0:+2M --typecode=1:ef02 --change-name=1:VENOM_BIOS_BOOT --new=2:0:0 --typecode=2:8300 --change-name=2:VENOM_ROOT "$DISK"
 fi
-partprobe "$DISK"; udevadm settle
+partprobe "$DISK"
+udevadm settle
 for _ in {1..20}; do [[ -b "$ROOT_PART" ]] && break; sleep 1; done
-[[ -b "$ROOT_PART" ]] || fail "O kernel não reconheceu a nova partição raiz."
-printf '[3/9] Formatando partições\n'
-if [[ "$FIRMWARE" == UEFI ]]; then [[ -b "$EFI_PART" ]] || fail "Partição EFI não encontrada."; mkfs.fat -F 32 -n VENOM_EFI "$EFI_PART"; fi
+[[ -b "$ROOT_PART" ]] || fail "Partição raiz não encontrada."
+if [[ "$FIRMWARE" == UEFI ]]; then [[ -b "$EFI_PART" ]] || fail "Partição EFI não encontrada."; fi
+
+printf '[3/10] Formatando partições\n'
+if [[ "$FIRMWARE" == UEFI ]]; then mkfs.fat -F 32 -n VENOM_EFI "$EFI_PART"; fi
 mkfs.ext4 -F -L VENOM_ROOT "$ROOT_PART"
-printf '[4/9] Montando o destino\n'
 mount "$ROOT_PART" "$TARGET"
 if [[ "$FIRMWARE" == UEFI ]]; then mkdir -p "$TARGET/boot"; mount "$EFI_PART" "$TARGET/boot"; fi
-printf '[5/9] Copiando o sistema live para o disco (instalação offline)\n'
-rsync -aHAX --numeric-ids --one-file-system --exclude=/dev/ --exclude=/proc/ --exclude=/sys/ --exclude=/run/ --exclude=/tmp/ --exclude=/mnt/ --exclude=/media/ --exclude=/lost+found --exclude=/var/log/venom-installer/ / "$TARGET/"
-printf '[6/9] Configurando sistema, locale e usuário\n'
-mkdir -p "$TARGET/etc" "$TARGET/etc/sudoers.d"
-genfstab -U "$TARGET" >>"$TARGET/etc/fstab"
-rm -f "$TARGET/etc/machine-id" "$TARGET/var/lib/dbus/machine-id"
-rm -f "$TARGET/etc/systemd/system/getty@tty1.service.d/autologin.conf" "$TARGET/etc/lightdm/lightdm.conf.d/50-venom-live.conf" "$TARGET/etc/sudoers.d/10-venom-live" "$TARGET/etc/mkinitcpio.conf.d/archiso.conf"
-rm -f "$TARGET/root/.automated_script.sh" "$TARGET/root/venom-live-setup"
-if arch-chroot "$TARGET" id venom >/dev/null 2>&1; then arch-chroot "$TARGET" userdel --remove venom || true; fi
+
+printf '[4/10] Preparando lista de pacotes VENOM OS\n'
+mapfile -t PACKAGES < <(grep -Ev '^[[:space:]]*(#|$)' /usr/share/venom/packages.x86_64)
+(("${#PACKAGES[@]}" > 0)) || fail "Manifest de pacotes vazio."
+printf '[5/10] Instalando Arch Linux e VENOM OS pela internet com Pacman/pacstrap\n'
+pacstrap -K -C /etc/pacman.conf "$TARGET" "${PACKAGES[@]}"
+
+printf '[6/10] Configurando fstab, usuário, locale e hostname\n'
+genfstab -U "$TARGET" >> "$TARGET/etc/fstab"
 arch-chroot "$TARGET" useradd --create-home --groups wheel,audio,video,storage --shell /bin/bash "$USERNAME"
 printf '%s:%s\n' "$USERNAME" "$PASSWORD" | arch-chroot "$TARGET" chpasswd
 arch-chroot "$TARGET" passwd --lock root
-printf '%%wheel ALL=(ALL:ALL) ALL\n' >"$TARGET/etc/sudoers.d/10-venom-wheel"
+printf '%%wheel ALL=(ALL:ALL) ALL\n' > "$TARGET/etc/sudoers.d/10-venom-wheel"
 chmod 0440 "$TARGET/etc/sudoers.d/10-venom-wheel"
 arch-chroot "$TARGET" visudo --check --file=/etc/sudoers.d/10-venom-wheel
-printf '%s\n' "$HOSTNAME" >"$TARGET/etc/hostname"
-cat >"$TARGET/etc/hosts" <<EOF
+printf '%s\n' "$HOSTNAME" > "$TARGET/etc/hostname"
+cat > "$TARGET/etc/hosts" <<EOF
 127.0.0.1 localhost
 ::1       localhost
 127.0.1.1 $HOSTNAME.localdomain $HOSTNAME
 EOF
-grep -qxF 'pt_BR.UTF-8 UTF-8' "$TARGET/etc/locale.gen" || printf 'pt_BR.UTF-8 UTF-8\n' >>"$TARGET/etc/locale.gen"
-printf 'LANG=pt_BR.UTF-8\n' >"$TARGET/etc/locale.conf"
-printf 'KEYMAP=br-abnt2\n' >"$TARGET/etc/vconsole.conf"
+grep -qxF 'pt_BR.UTF-8 UTF-8' "$TARGET/etc/locale.gen" || printf 'pt_BR.UTF-8 UTF-8\n' >> "$TARGET/etc/locale.gen"
+printf 'LANG=pt_BR.UTF-8\n' > "$TARGET/etc/locale.conf"
+printf 'KEYMAP=br-abnt2\n' > "$TARGET/etc/vconsole.conf"
 arch-chroot "$TARGET" locale-gen
 arch-chroot "$TARGET" ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 arch-chroot "$TARGET" hwclock --systohc
-cat >"$TARGET/usr/lib/os-release" <<'EOF'
+cat > "$TARGET/etc/os-release" <<'EOF'
 NAME="VENOM OS"
 PRETTY_NAME="VENOM OS"
 ID=venom
@@ -102,17 +118,22 @@ BUILD_ID=rolling
 ANSI_COLOR="0;37"
 HOME_URL="https://github.com/cn1988r-coder/forja-iso"
 EOF
-printf '[7/9] Habilitando serviços\n'
+
+printf '[7/10] Habilitando serviços do sistema instalado\n'
 systemctl --root="$TARGET" enable NetworkManager.service bluetooth.service lightdm.service
 ln -sfn /usr/lib/systemd/system/graphical.target "$TARGET/etc/systemd/system/default.target"
-printf '[8/9] Instalando GRUB (%s) e gerando initramfs\n' "$FIRMWARE"
+
+printf '[8/10] Instalando GRUB para %s\n' "$FIRMWARE"
 if [[ "$FIRMWARE" == UEFI ]]; then
   arch-chroot "$TARGET" grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=VENOM --removable --recheck
 else
   arch-chroot "$TARGET" grub-install --target=i386-pc --recheck "$DISK"
 fi
+
+printf '[9/10] Gerando initramfs e configuração do GRUB\n'
 arch-chroot "$TARGET" mkinitcpio -P
 arch-chroot "$TARGET" grub-mkconfig -o /boot/grub/grub.cfg
-printf '[9/9] Finalizando\n'
+
+printf '[10/10] Finalizando instalação online\n'
 sync
-printf '[SUCESSO] VENOM OS instalada em %s. Remova a mídia e reinicie.\n' "$DISK"
+printf '[SUCESSO] VENOM OS instalada via repositórios oficiais Arch em %s. Remova a mídia e reinicie.\n' "$DISK"
