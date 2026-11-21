@@ -5,7 +5,7 @@ exec >>"$LOG" 2>&1
 printf '[VENOM] Configurando sessão live em %s\n' "$(date -Is)"
 
 if ! id venom >/dev/null 2>&1; then
-  useradd --create-home --groups wheel,audio,video,storage,power --shell /bin/bash venom
+  useradd --create-home --groups wheel,audio,video,storage --shell /bin/bash venom
   passwd --delete venom
 fi
 install -d -o venom -g venom -m 0755 /home/venom
