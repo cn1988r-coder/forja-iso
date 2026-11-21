@@ -29,6 +29,13 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Build Pamac from Arch AUR and stage local repository
+        run: |
+          chmod +x scripts/build-pamac-aur.sh
+          scripts/build-pamac-aur.sh
+          install -d build/airootfs/usr/share/venom/aur-repo
+          cp -a /tmp/venom-aur-repo/. build/airootfs/usr/share/venom/aur-repo/
+
       - name: Apply VENOM Calypso XFCE profile and stage Bibata cursor
         run: |
           chmod +x scripts/setup-xfce-windows-dark.sh
