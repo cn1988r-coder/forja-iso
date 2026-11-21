@@ -1,1 +1,2 @@
 Build autorizado pelo usuário para a edição VENOM XFCE. Trigger de compilação ISO Arch.
+Execução #46: corrigida a validação do Exec do atalho Calamares. 2026-11-21.
