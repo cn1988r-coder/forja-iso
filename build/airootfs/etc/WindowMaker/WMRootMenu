@@ -6,4 +6,5 @@
     "Refresh" REFRESH
     "Restart Window Maker" RESTART
     "Exit" EXIT
+  "VENOM OS" END
 )
