@@ -23,7 +23,8 @@ Atualizado em 20/11/2026.
 - Sequência Calamares executa locale, keyboard e users, além de fstab, displaymanager, serviços, initramfs e bootloader.
 - Workflow Archiso e validador específico `scripts/validate-windowmaker-profile.sh`; nenhum build ISO foi iniciado.
 
-## Validação pendente
-- Concluir validação estática em container Arch, incluindo pacotes dos dois manifestos, sintaxe e sessão LightDM.
+## Validação
+- Validação estática aprovada no workflow `44857321135`: manifestos live/instalado, disponibilidade de pacotes oficiais, overlay, sessão Window Maker, menu, sequência Calamares, sintaxe Bash/Python e ShellCheck passaram.
+- Build ISO e instalação real em VM ainda não foram executados.
 - Não iniciar build ISO sem autorização expressa.
 - Após build autorizado, validar boot BIOS/UEFI e instalação completa em VM descartável, incluindo primeiro login gráfico Window Maker.
