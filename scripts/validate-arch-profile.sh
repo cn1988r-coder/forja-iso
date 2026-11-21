@@ -35,7 +35,10 @@ required=(
   "$ROOT/installer/src/main.c"
   "$ROOT/installer/src/disk.c"
   "$ROOT/installer/src/disk.h"
+  "$ROOT/installer/src/plan.c"
+  "$ROOT/installer/src/plan.h"
   "$ROOT/installer/tests/test-disk.c"
+  "$ROOT/installer/tests/test-plan.c"
   "$ROOT/installer/README.md"
   "$ROOT/scripts/build-venom-iso.sh"
   "$ROOT/scripts/test-mate-panel.sh"
@@ -165,6 +168,12 @@ grep -Fq 'gtk_widget_set_sensitive(state->install_button, FALSE)' "$ROOT/install
   fail "botão de instalação do protótipo deve permanecer desabilitado"
 grep -Fq '"lsblk"' "$ROOT/installer/src/disk.c" ||
   fail "descoberta de discos somente leitura ausente"
+grep -Fq 'plan->requires_confirmation = TRUE' "$ROOT/installer/src/plan.c" ||
+  fail "plano de partições não exige confirmação explícita"
+if grep -En '(^|[^[:alnum:]_])(system|g_spawn|GSubprocess|parted|mkfs|sgdisk|wipefs|mount)([^[:alnum:]_]|$)' \
+    "$ROOT/installer/src/plan.c"; then
+  fail "o planejador declarativo não pode executar operações privilegiadas ou gravar discos"
+fi
 grep -Fq 'aguarda autorização expressa' "$ROOT/.github/workflows/build-arch-iso.yml" ||
   fail "workflow de mídia não informa o bloqueio"
 if grep -Eiq 'mkarchiso|qemu-system|upload-artifact|^[[:space:]]*(push|schedule):' \
