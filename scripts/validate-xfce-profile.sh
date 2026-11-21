@@ -47,6 +47,9 @@ grep -q '^HOOKS=.*archiso' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || f
 grep -Fxq 'COMPRESSION="zstd"' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Compressão do initramfs inválida."
 grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/pacman.conf" || fail "Mirror oficial Arch ausente."
 grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/airootfs/etc/pacman.conf" || fail "Mirror oficial Arch ausente no live."
+grep -Fq '/usr/share/venom/aur-repo' "$P/airootfs/etc/pacman.conf" || fail "Repositório local AUR da ISO ausente."
+grep -Fxq 'EnableAUR = true' "$P/airootfs/etc/pamac.conf" || fail "Pamac Live não habilita AUR."
+grep -Fxq 'EnableAUR = true' "$OVERLAY/etc/pamac.conf" || fail "Pamac instalado não habilita AUR."
 grep -Fq 'install -Dm644 build/install-packages.x86_64 build/airootfs/usr/share/venom/install-packages.x86_64' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não prepara o manifesto de instalação."
 grep -Fq 'cp -a build/install-overlay/. build/airootfs/usr/share/venom/install-overlay/' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não prepara o overlay de instalação."
 grep -Fxq 'installPackagesFile: /usr/share/venom/install-packages.x86_64' "$ROOT/installer/modules/venominstall/venominstall.conf" || fail "Manifesto de instalação não configurado."
@@ -72,7 +75,7 @@ for f in etc/lightdm/lightdm-gtk-greeter.conf etc/lightdm/lightdm.conf.d/50-veno
   [[ -s "$OVERLAY/$f" ]] || fail "Arquivo XFCE ausente no overlay: $f"
 done
 grep -q 'user-session=xfce' "$OVERLAY/etc/lightdm/lightdm.conf.d/50-venom-session.conf" || fail "Sessão XFCE instalada não configurada."
-if grep -R -Eiq 'pamac|manjaro|docklike|unpackfs|rsync' "$OVERLAY" "$P/airootfs/etc/skel/.config/xfce4" "$ROOT/installer/modules/venominstall"; then fail "Overlay XFCE contém referência proibida ou plugin ausente."; fi
+if grep -R -Eiq 'manjaro|docklike|unpackfs|rsync' "$OVERLAY" "$P/airootfs/etc/skel/.config/xfce4" "$ROOT/installer/modules/venominstall"; then fail "Overlay XFCE contém referência proibida ou plugin ausente."; fi
 for manifest in "$PKG" "$INSTALL_PKG"; do
   duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$manifest" | sort | uniq -d)"
   [[ -z "$duplicates" ]] || fail "Pacotes duplicados em $manifest: $duplicates"
