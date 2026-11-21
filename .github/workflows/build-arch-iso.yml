@@ -55,6 +55,8 @@ jobs:
           install -Dm644 installer/branding/branding.desc build/airootfs/usr/share/calamares/branding/venom/branding.desc
           cp -a installer/modules/venominstall build/airootfs/usr/lib/calamares/modules/
           install -Dm644 build/install-packages.x86_64 build/airootfs/usr/share/venom/install-packages.x86_64
+          mkdir -p build/airootfs/usr/share/venom/install-overlay
+          cp -a build/install-overlay/. build/airootfs/usr/share/venom/install-overlay/
           install -Dm644 installer/venom-installer.desktop build/airootfs/usr/share/applications/venom-installer.desktop
           for module in partition keyboard locale localecfg fstab displaymanager services-systemd bootloader grubcfg initcpiocfg users venominstall; do
             config="$module.conf"
