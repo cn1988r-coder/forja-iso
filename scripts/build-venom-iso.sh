@@ -16,7 +16,7 @@ done
   exit 1
 }
 
-[[ -x scripts/validate-arch-profile.sh ]] || chmod +x scripts/validate-arch-profile.sh
+[[ -x scripts/validate-windowmaker-profile.sh ]] || chmod +x scripts/validate-arch-profile.sh
 scripts/validate-arch-profile.sh
 
 mkdir -p out work
