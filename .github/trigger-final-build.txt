@@ -1,2 +1,2 @@
-Authorized VENOM OS Calamares ISO build retry after pinning the upstream v3.3.14 tag and commit.
-Triggered at 2026-11-21T01:30Z.
+Authorized VENOM OS Calamares ISO build retry after adding missing gtk4 live dependency.
+Triggered at 2026-11-21T02:00Z.
