@@ -39,9 +39,9 @@ grep -q '^Server = https://geo.mirror.pkgbuild.com/' /etc/pacman.conf || fail "O
 
 printf '[1/10] Verificando conexão com os repositórios oficiais Arch\n'
 curl --fail --silent --show-error --location --max-time 20 https://geo.mirror.pkgbuild.com/core/os/x86_64/core.db -o /dev/null || fail "Sem acesso aos repositórios oficiais. Conecte à internet e tente novamente."
-pacman -Sy --noconfirm archlinux-keyring
 pacman-key --init
 pacman-key --populate archlinux
+pacman -Sy --noconfirm archlinux-keyring
 
 if lsblk -nrpo MOUNTPOINT "$DISK" | grep -q '[^[:space:]]'; then fail "O disco possui partições montadas."; fi
 BOOT_SOURCE="$(findmnt -nro SOURCE /run/archiso/bootmnt 2>/dev/null || true)"
