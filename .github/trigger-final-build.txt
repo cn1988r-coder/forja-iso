@@ -19,3 +19,5 @@ Build autorizada pelo usuário em 21/11/2026: manter Calamares oficial upstream 
 Correção #61: BIOS e UEFI iniciaram kernel, systemd, LightDM e setup live, mas a sessão XFCE não abriu. Log PAM: requisito user ingroup autologin não atendido para venom. Corrigido venom-live-setup para garantir/criar grupo autologin e adicionar o usuário live a ele. Revalidar, compilar ISO e executar testes BIOS/UEFI; não publicar sem ambos passarem. 21/11/2026.
 
 Build final solicitada pelo usuário em 21/11/2026: fechar a edição VENOM OS XFCE com o perfil visual VENOM Calypso e Docklike. Executar Archiso oficial na branch feature/venom-community-xfce, preservar main. Gerar ISO final e SHA-256 como artefatos. Executar apenas os gates essenciais de inicialização Live BIOS/UEFI previstos no workflow para garantir funcionalidade. Não criar Release nem publicar externamente sem autorização específica.
+
+Correção Yaru Blue: gerar index.theme com o gerador oficial do tema Yaru e instalar também a base Yaru para herança. Compilar e validar XFCE em BIOS/UEFI; não publicar release. 21/11/2026.
