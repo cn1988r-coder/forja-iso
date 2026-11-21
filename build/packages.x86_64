@@ -1,4 +1,4 @@
-# VENOM XFCE live system, exclusively from official Arch repositories.
+# VENOM XFCE live system: official Arch packages plus the declared Arch AUR Pamac packages.
 base
 base-devel
 archlinux-keyring
@@ -85,6 +85,7 @@ libadwaita
 gnutls
 desktop-file-utils
 dbus-glib
+libsoup3
 archlinux-appstream-data
 appstream-glib
 appstream
