@@ -10,6 +10,7 @@ on:
       - 'build/**'
       - 'installer/**'
       - 'scripts/validate-xfce-profile.sh'
+      - 'scripts/setup-xfce-windows-dark.sh'
       - 'scripts/build-pamac-aur.sh'
       - 'scripts/venom-preflight.py'
       - '.github/workflows/build-arch-iso.yml'
@@ -35,6 +36,12 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Stage the same VENOM XFCE profile used by the ISO build
+        run: |
+          chmod +x scripts/setup-xfce-windows-dark.sh
+          scripts/setup-xfce-windows-dark.sh --root build/airootfs
+          scripts/setup-xfce-windows-dark.sh --root build/install-overlay
+
       - name: Run comprehensive VENOM preflight
         run: python scripts/venom-preflight.py
 
