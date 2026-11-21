@@ -7,7 +7,7 @@ fail(){ printf 'FALHA: %s\n' "$*" >&2; exit 1; }
 for f in profiledef.sh pacman.conf packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.automated_script.sh airootfs/root/venom-live-setup syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
   [[ -s "$P/$f" ]] || fail "Arquivo obrigatório ausente: build/$f"
 done
-bash -n "$P/profiledef.sh" "$P/airootfs/root/.automated_script.sh" "$P/airootfs/root/venom-live-setup" || fail "Sintaxe Bash inválida."
+for script in "$P/profiledef.sh" "$P/airootfs/root/.automated_script.sh" "$P/airootfs/root/venom-live-setup"; do bash -n "$script" || fail "Sintaxe Bash inválida: $script"; done
 python -m py_compile "$ROOT/installer/modules/venominstall/main.py" || fail "Sintaxe Python do módulo venominstall inválida."
 (
   cd "$P"
@@ -31,6 +31,7 @@ if grep -Eiq '^(mate-session-manager|mate-panel|mate-control-center|caja|marco|m
 fi
 grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/pacman.conf" || fail "Mirror oficial Arch ausente."
 grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/airootfs/etc/pacman.conf" || fail "Mirror oficial Arch ausente na sessão live."
+grep -Fxq "user-session=xfce" "$P/airootfs/etc/lightdm/lightdm.conf.d/50-venom-live.conf" || fail "LightDM não inicia XFCE."
 for f in "$ROOT/installer/settings.conf" "$ROOT/installer/branding/branding.desc" "$ROOT"/installer/modules/*/*.conf; do
   [[ -f "$f" ]] || continue
   python - "$f" <<'PY'
@@ -40,7 +41,7 @@ PY
 done
 python -m py_compile "$ROOT/installer/modules/venominstall/main.py"
 grep -q 'pacstrap' "$ROOT/installer/modules/venominstall/main.py" || fail "Instalador online pacstrap ausente."
-if grep -Eiq 'unpackfs|rsync|manjaro|endeavouros|biglinux|mhwd' "$ROOT/installer/settings.conf" "$ROOT/installer/modules/venominstall" "$PKG" "$P/pacman.conf"; then
+if grep -R -Eiq 'unpackfs|rsync|manjaro|endeavouros|biglinux|mhwd' "$ROOT/installer/settings.conf" "$ROOT/installer/modules/venominstall" "$PKG" "$P/pacman.conf"; then
   fail "Referência proibida ou instalação por cópia detectada."
 fi
 for f in "$P/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" "$P/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml" "$P/airootfs/etc/skel/.config/gtk-3.0/settings.ini"; do
