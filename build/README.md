@@ -1,28 +1,33 @@
 # Perfil Archiso da VENOM OS
 
-Este diretório contém a base em desenvolvimento da mídia VENOM OS, diretamente sobre o Arch Linux oficial e usando o Archiso oficial.
+A mídia é construída com o Archiso oficial e pacotes dos repositórios oficiais do Arch Linux. O perfil está em build/.
 
-## Estado atual
+## Conteúdo implementado
 
-**Perfil incompleto. Não está liberado para declarar uma ISO pronta.**
+- Perfil x86_64 com boot BIOS via Syslinux e UEFI via GRUB.
+- Kernel Linux, initramfs Archiso e parâmetros de inicialização da sessão live.
+- Pacotes MATE, LightDM, NetworkManager, Bluetooth, áudio PipeWire e instalador GTK4.
+- Locale pt_BR.UTF-8 e teclado br-abnt2.
+- Inicialização live que cria a conta temporária venom, habilita MATE/LightDM e inicia NetworkManager e Bluetooth.
+- Instalador compilado e integrado à mídia pelo workflow, sem incluir binários compilados no repositório.
 
-Os manifests de pacotes e algumas configurações do sistema já existem, mas a estrutura ainda não corresponde a um perfil Archiso completo e validado. A presença de `profiledef.sh`, `pacman.conf` e listas de pacotes não basta para produzir uma mídia inicializável.
+## Validação e compilação
 
-## Regras obrigatórias
+O workflow .github/workflows/build-arch-iso.yml executa:
+1. atualização do ambiente Arch e instalação das ferramentas oficiais;
+2. verificação dos pacotes e da estrutura do perfil;
+3. análise ShellCheck e compilação C/GTK4 com Meson;
+4. geração da ISO com mkarchiso;
+5. testes de inicialização BIOS e UEFI com QEMU;
+6. publicação da ISO e do SHA-256 como artefatos da execução.
 
-- Usar somente Arch Linux oficial, seus repositórios e ferramentas oficiais.
-- Não usar Manjaro, EndeavourOS, Calamares ou componentes de outras distribuições.
-- Manter MATE + LightDM.
-- Manter Português do Brasil e teclado Brasil ABNT2.
-- Não iniciar build/publicação de ISO sem autorização expressa do usuário.
-- Não declarar o perfil válido sem executar validações reais com Archiso.
+A existência do workflow não prova que a execução terminou com sucesso. A ISO só deve ser considerada validada depois que todos os passos concluírem e o artefato estiver disponível.
 
-## Bloqueios conhecidos
+## Limitações que ainda exigem teste real
 
-1. Completar a estrutura de boot BIOS/UEFI exigida pelo Archiso.
-2. Revisar os manifests e confirmar a existência dos pacotes nos repositórios oficiais atuais.
-3. Completar a configuração do ambiente Live e os serviços necessários.
-4. Integrar o instalador próprio somente quando o backend estiver implementado e testado.
-5. Validar a mídia em VM antes de qualquer declaração de conclusão.
+- A interface e o backend do instalador foram implementados para instalação automática, copiando offline a árvore do sistema live, configurando usuário, locale, serviços e GRUB.
+- O modo de particionamento personalizado ainda não está implementado.
+- A instalação ainda precisa ser testada de ponta a ponta em discos virtuais descartáveis, nos modos BIOS e UEFI, incluindo o primeiro boot do sistema instalado.
+- O ambiente MATE precisa de inspeção visual e teste de persistência após reinicialização em VM.
 
-O perfil deve permanecer separado de qualquer pipeline histórico baseado em Manjaro.
+Não confundir compilação da ISO com validação completa do instalador ou do desktop.
