@@ -111,7 +111,7 @@ static gboolean valid_field(const char *value, gboolean hostname) {
     for (const char *p = value; *p; p++) {
         if (hostname) {
             if (!(g_ascii_isalnum(*p) || *p == '-')) return FALSE;
-            if ((p == value || p[1] == '\\0') && !g_ascii_isalnum(*p)) return FALSE;
+            if ((p == value || p[1] == '\0') && !g_ascii_isalnum(*p)) return FALSE;
         } else if (!(g_ascii_islower(*p) || g_ascii_isdigit(*p) || *p == '_' || *p == '-')) return FALSE;
     }
     return TRUE;
