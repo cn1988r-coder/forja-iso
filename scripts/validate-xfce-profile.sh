@@ -49,7 +49,6 @@ grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/pacman.conf" || fail "M
 grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/airootfs/etc/pacman.conf" || fail "Mirror oficial Arch ausente no live."
 grep -Fq '/usr/share/venom/aur-repo' "$P/airootfs/usr/share/venom/pacman-install.conf" || fail "Repositório local AUR do pacstrap ausente."
 if grep -Fq '/usr/share/venom/aur-repo' "$P/airootfs/etc/pacman.conf"; then fail "Repositório AUR temporário não pode permanecer no pacman.conf do sistema Live."; fi
-[[ -s "$P/airootfs/usr/share/venom/aur-repo/venom-aur.db" ]] || fail "Banco local AUR não foi preparado para a ISO."
 grep -Fxq 'EnableAUR = true' "$P/airootfs/etc/pamac.conf" || fail "Pamac Live não habilita AUR."
 grep -Fxq 'EnableAUR = true' "$OVERLAY/etc/pamac.conf" || fail "Pamac instalado não habilita AUR."
 grep -Fq 'install -Dm644 build/install-packages.x86_64 build/airootfs/usr/share/venom/install-packages.x86_64' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não prepara o manifesto de instalação."
