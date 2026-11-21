@@ -10,6 +10,8 @@ on:
       - 'build/**'
       - 'installer/**'
       - 'scripts/validate-xfce-profile.sh'
+      - 'scripts/venom-preflight.py'
+      - '.github/workflows/build-arch-iso.yml'
       - '.github/workflows/validate-arch-xfce.yml'
 
 permissions:
@@ -32,6 +34,9 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Run comprehensive VENOM preflight
+        run: python scripts/venom-preflight.py
+
 
       - name: Validate profile and official package availability
         run: |

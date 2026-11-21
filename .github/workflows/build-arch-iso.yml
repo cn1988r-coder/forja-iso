@@ -29,6 +29,9 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Mandatory VENOM preflight gate (no ISO build if rejected)
+        run: python scripts/venom-preflight.py
+
 
       - name: Build upstream Calamares 3.3.14
         run: |
