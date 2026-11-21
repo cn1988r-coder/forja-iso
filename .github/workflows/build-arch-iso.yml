@@ -13,7 +13,7 @@ permissions:
 
 concurrency:
   group: venom-arch-iso-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   validate-and-build:
@@ -76,6 +76,7 @@ jobs:
         run: |
           chmod +x scripts/validate-xfce-profile.sh
           scripts/validate-xfce-profile.sh
+          shellcheck -S error scripts/build-venom-iso.sh scripts/validate-xfce-profile.sh build/profiledef.sh build/airootfs/root/.automated_script.sh build/airootfs/root/.bash_profile build/airootfs/root/venom-live-setup
 
       - name: Build VENOM OS ISO with official Archiso
         run: |
