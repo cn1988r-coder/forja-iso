@@ -4,10 +4,11 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 P="$ROOT/build"
 PKG="$P/packages.x86_64"
 INSTALL_PKG="$P/install-packages.x86_64"
+AUR_PKG="$P/aur-packages.x86_64"
 OVERLAY="$P/install-overlay"
 fail(){ printf 'FALHA: %s
 ' "$*" >&2; exit 1; }
-for f in profiledef.sh pacman.conf packages.x86_64 install-packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.bash_profile airootfs/usr/local/lib/venom/venom-live-setup airootfs/usr/local/lib/venom/venom-live-ready airootfs/etc/systemd/system/venom-live-setup.service airootfs/etc/systemd/system/venom-live-ready.service syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
+for f in profiledef.sh pacman.conf packages.x86_64 install-packages.x86_64 aur-packages.x86_64 airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.bash_profile airootfs/usr/local/lib/venom/venom-live-setup airootfs/usr/local/lib/venom/venom-live-ready airootfs/etc/systemd/system/venom-live-setup.service airootfs/etc/systemd/system/venom-live-ready.service syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
   [[ -s "$P/$f" ]] || fail "Arquivo obrigatório ausente: build/$f"
 done
 [[ -d "$OVERLAY" ]] || fail "Overlay do sistema instalado ausente."
@@ -80,11 +81,16 @@ if command -v pacman >/dev/null 2>&1; then
   for manifest in "$PKG" "$INSTALL_PKG"; do
     while IFS= read -r package; do
       [[ -z "$package" || "$package" == \#* ]] && continue
-      if ! pacman -Si "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" | grep -q .; then
+      if ! grep -Fxq "$package" "$AUR_PKG" && ! pacman -Si "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" | grep -q .; then
         fail "Pacote/grupo não encontrado nos repositórios oficiais Arch: $package"
       fi
     done < "$manifest"
   done
 fi
+for package in libpamac-aur pamac-aur; do
+  grep -Fxq "$package" "$AUR_PKG" || fail "Pacote AUR obrigatório ausente: $package"
+  grep -Fxq "$package" "$PKG" || fail "Pacote AUR ausente do manifest live: $package"
+  grep -Fxq "$package" "$INSTALL_PKG" || fail "Pacote AUR ausente do manifest de instalação: $package"
+done
 printf 'OK: perfil Archiso, manifestos separados, overlay, Calamares online e desktop passaram na validação estática.
 '
