@@ -104,7 +104,7 @@ HOME_URL="https://github.com/cn1988r-coder/forja-iso"
 EOF
 printf '[7/9] Habilitando serviços\n'
 systemctl --root="$TARGET" enable NetworkManager.service bluetooth.service lightdm.service
-systemctl --root="$TARGET" set-default graphical.target
+ln -sfn /usr/lib/systemd/system/graphical.target "$TARGET/etc/systemd/system/default.target"
 printf '[8/9] Instalando GRUB (%s) e gerando initramfs\n' "$FIRMWARE"
 if [[ "$FIRMWARE" == UEFI ]]; then
   arch-chroot "$TARGET" grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=VENOM --removable --recheck
