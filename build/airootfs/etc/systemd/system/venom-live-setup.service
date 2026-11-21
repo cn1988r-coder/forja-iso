@@ -1,0 +1,14 @@
+[Unit]
+Description=VENOM OS live environment setup
+After=local-fs.target
+Before=lightdm.service
+Wants=NetworkManager.service bluetooth.service
+
+[Service]
+Type=oneshot
+ExecStart=/root/venom-live-setup
+StandardOutput=journal+console
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target
