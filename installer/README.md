@@ -1,32 +1,24 @@
 # Instalador VENOM OS
 
-## Implementação atual
+## Arquitetura
 
-O instalador tem interface gráfica própria em C + GTK4 e backend privilegiado separado.
+O instalador é próprio, com interface C + GTK4 e backend privilegiado separado. A instalação é **online e baseada nos repositórios oficiais do Arch Linux**.
 
-A interface oferece:
-- detecção e seleção visual de discos inteiros;
-- cadastro do usuário, hostname e senha;
-- confirmação explícita antes de apagar o disco;
-- chamada do backend por sudo não interativo, restrito ao executável do instalador e ao Pacman no sudoers da sessão live;
-- apresentação do resultado e gravação de log em /var/log/venom-installer/.
+Fluxo:
+1. O usuário inicia a sessão live e conecta o computador à internet.
+2. O instalador identifica discos e solicita confirmação explícita do disco de destino.
+3. O backend verifica acesso HTTPS ao mirror oficial Arch.
+4. O disco é particionado automaticamente em GPT para BIOS ou UEFI.
+5. O `pacstrap` instala o Arch Linux e todos os pacotes listados em `build/packages.x86_64`, usando `/etc/pacman.conf` e os repositórios oficiais.
+6. O backend configura fstab, usuário, senha, hostname, locale pt_BR, teclado ABNT2 e serviços.
+7. Instala GRUB, gera initramfs e configura o boot.
 
-O backend de instalação automática:
-- valida o dispositivo, tamanho mínimo, partições montadas e a mídia de origem;
-- cria tabela GPT para BIOS ou UEFI;
-- formata ext4 e, em UEFI, a partição EFI FAT32;
-- copia o sistema live para o destino com rsync, sem baixar pacotes;
-- configura usuário, senha, hostname, locale pt_BR, teclado ABNT2 e fstab;
-- remove configurações temporárias de autologin da sessão live;
-- habilita NetworkManager, Bluetooth e LightDM;
-- instala GRUB para BIOS ou UEFI e regenera initramfs.
+## Segurança e limitações conhecidas
 
-## Limitações e segurança
+- A instalação exige internet funcional. Sem conexão ou sem acesso ao mirror oficial, a instalação é interrompida com erro; não existe modo offline ou cópia da sessão live.
+- O disco selecionado é apagado integralmente. O instalador exige confirmação explícita.
+- A instalação automática GPT é o único modo implementado no momento. Particionamento manual/personalizado ainda não está disponível.
+- O backend deve ser testado em discos virtuais descartáveis em BIOS e UEFI, incluindo falhas de rede e primeiro boot do sistema instalado.
+- Uma compilação bem-sucedida da ISO não comprova que o instalador conclui a instalação corretamente.
 
-- O modo automático é o único modo disponível na interface. Particionamento personalizado ainda não foi implementado.
-- O backend é destrutivo: somente execute em discos descartáveis até a validação integral.
-- A cópia offline do sistema live ainda precisa ser validada em VM. Uma compilação bem-sucedida não demonstra, por si só, que o sistema instalado inicializa corretamente.
-- Ainda faltam testes de integração com discos virtuais, falhas simuladas, reinicialização e inspeção da sessão MATE.
-- A interface mostra o estado geral da operação; o log do backend contém as etapas detalhadas.
-
-Não declarar o instalador pronto para uso em hardware real antes de completar os testes BIOS/UEFI e validar o primeiro boot pós-instalação.
+Não declarar o instalador pronto para hardware real antes de completar os testes de integração e validar o primeiro boot pós-instalação.
