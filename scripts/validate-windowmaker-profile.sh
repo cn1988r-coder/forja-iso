@@ -47,6 +47,14 @@ fi
 grep -Fxq 'user-session=windowmaker' "$P/airootfs/etc/lightdm/lightdm.conf.d/50-venom-live.conf" || fail "LightDM não inicia Window Maker."
 [[ -s "$P/airootfs/usr/local/bin/venom-windowmaker-session" ]] || fail "Launcher da sessão Window Maker ausente."
 [[ -s "$P/airootfs/usr/share/backgrounds/venom/venom-windowmaker.svg" ]] || fail "Wallpaper VENOM Window Maker ausente."
+if command -v pacman >/dev/null 2>&1; then
+  while IFS= read -r package; do
+    [[ -z "$package" || "$package" == \\#* ]] && continue
+    if ! pacman -Si "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" | grep -q .; then
+      fail "Pacote/grupo ausente dos repositórios oficiais Arch: $package"
+    fi
+  done < "$PKG"
+fi
 duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$PKG" | sort | uniq -d)"
 [[ -z "$duplicates" ]] || fail "Pacotes duplicados: $duplicates"
 printf 'OK: perfil Archiso Window Maker, BIOS/UEFI, locale, teclado, PXE, Calamares online e sessão exclusiva passaram na validação estática.\n'
