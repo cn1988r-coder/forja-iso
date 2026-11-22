@@ -21,7 +21,7 @@ TARGET=$1; USERNAME=$2; FULLNAME=$3; PASSWORD_FILE=$4
 [[ -n "$FULLNAME" && "$FULLNAME" != *$'\n'* ]] || fail "Nome completo inválido."
 [[ -f "$PASSWORD_FILE" ]] || fail "Senha temporária ausente."
 PASSWORD=$(<"$PASSWORD_FILE"); rm -f -- "$PASSWORD_FILE"
-[[ \${#PASSWORD} -ge 8 && "$PASSWORD" != *$'\n'* && "$PASSWORD" != *$'\r'* ]] || fail "Senha inválida."
+[[ ${#PASSWORD} -ge 8 && "$PASSWORD" != *$'\n'* && "$PASSWORD" != *$'\r'* ]] || fail "Senha inválida."
 TARGET=$(readlink -f -- "$TARGET")
 LIVE_SOURCE=$(findmnt -nro SOURCE /run/archiso/bootmnt 2>/dev/null | head -n1 || true)
 if [[ -n "$LIVE_SOURCE" && -b "$LIVE_SOURCE" ]]; then
@@ -58,14 +58,15 @@ else
 fi
 partprobe "$TARGET"; udevadm settle
 mapfile -t PARTITIONS < <(lsblk -lnpo NAME,TYPE "$TARGET" | awk '$2=="part"{print $1}')
-[[ \${#PARTITIONS[@]} -eq 2 ]] || fail "Falha ao criar partições."
-if (( UEFI )); then EFI_PART=\${PARTITIONS[0]}; ROOT_PART=\${PARTITIONS[1]}; mkfs.fat -F32 "$EFI_PART"; else ROOT_PART=\${PARTITIONS[1]}; fi
+[[ ${#PARTITIONS[@]} -eq 2 ]] || fail "Falha ao criar partições."
+if (( UEFI )); then EFI_PART=${PARTITIONS[0]}; ROOT_PART=${PARTITIONS[1]}; mkfs.fat -F32 "$EFI_PART"; else ROOT_PART=${PARTITIONS[1]}; fi
 mkfs.ext4 -F "$ROOT_PART"
 mount "$ROOT_PART" /mnt
 if (( UEFI )); then install -d /mnt/boot; mount "$EFI_PART" /mnt/boot; fi
 mapfile -t PACKAGES < <(grep -Ev '^[[:space:]]*(#|$)' /usr/share/venom/install-packages.x86_64)
 printf '[VENOM] Instalando pacotes do Arch e da VENOM...\n'
-pacstrap -K -C /usr/share/venom/pacman-install.conf /mnt "\${PACKAGES[@]}"
+pacstrap -K -C /usr/share/venom/pacman-install.conf /mnt "${PACKAGES[@]}"
+install -m 0644 /etc/pacman.conf /mnt/etc/pacman.conf
 cp -a /usr/share/venom/install-overlay/. /mnt/
 genfstab -U /mnt > /mnt/etc/fstab
 printf 'venom-os\n' >/mnt/etc/hostname
