@@ -1,0 +1,35 @@
+name: Validar instalador TUI VENOM
+
+on:
+  push:
+    branches:
+      - feature/venom-graphical-installer
+    paths:
+      - 'installer/**'
+      - '.github/workflows/validate-installer-tui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compile-and-test:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Preparar ambiente Arch
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm git gcc meson ninja pkgconf glib2 ncurses json-glib
+
+      - name: Obter codigo
+        uses: actions/checkout@v4
+
+      - name: Compilar instalador TUI
+        run: |
+          meson setup /tmp/venom-installer-build installer
+          meson compile -C /tmp/venom-installer-build
+
+      - name: Executar testes de disco e plano
+        run: meson test -C /tmp/venom-installer-build --print-errorlogs
