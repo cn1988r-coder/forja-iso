@@ -35,7 +35,7 @@ DBPATH="$WORK/db"
 mkdir -p "$STAGE" "$DBPATH"
 
 for pkg in "${AUR_FILES[@]}"; do install -m 0644 "$pkg" "$STAGE/"; done
-repo-add "$STAGE/venom.db.tar.gz" "$STAGE"/*.pkg.tar.zst
+repo-add "$STAGE/offline.db.tar.gz" "$STAGE"/*.pkg.tar.zst
 
 CONF="$WORK/pacman-build.conf"
 cat > "$CONF" <<EOF
@@ -44,7 +44,7 @@ Architecture = auto
 SigLevel = Required DatabaseOptional
 LocalFileSigLevel = Optional TrustAll
 
-[venom]
+[iso-offline]
 SigLevel = Optional TrustAll
 Server = file://$STAGE
 
@@ -66,7 +66,7 @@ pacman --config "$CONF" --dbpath "$DBPATH" --cachedir "$STAGE" -Sy --noconfirm
 pacman --config "$CONF" --dbpath "$DBPATH" --cachedir "$STAGE" -Sw --noconfirm --needed "${PACKAGES[@]}"
 
 echo "[VENOM] Criando índice único com pacotes oficiais e AUR."
-repo-add --remove "$STAGE/venom.db.tar.gz" "$STAGE"/*.pkg.tar.zst
+repo-add --remove "$STAGE/offline.db.tar.gz" "$STAGE"/*.pkg.tar.zst
 
 VERIFY_CONF="$WORK/pacman-offline.conf"
 VERIFY_DB="$WORK/verify-db"
@@ -76,7 +76,7 @@ cat > "$VERIFY_CONF" <<EOF
 Architecture = auto
 SigLevel = Optional TrustAll
 
-[venom]
+[iso-offline]
 SigLevel = Optional TrustAll
 Server = file://$STAGE
 EOF
