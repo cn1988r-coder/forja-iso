@@ -88,6 +88,9 @@ static gboolean disk_selected = FALSE;
 static int selected_edition = 1;
 static int selected_locale = 0;
 static int selected_keyboard = 0;
+static gchar target_username[32] = {0};
+static gchar target_password[128] = {0};
+static gboolean account_configured = FALSE;
 
 static int choose_edition(void) {
     static const char *const names[] = {
@@ -135,6 +138,76 @@ static int choose_edition(void) {
         else if (key == 27 || key == 'q' || key == 'Q')
             return -1;
     }
+}
+
+static gboolean valid_username(const gchar *name) {
+    if (name == NULL || !g_ascii_islower(name[0]) && name[0] != '_')
+        return FALSE;
+    for (const gchar *p = name + 1; *p != '\0'; p++) {
+        if (!g_ascii_islower(*p) && !g_ascii_isdigit(*p) &&
+            *p != '_' && *p != '-')
+            return FALSE;
+    }
+    return strlen(name) <= 31;
+}
+
+static void configure_account(void) {
+    gchar username[32] = {0};
+    gchar password[128] = {0};
+    gchar confirmation[128] = {0};
+
+    frame("CRIAR CONTA DO SISTEMA", 3);
+    mvprintw(7, 28, "NOME DE USUARIO (minusculas, numeros, _ ou -):");
+    mvprintw(9, 28, "> ");
+    refresh();
+    echo();
+    curs_set(1);
+    move(9, 30);
+    getnstr(username, (int)sizeof(username) - 1);
+    noecho();
+
+    if (!valid_username(username)) {
+        curs_set(0);
+        notice("NOME DE USUARIO INVALIDO",
+               "Use ate 31 caracteres: a-z, 0-9, _ ou -.",
+               "A primeira posicao deve ser letra minuscula ou _.");
+        return;
+    }
+
+    frame("CRIAR CONTA DO SISTEMA", 3);
+    mvprintw(7, 28, "SENHA (minimo de 8 caracteres):");
+    mvprintw(9, 28, "> ");
+    refresh();
+    curs_set(1);
+    move(9, 30);
+    getnstr(password, (int)sizeof(password) - 1);
+
+    frame("CONFIRMAR SENHA", 3);
+    mvprintw(7, 28, "DIGITE A SENHA NOVAMENTE:");
+    mvprintw(9, 28, "> ");
+    refresh();
+    move(9, 30);
+    getnstr(confirmation, (int)sizeof(confirmation) - 1);
+    curs_set(0);
+
+    if (strlen(password) < 8 || strcmp(password, confirmation) != 0) {
+        explicit_bzero(password, sizeof(password));
+        explicit_bzero(confirmation, sizeof(confirmation));
+        notice("SENHAS INVALIDAS",
+               "As senhas precisam ter ao menos 8 caracteres e ser iguais.",
+               "A conta nao foi configurada.");
+        return;
+    }
+
+    g_strlcpy(target_username, username, sizeof(target_username));
+    explicit_bzero(target_password, sizeof(target_password));
+    g_strlcpy(target_password, password, sizeof(target_password));
+    account_configured = TRUE;
+    explicit_bzero(password, sizeof(password));
+    explicit_bzero(confirmation, sizeof(confirmation));
+    notice("CONTA CONFIGURADA",
+           "Usuario registrado para a instalacao.",
+           "A senha fica somente na memoria durante esta sessao.");
 }
 
 static void clear_selected_disk(void) {
@@ -294,7 +367,7 @@ static gboolean review_installation(void) {
     gchar *size = g_format_size(plan->disk_size_bytes);
     mvprintw(7, 28, "EDICAO: %s", selected_edition == 0 ? "XFCE" : "MATE");
     mvprintw(8, 28, "IDIOMA: %s", selected_locale == 0 ? "Portugues do Brasil" : "English (US)");
-    mvprintw(9, 28, "TECLADO: %s", selected_keyboard == 0 ? "Brasil ABNT2" : "English US");
+    mvprintw(9, 28, "TECLADO: %s", selected_keyboard == 0 ? "Brasil ABNT2" : "English US");\n    mvprintw(10, 28, "USUARIO: %s", target_username);
     mvprintw(11, 28, "DISCO: %s | %s | %s", plan->disk_path, selected_disk.model, size);
     mvprintw(13, 28, "MODO: INSTALACAO LIMPA, DISCO INTEIRO");
     mvprintw(14, 28, "FIRMWARE: %s | GPT", firmware == VENOM_FIRMWARE_UEFI ? "UEFI" : "BIOS");
