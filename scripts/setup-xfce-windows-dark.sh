@@ -14,17 +14,17 @@ SKEL="$ROOT/etc/skel"
 XFCE="$SKEL/.config/xfce4/xfconf/xfce-perchannel-xml"
 GTK3="$SKEL/.config/gtk-3.0"
 GTK4="$SKEL/.config/gtk-4.0"
-install -d "$XFCE" "$GTK3" "$GTK4" "$ROOT/etc/xdg/xfce4/panel" \
+install -d "$XFCE" "$GTK3" "$GTK4" "$SKEL/.config/xfce4-docklike-plugin" "$ROOT/etc/xdg/xfce4/panel" \
   "$ROOT/usr/share/backgrounds/venom" "$ROOT/usr/share/icons/hicolor/scalable/apps"
 
-# Keep the existing single-panel geometry and plugin order. Only correct the
-# approved Venom menu icon and 24-hour clock presentation.
+# Keep one bottom panel. Use a slightly taller panel and preserve the clean icon-only dock.
 PANEL="$XFCE/xfce4-panel.xml"
 if [[ -f "$PANEL" ]]; then
   sed -i \
     -e 's/value="org.xfce.panel.applicationsmenu"/value="venom-menu"/g' \
     -e 's/value="start-here"/value="venom-menu"/g' \
     -e 's/value="%I:%M %p"/value="%R"/g' \
+    -e 's#<property name="size" type="uint" value="40"/>#<property name="size" type="uint" value="46"/>#' \
     "$PANEL"
 fi
 
@@ -32,7 +32,7 @@ cat >"$XFCE/xsettings.xml" <<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="xsettings" version="1.0">
   <property name="Net" type="empty">
-    <property name="ThemeName" type="string" value="adw-gtk3-dark"/>
+    <property name="ThemeName" type="string" value="Materia-dark"/>
     <property name="IconThemeName" type="string" value="Yaru-blue"/>
   </property>
   <property name="Xft" type="empty">
@@ -59,7 +59,7 @@ XML
 for gtk in "$GTK3" "$GTK4"; do
   cat >"$gtk/settings.ini" <<'GTK'
 [Settings]
-gtk-theme-name=adw-gtk3-dark
+gtk-theme-name=Materia-dark
 gtk-icon-theme-name=Yaru-blue
 gtk-cursor-theme-name=Bibata-Modern-Ice
 gtk-cursor-theme-size=24
@@ -68,152 +68,8 @@ gtk-application-prefer-dark-theme=true
 gtk-decoration-layout=:minimize,maximize,close
 GTK
   cat >"$gtk/gtk.css" <<'CSS'
-/* VENOM: graphite, metallic silver and restrained electric blue. */
-@define-color venom_bg #090e15;
-@define-color venom_surface #111a25;
-@define-color venom_surface_hi #192635;
-@define-color venom_border #30465d;
-@define-color venom_blue #168fff;
-@define-color venom_text #dce7f1;
-@define-color venom_muted #91a4b8;
-
-window, .background {
-  background-color: @venom_bg;
-  color: @venom_text;
-}
-headerbar, .titlebar {
-  background: linear-gradient(to bottom, #1a2736, #101720);
-  color: #f0f6fc;
-  border-bottom: 1px solid alpha(@venom_blue, 0.58);
-  box-shadow: none;
-  min-height: 34px;
-}
-headerbar button, .titlebar button {
-  border-radius: 6px;
-}
-button {
-  color: @venom_text;
-  background: linear-gradient(to bottom, #202d3c, #151e29);
-  border: 1px solid @venom_border;
-  border-radius: 7px;
-  box-shadow: none;
-  padding: 5px 10px;
-}
-button:hover {
-  background: #1b3a58;
-  border-color: @venom_blue;
-  color: #fff;
-}
-button:checked, button:active {
-  background: #12385d;
-  border-color: @venom_blue;
-}
-entry, spinbutton, combobox, .view, textview text {
-  background-color: #080d13;
-  color: @venom_text;
-  border: 1px solid @venom_border;
-  border-radius: 6px;
-  caret-color: #56c2ff;
-}
-entry:focus, spinbutton:focus, combobox:focus {
-  border-color: @venom_blue;
-  box-shadow: 0 0 0 1px alpha(@venom_blue, 0.30);
-}
-menu, popover, .context-menu, .csd.popup {
-  background-color: @venom_surface;
-  color: @venom_text;
-  border: 1px solid #38536e;
-  border-radius: 8px;
-}
-menuitem:hover, modelbutton:hover {
-  background-color: alpha(@venom_blue, 0.22);
-  color: #fff;
-}
-*:selected, selection {
-  background-color: #14518a;
-  color: #fff;
-}
-tooltip {
-  background-color: #101a26;
-  color: #eaf5ff;
-  border: 1px solid @venom_blue;
-  border-radius: 5px;
-}
-.sidebar, placessidebar, .navigation-sidebar {
-  background-color: #0d141e;
-  color: @venom_text;
-}
-.sidebar row:selected, placessidebar row:selected {
-  background-color: alpha(@venom_blue, 0.24);
-  border-left: 2px solid @venom_blue;
-}
-toolbar, .toolbar {
-  background: #101823;
-  border-bottom: 1px solid alpha(@venom_border, 0.8);
-}
-scrollbar slider {
-  background-color: #40566d;
-  border-radius: 8px;
-}
-scrollbar slider:hover {
-  background-color: @venom_blue;
-}
-
-/* Whisker menu: dark inner surface, clean search field and blue selection. */
-#whiskermenu-window, .whiskermenu,
-#whiskermenu-window border, #whiskermenu-window grid {
-  background-color: #0c131d;
-  color: @venom_text;
-}
-#whiskermenu-window button {
-  background: transparent;
-  border: 0;
-  border-radius: 7px;
-  color: @venom_text;
-  padding: 6px;
-}
-#whiskermenu-window button:hover,
-#whiskermenu-window row:hover {
-  background-color: alpha(@venom_blue, 0.20);
-  color: #fff;
-}
-#whiskermenu-window entry {
-  background-color: #070c12;
-  border: 1px solid #38536e;
-  border-radius: 7px;
-  color: #f2f7fc;
-  padding: 8px 10px;
-}
-#whiskermenu-window entry:focus {
-  border-color: @venom_blue;
-}
-#whiskermenu-window .category-button {
-  border-radius: 7px;
-}
-#whiskermenu-window .category-button:checked {
-  background-color: alpha(@venom_blue, 0.24);
-  border-left: 2px solid @venom_blue;
-}
-#whiskermenu-window label {
-  color: @venom_text;
-}
-
-/* Keep the single bottom panel visually close to the supplied reference. */
-#XfcePanelWindow {
-  background-color: rgba(5, 9, 15, 0.94);
-  border-top: 1px solid rgba(22, 143, 255, 0.62);
-}
-#XfcePanelWindow button {
-  background: transparent;
-  border: 0;
-  border-radius: 7px;
-  box-shadow: none;
-  padding: 2px;
-}
-#XfcePanelWindow button:hover {
-  background-color: rgba(22, 143, 255, 0.19);
-}
-CSS
+/* Keep Materia Dark in control of GTK widget styling. */
+CSSCSS
 done
 
 # Docklike is the single app dock/taskbar: each app keeps one pinned icon and all its windows
@@ -222,7 +78,7 @@ cat >"$ROOT/etc/xdg/xfce4/panel/docklike.rc" <<'RC'
 [user]
 pinned=firefox.desktop;thunar.desktop;xfce4-terminal.desktop;
 forceIconSize=true
-iconSize=32
+iconSize=30
 showPreviews=true
 showWindowCount=false
 indicatorStyle=1
@@ -233,19 +89,37 @@ indicatorColor=rgb(22,143,255)
 inactiveColor=rgb(6,65,143)
 RC
 
+# Docklike spacing and button treatment: no tile, square, border or hover frame.
+cat >"$SKEL/.config/xfce4-docklike-plugin/gtk.css" <<'CSS'
+#docklike-plugin .group,
+#docklike-plugin .open_group,
+#docklike-plugin .active_group,
+#docklike-plugin .hover_group {
+  background: transparent;
+  background-image: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+#docklike-plugin .group {
+  padding: 3px 7px;
+  margin: 0 4px;
+}
+CSS
+
 # Preserve the existing XFWM behavior and only select the matching window theme.
 if [[ -f "$XFCE/xfwm4.xml" ]]; then
   if grep -q 'property name="theme"' "$XFCE/xfwm4.xml"; then
-    sed -i 's#<property name="theme" type="string" value="[^"]*"/>#<property name="theme" type="string" value="adw-gtk3-dark"/>#' "$XFCE/xfwm4.xml"
+    sed -i 's#<property name="theme" type="string" value="[^"]*"/>#<property name="theme" type="string" value="Materia-dark"/>#' "$XFCE/xfwm4.xml"
   else
-    sed -i 's#<property name="general" type="empty">#<property name="general" type="empty"><property name="theme" type="string" value="adw-gtk3-dark"/>#' "$XFCE/xfwm4.xml"
+    sed -i 's#<property name="general" type="empty">#<property name="general" type="empty"><property name="theme" type="string" value="Materia-dark"/>#' "$XFCE/xfwm4.xml"
   fi
 else
   cat >"$XFCE/xfwm4.xml" <<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="xfwm4" version="1.0">
   <property name="general" type="empty">
-    <property name="theme" type="string" value="adw-gtk3-dark"/>
+    <property name="theme" type="string" value="Materia-dark"/>
     <property name="button_layout" type="string" value="|HMC"/>
     <property name="use_compositing" type="bool" value="true"/>
     <property name="snap_to_border" type="bool" value="true"/>
