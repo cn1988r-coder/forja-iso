@@ -26,39 +26,38 @@ static void serpent_art(int y, int x) {
 }
 
 static void frame(const char *section, int step) {
+    static const char *const steps[] = {
+        "EDICAO", "DISCO", "IDIOMA", "CONTA", "REVISAO", "INSTALACAO"
+    };
     erase();
     attron(COLOR_PAIR(BLUE) | A_BOLD);
     mvhline(0, 0, ACS_HLINE, COLS);
     mvprintw(1, 3, "V E N O M   O S");
     attroff(COLOR_PAIR(BLUE) | A_BOLD);
-    mvprintw(1, COLS - 29, "INSTALADOR OFFLINE  |  TUI");
+    if (COLS > 48) mvprintw(1, COLS - 29, "INSTALADOR OFFLINE | TUI");
     mvprintw(2, 3, "%s", section);
     mvhline(3, 2, ACS_HLINE, COLS - 4);
-    if (step >= 0) {
-        const char *steps[] = {"EDICAO", "DISCO", "REVISAO", "INSTALACAO"};
-        int x = 4;
-        for (int i = 0; i < 4; i++) {
-            if (i == step) attron(COLOR_PAIR(BLUE) | A_BOLD);
-            mvprintw(4, x, "%s", steps[i]);
-            if (i == step) attroff(COLOR_PAIR(BLUE) | A_BOLD);
-            x += 17;
-        }
-        mvhline(5, 2, ACS_HLINE, COLS - 4);
+    mvprintw(6, 4, "ETAPAS");
+    for (int i = 0; i < 6; i++) {
+        int y = 8 + i * 2;
+        if (i == step) attron(COLOR_PAIR(BLUE) | A_BOLD);
+        mvprintw(y, 4, "%c %s", i == step ? '>' : ' ', steps[i]);
+        if (i == step) attroff(COLOR_PAIR(BLUE) | A_BOLD);
     }
+    mvvline(5, 25, ACS_VLINE, LINES - 9);
     mvhline(LINES - 3, 2, ACS_HLINE, COLS - 4);
     attron(COLOR_PAIR(MUTED));
-    mvprintw(LINES - 2, 3, "↑/↓ navegar   ENTER selecionar   Q voltar");
+    mvprintw(LINES - 2, 3, "↑/↓ navegar   ENTER selecionar   ESC voltar");
     attroff(COLOR_PAIR(MUTED));
 }
-
 static int menu(const char *title, const char *const *items, int count, int step) {
     int selected = 0, key;
     while (1) {
         frame(title, step);
-        mvprintw(7, 4, "%s", title);
+        mvprintw(7, 30, "%s", title);
         for (int i = 0; i < count; i++) {
             if (i == selected) attron(A_REVERSE | COLOR_PAIR(SELECTED) | A_BOLD);
-            mvprintw(9 + i * 2, 7, "%s", items[i]);
+            mvprintw(9 + i * 2, 32, "%s", items[i]);
             if (i == selected) attroff(A_REVERSE | COLOR_PAIR(SELECTED) | A_BOLD);
         }
         refresh();
@@ -72,13 +71,13 @@ static int menu(const char *title, const char *const *items, int count, int step
 
 static gboolean welcome(void) {
     frame("BEM-VINDO AO INSTALADOR", -1);
-    serpent_art(6, 8);
+    serpent_art(6, 31);
     attron(A_BOLD);
-    mvprintw(14, 5, "INSTALACAO LIMPA. SISTEMA UNICO. SEM DUAL BOOT.");
+    mvprintw(14, 30, "INSTALACAO LIMPA. SISTEMA UNICO. SEM DUAL BOOT.");
     attroff(A_BOLD);
-    mvprintw(16, 5, "Instalacao preparada para funcionar sem conexao com a internet.");
-    mvprintw(18, 5, "Os pacotes e dependencias deverao estar incluidos na midia USB.");
-    mvprintw(LINES - 5, 5, "ENTER para iniciar   Q para sair");
+    mvprintw(16, 30, "Instalacao preparada para funcionar sem conexao com a internet.");
+    mvprintw(18, 30, "Pacotes e dependencias incluidos na midia USB.");
+    mvprintw(LINES - 5, 30, "ENTER para iniciar   Q para sair");
     refresh();
     int k = getch();
     return k != 'q' && k != 'Q' && k != 27;
@@ -253,12 +252,12 @@ static gboolean review_installation(void) {
     mvprintw(14, 4, "FIRMWARE: %s | GPT", firmware == VENOM_FIRMWARE_UEFI ? "UEFI" : "BIOS");
     mvprintw(15, 4, "ARQUIVOS: BTRFS | SUBVOLUMES @ E @home");
     mvprintw(16, 4, "SNAPSHOTS: TIMESHIFT + GRUB-BTRFS");
-    mvprintw(16, 4, "PARTICOES PLANEJADAS:");
+    mvprintw(17, 4, "PARTICOES PLANEJADAS:");
     for (guint i = 0; i < plan->partitions->len; i++) {
         VenomPartition *p = g_ptr_array_index(plan->partitions, i);
         gchar *part_size = g_format_size(p->size_bytes);
         const char *role = p->role == VENOM_PARTITION_EFI ? "EFI FAT32 /boot/efi" : p->role == VENOM_PARTITION_BIOS_GRUB ? "BIOS GRUB" : "RAIZ BTRFS / (subvolume @; /home em @home)";
-        mvprintw(17 + (int)i, 6, "%s  %s", role, part_size);
+        mvprintw(18 + (int)i, 6, "%s  %s", role, part_size);
         g_free(part_size);
     }
     attron(A_BOLD);
