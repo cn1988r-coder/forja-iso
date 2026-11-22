@@ -31,7 +31,7 @@ Não criar diferenças de aplicativos de uso geral entre as edições.
 ## Aparência aprovada para as duas edições
 
 - Tema GTK: **Materia Dark Day**.
-- Tema de ícones: **Yaru Blue**.
+- Tema de ícones: **Papirus Dark**.
 - Cursor: **Bibata**.
 - Identidade visual VENOM: base preta/escura, prata e azul elétrico discreto.
 
