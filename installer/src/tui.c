@@ -146,7 +146,7 @@ static void secure_clear(void *memory, size_t length) {
 }
 
 static gboolean valid_username(const gchar *name) {
-    if (name == NULL || (!g_ascii_islower(name[0]) && name[0] != '_'))
+    if (name == NULL || g_str_equal(name, "root") ||\n        (!g_ascii_islower(name[0]) && name[0] != '_'))
         return FALSE;
     for (const gchar *p = name + 1; *p != '\0'; p++) {
         if (!g_ascii_islower(*p) && !g_ascii_isdigit(*p) &&
@@ -157,6 +157,9 @@ static gboolean valid_username(const gchar *name) {
 }
 
 static void configure_account(void) {
+    account_configured = FALSE;
+    secure_clear(target_password, sizeof(target_password));
+    memset(target_username, 0, sizeof(target_username));
     account_configured = FALSE;
     secure_clear(target_password, sizeof(target_password));
     memset(target_username, 0, sizeof(target_username));
