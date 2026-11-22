@@ -69,7 +69,7 @@ gtk-decoration-layout=:minimize,maximize,close
 GTK
   cat >"$gtk/gtk.css" <<'CSS'
 /* Keep Materia Dark in control of GTK widget styling. */
-CSSCSS
+CSS
 done
 
 # Docklike is the single app dock/taskbar: each app keeps one pinned icon and all its windows
