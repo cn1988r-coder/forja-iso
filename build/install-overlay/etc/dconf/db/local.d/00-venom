@@ -22,3 +22,6 @@ button-layout=':minimize,maximize,close'
 
 [org/mate/panel]
 default-layout='venom'
+
+[org/mate/panel/objects/window-list/prefs]
+group-windows='always'
