@@ -133,8 +133,7 @@ static int choose_edition(void) {
             selected--;
         else if ((key == KEY_DOWN || key == 'j') && selected < 1)
             selected++;
-        else if (key == '
-' || key == KEY_ENTER)
+        else if (key == '\n' || key == KEY_ENTER)
             return selected;
         else if (key == 27 || key == 'q' || key == 'Q')
             return -1;
@@ -157,7 +156,7 @@ static gboolean valid_username(const gchar *name) {
     return strlen(name) <= 31;
 }
 
-static void configure_account(void) {
+static void configure_account(void) {\n    account_configured = FALSE;\n    secure_clear(target_password, sizeof(target_password));\n    memset(target_username, 0, sizeof(target_username));
     gchar username[32] = {0};
     gchar password[128] = {0};
     gchar confirmation[128] = {0};
