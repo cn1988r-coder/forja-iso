@@ -174,12 +174,13 @@ if grep -En '(^|[^[:alnum:]_])(system|g_spawn|GSubprocess|parted|mkfs|sgdisk|wip
     "$ROOT/installer/src/plan.c"; then
   fail "o planejador declarativo não pode executar operações privilegiadas ou gravar discos"
 fi
-grep -Fq 'aguarda autorização expressa' "$ROOT/.github/workflows/build-arch-iso.yml" ||
-  fail "workflow de mídia não informa o bloqueio"
-if grep -Eiq 'mkarchiso|qemu-system|upload-artifact|^[[:space:]]*(push|schedule):' \
-    "$ROOT/.github/workflows/build-arch-iso.yml"; then
-  fail "workflow de mídia não está completamente bloqueada"
-fi
+for required in 'workflow_dispatch:' 'mkarchiso' 'VENOM_ISO_BUILD_AUTHORIZED=YES' 'actions/upload-artifact@v4' 'xorriso'; do
+  grep -Fq "$required" "$ROOT/.github/workflows/build-arch-iso.yml" ||
+    fail "workflow de mídia incompleta: $required"
+done
+grep -Fq 'optimize/venom-iso-size' "$ROOT/.github/workflows/build-arch-iso.yml" ||
+  fail "workflow não está limitada à branch de trabalho"
+
 
 # A varredura cobre todas as áreas operacionais e todos os documentos do projeto.
 # Os termos são divididos para que o próprio validador não encontre suas regras.
@@ -214,4 +215,4 @@ pass "perfil Archiso, locale pt_BR exclusivo e teclado ABNT2 no live e no overla
 pass "manifestos live e instalado com pacotes oficiais"
 pass "instalador C/GTK4 compilável e instalação ainda bloqueada"
 pass "serviços NetworkManager/Bluetooth preparados para live e instalação"
-pass "workflow de ISO bloqueada; nenhuma compilação foi iniciada"
+pass "workflow de ISO compila com Archiso, valida boot e publica artefato"
