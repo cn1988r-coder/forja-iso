@@ -32,7 +32,7 @@ jobs:
       - name: Install static validation tools
         run: |
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm git archiso python python-yaml shellcheck
+          pacman -S --needed --noconfirm git archiso python python-yaml shellcheck gcc meson ninja pkgconf glib2 json-glib ncurses
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,6 +41,12 @@ jobs:
           chmod +x scripts/setup-xfce-windows-dark.sh
           scripts/setup-xfce-windows-dark.sh --root build/airootfs
           scripts/setup-xfce-windows-dark.sh --root build/install-overlay
+
+      - name: Compilar TUI e executar testes do instalador
+        run: |
+          meson setup /tmp/venom-installer-build installer
+          meson compile -C /tmp/venom-installer-build
+          meson test -C /tmp/venom-installer-build --print-errorlogs
 
       - name: Run comprehensive VENOM preflight
         run: python scripts/venom-preflight.py
