@@ -65,6 +65,8 @@ repo-add "$OFFLINE_REPO/venom.db.tar.gz" "${PACKAGE_FILES[@]}"
 install -d "$PROFILE/airootfs/usr/share/venom/repo"
 cp -a "$PKG_CACHE/." "$PROFILE/airootfs/usr/share/venom/repo/"
 cp -a "$OFFLINE_REPO/." "$PROFILE/airootfs/usr/share/venom/repo/"
+install -d "$PROFILE/airootfs/usr/share/venom/install-overlay"
+cp -a "$ROOT/build/install-overlay/." "$PROFILE/airootfs/usr/share/venom/install-overlay/"
 printf '[VENOM] Repositorio offline local criado com %s pacotes.\n' "${#PACKAGE_FILES[@]}"
 
 printf '[VENOM] Construindo ISO com Archiso oficial.\n'
