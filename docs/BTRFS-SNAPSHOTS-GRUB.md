@@ -2,28 +2,42 @@
 
 ## Decisão obrigatória
 
-As edições VENOM OS XFCE e VENOM OS MATE usam **Btrfs** na partição raiz, mantêm **GRUB** como único gerenciador de inicialização e incluem **Timeshift** e **grub-btrfs**. Não instalar nem configurar systemd-boot.
+As edições VENOM OS XFCE e VENOM OS MATE usam **Btrfs** na partição raiz, mantêm **GRUB** como único gerenciador de inicialização e incluem **Timeshift**, **grub-btrfs**, **inotify-tools** e **cronie**. Não instalar nem configurar systemd-boot.
 
 ## Layout compatível com Timeshift
 
-A partição Btrfs deve usar o layout plano:
+A partição Btrfs usa o layout plano:
 - `@` montado em `/`
 - `@home` montado em `/home`
 
-O instalador deve montar o top-level Btrfs temporariamente, criar esses subvolumes, desmontar o top-level e montar os subvolumes nos pontos definitivos. O `/etc/fstab` deve usar `subvol=@` e `subvol=@home`, nunca IDs fixos de subvolume. Não alterar o subvolume padrão do filesystem.
+O instalador precisa criar os subvolumes no top-level Btrfs antes de montar os pontos definitivos. O `/etc/fstab` usa `subvol=@` e `subvol=@home`, sem IDs fixos de subvolume. Não alterar o subvolume padrão do filesystem.
+
+**O diretório `/boot` precisa permanecer dentro do subvolume raiz Btrfs.** A partição EFI, quando UEFI, é montada em `/boot/efi`. Assim kernel e initramfs fazem parte dos snapshots. Não usar UKI-only como único artefato de boot para esse fluxo.
 
 ## GRUB e menu de snapshots
 
-- Manter GRUB e gerar o menu normal com `grub-mkconfig`.
+- GRUB é o único bootloader suportado, em BIOS e UEFI.
 - Instalar `grub-btrfs` e `inotify-tools`.
-- Configurar `grub-btrfsd` para observar snapshots do Timeshift com `--syslog --timeshift-auto`.
-- Habilitar `grub-btrfsd.service` somente no sistema instalado, depois que o GRUB estiver instalado e a configuração inicial tiver sido gerada.
-- O menu de snapshots deve ser regenerado quando snapshots forem criados ou removidos.
+- O serviço upstream `grub-btrfsd.service` é preservado. Um drop-in redefine somente `ExecStart` para `/usr/bin/grub-btrfsd --syslog --timeshift-auto`, sem substituir o unit original e suas proteções.
+- Habilitar `cronie.service` para agendamento do Timeshift.
+- Habilitar `grub-btrfsd.service` somente no sistema instalado, depois da instalação do GRUB e da geração inicial de `/boot/grub/grub.cfg`.
+- A configuração do Timeshift deve selecionar modo Btrfs e UUID da partição raiz.
+- `mkinitcpio` inclui o módulo Btrfs e a ferramenta `btrfs` para recuperação.
 
-## Recuperação e limites
+## Helper de pós-instalação
 
-Snapshots Btrfs do Timeshift permitem iniciar uma versão anterior pelo submenu de snapshots do GRUB. O usuário deve poder restaurar a partir do Timeshift depois de iniciar o sistema ou usar uma mídia de recuperação. Snapshots não substituem cópia externa: falha física do disco pode destruir sistema e snapshots juntos.
+`installer/scripts/configure-btrfs-snapshots.sh ROOT_DIR ROOT_BLOCK_DEVICE` prepara o fstab (validando `@` e `@home` e rejeitando `subvolid`), configura Timeshift, adiciona Btrfs ao initramfs, gera o GRUB e habilita os serviços no sistema de destino.
 
-## Estado da implementação
+O helper **ainda não está conectado a um backend de instalação**. Não executá-lo manualmente em uma instalação real: o fluxo só poderá chamá-lo depois de criar e montar corretamente os subvolumes, instalar os pacotes e o kernel, montar a ESP em `/boot/efi` (UEFI) e instalar o GRUB no modo de firmware correto.
 
-O plano de partição do instalador agora especifica Btrfs e declara os subvolumes `@` e `@home`. Os manifestos passam a incluir btrfs-progs, Timeshift, grub-btrfs e inotify-tools nas duas edições. Isso prepara os componentes, mas **não significa que a criação dos subvolumes, fstab, instalação do GRUB, ativação do serviço ou boot de snapshots já tenham sido executados pelo instalador**. Essas etapas dependem do backend de instalação e precisam ser validadas em VMs descartáveis BIOS e UEFI antes de liberar qualquer ISO.
+## Validação obrigatória antes de liberar ISO
+
+Testar em VMs descartáveis, separadamente em BIOS e UEFI:
+1. instalação limpa e criação dos subvolumes;
+2. fstab sem `subvolid`, com `@` e `@home`;
+3. kernel/initramfs sob `/boot` dentro do Btrfs;
+4. GRUB normal e submenu de snapshots;
+5. criação de snapshot Timeshift e atualização automática do menu;
+6. boot real de snapshot e restauração para o sistema principal.
+
+Snapshots não substituem cópia externa: falha física do disco pode destruir sistema e snapshots juntos. Nenhuma ISO deve ser liberada antes de todos os testes passarem.
