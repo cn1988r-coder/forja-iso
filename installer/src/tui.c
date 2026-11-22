@@ -36,7 +36,7 @@ static void frame(const char *section, int step) {
     mvhline(0, 0, ACS_HLINE, COLS);
     mvprintw(1, 3, "V E N O M   O S");
     attroff(COLOR_PAIR(BLUE) | A_BOLD);
-    if (COLS > 48) mvprintw(1, COLS - 29, "INSTALADOR OFFLINE | TUI");
+    if (COLS > 48) mvprintw(1, COLS - 29, "ARCH LINUX | TUI");
     mvprintw(2, 3, "%s", section);
     mvhline(3, 2, ACS_HLINE, COLS - 4);
     mvprintw(6, 4, "ETAPAS");
@@ -77,8 +77,8 @@ static gboolean welcome(void) {
     attron(A_BOLD);
     mvprintw(14, (COLS - 51) > 1 ? (COLS - 51) / 2 : 1, "INSTALACAO LIMPA. SISTEMA UNICO. SEM DUAL BOOT.");
     attroff(A_BOLD);
-    mvprintw(16, (COLS - 65) > 1 ? (COLS - 65) / 2 : 1, "Instalacao preparada para funcionar sem conexao com a internet.");
-    mvprintw(18, (COLS - 48) > 1 ? (COLS - 48) / 2 : 1, "Pacotes e dependencias incluidos na midia USB.");
+    mvprintw(16, (COLS - 65) > 1 ? (COLS - 65) / 2 : 1, "Instalacao pela internet usando os repositorios oficiais Arch Linux.");
+    mvprintw(18, (COLS - 48) > 1 ? (COLS - 48) / 2 : 1, "Pacotes baixados diretamente dos servidores oficiais do Arch.");
     mvprintw(LINES - 5, (COLS - 30) > 1 ? (COLS - 30) / 2 : 1, "ENTER para iniciar   Q para sair");
     refresh();
     int k = getch();
@@ -360,11 +360,10 @@ static void confirm_wipe_intent(void) {
     g_ptr_array_unref(disks);
 
     if (!g_file_test("/usr/lib/venom/install-system", G_FILE_TEST_IS_EXECUTABLE) ||
-        (!g_file_test("/usr/share/venom/repo/venom.db", G_FILE_TEST_EXISTS) &&
-         !g_file_test("/usr/share/venom/repo/venom.db.tar.gz", G_FILE_TEST_EXISTS) &&
-         !g_file_test("/usr/share/venom/repo/venom.db.tar.zst", G_FILE_TEST_EXISTS))) {
+        !g_file_test("/usr/share/venom/install-packages-xfce.x86_64", G_FILE_TEST_IS_REGULAR) ||
+        !g_file_test("/usr/share/venom/install-packages-mate.x86_64", G_FILE_TEST_IS_REGULAR)) {
         notice("MIDIA DE INSTALACAO INCOMPLETA",
-               "O backend ou o repositorio offline nao esta presente.",
+               "O backend ou os manifestos XFCE/MATE nao estao presentes.",
                "Nenhuma particao foi alterada.");
         return;
     }
