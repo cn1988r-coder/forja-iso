@@ -57,6 +57,8 @@ for cmd in sgdisk partprobe udevadm mkfs.fat mkfs.btrfs mount umount pacstrap ge
   command -v "$cmd" >/dev/null 2>&1 || fail "Ferramenta obrigatoria ausente: $cmd"
 done
 
+mapfile -t PACKAGES < <(grep -Ev '^[[:space:]]*(#|$)' "$MANIFEST")
+(("${#PACKAGES[@]}" > 0)) || fail "Manifesto de pacotes vazio."
 log "Sincronizando os repositorios oficiais e validando todos os pacotes ANTES de qualquer alteracao no disco."
 pacman -Sy --noconfirm
 pacman -Sp --noconfirm --needed "${PACKAGES[@]}" > /run/venom-package-plan.txt ||
@@ -113,8 +115,6 @@ if [[ "$FIRMWARE" == uefi ]]; then
   mount "$P1" "$MNT/boot/efi"
 fi
 
-mapfile -t PACKAGES < <(grep -Ev '^[[:space:]]*(#|$)' "$MANIFEST")
-(("${#PACKAGES[@]}" > 0)) || fail "Manifesto de pacotes vazio."
 log "Instalando a edicao ${EDITION^^} diretamente dos repositorios oficiais Arch Linux."
 pacstrap -C /etc/pacman.conf -K "$MNT" "${PACKAGES[@]}"
 # Aplica a base visual e os arquivos de primeiro login compartilhados pelas edicoes.
