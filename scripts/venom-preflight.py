@@ -64,7 +64,7 @@ def main():
         "build/syslinux/syslinux.cfg", "build/syslinux/archiso_sys.cfg",
         "build/syslinux/archiso_head.cfg", "build/syslinux/archiso_sys-linux.cfg",
         "build/grub/grub.cfg",
-        "installer/settings.conf", "scripts/validate-xfce-profile.sh",
+        "installer/meson.build", "installer/src/main.c", "installer/venom-install",\n        "installer/venom-installer.desktop", "scripts/validate-xfce-profile.sh",
         ".github/workflows/build-arch-iso.yml",
         ".github/workflows/validate-arch-xfce.yml"
     ]
@@ -390,7 +390,7 @@ def main():
     except ImportError:
         add("INCONCLUSIVE", "YAML", "PyYAML não instalado; sintaxe YAML não verificada")
 
-    # Enforce the agreed Arch-only base while allowing the official, VENOM-branded Calamares installer.
+    # Enforce the agreed Arch-only base and the current custom VENOM installer.
     forbidden = re.compile(r"manjaro|endeavouros|mhwd|biglinux", re.I)
     hits = []
     for rel in ("build", "installer", ".github/workflows"):
@@ -411,22 +411,35 @@ def main():
         "Referências de outras distribuições na arquitetura ativa encontradas" if hits
         else "Nenhuma dependência de outras distribuições encontrada nas áreas auditadas",
         "\n".join(hits[:50]))
-    # Calamares is the official upstream installer, branded for VENOM OS.
+    # The current installer is a small GTK4 application with a separate privileged backend.
     build_workflow = read(".github/workflows/build-arch-iso.yml") or ""
-    branding = read("installer/branding/branding.desc") or ""
-    installer_module = read("installer/modules/venominstall/main.py") or ""
-    pinned_calamres = "Build upstream Calamares 3.3.14" in build_workflow and "refs/tags/v3.3.14" in build_workflow
-    add("OK" if pinned_calamres else "ERROR", "Instalador",
-        "Calamares oficial 3.3.14 fixado no workflow" if pinned_calamres
-        else "Calamares oficial 3.3.14 não está fixado no workflow")
-    branded = "productName: VENOM OS" in branding and "sidebarBackground" in branding
-    add("OK" if branded else "ERROR", "Identidade",
-        "Branding VENOM OS do Calamares presente" if branded
-        else "Branding VENOM OS do Calamares ausente")
-    add("OK" if "pacstrap" in installer_module else "ERROR", "Instalador",
-        "Módulo VENOM de instalação via pacstrap presente" if "pacstrap" in installer_module
-        else "Módulo venominstall sem pacstrap")
-
+    installer_source = read("installer/src/main.c") or ""
+    installer_backend = read("installer/venom-install") or ""
+    installer_desktop = read("installer/venom-installer.desktop") or ""
+    installer_meson = read("installer/meson.build") or ""
+    has_gtk4 = "dependency('gtk4'" in installer_meson
+    add("OK" if has_gtk4 else "ERROR", "Instalador",
+        "Aplicativo gráfico GTK4 configurado" if has_gtk4 else "Dependência GTK4 ausente do projeto Meson")
+    has_flow = all(token in installer_source for token in
+                   ("Disco de destino", "Nome completo", "Nome de usuário", "Senha", "Apagar e instalar"))
+    add("OK" if has_flow else "ERROR", "Instalador",
+        "Interface contém seleção de disco, conta e confirmação destrutiva" if has_flow
+        else "Interface GTK4 incompleta")
+    has_backend = all(token in installer_backend for token in
+                      ("pacstrap -K", "genfstab", "grub-install", "mkfs.ext4", "mkfs.fat"))
+    add("OK" if has_backend else "ERROR", "Instalador",
+        "Backend prepara disco, instala pacotes e configura GRUB" if has_backend
+        else "Backend de instalação incompleto")
+    desktop_ok = "Exec=venom-installer" in installer_desktop
+    add("OK" if desktop_ok else "ERROR", "Instalador",
+        "Atalho Live chama o instalador GTK4" if desktop_ok
+        else "Atalho do instalador não chama o aplicativo próprio")
+    custom_build = "meson setup" in build_workflow and "installer/venom-install" in build_workflow
+    add("OK" if custom_build else "ERROR", "Instalador",
+        "Workflow compila e inclui o instalador próprio" if custom_build
+        else "Workflow não compila/inclui o instalador próprio")
+    if "calamares" in build_workflow.lower() or "calamares" in installer_desktop.lower():
+        add("ERROR", "Instalador", "Dependência ativa de Calamares ainda aparece no fluxo de compilação/atalho")
     # VENON must remain isolated from Pacman and must not run automatically.
     venon_paths = ["build/airootfs/usr/bin/venon-upgrade", "build/airootfs/usr/bin/venon-update"]
     venon_contents = {}
