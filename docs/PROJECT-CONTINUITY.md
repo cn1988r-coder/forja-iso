@@ -15,9 +15,10 @@
 ## Estado
 - Perfil Manjaro MATE com LightDM, GRUB, NetworkManager, Bluetooth e áudio Manjaro PipeWire.
 - Calamares oficial está configurado para iniciar automaticamente na sessão live MATE; isso ainda precisa ser confirmado em boot real.
-- Overlays live/instalado com tema escuro, painéis MATE tradicionais, Brisk Menu, wallpaper, locale pt_BR e teclado ABNT2.
+- Overlays live/instalado com tema escuro, painéis MATE tradicionais, Brisk Menu, wallpaper, locale pt_BR e teclado ABNT2. O overlay instalado foi sincronizado com o relógio dinâmico `DD/MM/AAAA  HH:MM`, agrupamento de janelas e tema de ícones VENOM.
 - A validação estática foi ajustada para exigir a ordem correta data/hora e conferir o comando do lançador Pamac. O resultado do CI desse commit ainda precisa ser consultado.
-- A resolução de pacotes deve ser repetida com a lista atualizada, especialmente para confirmar Brisk Menu e linux618 no repositório Stable.
+- O workflow antigo de resolução foi desativado como etapa automática porque instalava componentes do Arch/upstream, contrariando a regra de origem. O workflow foi convertido em preflight estático manual; ele não resolve pacotes nem compila ISO.
+- A resolução real de pacotes continua pendente e deve ocorrer em ambiente Manjaro com manjaro-tools e repositórios Stable oficiais, especialmente para confirmar Brisk Menu, linux618, Pamac e Calamares.
 - Nenhuma ISO foi gerada. Não afirmar boot, sessão gráfica, aplicativos abertos ou instalação testados sem executar esses testes.
 
 ## Pendências
