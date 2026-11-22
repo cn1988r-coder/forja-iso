@@ -161,7 +161,6 @@ static void configure_account(void) {
     account_configured = FALSE;
     secure_clear(target_password, sizeof(target_password));
     memset(target_username, 0, sizeof(target_username));
-    account_configured = FALSE;
     secure_clear(target_password, sizeof(target_password));
     memset(target_username, 0, sizeof(target_username));
     gchar username[32] = {0};
