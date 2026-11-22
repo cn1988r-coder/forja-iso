@@ -39,7 +39,7 @@ rm -rf "$PROFILE" "$INSTALL_ROOT" "$INSTALL_BUILD"
 mkdir -p "$PROFILE" "$OUT"
 
 printf '[VENOM] Preparando perfil e compilando o instalador TUI ncurses.\n'
-cp -a "$ROOT/build/." "$PROFILE/"
+tar --exclude='./offline-repo' -C "$ROOT/build" -cf - . | tar -C "$PROFILE" -xf -
 meson setup "$INSTALL_BUILD" "$ROOT/installer"
 meson compile -C "$INSTALL_BUILD"
 DESTDIR="$INSTALL_ROOT" meson install -C "$INSTALL_BUILD"
