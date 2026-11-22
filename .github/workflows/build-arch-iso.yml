@@ -29,6 +29,15 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Build and stage the offline TUI installer
+        run: |
+          pacman -S --needed --noconfirm meson ninja pkgconf glib2 json-glib ncurses
+          meson setup /tmp/venom-installer-build installer
+          meson compile -C /tmp/venom-installer-build
+          meson test -C /tmp/venom-installer-build --print-errorlogs
+          DESTDIR="$GITHUB_WORKSPACE/build/airootfs" meson install -C /tmp/venom-installer-build
+          test -x build/airootfs/usr/bin/venom-installer-tui
+
       - name: Build Pamac from Arch AUR and stage local repository
         run: |
           chmod +x scripts/build-pamac-aur.sh
