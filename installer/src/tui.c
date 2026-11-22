@@ -156,7 +156,10 @@ static gboolean valid_username(const gchar *name) {
     return strlen(name) <= 31;
 }
 
-static void configure_account(void) {\n    account_configured = FALSE;\n    secure_clear(target_password, sizeof(target_password));\n    memset(target_username, 0, sizeof(target_username));
+static void configure_account(void) {
+    account_configured = FALSE;
+    secure_clear(target_password, sizeof(target_password));
+    memset(target_username, 0, sizeof(target_username));
     gchar username[32] = {0};
     gchar password[128] = {0};
     gchar confirmation[128] = {0};
@@ -470,5 +473,6 @@ int main(void) {
         }
     }
     endwin();
+    secure_clear(target_password, sizeof(target_password));
     return 0;
 }
