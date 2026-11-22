@@ -1,4 +1,7 @@
 # Pacotes da sessão live VENOM OS, dos repositórios oficiais Arch.
+btrfs-progs
+grub-btrfs
+inotify-tools
 base
 base-devel
 archlinux-keyring
