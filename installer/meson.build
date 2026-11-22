@@ -24,3 +24,11 @@ executable(
   install: true,
   install_dir: get_option('bindir'),
 )
+
+
+plan_test = executable(
+  'test-plan',
+  files('tests/test-plan.c', 'src/plan.c'),
+  dependencies: [gio_dep],
+)
+test('validacao do plano Btrfs sem escrita em disco', plan_test)
