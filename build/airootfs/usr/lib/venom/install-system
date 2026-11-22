@@ -57,6 +57,11 @@ for cmd in sgdisk partprobe udevadm mkfs.fat mkfs.btrfs mount umount pacstrap ge
   command -v "$cmd" >/dev/null 2>&1 || fail "Ferramenta obrigatoria ausente: $cmd"
 done
 
+log "Sincronizando os repositorios oficiais e validando todos os pacotes ANTES de qualquer alteracao no disco."
+pacman -Sy --noconfirm
+pacman -Sp --noconfirm --needed "${PACKAGES[@]}" > /run/venom-package-plan.txt ||
+  fail "Nao foi possivel resolver todos os pacotes nos repositorios oficiais. O disco permanece intacto."
+
 read -r PASSWORD || fail "Senha nao recebida."
 [[ ${#PASSWORD} -ge 8 && ${#PASSWORD} -le 127 ]] || fail "A senha deve ter entre 8 e 127 caracteres."
 [[ "$PASSWORD" != *$'\n'* && "$PASSWORD" != *$'\r'* ]] || fail "Senha invalida."
@@ -76,8 +81,6 @@ else
   P1="${DISK}1"; P2="${DISK}2"
 fi
 
-log "Verificando os repositorios oficiais e sincronizando os bancos ANTES de qualquer alteracao no disco."
-pacman -Sy --noconfirm
 log "Preparando tabela GPT e particoes do disco confirmado."
 wipefs --all --force "$DISK"
 sgdisk --zap-all "$DISK"
