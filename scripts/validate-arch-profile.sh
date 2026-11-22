@@ -166,4 +166,13 @@ if grep -Fxq '[Toplevel top]' "$BUILD/install-overlay/usr/share/mate-panel/layou
   fail "MATE deve usar somente um painel inferior"
 fi
 
+WORKFLOW="$ROOT/.github/workflows/build-arch-iso.yml"
+grep -Fq 'DEFAULT venom' "$BUILD/syslinux/archiso_sys.cfg" ||
+  fail "boot BIOS nao seleciona o instalador VENOM TUI"
+grep -Fq 'archiso_sys-linux.cfg' "$BUILD/syslinux/archiso_sys.cfg" ||
+  fail "configuracao de kernel Syslinux ausente"
+if grep -Eiq 'gtk4|libhandy|libadwaita|calamares' "$WORKFLOW"; then
+  fail "workflow ainda instala dependencias de um instalador alternativo"
+fi
+
 pass "Perfil TUI, Firefox, Pamac, Ferdium, bundle offline e ativacao posterior dos repositorios oficiais Arch validados."
