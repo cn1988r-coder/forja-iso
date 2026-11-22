@@ -210,8 +210,8 @@ static void configure_account(void) {
     secure_clear(target_password, sizeof(target_password));
     g_strlcpy(target_password, password, sizeof(target_password));
     account_configured = TRUE;
-    explicit_bzero(password, sizeof(password));
-    explicit_bzero(confirmation, sizeof(confirmation));
+    secure_clear(password, sizeof(password));
+    secure_clear(confirmation, sizeof(confirmation));
     notice("CONTA CONFIGURADA",
            "Usuario registrado para a instalacao.",
            "A senha fica somente na memoria durante esta sessao.");
@@ -359,6 +359,12 @@ static void confirm_wipe_intent(void) {
 
 static gboolean review_installation(void) {
     GError *error = NULL;
+    if (!account_configured) {
+        notice("FALTA CONFIGURAR A CONTA",
+               "Crie o nome de usuario e a senha antes de continuar.",
+               "A instalacao ainda nao foi iniciada.");
+        return FALSE;
+    }
     if (!disk_selected) {
         notice("FALTA SELECIONAR O DISCO", "Volte ao menu e escolha o disco de destino.", "A instalacao limpa apagara o disco inteiro.");
         return FALSE;
@@ -434,8 +440,8 @@ int main(void) {
 
     if (!welcome()) { endwin(); return 0; }
     while (1) {
-        int choice = menu("PAINEL PRINCIPAL", actions, 6, 0);
-        if (choice < 0 || choice == 5) break;
+        int choice = menu("PAINEL PRINCIPAL", actions, 7, 0);
+        if (choice < 0 || choice == 6) break;
         if (choice == 0) {
             int selected = choose_edition();
             if (selected >= 0) {
