@@ -43,12 +43,7 @@ mkinitcpio
 cryptsetup
 device-mapper
 dosfstools
-exfatprogs
-f2fs-tools
 lvm2
-mtools
-ntfs-3g
-xfsprogs
 xorg-server
 xorg-xauth
 xorg-xrandr
@@ -79,6 +74,6 @@ engrampa
 pluma
 mate-polkit
 materia-gtk-theme
-papirus-icon-theme
-adwaita-cursors
+yaru-icon-theme
+bibata-cursor-theme
 dconf
