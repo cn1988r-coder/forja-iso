@@ -1,3 +1,16 @@
+# Atualizacao visual do instalador TUI em 22/11/2026
+
+- Atualizado `installer/src/tui.c` no commit `6376ec431c26c9d74435bc1da4ce2d8927069d92`.
+- A tela agora apresenta cabeçalho VENOM, arte ASCII de serpente azul, navegação em destaque azul, etapas do fluxo e tela de boas-vindas.
+- O fluxo visual deixa explícito: instalação limpa, apagar o disco inteiro, sistema único e ausência de dual boot.
+- A tela de discos enumera os dispositivos em modo somente leitura e avisa que o disco escolhido será apagado quando o backend real existir.
+- As opções de edição, idioma e teclado continuam demonstrativas; não persistem configuração.
+- Nenhuma operação destrutiva foi implementada. Não há ainda instalação de pacotes, criação de partições, formatação, configuração de usuário ou GRUB.
+- Não foi executada compilação ou teste gráfico nesta atualização. Nenhuma ISO foi gerada.
+- Ainda falta portar o TUI para a branch XFCE e conectar o boot live ao instalador.
+
+---
+
 # Incremento do instalador TUI em 22/11/2026
 
 ## Alterações realizadas nesta etapa
