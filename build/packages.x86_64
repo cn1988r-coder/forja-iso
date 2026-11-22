@@ -22,6 +22,9 @@ efibootmgr
 os-prober
 sudo
 timeshift
+btrfs-progs
+grub-btrfs
+inotify-tools
 bash-completion
 ca-certificates
 curl
