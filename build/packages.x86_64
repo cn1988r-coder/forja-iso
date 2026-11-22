@@ -1,4 +1,4 @@
-# Pacotes da sessão live VENOM OS, dos repositórios oficiais Arch.
+# Pacotes da mídia de instalação VENOM OS, dos repositórios oficiais Arch.
 btrfs-progs
 grub-btrfs
 inotify-tools
@@ -64,6 +64,7 @@ alsa-utils
 sof-firmware
 rtkit
 xorg-server
+xorg-xinit
 xorg-xauth
 xorg-xrandr
 mate-session-manager
@@ -97,7 +98,6 @@ dconf-editor
 firefox
 xdg-utils
 xdg-user-dirs
-# Interface gráfica do instalador VENOM.
+# Runtime dependencies for the standalone graphical GTK installer.
 gtk4
 json-glib
-ncurses
