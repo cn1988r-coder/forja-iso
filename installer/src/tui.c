@@ -123,7 +123,8 @@ int main(void) {
     const char *const editions[] = {"VENOM OS XFCE", "VENOM OS MATE"};
     const char *const actions[] = {
         "Escolher edicao", "Selecionar disco (instalacao limpa)",
-        "Idioma e teclado", "Requisitos da instalacao offline", "Sair"
+        "Idioma e teclado", "Requisitos da instalacao offline",
+        "INICIAR INSTALACAO", "Sair"
     };
     const char *const locales[] = {"Portugues do Brasil (pt_BR.UTF-8)", "English (US)"};
     const char *const keyboards[] = {"Brasil ABNT2", "English US"};
@@ -144,8 +145,8 @@ int main(void) {
 
     welcome();
     while (1) {
-        int choice = menu("PAINEL PRINCIPAL", actions, 5, 0);
-        if (choice < 0 || choice == 4) break;
+        int choice = menu("PAINEL PRINCIPAL", actions, 6, 0);
+        if (choice < 0 || choice == 5) break;
         if (choice == 0) {
             int selected = menu("ESCOLHA A EDICAO", editions, 2, 0);
             if (selected >= 0) edition = selected;
@@ -170,6 +171,10 @@ int main(void) {
             notice("INSTALACAO OFFLINE",
                    "A USB precisa conter repositorio local assinado, chaves e dependencias.",
                    "A instalacao real ainda nao esta implementada neste prototipo.");
+        } else if (choice == 4) {
+            notice("INSTALACAO AINDA BLOQUEADA",
+                   "O fluxo de instalacao foi selecionado, mas o backend nao esta pronto.",
+                   "Nenhum disco sera alterado nesta versao de desenvolvimento.");
         }
     }
     endwin();
