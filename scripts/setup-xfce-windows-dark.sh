@@ -256,6 +256,17 @@ else
 XML
 fi
 
+# Disable XFCE compositing in the Live and installed profiles. This avoids
+# black-screen/session instability with virtual graphics adapters such as
+# VirtualBox VMSVGA; window management and the desktop theme remain enabled.
+if [[ -f "$XFCE/xfwm4.xml" ]]; then
+  if grep -q 'property name="use_compositing"' "$XFCE/xfwm4.xml"; then
+    sed -i 's#<property name="use_compositing" type="bool" value="[^"]*"/>#<property name="use_compositing" type="bool" value="false"/>#' "$XFCE/xfwm4.xml"
+  else
+    sed -i 's#<property name="general" type="empty">#<property name="general" type="empty"><property name="use_compositing" type="bool" value="false"/>#' "$XFCE/xfwm4.xml"
+  fi
+fi
+
 cat >"$ROOT/usr/share/icons/hicolor/scalable/apps/venom-menu.svg" <<'SVG'
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
  <defs><linearGradient id="v" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b7efff"/><stop offset=".5" stop-color="#168bff"/><stop offset="1" stop-color="#0649ad"/></linearGradient><filter id="g"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
