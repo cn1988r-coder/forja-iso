@@ -14,6 +14,7 @@ cleanup() {
 trap cleanup EXIT
 fail() { printf '[VENOM] ERRO: %s\n' "$*" >&2; exit 1; }
 [[ $EUID -eq 0 && $# -eq 4 ]] || fail "Parâmetros ou permissões inválidos."
+[[ -d /sys/firmware/efi ]] || fail "A VENOM OS exige inicialização em modo UEFI. Reinicie o computador e escolha a entrada UEFI do pendrive."
 TARGET=$1; USERNAME=$2; FULLNAME=$3; PASSWORD_FILE=$4
 [[ "$TARGET" == /dev/* && -b "$TARGET" ]] || fail "Disco inválido."
 [[ "$(lsblk -dnro TYPE "$TARGET")" == disk ]] || fail "Selecione um disco inteiro."
@@ -46,24 +47,17 @@ printf '[VENOM] Preparando %s...\n' "$TARGET"
 wipefs --all --force "$TARGET"
 sgdisk --zap-all "$TARGET"
 parted --script "$TARGET" mklabel gpt
-UEFI=0
-if [[ -d /sys/firmware/efi ]]; then
-  UEFI=1
-  parted --script "$TARGET" mkpart ESP fat32 1MiB 1025MiB
-  parted --script "$TARGET" set 1 esp on
-  parted --script "$TARGET" mkpart primary ext4 1025MiB 100%
-else
-  parted --script "$TARGET" mkpart primary 1MiB 3MiB
-  parted --script "$TARGET" set 1 bios_grub on
-  parted --script "$TARGET" mkpart primary ext4 3MiB 100%
-fi
+parted --script "$TARGET" mkpart ESP fat32 1MiB 1025MiB
+parted --script "$TARGET" set 1 esp on
+parted --script "$TARGET" mkpart primary ext4 1025MiB 100%
 partprobe "$TARGET"; udevadm settle
 mapfile -t PARTITIONS < <(lsblk -lnpo NAME,TYPE "$TARGET" | awk '$2=="part"{print $1}')
 [[ ${#PARTITIONS[@]} -eq 2 ]] || fail "Falha ao criar partições."
-if (( UEFI )); then EFI_PART=${PARTITIONS[0]}; ROOT_PART=${PARTITIONS[1]}; mkfs.fat -F32 "$EFI_PART"; else ROOT_PART=${PARTITIONS[1]}; fi
+EFI_PART=${PARTITIONS[0]}; ROOT_PART=${PARTITIONS[1]}; mkfs.fat -F32 "$EFI_PART"
 mkfs.ext4 -F "$ROOT_PART"
 mount "$ROOT_PART" /mnt
-if (( UEFI )); then install -d /mnt/boot; mount "$EFI_PART" /mnt/boot; fi
+install -d /mnt/boot
+mount "$EFI_PART" /mnt/boot
 mapfile -t PACKAGES < <(grep -Ev '^[[:space:]]*(#|$)' /usr/share/venom/install-packages.x86_64)
 printf '[VENOM] Instalando pacotes do Arch e da VENOM...\n'
 pacstrap -K -C /usr/share/venom/pacman-install.conf /mnt "${PACKAGES[@]}"
@@ -92,10 +86,6 @@ arch-chroot /mnt visudo -cf /etc/sudoers.d/10-wheel
 arch-chroot /mnt systemctl enable NetworkManager.service bluetooth.service lightdm.service
 arch-chroot /mnt mkinitcpio -P
 install -d /mnt/boot/grub
-if (( UEFI )); then
-  arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=VENOM --no-nvram --removable --recheck
-else
-  arch-chroot /mnt grub-install --target=i386-pc "$TARGET" --recheck
-fi
+arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=VENOM --no-nvram --removable --recheck
 arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 printf '\n[VENOM] Instalação concluída. Remova o pendrive e reinicie.\n'
