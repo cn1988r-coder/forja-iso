@@ -95,3 +95,4 @@ xdg-user-dirs
 # Interface gráfica do instalador VENOM.
 gtk4
 json-glib
+ncurses
