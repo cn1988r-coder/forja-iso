@@ -39,7 +39,7 @@ A alteração do caminho de instalação ainda precisa passar pelo CI. Depois di
 - Foram removidos hooks PXE NBD/NFS/HTTP, pois esta imagem e destinada a inicializacao local por USB.
 - O menu informa que a instalacao atual usa os repositorios oficiais pela internet. Nao afirmar que a instalacao offline esta pronta.
 - O backend resolve os pacotes dos manifestos com pacman -Sp antes de qualquer wipefs ou particionamento. Se um pacote nao puder ser resolvido, a operacao deve parar com o disco intacto.
-- O pacote yaru-icon-theme permanece nos manifestos, mas nao esta disponivel nos repositorios oficiais do Arch Linux; a origem do tema precisa ser resolvida antes da instalacao completa. Nao remover nem substituir o tema sem decisao explicita do projeto.
+- O tema de ícones foi padronizado em Papirus Dark, fornecido pelo pacote oficial `papirus-icon-theme` do repositório Extra do Arch Linux. Os manifests e as configurações XFCE/MATE devem permanecer alinhados.
 - dconf foi incluido no manifesto XFCE, pois o backend executa dconf update nas duas edicoes. Os manifestos duplicados usados pela validacao foram sincronizados.
 
 **Ainda nao comprovado:** compilacao C, testes Meson, validacao completa do perfil, build da ISO, boot UEFI por USB no Dell, boot BIOS em VM e instalacao completa de XFCE/MATE. O estado atual nao autoriza declarar a ISO pronta.
