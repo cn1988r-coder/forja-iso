@@ -38,3 +38,19 @@ Não criar diferenças de aplicativos de uso geral entre as edições.
 ## Regra de continuidade
 
 Esta seleção é uma decisão já tomada pelo usuário. Em especial, **Ferdium, Pamac e Timeshift são obrigatórios nas duas edições**. Não esquecer, retirar, tornar opcionais ou solicitar nova confirmação sobre esses aplicativos. Antes de declarar a seleção implementada, conferir os manifests de instalação, os pacotes disponíveis no meio offline e os testes de instalação de ambas as edições.
+
+
+## Política obrigatória de instalação: sem dual boot
+
+A VENOM OS **não oferece dual boot**. Não existe modalidade de instalação lado a lado, preservação de outro sistema operacional ou instalação em espaço livre mantendo sistemas existentes.
+
+A única modalidade é **instalação limpa com substituição integral do sistema no disco selecionado**:
+- O usuário escolhe um disco físico de destino.
+- O instalador informa claramente o modelo, a capacidade e a identificação do disco.
+- O instalador avisa que todos os dados e todas as partições desse disco serão apagados.
+- Antes de qualquer operação destrutiva, exige confirmação explícita e inequívoca do usuário.
+- Somente depois da confirmação poderá particionar e formatar o disco inteiro e instalar a VENOM OS.
+- Não tocar em outros discos conectados.
+- Não iniciar particionamento, formatação ou escrita no disco antes da confirmação.
+
+Essa regra é idêntica para VENOM OS XFCE e VENOM OS MATE. Não adicionar opção de dual boot em menus, telas, documentação ou backend. A seleção de disco e a tela de revisão já existentes são apenas protótipos; enquanto o backend não estiver implementado e testado, a instalação deve permanecer bloqueada e nenhum disco pode ser alterado.
