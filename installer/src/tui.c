@@ -488,7 +488,7 @@ int main(void) {
     const char *const actions[] = {
         "Escolher edicao", "Selecionar disco (instalacao limpa)",
         "Configuracao regional automatica", "Criar usuario e senha",
-        "Requisitos da instalacao pela internet", "INICIAR INSTALACAO", "Sair"
+        "Instalacao offline e internet apos instalar", "INICIAR INSTALACAO", "Sair"
     };
     setlocale(LC_ALL, "");
     initscr();
@@ -526,8 +526,8 @@ int main(void) {
             configure_account();
         } else if (choice == 4) {
             notice("REQUISITOS DE INSTALACAO",
-                   "A instalacao usa os repositorios oficiais do Arch Linux pela internet.",
-                   "Conecte o computador a internet antes de iniciar a instalacao.");
+                   "A ISO contem os pacotes para instalar XFCE ou MATE sem internet.",
+                   "Depois do primeiro boot, conecte a rede para atualizar pelo Pacman e Pamac.");
         } else if (choice == 5) {
             if (review_installation())
                 confirm_wipe_intent();
