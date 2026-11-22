@@ -39,6 +39,7 @@ jobs:
           bash -n scripts/validate-arch-profile.sh
           bash -n build/airootfs/usr/lib/venom/install-system
           scripts/validate-arch-profile.sh
+          python -c 'import glob, xml.etree.ElementTree as ET; [ET.parse(p) for p in glob.glob("build/install-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/*.xml")]'
 
       - name: Executar testes de disco e plano
         run: meson test -C /tmp/venom-installer-build --print-errorlogs
