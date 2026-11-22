@@ -27,6 +27,7 @@ done
 }
 
 scripts/validate-arch-profile.sh
+bash scripts/validate-offline-repo.sh
 
 WORK="$ROOT/work"
 PROFILE="$WORK/profile"
@@ -47,11 +48,11 @@ cp -a "$INSTALL_ROOT/." "$PROFILE/airootfs/"
 printf '[VENOM] Incluindo manifestos e repositorio offline completo das duas edicoes.\n'
 OFFLINE_SOURCE="$ROOT/build/offline-repo"
 [[ -s "$OFFLINE_SOURCE/venom.db" ]] || {
-  printf 'ERRO: build/offline-repo/venom.db ausente. Prepare o bundle offline antes de compilar a ISO.\\n' >&2
+  printf 'ERRO: build/offline-repo/venom.db ausente. Prepare o bundle offline antes de compilar a ISO.\n' >&2
   exit 1
 }
 [[ -n "$(find "$OFFLINE_SOURCE" -maxdepth 1 -type f -name '*.pkg.tar.*' -print -quit)" ]] || {
-  printf 'ERRO: nenhum pacote foi encontrado no bundle offline.\\n' >&2
+  printf 'ERRO: nenhum pacote foi encontrado no bundle offline.\n' >&2
   exit 1
 }
 install -d "$PROFILE/airootfs/usr/share/venom/offline-repo"
