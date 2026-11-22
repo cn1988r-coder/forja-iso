@@ -106,8 +106,8 @@ mount -o noatime,compress=zstd,subvol=@ "$P2" "$MNT"
 mkdir -p "$MNT/home"
 mount -o noatime,compress=zstd,subvol=@home "$P2" "$MNT/home"
 if [[ "$FIRMWARE" == uefi ]]; then
-  mkdir -p "$MNT/boot"
-  mount "$P1" "$MNT/boot"
+  mkdir -p "$MNT/boot/efi"
+  mount "$P1" "$MNT/boot/efi"
 fi
 
 mapfile -t PACKAGES < <(grep -Ev '^[[:space:]]*(#|$)' "$MANIFEST")
@@ -148,7 +148,7 @@ arch-chroot "$MNT" dconf update
 arch-chroot "$MNT" mkinitcpio -P
 arch-chroot "$MNT" systemctl enable NetworkManager.service bluetooth.service lightdm.service cronie.service grub-btrfsd.service
 if [[ "$FIRMWARE" == uefi ]]; then
-  arch-chroot "$MNT" grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=VENOM
+  arch-chroot "$MNT" grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=VENOM
 else
   arch-chroot "$MNT" grub-install --target=i386-pc "$DISK"
 fi
