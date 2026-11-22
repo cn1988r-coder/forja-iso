@@ -12,6 +12,12 @@
 - Calamares, Pamac, Brisk Menu, MATE, kernel e demais pacotes: somente repositórios oficiais Manjaro Stable. Sem AUR ou fontes externas para pacotes do sistema.
 - Os antigos arquivos Archiso e o instalador próprio C/GTK4/TUI não fazem parte do caminho ativo.
 
+## Infraestrutura de build
+- Criado `.github/workflows/build-manjaro-iso.yml` com runner Manjaro self-hosted, ShellCheck, validação estrutural, resolução de pacotes por `buildiso -x`, geração opcional da ISO, manifesto, checksums e upload de logs/artefatos.
+- Criado `docs/BUILD-PIPELINE.md` documentando as ferramentas adotadas e as diferenças deliberadas em relação ao BigCommunity.
+- GitRepo e a imagem Docker comunitária BigCommunity não foram incorporados porque são componentes externos à cadeia oficial Manjaro. O container oficial Manjaro permanece uma possibilidade a validar; o build atual exige runner Manjaro nativo.
+- O workflow ainda não foi executado: depende de runner self-hosted Manjaro registrado com rótulos `self-hosted`, `linux`, `manjaro`, `x64`. Nenhuma ISO foi gerada.
+
 ## Estado
 - Perfil Manjaro MATE com LightDM, GRUB, NetworkManager, Bluetooth e áudio Manjaro PipeWire.
 - Calamares oficial está configurado para iniciar automaticamente na sessão live MATE; isso ainda precisa ser confirmado em boot real.
