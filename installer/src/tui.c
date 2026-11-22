@@ -368,6 +368,31 @@ static void confirm_wipe_intent(void) {
         return;
     }
 
+    gchar *preflight_argv[] = { "pacman", "-Sy", "--noconfirm", NULL };
+    gchar *preflight_stdout = NULL;
+    gchar *preflight_stderr = NULL;
+    gint preflight_status = 0;
+    GError *preflight_error = NULL;
+    gboolean preflight_started = g_spawn_sync(NULL, preflight_argv, NULL,
+        G_SPAWN_SEARCH_PATH, NULL, NULL, &preflight_stdout,
+        &preflight_stderr, &preflight_status, &preflight_error);
+    gboolean repositories_ready = preflight_started &&
+        g_spawn_check_wait_status(preflight_status, &preflight_error);
+    if (!repositories_ready) {
+        const gchar *reason = preflight_error ? preflight_error->message :
+            (preflight_stderr && *preflight_stderr ? preflight_stderr :
+             "Nao foi possivel acessar os repositorios oficiais do Arch Linux.");
+        notice("INTERNET / REPOSITORIOS INDISPONIVEIS", reason,
+               "O disco nao sera apagado. Conecte a internet e tente novamente.");
+        g_clear_error(&preflight_error);
+        g_free(preflight_stdout);
+        g_free(preflight_stderr);
+        return;
+    }
+    g_clear_error(&preflight_error);
+    g_free(preflight_stdout);
+    g_free(preflight_stderr);
+
     gchar *size_text = g_strdup_printf("%" G_GUINT64_FORMAT,
                                        selected_disk.size_bytes);
     gchar *edition = g_strdup(selected_edition == 0 ? "xfce" : "mate");
