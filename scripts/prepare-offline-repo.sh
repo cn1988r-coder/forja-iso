@@ -87,6 +87,7 @@ pacman --config "$VERIFY_CONF" --dbpath "$VERIFY_DB" --cachedir "$STAGE" -Sp --n
 
 mkdir -p "$(dirname "$OUT")"
 cp -a "$STAGE" "$OUT"
+(cd "$ROOT" && sha256sum build/install-packages-xfce.x86_64 build/install-packages-mate.x86_64) > "$OUT/venom-manifest.sha256"
 echo "[VENOM] Bundle offline concluído: $OUT"
 echo "[VENOM] Arquivos: $(find "$OUT" -maxdepth 1 -type f | wc -l)"
 echo "[VENOM] Tamanho: $(du -sh "$OUT" | awk '{print $1}')"
