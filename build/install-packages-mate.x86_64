@@ -48,6 +48,8 @@ xorg-server
 xorg-xauth
 xorg-xrandr
 firefox
+pamac-aur
+ferdium-bin
 gnome-calculator
 xdg-utils
 xdg-user-dirs
