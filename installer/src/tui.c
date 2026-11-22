@@ -70,7 +70,7 @@ static int menu(const char *title, const char *const *items, int count, int step
     }
 }
 
-static void welcome(void) {
+static gboolean welcome(void) {
     frame("BEM-VINDO AO INSTALADOR", -1);
     serpent_art(6, 8);
     attron(A_BOLD);
@@ -81,11 +81,14 @@ static void welcome(void) {
     mvprintw(LINES - 5, 5, "ENTER para iniciar   Q para sair");
     refresh();
     int k = getch();
-    (void) k;
+    return k != 'q' && k != 'Q' && k != 27;
 }
 
 static VenomDisk selected_disk = {0};
 static gboolean disk_selected = FALSE;
+static int selected_edition = 1;
+static int selected_locale = 0;
+static int selected_keyboard = 0;
 
 static void clear_selected_disk(void) {
     g_free(selected_disk.path);
@@ -227,42 +230,46 @@ static void confirm_wipe_intent(void) {
     g_ptr_array_unref(disks);
 }
 
-static void review_installation(void) {
+static gboolean review_installation(void) {
     GError *error = NULL;
     if (!disk_selected) {
         notice("FALTA SELECIONAR O DISCO", "Volte ao menu e escolha o disco de destino.", "A instalacao limpa apagara o disco inteiro.");
-        return;
+        return FALSE;
     }
     VenomFirmwareMode firmware = g_file_test("/sys/firmware/efi", G_FILE_TEST_IS_DIR) ? VENOM_FIRMWARE_UEFI : VENOM_FIRMWARE_BIOS;
     VenomInstallPlan *plan = venom_install_plan_automatic(&selected_disk, firmware, &error);
     if (!plan) {
         notice("NAO FOI POSSIVEL MONTAR O PLANO", error ? error->message : "Disco ou firmware invalido.", "Escolha outro disco ou verifique o equipamento.");
         g_clear_error(&error);
-        return;
+        return FALSE;
     }
     frame("REVISAO ANTES DA INSTALACAO", 2);
     gchar *size = g_format_size(plan->disk_size_bytes);
-    mvprintw(7, 4, "DISCO: %s | %s | %s", plan->disk_path, selected_disk.model, size);
-    mvprintw(9, 4, "MODO: INSTALACAO LIMPA, DISCO INTEIRO");
-    mvprintw(11, 4, "ARQUIVOS: BTRFS | SNAPSHOTS: TIMESHIFT + GRUB-BTRFS");
-    mvprintw(10, 4, "FIRMWARE: %s", firmware == VENOM_FIRMWARE_UEFI ? "UEFI / GPT" : "BIOS / GPT");
-    mvprintw(13, 4, "PARTICOES PLANEJADAS:");
+    mvprintw(7, 4, "EDICAO: %s", selected_edition == 0 ? "XFCE" : "MATE");
+    mvprintw(8, 4, "IDIOMA: %s", selected_locale == 0 ? "Portugues do Brasil" : "English (US)");
+    mvprintw(9, 4, "TECLADO: %s", selected_keyboard == 0 ? "Brasil ABNT2" : "English US");
+    mvprintw(11, 4, "DISCO: %s | %s | %s", plan->disk_path, selected_disk.model, size);
+    mvprintw(13, 4, "MODO: INSTALACAO LIMPA, DISCO INTEIRO");
+    mvprintw(14, 4, "FIRMWARE: %s | GPT", firmware == VENOM_FIRMWARE_UEFI ? "UEFI" : "BIOS");
+    mvprintw(15, 4, "ARQUIVOS: BTRFS | SUBVOLUMES @ E @home");
+    mvprintw(16, 4, "SNAPSHOTS: TIMESHIFT + GRUB-BTRFS");
+    mvprintw(18, 4, "PARTICOES PLANEJADAS:");
     for (guint i = 0; i < plan->partitions->len; i++) {
         VenomPartition *p = g_ptr_array_index(plan->partitions, i);
         gchar *part_size = g_format_size(p->size_bytes);
         const char *role = p->role == VENOM_PARTITION_EFI ? "EFI FAT32 /boot/efi" : p->role == VENOM_PARTITION_BIOS_GRUB ? "BIOS GRUB" : "RAIZ BTRFS / (subvolume @; /home em @home)";
-        mvprintw(15 + (int)i, 6, "%s  %s", role, part_size);
+        mvprintw(19 + (int)i, 6, "%s  %s", role, part_size);
         g_free(part_size);
     }
-    mvprintw(18, 4, "Subvolumes: @ (/) e @home (/home). GRUB continua como bootloader.");
     attron(A_BOLD);
     mvprintw(LINES - 5, 4, "ATENCAO: O DISCO INTEIRO SERA APAGADO.");
     attroff(A_BOLD);
-    mvprintw(LINES - 2, 4, "ENTER para voltar. A instalacao ainda esta bloqueada.");
+    mvprintw(LINES - 2, 4, "ENTER para continuar a confirmacao   ESC para voltar");
     refresh();
-    getch();
+    int key = getch();
     g_free(size);
     venom_install_plan_free(plan);
+    return key != 27 && key != 'q' && key != 'Q';
 }
 static void notice(const char *title, const char *line1, const char *line2) {
     frame(title, 2);
@@ -298,40 +305,38 @@ int main(void) {
         init_pair(MUTED, COLOR_CYAN, -1);
     }
 
-    welcome();
+    if (!welcome()) { endwin(); return 0; }
     while (1) {
         int choice = menu("PAINEL PRINCIPAL", actions, 6, 0);
         if (choice < 0 || choice == 5) break;
         if (choice == 0) {
             int selected = menu("ESCOLHA A EDICAO", editions, 2, 0);
-            if (selected >= 0) edition = selected;
+            if (selected >= 0) selected_edition = selected;
             notice("EDICAO SELECIONADA",
-                   editions[edition],
+                   editions[selected_edition],
                    "A mesma selecao de aplicativos sera mantida nas duas edicoes.");
         } else if (choice == 1) {
             select_disk();
         } else if (choice == 2) {
             int lang = menu("IDIOMA", locales, 2, 0);
-            if (lang >= 0) {
-                int kb = menu("LAYOUT DO TECLADO", keyboards, 2, 0);
-                if (kb >= 0)
-                    notice("PREFERENCIAS",
-                           lang == 0 ? "Idioma: Portugues do Brasil." : "Idioma: English (US).",
-                           kb == 0 ? "Teclado: Brasil ABNT2." : "Teclado: English US.");
-            }
+            if (lang >= 0) selected_locale = lang;
+            int kb = menu("LAYOUT DO TECLADO", keyboards, 2, 0);
+            if (kb >= 0) selected_keyboard = kb;
+            notice("PREFERENCIAS",
+                   selected_locale == 0 ? "Idioma: Portugues do Brasil." : "Idioma: English (US).",
+                   selected_keyboard == 0 ? "Teclado: Brasil ABNT2." : "Teclado: English US.");
         } else if (choice == 3) {
             notice("INSTALACAO OFFLINE",
                    "A USB precisa conter repositorio local assinado, chaves e dependencias.",
                    "A instalacao real ainda nao esta implementada neste prototipo.");
         } else if (choice == 4) {
-            review_installation();
-            confirm_wipe_intent();
+            if (review_installation())
+                confirm_wipe_intent();
             notice("INSTALACAO AINDA BLOQUEADA",
                    "A interface e a confirmacao estao em desenvolvimento.",
                    "Nenhum disco sera particionado, formatado ou alterado.");
         }
     }
     endwin();
-    g_print("Edicao selecionada nesta sessao: %s\n", editions[edition]);
     return 0;
 }
