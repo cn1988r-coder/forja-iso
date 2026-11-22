@@ -1,3 +1,33 @@
+# Incremento do instalador TUI em 22/11/2026
+
+## Alterações realizadas nesta etapa
+
+- Adicionado `installer/src/tui.c`: primeiro protótipo navegável em modo texto com identidade VENOM, seleção entre XFCE/MATE, opções de idioma e teclado, explicação do modo offline e detecção de discos em leitura.
+- Adicionado ao `installer/meson.build` o alvo `venom-installer-tui`, ligado a ncursesw e às rotinas existentes de enumeração/planejamento somente leitura.
+- Incluído `ncurses` em `build/packages.x86_64`.
+- Commits: `9eee8583e135e524c724b3e1356ed15ea58a4cf8`, `a512562528f17eab5d66fd5fdb8184716a443caf`, `ea535d1c1d75efce25b1a64fc02cf72116ade36a`.
+
+## Estado e limitações
+
+- Este é um primeiro protótipo TUI, não um instalador funcional.
+- A interface ainda não está configurada como entrada automática do boot live.
+- A seleção de edição/idioma/teclado ainda é apenas desta sessão; não altera a instalação.
+- A enumeração de discos continua somente leitura. Não há particionamento, formatação, montagem, instalação offline, criação de usuário, geração de initramfs ou instalação de GRUB.
+- O alvo GTK4 existente foi preservado; este incremento adiciona o alvo TUI, não o substitui.
+- Não foi executada compilação nem teste Meson nesta sessão. A dependência ncursesw e a compilação precisam ser verificadas pela validação.
+- Nenhuma ISO foi gerada e nenhum disco foi alterado.
+
+## Próximos passos
+
+1. Compilar o alvo TUI e corrigir avisos/erros.
+2. Ligar o arranque live diretamente ao TUI, mantendo uma saída segura para shell.
+3. Persistir as escolhas e integrar o plano de partições validado.
+4. Implementar backend privilegiado e repositório local assinado para instalação offline.
+5. Portar a mesma interface TUI para a branch XFCE e manter os pacotes comuns sincronizados.
+6. Validar instalação e primeiro boot em VMs descartáveis UEFI/BIOS.
+
+---
+
 # Atualização de continuidade em 21/11/2026 20:50 BRT
 
 ## Referência desta execução
