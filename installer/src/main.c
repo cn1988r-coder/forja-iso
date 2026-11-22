@@ -6,6 +6,8 @@
 
 typedef struct {
     GtkWidget *stack;
+    GtkWidget *edition_dropdown;
+    GtkStringList *edition_model;
     GtkWidget *disk_dropdown;
     GtkWidget *disk_details;
     GtkWidget *install_button;
@@ -48,6 +50,7 @@ app_state_free(gpointer data)
     g_clear_pointer(&state->disks, g_ptr_array_unref);
     g_clear_pointer(&state->plan, venom_install_plan_free);
     g_clear_object(&state->disk_model);
+    g_clear_object(&state->edition_model);
     g_clear_object(&state->mode_model);
     g_free(state);
 }
@@ -407,8 +410,8 @@ static void
 install_style(void)
 {
     static const gchar css[] =
-        "window { background: #080b10; color: #e9f0f8; }"
-        "headerbar { background: #0d121a; color: #f4f7fb; border-bottom: 1px solid #174b78; }"
+        "window { background: linear-gradient(135deg, #07090d 0%, #111a26 55%, #080b10 100%); color: #e9f0f8; }"
+        "headerbar { background: #090d13; color: #f4f7fb; border-bottom: 1px solid #174b78; }"
         ".title-1, .title-2, .title-3 { color: #f4f7fb; font-weight: 800; }"
         ".description, .dim-label { color: #aab8c8; }"
         "label { color: #e1e9f2; }"
@@ -418,7 +421,10 @@ install_style(void)
         "button.suggested-action:hover { background: #0876c9; }"
         "entry, dropdown, spinbutton, textview { background: #111923; color: #edf4fc; border: 1px solid #29425c; border-radius: 7px; }"
         "entry:focus, dropdown:focus, spinbutton:focus { border-color: #168de0; }"
-        "stacksidebar row:selected { background: #10385b; border-left: 3px solid #168de0; }"
+        "stacksidebar { background: rgba(5, 9, 15, 0.94); border-right: 1px solid #263b52; }"
+        "stacksidebar row { padding: 12px 10px; color: #b9c7d6; }"
+        "stacksidebar row:selected { background: #10385b; border-left: 3px solid #168de0; color: #ffffff; }"
+        ".card { background: rgba(17, 25, 35, 0.94); border: 1px solid #29425c; border-radius: 14px; padding: 18px; }"
         "separator { background: #24384d; }"
         ".warning { color: #f2c879; }";
 
@@ -464,6 +470,7 @@ on_activate(GtkApplication *application, gpointer user_data)
     (void) user_data;
 
     state->disk_model = gtk_string_list_new(NULL);
+    state->edition_model = gtk_string_list_new((const gchar *[]) { "VENOM OS XFCE", "VENOM OS MATE", NULL });
     state->mode_model = gtk_string_list_new(
         (const gchar *[]) { "Automático", "Personalizado", NULL });
     state->disks = g_ptr_array_new_with_free_func(venom_disk_free);
@@ -497,14 +504,22 @@ on_activate(GtkApplication *application, gpointer user_data)
     gtk_widget_set_vexpand(state->stack, TRUE);
 
     page = make_page(
-        "Instale a VENOM OS",
-        "Uma distribuição baseada no Arch Linux oficial, com ambiente MATE "
-        "e gerenciador de sessão LightDM. O idioma desta edição é Português "
-        "do Brasil e o teclado padrão é Brasil ABNT2."
+        "VENOM OS",
+        "Instalador gráfico das edições oficiais XFCE e MATE. Escolha a interface "
+        "que será instalada no computador. A navegação segue uma sequência vertical."
     );
+    label = gtk_label_new("SELECIONE SUA EDIÇÃO");
+    gtk_widget_add_css_class(label, "title-3");
+    gtk_label_set_xalign(GTK_LABEL(label), 0.0f);
+    gtk_box_append(GTK_BOX(page), label);
+    state->edition_dropdown = gtk_drop_down_new(
+        G_LIST_MODEL(state->edition_model), NULL);
+    gtk_drop_down_set_selected(GTK_DROP_DOWN(state->edition_dropdown), 0);
+    gtk_widget_set_size_request(state->edition_dropdown, 360, 48);
+    gtk_box_append(GTK_BOX(page), state->edition_dropdown);
     label = gtk_label_new(
-        "Esta versão inicial do instalador consulta os discos em modo somente "
-        "leitura. Nenhuma partição será criada, formatada ou alterada."
+        "XFCE: leve e tradicional. MATE: clássico e familiar. As duas edições "
+        "compartilham a identidade visual e os programas da VENOM OS."
     );
     gtk_label_set_xalign(GTK_LABEL(label), 0.0f);
     gtk_label_set_wrap(GTK_LABEL(label), TRUE);
