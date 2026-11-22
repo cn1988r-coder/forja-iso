@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-PROFILE="$ROOT/manjaro/venom-mate"
+PROFILE="${VENOM_PROFILE_DIR:-$ROOT/manjaro/venom-mate}"
 fail() { echo "FALHA: $*" >&2; exit 1; }
-
 for f in profile.conf Packages-Desktop Packages-Root Packages-Live Packages-Mhwd; do
   [[ -e "$PROFILE/$f" || -L "$PROFILE/$f" ]] || fail "arquivo ausente: $f"
 done
@@ -18,12 +17,13 @@ done
 [[ "$(readlink "$PROFILE/Packages-Mhwd")" == "../../shared/Packages-Mhwd" ]] || fail "Packages-Mhwd inválido"
 grep -Fq 'displaymanager="lightdm"' "$PROFILE/profile.conf" || fail "LightDM ausente"
 grep -Fq 'venom-dconf-update' "$PROFILE/profile.conf" || fail "serviço dconf ausente"
-[[ -f "$PROFILE/desktop-overlay/etc/dconf/db/local.d/00-venom" ]] || fail "overlay instalado não foi preparado"
-[[ -f "$PROFILE/live-overlay/etc/dconf/db/local.d/00-venom" ]] || fail "overlay live não foi preparado"
+[[ -f "$PROFILE/desktop-overlay/etc/dconf/db/local.d/00-venom" ]] || fail "overlay instalado ausente"
+[[ -f "$PROFILE/live-overlay/etc/dconf/db/local.d/00-venom" ]] || fail "overlay live ausente"
+[[ -f "$PROFILE/live-overlay/etc/skel/.config/autostart/venom-installer.desktop" ]] || fail "autostart Calamares ausente no live"
 bash -n "$ROOT/scripts/prepare-manjaro-profile.sh"
 bash -n "$ROOT/scripts/validate-manjaro-profile.sh"
 bash -n "$ROOT/scripts/validate-manjaro-build.sh"
 bash -n "$ROOT/scripts/build-manjaro-iso.sh"
 python3 -m py_compile "$PROFILE/overlay-common/usr/local/bin/venom-menu"
 echo "Validação estrutural estática: APROVADA."
-echo "Resolução de pacotes, Calamares, boot e instalação ainda exigem ambiente Manjaro/VM."
+echo "Resolução de pacotes, Calamares, boot e instalação exigem ambiente Manjaro/VM."
