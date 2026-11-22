@@ -16,6 +16,9 @@ grep -Fq 'America/Sao_Paulo' "$BACKEND" || fail "fuso America/Sao_Paulo não é 
 ! grep -Fq 'preflight_argv' "$TUI" || fail "preflight de rede duplicado permanece no frontend"
 
 sync_line="$(grep -nFx 'pacman -Sy --noconfirm' "$BACKEND" | cut -d: -f1)"
+resolve_line="$(grep -nF 'pacman -Sp --noconfirm --needed' "$BACKEND" | cut -d: -f1)"
+[[ -n "$sync_line" && -n "$resolve_line" && -n "$wipe_line" && "$sync_line" -lt "$resolve_line" && "$resolve_line" -lt "$wipe_line" ]] ||
+  fail "todos os pacotes precisam ser resolvidos antes de apagar o disco"
 wipe_line="$(grep -nF 'wipefs --all --force' "$BACKEND" | cut -d: -f1)"
 [[ -n "$sync_line" && -n "$wipe_line" && "$sync_line" -lt "$wipe_line" ]] ||
   fail "sincronização dos repositórios precisa ocorrer antes de apagar o disco"
