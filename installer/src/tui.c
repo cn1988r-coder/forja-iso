@@ -66,7 +66,7 @@ static int menu(const char *title, const char *const *items, int count, int step
         key = getch();
         if ((key == KEY_UP || key == 'k') && selected > 0) selected--;
         else if ((key == KEY_DOWN || key == 'j') && selected < count - 1) selected++;
-        else if (key == '\\n' || key == KEY_ENTER) return selected;
+        else if (key == '\n' || key == KEY_ENTER) return selected;
         else if (key == 'q' || key == 'Q' || key == 27) return -1;
     }
 }
@@ -128,7 +128,7 @@ static int choose_edition(void) {
             selected--;
         else if ((key == KEY_DOWN || key == 'j') && selected < 1)
             selected++;
-        else if (key == '\\n' || key == KEY_ENTER)
+        else if (key == '\n' || key == KEY_ENTER)
             return selected;
         else if (key == 27 || key == 'q' || key == 'Q')
             return -1;
@@ -144,7 +144,7 @@ static gboolean valid_username(const gchar *name) {
     if (name == NULL || g_str_equal(name, "root") ||
         (!g_ascii_islower(name[0]) && name[0] != '_'))
         return FALSE;
-    for (const gchar *p = name + 1; *p != '\\0'; p++) {
+    for (const gchar *p = name + 1; *p != '\0'; p++) {
         if (!g_ascii_islower(*p) && !g_ascii_isdigit(*p) &&
             *p != '_' && *p != '-')
             return FALSE;
@@ -376,14 +376,14 @@ static void confirm_wipe_intent(void) {
     };
     gchar **env = g_get_environ();
     env = g_environ_setenv(env, "VENOM_EXPECTED_DISK_BYTES", size_text, TRUE);
-    gchar *password_input = g_strdup_printf("%s\\n", target_password);
+    gchar *password_input = g_strdup_printf("%s\n", target_password);
     gchar *stdout_text = NULL;
     gchar *stderr_text = NULL;
     gint wait_status = 0;
     GError *spawn_error = NULL;
 
     endwin();
-    g_print("\\n[VENOM] Instalando VENOM OS %s. Nao desligue o computador.\\n", edition);
+    g_print("\n[VENOM] Instalando VENOM OS %s. Nao desligue o computador.\n", edition);
     gboolean spawned = g_spawn_sync(NULL, argv, env, G_SPAWN_SEARCH_PATH,
                                      NULL, password_input, &stdout_text,
                                      &stderr_text, &wait_status, &spawn_error);
@@ -394,10 +394,10 @@ static void confirm_wipe_intent(void) {
     g_strfreev(env);
 
     if (!spawned || !g_spawn_check_wait_status(wait_status, &spawn_error)) {
-        g_printerr("\\n[VENOM] A instalacao falhou: %s\\n%s\\n",
+        g_printerr("\n[VENOM] A instalacao falhou: %s\n%s\n",
                    spawn_error ? spawn_error->message : "erro desconhecido",
                    stderr_text ? stderr_text : "");
-        g_printerr("O disco pode ter sido alterado. Nao remova a energia.\\n");
+        g_printerr("O disco pode ter sido alterado. Nao remova a energia.\n");
         g_clear_error(&spawn_error);
         g_free(stdout_text);
         g_free(stderr_text);
@@ -406,13 +406,13 @@ static void confirm_wipe_intent(void) {
         g_free(locale_name);
         g_free(keymap);
         g_free(firmware_name);
-        g_print("Pressione ENTER para retornar ao instalador.\\n");
+        g_print("Pressione ENTER para retornar ao instalador.\n");
         (void)getchar();
         refresh();
         return;
     }
 
-    g_print("%s\\n", stdout_text ? stdout_text : "");
+    g_print("%s\n", stdout_text ? stdout_text : "");
     g_free(stdout_text);
     g_free(stderr_text);
     g_free(size_text);
@@ -420,7 +420,7 @@ static void confirm_wipe_intent(void) {
     g_free(locale_name);
     g_free(keymap);
     g_free(firmware_name);
-    g_print("\\nInstalacao concluida. Remova a USB e pressione ENTER para reiniciar.\\n");
+    g_print("\nInstalacao concluida. Remova a USB e pressione ENTER para reiniciar.\n");
     (void)getchar();
     sync();
     reboot(RB_AUTOBOOT);
