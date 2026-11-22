@@ -49,7 +49,7 @@ SigLevel = Optional TrustAll
 Server = file://$STAGE
 
 [core]
-Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch
+Server = https://geo.mirror.pkgbuild.com/\$repo/os/\$arch
 
 [extra]
 Include = /etc/pacman.d/mirrorlist
