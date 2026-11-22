@@ -45,3 +45,6 @@ grep -Fq 'Instalador VENOM OS' "$SYSLINUX" || fail "entrada Syslinux nao identif
 ! grep -Fq 'Requisitos da instalacao offline' "$TUI" || fail "rotulo offline contradiz o backend online"
 
 printf 'OK: TUI, boot, EFI, idioma, teclado, fuso e backend estaticamente verificados.\n'
+
+grep -Fxq dconf "$ROOT/build/install-packages-xfce.x86_64" || fail "dconf ausente na edicao XFCE"
+grep -Fxq dconf "$ROOT/build/install-packages-mate.x86_64" || fail "dconf ausente na edicao MATE"
