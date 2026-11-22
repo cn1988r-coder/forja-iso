@@ -1,20 +1,22 @@
 # Perfil Archiso da VENOM OS XFCE
 
-Edição XFCE baseada no Arch Linux oficial e construída com Archiso oficial.
+Edição XFCE baseada no Arch Linux oficial e construída com o Archiso oficial.
 
-## Configuração
-- XFCE e LightDM.
-- Boot BIOS/Syslinux e UEFI/GRUB.
-- Locale pt_BR.UTF-8 e teclado br-abnt2.
+## Ambiente Live
+- Desktop XFCE com LightDM e configurações visuais próprias da VENOM OS.
+- Idioma pt_BR.UTF-8 e teclado br-abnt2.
 - NetworkManager, BlueZ, PipeWire e WirePlumber.
-- Instalador final próprio e independente: ainda não implementado. A configuração transitória existente não está liberada para build.
-- Hooks PXE e dependências NFS/NBD.
-- Compressão Zstandard no initramfs e na imagem SquashFS.
+- Temas, ícones, cursor e papel de parede incluídos no perfil.
+- Inicialização UEFI com GRUB como caminho de validação da ISO.
+
+## Instalador
+O ambiente Live inclui o instalador gráfico próprio da VENOM OS (GTK4), com backend separado para particionamento, instalação do Arch Linux, configuração do sistema e instalação do GRUB. A instalação apaga integralmente o disco selecionado após confirmação explícita.
 
 ## Manifestos
 - `packages.x86_64`: ambiente Live.
 - `install-packages.x86_64`: sistema instalado.
-- `install-overlay/`: configurações XFCE e identidade visual aplicadas pelo instalador.
+- `install-overlay/`: configurações XFCE e identidade visual aplicadas ao sistema instalado.
+- `profiledef.sh`: identidade da ISO, parâmetros e modos de boot do Archiso.
 
 ## Validação
-Execute `bash scripts/validate-xfce-profile.sh` na raiz do repositório em ambiente Arch. A validação estática não substitui build, boot BIOS/UEFI, inspeção visual ou instalação completa em VM descartável.
+A validação estática verifica os arquivos e integrações do perfil. A validação de entrega também precisa compilar o instalador, gerar a ISO, iniciar a sessão Live em VM UEFI e testar a instalação em um disco virtual descartável. Uma compilação concluída, isoladamente, não significa que a distribuição esteja pronta.
