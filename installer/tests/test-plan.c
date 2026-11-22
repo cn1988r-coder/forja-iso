@@ -40,7 +40,10 @@ test_automatic_uefi_plan(void)
     g_assert_true(efi->filesystem == VENOM_FILESYSTEM_FAT32);
     g_assert_cmpstr(efi->mount_point, ==, "/boot/efi");
     g_assert_true(root->role == VENOM_PARTITION_ROOT);
-    g_assert_true(root->filesystem == VENOM_FILESYSTEM_EXT4);
+    g_assert_true(root->filesystem == VENOM_FILESYSTEM_BTRFS);
+    g_assert_true(plan->snapshot_support);
+    g_assert_cmpstr(plan->root_subvolume, ==, "@");
+    g_assert_cmpstr(plan->home_subvolume, ==, "@home");
     g_assert_cmpstr(root->mount_point, ==, "/");
 
     venom_install_plan_free(plan);
