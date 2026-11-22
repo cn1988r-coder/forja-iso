@@ -9,6 +9,7 @@ btrfs-progs
 grub-btrfs
 inotify-tools
 timeshift
+cronie
 bash-completion
 ca-certificates
 curl
