@@ -51,7 +51,7 @@ MANIFEST="/usr/share/venom/install-packages-${EDITION}.x86_64"
 grep -Fxq '[core]' /etc/pacman.conf || fail "Repositorio oficial core do Arch Linux nao configurado."
 grep -Fxq '[extra]' /etc/pacman.conf || fail "Repositorio oficial extra do Arch Linux nao configurado."
 OFFLINE_REPO="/usr/share/venom/offline-repo"
-OFFLINE_DB="$OFFLINE_REPO/venom.db"
+OFFLINE_DB="$OFFLINE_REPO/offline.db"
 [[ -d "$OFFLINE_REPO" && -s "$OFFLINE_DB" ]] ||
   fail "Pacotes offline da VENOM ausentes na ISO."
 OFFLINE_CONF="$(mktemp /run/venom-pacman.XXXXXX.conf)"
