@@ -13,7 +13,7 @@ Atualizado em 22/11/2026. Decisão mais recente do usuário: instalador gráfico
 - Atualizações normais pelo Pacman; VENON separado e manual.
 
 ## Migração executada
-- Reconstruída a estrutura operacional sobre Archiso e arquivos Calamares aprovados na branch Arch/MATE.
+- Reconstruída a estrutura operacional sobre Archiso e overlay XFCE. Os arquivos antigos de Calamares permanecem apenas como histórico no repositório e não são incluídos nem usados no fluxo atual.
 - Manifest live XFCE separado do manifesto de pacotes do sistema instalado.
 - Pacotes do sistema instalado incluem XFCE, Thunar, LightDM, Xorg, rede, Bluetooth, áudio, GRUB e dependências básicas, sem ferramentas de criação da ISO.
 - LightDM configurado para a sessão `xfce`; sem autologin no sistema instalado.

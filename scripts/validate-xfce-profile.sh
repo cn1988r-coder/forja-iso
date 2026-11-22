@@ -29,6 +29,9 @@ grep -Fq 'systemctl start venom-live-setup.service' "$P/airootfs/root/.bash_prof
 grep -Fq 'groupadd --system autologin' "$P/airootfs/usr/local/lib/venom/venom-live-setup" || fail "Grupo autologin ausente."
 grep -Fq 'usermod --append --groups autologin venom' "$P/airootfs/usr/local/lib/venom/venom-live-setup" || fail "Usuário Live sem grupo autologin."
 grep -Fq 'venom ALL=(root) NOPASSWD: /usr/lib/venom/venom-install' "$P/airootfs/usr/local/lib/venom/venom-live-setup" || fail "Permissão do instalador ausente."
+grep -Fq '/home/venom/Desktop/Instalar-VENOM-OS.desktop' "$P/airootfs/usr/local/lib/venom/venom-live-setup" || fail "Atalho do instalador ausente da área de trabalho Live."
+grep -Fq 'install -m 0644 /etc/pacman.conf /mnt/etc/pacman.conf' "$ROOT/installer/venom-install" || fail "Pacman.conf limpo não é instalado no sistema de destino."
+grep -Fq 'SUDO_UID' "$ROOT/installer/venom-install" || fail "Arquivo temporário da senha não valida o usuário de origem."
 grep -Fq 'After=lightdm.service' "$P/airootfs/etc/systemd/system/venom-live-ready.service" || fail "Verificador não aguarda LightDM."
 grep -Fq 'VENOM_LIVE_READY' "$P/airootfs/usr/local/lib/venom/venom-live-ready" || fail "Marcador de prontidão ausente."
 for process in xfce4-session xfce4-panel xfdesktop; do grep -Fq "pgrep -u venom -x $process" "$P/airootfs/usr/local/lib/venom/venom-live-ready" || fail "Prontidão não verifica $process."; done
