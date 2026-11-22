@@ -427,10 +427,12 @@ def main():
         "Interface contém seleção de disco, conta e confirmação destrutiva" if has_flow
         else "Interface GTK4 incompleta")
     has_backend = all(token in installer_backend for token in
-                      ("pacstrap -K", "genfstab", "grub-install", "mkfs.ext4", "mkfs.fat"))
-    add("OK" if has_backend else "ERROR", "Instalador",
-        "Backend prepara disco, instala pacotes e configura GRUB" if has_backend
-        else "Backend de instalação incompleto")
+                      ("pacstrap -K", "genfstab", "grub-install", "mkfs.ext4", "mkfs.fat",
+                       "[[ -d /sys/firmware/efi ]]", "--target=x86_64-efi", "--removable"))
+    no_legacy = "grub-install --target=i386-pc" not in installer_backend
+    add("OK" if has_backend and no_legacy else "ERROR", "Instalador",
+        "Backend instala exclusivamente em UEFI x86_64 com GRUB removível" if has_backend and no_legacy
+        else "Backend incompleto ou ainda contém instalação BIOS/Legacy")
     desktop_ok = "Exec=venom-installer" in installer_desktop
     add("OK" if desktop_ok else "ERROR", "Instalador",
         "Atalho Live chama o instalador GTK4" if desktop_ok
