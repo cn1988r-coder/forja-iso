@@ -26,7 +26,7 @@ jobs:
       - name: Preparar ambiente Arch Linux
         run: |
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm base-devel git sudo archiso meson ninja gcc pkgconf
+          pacman -S --needed --noconfirm base-devel git sudo archiso meson ninja gcc pkgconf gtk4 libhandy libadwaita
           useradd --create-home --shell /bin/bash builder
           printf 'builder ALL=(ALL:ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/90-builder
           chmod 0440 /etc/sudoers.d/90-builder
@@ -51,6 +51,8 @@ jobs:
           # libpamac-aur atual depende do pacote oficial archlinux-appstream-data.
           # O antigo archlinux-appstream-data-pamac usa snapshots removidos e falha com HTTP 404.
           build_aur libpamac-aur
+          # Make the locally built library visible to pacman before building Pamac.
+          pacman -U --noconfirm build/aur-packages/libpamac-aur-*.pkg.tar.zst
           build_aur pamac-aur
           build_aur ferdium-bin
 
