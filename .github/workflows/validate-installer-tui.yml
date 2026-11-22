@@ -6,6 +6,8 @@ on:
       - feature/venom-graphical-installer
     paths:
       - 'installer/**'
+      - 'build/**'
+      - 'scripts/**'
       - '.github/workflows/validate-installer-tui.yml'
   workflow_dispatch:
 
@@ -30,6 +32,13 @@ jobs:
         run: |
           meson setup /tmp/venom-installer-build installer
           meson compile -C /tmp/venom-installer-build
+
+      - name: Validar scripts e perfil das duas edicoes
+        run: |
+          bash -n scripts/build-venom-iso.sh
+          bash -n scripts/validate-arch-profile.sh
+          bash -n build/airootfs/usr/lib/venom/install-system
+          scripts/validate-arch-profile.sh
 
       - name: Executar testes de disco e plano
         run: meson test -C /tmp/venom-installer-build --print-errorlogs
