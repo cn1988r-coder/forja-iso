@@ -360,9 +360,9 @@ static void confirm_wipe_intent(void) {
     g_ptr_array_unref(disks);
 
     if (!g_file_test("/usr/lib/venom/install-system", G_FILE_TEST_IS_EXECUTABLE) ||
-        !g_file_test("/usr/share/venom/repo/venom.db", G_FILE_TEST_EXISTS) &&
-        !g_file_test("/usr/share/venom/repo/venom.db.tar.gz", G_FILE_TEST_EXISTS) &&
-        !g_file_test("/usr/share/venom/repo/venom.db.tar.zst", G_FILE_TEST_EXISTS)) {
+        (!g_file_test("/usr/share/venom/repo/venom.db", G_FILE_TEST_EXISTS) &&
+         !g_file_test("/usr/share/venom/repo/venom.db.tar.gz", G_FILE_TEST_EXISTS) &&
+         !g_file_test("/usr/share/venom/repo/venom.db.tar.zst", G_FILE_TEST_EXISTS))) {
         notice("MIDIA DE INSTALACAO INCOMPLETA",
                "O backend ou o repositorio offline nao esta presente.",
                "Nenhuma particao foi alterada.");
