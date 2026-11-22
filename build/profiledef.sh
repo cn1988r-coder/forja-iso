@@ -3,7 +3,7 @@
 iso_name="venom"
 iso_label="VENOM_$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y%m)"
 iso_publisher="VENOM OS"
-iso_application="VENOM OS Live"
+iso_application="VENOM OS Installer"
 iso_version="$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y.%m.%d)"
 install_dir="arch"
 bootmodes=('bios.syslinux' 'uefi.grub')
