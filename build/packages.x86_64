@@ -2,6 +2,7 @@
 btrfs-progs
 grub-btrfs
 inotify-tools
+timeshift
 base
 base-devel
 archlinux-keyring
