@@ -1,4 +1,5 @@
 #include <locale.h>
+#include <string.h>
 #include <ncursesw/curses.h>
 #include <glib.h>
 #include "disk.h"
@@ -7,6 +8,8 @@
 #define BLUE 1
 #define SELECTED 2
 #define MUTED 3
+
+static void notice(const char *title, const char *line1, const char *line2);
 
 static void serpent_art(int y, int x) {
     static const char *const art[] = {
