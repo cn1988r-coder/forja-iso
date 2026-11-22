@@ -66,7 +66,9 @@ fi
 for edition in xfce mate; do
   manifest="$BUILD/install-packages-$edition.x86_64"
   bundled="$BUILD/airootfs/usr/share/venom/install-packages-$edition.x86_64"
-  cmp -s "$manifest" "$bundled" || fail "manifesto $edition da midia diverge do manifesto de build"
+  build_hash="$(sha256sum "$manifest" | awk '{print $1}')"
+  media_hash="$(sha256sum "$bundled" | awk '{print $1}')"
+  [[ "$build_hash" == "$media_hash" ]] || fail "manifesto $edition da midia diverge do manifesto de build"
   duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$manifest" | sort | uniq -d)"
   [[ -z "$duplicates" ]] || fail "pacotes duplicados no manifesto $edition: $duplicates"
   grep -Fxq base "$manifest" || fail "pacote base ausente na edicao $edition"
