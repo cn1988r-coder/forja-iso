@@ -141,6 +141,12 @@ fi
 [[ -d /usr/share/venom/install-overlay ]] || fail "Arquivos visuais VENOM ausentes na midia."
 cp -a /usr/share/venom/install-overlay/. "$MNT/"
 if [[ -f "$MNT/usr/local/bin/venom-mate-first-login" ]]; then chmod 0755 "$MNT/usr/local/bin/venom-mate-first-login"; fi
+# Pamac ja inicia com suporte ao AUR habilitado.
+if [[ -f "$MNT/etc/pamac.conf" ]]; then
+  sed -i -E 's/^[[:space:]]*#[[:space:]]*EnableAUR[[:space:]]*$/EnableAUR/' "$MNT/etc/pamac.conf"
+else
+  printf 'EnableAUR\n' > "$MNT/etc/pamac.conf"
+fi
 genfstab -U "$MNT" > "$MNT/etc/fstab"
 install -d "$MNT/etc"
 printf '%s\n' "$LOCALE UTF-8" > "$MNT/etc/locale.gen"
