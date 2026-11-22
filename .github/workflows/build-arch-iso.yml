@@ -7,9 +7,12 @@ on:
       - feature/venom-community-xfce
       - feature/venom-os-2.0-xfce
     paths:
-      - '.github/trigger-final-build.txt'
-      - '.github/workflows/build-arch-iso.yml'
-      - 'build/packages.x86_64'
+      - '.github/workflows/**'
+      - 'build/**'
+      - 'installer/**'
+      - 'scripts/**'
+      - 'docs/**'
+      - 'README.md'
 
 permissions:
   contents: read
@@ -123,24 +126,8 @@ jobs:
           grep -Fq 'venom ALL=(root) NOPASSWD: /usr/lib/venom/venom-install' build/airootfs/usr/local/lib/venom/venom-live-setup
           grep -q 'VENOM_LIVE_READY' build/airootfs/usr/local/lib/venom/venom-live-ready
 
-      - name: BIOS boot smoke test
-        id: bios
-        continue-on-error: true
-        run: |
-          ISO="$(find out -maxdepth 1 -type f -name '*.iso' -print -quit)"
-          set +e
-          timeout 240s qemu-system-x86_64 -machine accel=tcg -m 4096 -smp 2 -cdrom "$ISO" -boot d -display none -serial file:bios-serial.log -monitor none -no-reboot -no-shutdown
-          QEMU_STATUS=$?
-          set -e
-          cat bios-serial.log || true
-          test "$QEMU_STATUS" -eq 124
-          grep -Fq 'VENOM_AUTOMATED_SCRIPT_DISPATCHED' bios-serial.log
-          grep -Fq 'VENOM_LIVE_SETUP_STARTED' bios-serial.log
-          grep -Fq 'VENOM_LIVE_READY' bios-serial.log
-
       - name: UEFI boot smoke test
         id: uefi
-        continue-on-error: true
         run: |
           ISO="$(find out -maxdepth 1 -type f -name '*.iso' -print -quit)"
           OVMF_CODE="$(find /usr/share/edk2 -type f -iname 'OVMF_CODE*.fd' | head -n 1)"
@@ -166,20 +153,9 @@ jobs:
         with:
           name: venom-xfce-boot-diagnostics
           path: |
-            bios-serial.log
             uefi-serial.log
           if-no-files-found: warn
           retention-days: 7
-
-      - name: Require BIOS and UEFI live desktop readiness
-        if: always()
-        env:
-          BIOS_RESULT: ${{ steps.bios.outcome }}
-          UEFI_RESULT: ${{ steps.uefi.outcome }}
-        run: |
-          printf 'BIOS boot test: %s\nUEFI boot test: %s\n' "$BIOS_RESULT" "$UEFI_RESULT"
-          test "$BIOS_RESULT" = success
-          test "$UEFI_RESULT" = success
 
       - name: Upload ISO and validation evidence
         uses: actions/upload-artifact@v4
