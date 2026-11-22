@@ -4,7 +4,7 @@ set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 TUI="$ROOT/installer/src/tui.c"
 BACKEND="$ROOT/build/airootfs/usr/lib/venom/install-system"
-fail() { printf "FALHA: %s\\n" "$*" >&2; exit 1; }
+fail() { printf 'FALHA: %s\n' "$*" >&2; exit 1; }
 
 grep -Fq 'g_strdup("pt_BR.UTF-8")' "$TUI" || fail "idioma pt_BR.UTF-8 não está fixo no instalador"
 grep -Fq 'g_strdup("br-abnt2")' "$TUI" || fail "teclado br-abnt2 não está fixo no instalador"
@@ -20,11 +20,11 @@ wipe_line="$(grep -nF 'wipefs --all --force' "$BACKEND" | cut -d: -f1)"
 [[ -n "$sync_line" && -n "$wipe_line" && "$sync_line" -lt "$wipe_line" ]] ||
   fail "sincronização dos repositórios precisa ocorrer antes de apagar o disco"
 
-! grep -Fq '\\narch-chroot' "$BACKEND" ||
+! grep -Fq '\narch-chroot' "$BACKEND" ||
   fail "comandos arch-chroot ainda estão concatenados por sequência literal \\n"
 grep -Fq 'arch-chroot "$MNT" dconf update' "$BACKEND" || fail "dconf update ausente"
 grep -Fq 'arch-chroot "$MNT" mkinitcpio -P' "$BACKEND" || fail "mkinitcpio não é executado"
 grep -Fq 'systemctl enable NetworkManager.service bluetooth.service lightdm.service' "$BACKEND" ||
   fail "serviços essenciais não são habilitados"
 
-printf "OK: idioma, teclado, fuso, ordem segura de sincronização e comandos do backend.\\n"
+printf 'OK: idioma, teclado, fuso, ordem segura de sincronização e comandos do backend.\n'
