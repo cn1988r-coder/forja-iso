@@ -174,14 +174,14 @@ fi
 install -d "$MNT/etc/lightdm/lightdm.conf.d"
 printf '[Seat:*]\nuser-session=%s\ngreeter-session=lightdm-gtk-greeter\n' "$EDITION" > "$MNT/etc/lightdm/lightdm.conf.d/50-venom-session.conf"
 arch-chroot "$MNT" dconf update
-arch-chroot "$MNT" mkinitcpio -P
-arch-chroot "$MNT" systemctl enable NetworkManager.service bluetooth.service lightdm.service cronie.service grub-btrfsd.service
+arch-chroot "$MNT" systemctl enable NetworkManager.service bluetooth.service lightdm.service cronie.service
 if [[ "$FIRMWARE" == uefi ]]; then
   arch-chroot "$MNT" grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=VENOM
 else
   arch-chroot "$MNT" grub-install --target=i386-pc "$DISK"
 fi
-arch-chroot "$MNT" grub-mkconfig -o /boot/grub/grub.cfg
+[[ -x /usr/lib/venom/configure-btrfs-snapshots.sh ]] || fail "Configurador de snapshots Btrfs ausente na mídia."
+/usr/lib/venom/configure-btrfs-snapshots.sh "$MNT" "$P2"
 log "Instalacao concluida. Removendo montagens e preparando reinicializacao."
 trap - EXIT
 cleanup
