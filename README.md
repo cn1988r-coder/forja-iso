@@ -28,12 +28,12 @@ O fluxo oferece:
 
 O backend implementa particionamento GPT, formatação Btrfs, subvolumes, instalação via repositórios oficiais do Arch Linux, configuração de usuário, LightDM, initramfs e GRUB. Antes de alterar o disco, sincroniza os bancos e tenta resolver todos os pacotes do manifesto; se algum não estiver disponível, deve interromper sem apagar o disco. A partição EFI é montada em /boot/efi.
 
-**Limites atuais:** nenhuma ISO desta revisão foi compilada ou testada em USB/VM. A instalação ainda depende de internet. O manifesto inclui yaru-icon-theme, que não está nos repositórios oficiais do Arch Linux e exige resolver a origem do tema antes que o preflight permita instalar. Ferdium e Pamac também ainda não foram incorporados. Portanto, ainda não considerar a ISO pronta para uso.
+**Limites atuais:** nenhuma ISO desta revisão foi compilada ou testada em USB/VM. A instalação ainda depende de internet. O tema de ícones usa `papirus-icon-theme`, disponível no repositório oficial Extra do Arch Linux. Ferdium e Pamac ainda precisam passar pela validação de disponibilidade e instalação. Portanto, ainda não considerar a ISO pronta para uso.
 
 ## Edições e identidade visual
 
 - Tema GTK: Materia Dark.
-- Ícones: Yaru Blue.
+- Ícones: Papirus Dark.
 - Cursor: Bibata Modern Ice.
 - Papel de parede VENOM compartilhado.
 
