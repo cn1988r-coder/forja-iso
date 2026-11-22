@@ -91,19 +91,18 @@ grep -Fxq caja "$BUILD/install-packages-mate.x86_64" ||
 
 grep -Fq 'VENOM_ISO_BUILD_AUTHORIZED' "$ROOT/scripts/build-venom-iso.sh" ||
   fail "build da ISO nao exige autorizacao explicita"
-grep -Fq 'pacman -Sy --noconfirm' "$BUILD/airootfs/usr/lib/venom/install-system" ||
-  fail "sincronizacao dos repositorios oficiais Arch ausente"
-grep -Fq 'pacstrap -C /etc/pacman.conf -K' "$BUILD/airootfs/usr/lib/venom/install-system" ||
-  fail "instalacao via pacstrap e pacman.conf oficial ausente"
+grep -Fq 'pacman --config "$OFFLINE_CONF" -Sy --noconfirm' "$BUILD/airootfs/usr/lib/venom/install-system" ||
+  fail "validacao do indice offline ausente"
+grep -Fq 'pacstrap -C "$OFFLINE_CONF" -K' "$BUILD/airootfs/usr/lib/venom/install-system" ||
+  fail "instalacao via pacstrap e repositorio offline ausente"
 grep -Fq 'https://geo.mirror.pkgbuild.com/$repo/os/$arch' "$BUILD/pacman.conf" ||
   fail "mirror oficial Arch Linux ausente"
-if grep -Eiq 'repo-add|pacman -Sw|offline-repo' "$ROOT/scripts/build-venom-iso.sh" "$BUILD/airootfs/usr/lib/venom/install-system"; then
-  fail "repositorio local/privado VENOM nao pode existir"
-fi
 grep -Fq '/usr/share/venom/install-overlay' "$BUILD/airootfs/usr/lib/venom/install-system" ||
   fail "backend nao aplica configuracao visual VENOM"
-grep -Fq 'pacstrap -C /etc/pacman.conf -K' "$BUILD/airootfs/usr/lib/venom/install-system" ||
-  fail "backend nao instala pela configuracao oficial do Pacman"
+grep -Fq 'pacstrap -C "$OFFLINE_CONF" -K' "$BUILD/airootfs/usr/lib/venom/install-system" ||
+  fail "backend nao instala pela configuracao offline da ISO"
+grep -Fq 'install -D /etc/pacman.conf "$MNT/etc/pacman.conf"' "$BUILD/airootfs/usr/lib/venom/install-system" ||
+  fail "configuracao oficial online nao e restaurada no sistema instalado"
 grep -Fq 'wipefs --all --force' "$BUILD/airootfs/usr/lib/venom/install-system" ||
   fail "backend nao possui etapa de particionamento explicita"
 grep -Fq 'APAGAR' "$BUILD/airootfs/usr/lib/venom/install-system" ||
@@ -126,4 +125,4 @@ if grep -Fxq '[Toplevel top]' "$BUILD/install-overlay/usr/share/mate-panel/layou
   fail "MATE deve usar somente um painel inferior"
 fi
 
-pass "Perfil TUI e instalacao pelas fontes oficiais Arch das edicoes XFCE/MATE validados."
+pass "Perfil TUI, instalacao offline e ativacao posterior dos repositorios oficiais Arch validados."
