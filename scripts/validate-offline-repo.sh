@@ -4,7 +4,7 @@ set -Eeuo pipefail
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO="$ROOT/build/offline-repo"
-[[ -s "$REPO/venom.db" ]] || { echo "Índice venom.db ausente." >&2; exit 1; }
+[[ -s "$REPO/offline.db" ]] || { echo "Índice offline.db ausente." >&2; exit 1; }
 compgen -G "$REPO/*.pkg.tar.*" >/dev/null || { echo "Nenhum pacote no repositório offline." >&2; exit 1; }
 if [[ -s "$REPO/venom-manifest.sha256" ]]; then
   (cd "$ROOT" && sha256sum -c "$REPO/venom-manifest.sha256")
@@ -22,7 +22,7 @@ cat > "$CONF" <<EOF
 Architecture = auto
 SigLevel = Optional TrustAll
 
-[venom]
+[iso-offline]
 SigLevel = Optional TrustAll
 Server = file://$REPO
 EOF
