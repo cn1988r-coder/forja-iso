@@ -15,14 +15,13 @@ on:
 permissions:
   contents: read
 
-# Mantém apenas a compilação mais recente desta branch.
 concurrency:
   group: venom-iso-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   validate:
-    name: Testar antes de compilar a ISO
+    name: Testar instalador TUI e perfil
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
@@ -33,12 +32,12 @@ jobs:
           pacman -S --needed --noconfirm git gcc meson ninja pkgconf glib2 ncurses json-glib python
       - name: Obter codigo
         uses: actions/checkout@v4
-      - name: Compilar instalador e executar testes
+      - name: Compilar instalador TUI e executar testes
         run: |
           meson setup /tmp/venom-installer-build installer
           meson compile -C /tmp/venom-installer-build
           meson test -C /tmp/venom-installer-build --print-errorlogs
-      - name: Validar scripts, perfil e configurações
+      - name: Validar scripts, perfil e configuracoes
         run: |
           bash -n scripts/build-venom-iso.sh
           bash -n scripts/prepare-offline-repo.sh
@@ -51,7 +50,7 @@ jobs:
 
   build-iso:
     needs: validate
-    name: Preparar pacotes offline e compilar ISO
+    name: Montar pacotes offline e gerar ISO TUI
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
@@ -61,9 +60,9 @@ jobs:
       - name: Preparar ambiente Arch Linux
         run: |
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm base-devel git sudo archiso grub meson ninja gcc pkgconf gtk4 libhandy libadwaita
+          pacman -S --needed --noconfirm base-devel git sudo archiso grub meson ninja gcc pkgconf
           useradd --create-home --shell /bin/bash builder
-          printf 'builder ALL=(ALL:ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/90-builder
+          printf 'builder ALL=(ALL:ALL) NOPASSWD: ALL\\n' > /etc/sudoers.d/90-builder
           chmod 0440 /etc/sudoers.d/90-builder
           visudo -cf /etc/sudoers.d/90-builder
           install -d -o builder -g builder /home/builder/.cache
@@ -83,10 +82,7 @@ jobs:
             su builder -s /bin/bash -c "cd '$directory' && makepkg --syncdeps --noconfirm"
             install -m 0644 "$directory"/*.pkg.tar.zst build/aur-packages/
           }
-          # libpamac-aur atual depende do pacote oficial archlinux-appstream-data.
-          # O antigo archlinux-appstream-data-pamac usa snapshots removidos e falha com HTTP 404.
           build_aur libpamac-aur
-          # Make the locally built library visible to pacman before building Pamac.
           pacman -U --noconfirm build/aur-packages/libpamac-aur-*.pkg.tar.zst
           build_aur pamac-aur
           build_aur ferdium-bin
@@ -96,12 +92,12 @@ jobs:
           bash scripts/prepare-offline-repo.sh
           bash scripts/validate-offline-repo.sh
 
-      - name: Validar perfil e compilar instalador
+      - name: Validar perfil e compilar ISO
         run: |
           bash scripts/validate-arch-profile.sh
           VENOM_ISO_BUILD_AUTHORIZED=YES bash scripts/build-venom-iso.sh
 
-      - name: Publicar ISO e checksum como artefatos
+      - name: Publicar ISO e checksum
         uses: actions/upload-artifact@v4
         with:
           name: venom-os-iso-x86_64
