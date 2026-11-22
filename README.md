@@ -24,11 +24,11 @@ O fluxo oferece:
 3. Idioma e teclado.
 4. Criação de usuário e senha.
 5. Revisão e confirmação digitando `APAGAR`.
-6. Instalação offline e reinicialização.
+6. Instalação pela internet e reinicialização.
 
-O backend de instalação foi conectado ao fluxo e implementa particionamento GPT, formatação Btrfs, subvolumes, instalação via repositório local, configuração de usuário, LightDM, initramfs e GRUB. O script de build prepara o repositório offline com pacotes e dependências das duas edições.
+O backend de instalação foi conectado ao fluxo e implementa particionamento GPT, formatação Btrfs, subvolumes, instalação via repositórios oficiais do Arch Linux, configuração de usuário, LightDM, initramfs e GRUB. O script de build prepara o repositórios oficiais do Arch Linux com pacotes e dependências das duas edições.
 
-**Limite atual:** o backend ainda não foi validado em VMs descartáveis BIOS/UEFI nem em teste de instalação completo. Ferdium e Pamac também ainda não foram incorporados ao repositório offline. Portanto, não considerar a ISO pronta para uso.
+**Limite atual:** o backend ainda não foi validado em VMs descartáveis BIOS/UEFI nem em teste de instalação completo. Ferdium e Pamac também ainda não foram incorporados ao repositórios oficiais do Arch Linux. Portanto, não considerar a ISO pronta para uso.
 
 ## Edições e identidade visual
 
