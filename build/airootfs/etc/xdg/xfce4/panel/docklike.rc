@@ -1,5 +1,5 @@
 [user]
-pinned=firefox.desktop;thunar.desktop;
+pinned=firefox.desktop;thunar.desktop;xfce4-terminal.desktop;
 forceIconSize=true
 iconSize=32
 showPreviews=true
