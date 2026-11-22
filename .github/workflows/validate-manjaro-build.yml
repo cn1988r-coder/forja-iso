@@ -1,29 +1,39 @@
-name: Preflight do perfil Manjaro MATE VENOM (sem compilação)
+name: Validar perfil Manjaro MATE VENOM (runner Manjaro)
 on:
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: venom-manjaro-preflight
-  cancel-in-progress: true
+  group: venom-manjaro-build-validation
+  cancel-in-progress: false
 jobs:
-  preflight:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+  validate:
+    # Requer runner self-hosted registrado em uma máquina Manjaro atualizada.
+    # As ferramentas devem estar instaladas pelos repositórios oficiais Manjaro.
+    runs-on: [self-hosted, linux, manjaro, x64]
+    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
-      - name: Instalar ferramentas de validação
+      - name: Confirmar sistema e ferramentas oficiais Manjaro
+        shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck
+          set -Eeuo pipefail
+          source /etc/os-release
+          [[ "${ID:-}" == manjaro ]] || { echo "Este runner não é Manjaro." >&2; exit 1; }
+          command -v pacman
+          command -v buildiso
+          pacman -Qo "$(command -v buildiso)"
+          pacman -Q manjaro-tools-iso
+          pacman -Q linux618
       - name: Validar scripts e perfil
+        shell: bash
         run: |
+          set -Eeuo pipefail
+          command -v shellcheck >/dev/null || { echo "Instale shellcheck pelo repositório oficial Manjaro." >&2; exit 1; }
           shellcheck -S error scripts/prepare-manjaro-profile.sh scripts/validate-manjaro-profile.sh scripts/validate-manjaro-build.sh scripts/build-manjaro-iso.sh scripts/test-manjaro-profile-links.sh
           scripts/prepare-manjaro-profile.sh
           scripts/validate-manjaro-profile.sh
-      - name: Conferir integração com os perfis oficiais Manjaro
-        run: scripts/test-manjaro-profile-links.sh
-      - name: Limite desta validação
-        run: |
-          echo "Preflight estático concluído. Nenhum pacote foi resolvido e nenhuma ISO foi compilada."
-          echo "A resolução real deve ser executada em ambiente Manjaro com ferramentas e repositórios oficiais."
+          scripts/test-manjaro-profile-links.sh
+      - name: Resolver pacotes com buildiso oficial sem gerar ISO
+        shell: bash
+        run: scripts/validate-manjaro-build.sh
