@@ -134,6 +134,99 @@ static void select_disk(void) {
     g_ptr_array_unref(disks);
 }
 
+
+/*
+ * Confirma apenas a intenção do usuário. Esta etapa NÃO executa operações
+ * de disco: o backend destrutivo permanece desabilitado até ser implementado
+ * e testado em máquinas virtuais descartáveis.
+ */
+static void confirm_wipe_intent(void) {
+    GError *error = NULL;
+    GPtrArray *disks;
+    VenomDisk *current = NULL;
+    gchar typed[32] = {0};
+    const char *const final_items[] = {
+        "SIM, CONFIRMO QUE ESTE DISCO INTEIRO PODE SER APAGADO",
+        "CANCELAR E VOLTAR"
+    };
+
+    if (!disk_selected) {
+        notice("DISCO NAO SELECIONADO",
+               "Volte e selecione um disco de destino.",
+               "Nenhum disco foi alterado.");
+        return;
+    }
+
+    /* Reconsulta os dispositivos para impedir confirmar um disco que mudou. */
+    disks = venom_disk_enumerate(&error);
+    if (disks == NULL) {
+        notice("NAO FOI POSSIVEL REVALIDAR O DISCO",
+               error ? error->message : "Falha ao consultar lsblk.",
+               "A confirmacao foi cancelada por seguranca.");
+        g_clear_error(&error);
+        return;
+    }
+
+    for (guint i = 0; i < disks->len; i++) {
+        VenomDisk *candidate = g_ptr_array_index(disks, i);
+        if (g_strcmp0(candidate->path, selected_disk.path) == 0) {
+            current = candidate;
+            break;
+        }
+    }
+
+    if (current == NULL || current->read_only ||
+        current->size_bytes != selected_disk.size_bytes ||
+        g_strcmp0(current->model, selected_disk.model) != 0) {
+        notice("DISCO MUDOU OU NAO ESTA DISPONIVEL",
+               "A identificacao do disco nao confere mais com a selecao.",
+               "Selecione novamente. Nenhum disco foi alterado.");
+        g_ptr_array_unref(disks);
+        return;
+    }
+
+    frame("CONFIRMACAO DE APAGAMENTO", 2);
+    attron(A_BOLD);
+    mvprintw(7, 4, "ATENCAO: A VENOM OS NAO OFERECE DUAL BOOT.");
+    mvprintw(9, 4, "O DISCO INTEIRO SERA APAGADO, INCLUINDO TODAS AS PARTICOES.");
+    attroff(A_BOLD);
+    mvprintw(12, 4, "DISCO: %s", current->path);
+    mvprintw(13, 4, "MODELO: %.48s", current->model);
+    mvprintw(14, 4, "CAPACIDADE: %s", g_format_size(current->size_bytes));
+    mvprintw(17, 4, "Digite APAGAR para continuar ou qualquer outra coisa para cancelar:");
+    mvprintw(19, 4, "> ");
+    refresh();
+
+    echo();
+    curs_set(1);
+    move(19, 6);
+    getnstr(typed, (int)sizeof(typed) - 1);
+    noecho();
+    curs_set(0);
+
+    if (g_strcmp0(typed, "APAGAR") != 0) {
+        notice("CONFIRMACAO CANCELADA",
+               "A palavra APAGAR nao foi digitada exatamente.",
+               "Nenhum disco foi alterado.");
+        g_ptr_array_unref(disks);
+        return;
+    }
+
+    int choice = menu("ULTIMA CONFIRMACAO", final_items, 2, 2);
+    if (choice != 0) {
+        notice("INSTALACAO CANCELADA",
+               "Voce escolheu voltar sem apagar o disco.",
+               "Nenhum disco foi alterado.");
+        g_ptr_array_unref(disks);
+        return;
+    }
+
+    notice("CONFIRMACAO REGISTRADA",
+           "O usuario confirmou a intencao de apagar o disco selecionado.",
+           "Instalacao bloqueada: backend ainda nao implementado.");
+    g_ptr_array_unref(disks);
+}
+
 static void review_installation(void) {
     GError *error = NULL;
     if (!disk_selected) {
@@ -230,8 +323,9 @@ int main(void) {
                    "A instalacao real ainda nao esta implementada neste prototipo.");
         } else if (choice == 4) {
             review_installation();
+            confirm_wipe_intent();
             notice("INSTALACAO AINDA BLOQUEADA",
-                   "O plano foi exibido, mas o backend de instalacao nao esta pronto.",
+                   "A interface e a confirmacao estao em desenvolvimento.",
                    "Nenhum disco sera particionado, formatado ou alterado.");
         }
     }
