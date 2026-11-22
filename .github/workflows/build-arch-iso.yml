@@ -1,15 +1,7 @@
 name: VENOM OS ISO
 
 on:
-  push:
-    branches:
-      - feature/venom-graphical-installer
-    paths:
-      - '.github/workflows/build-arch-iso.yml'
-      - 'build/**'
-      - 'installer/**'
-      - 'scripts/**'
-      - 'docs/BUILD-OFFLINE.md'
+  # A ISO só é compilada manualmente depois da validação automática passar.
   workflow_dispatch:
 
 permissions:
