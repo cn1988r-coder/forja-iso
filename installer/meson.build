@@ -1,21 +1,21 @@
 project(
   'venom-installer',
   'c',
-  version: '0.2.0',
-  default_options: ['c_std=c11', 'warning_level=3']
+  version: '0.3.0',
+  default_options: ['c_std=c17', 'warning_level=3']
 )
 
-gtk4_dep = dependency('gtk4', version: '>=4.12')
-json_glib_dep = dependency('json-glib-1.0')
+ncurses_dep = dependency('ncursesw')
+glib_dep = dependency('glib-2.0')
 gio_dep = dependency('gio-2.0')
-
-installer_sources = files('src/main.c', 'src/disk.c', 'src/plan.c')
+json_glib_dep = dependency('json-glib-1.0')
 
 executable(
   'venom-installer',
-  installer_sources,
-  dependencies: [gtk4_dep, json_glib_dep, gio_dep],
-  install: true
+  files('src/tui.c', 'src/disk.c', 'src/plan.c'),
+  dependencies: [ncurses_dep, glib_dep, gio_dep, json_glib_dep],
+  install: true,
+  install_dir: get_option('bindir')
 )
 
 disk_test = executable(
@@ -28,11 +28,6 @@ test('leitura segura de discos', disk_test)
 plan_test = executable(
   'test-plan',
   files('tests/test-plan.c', 'src/plan.c'),
-  dependencies: [gio_dep]
+  dependencies: [glib_dep, gio_dep]
 )
-test('validação de planos de partição sem escrita', plan_test)
-
-install_data(
-  'venom-installer.desktop',
-  install_dir: get_option('datadir') / 'applications'
-)
+test('validacao de planos sem escrita', plan_test)
