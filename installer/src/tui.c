@@ -244,15 +244,17 @@ static void review_installation(void) {
     gchar *size = g_format_size(plan->disk_size_bytes);
     mvprintw(7, 4, "DISCO: %s | %s | %s", plan->disk_path, selected_disk.model, size);
     mvprintw(9, 4, "MODO: INSTALACAO LIMPA, DISCO INTEIRO");
+    mvprintw(11, 4, "ARQUIVOS: BTRFS | SNAPSHOTS: TIMESHiFT + GRUB-BTRFS");
     mvprintw(10, 4, "FIRMWARE: %s", firmware == VENOM_FIRMWARE_UEFI ? "UEFI / GPT" : "BIOS / GPT");
-    mvprintw(12, 4, "PARTICOES PLANEJADAS:");
+    mvprintw(13, 4, "PARTICOES PLANEJADAS:");
     for (guint i = 0; i < plan->partitions->len; i++) {
         VenomPartition *p = g_ptr_array_index(plan->partitions, i);
         gchar *part_size = g_format_size(p->size_bytes);
-        const char *role = p->role == VENOM_PARTITION_EFI ? "EFI FAT32 /boot/efi" : p->role == VENOM_PARTITION_BIOS_GRUB ? "BIOS GRUB" : "RAIZ EXT4 /";
-        mvprintw(14 + (int)i, 6, "%s  %s", role, part_size);
+        const char *role = p->role == VENOM_PARTITION_EFI ? "EFI FAT32 /boot/efi" : p->role == VENOM_PARTITION_BIOS_GRUB ? "BIOS GRUB" : "RAIZ BTRFS / (subvolume @; /home em @home)";
+        mvprintw(15 + (int)i, 6, "%s  %s", role, part_size);
         g_free(part_size);
     }
+    mvprintw(18, 4, "Subvolumes: @ (/) e @home (/home). GRUB continua como bootloader.");
     attron(A_BOLD);
     mvprintw(LINES - 5, 4, "ATENCAO: O DISCO INTEIRO SERA APAGADO.");
     attroff(A_BOLD);
