@@ -55,6 +55,7 @@ OFFLINE_DB="$OFFLINE_REPO/venom.db"
 [[ -d "$OFFLINE_REPO" && -s "$OFFLINE_DB" ]] ||
   fail "Pacotes offline da VENOM ausentes na ISO."
 OFFLINE_CONF="$(mktemp /run/venom-pacman.XXXXXX.conf)"
+trap 'rm -f "$OFFLINE_CONF"' EXIT
 cat > "$OFFLINE_CONF" <<EOF
 [options]
 Architecture = auto
