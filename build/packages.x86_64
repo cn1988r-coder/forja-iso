@@ -90,7 +90,7 @@ libsoup3
 archlinux-appstream-data
 appstream-glib
 appstream
-adw-gtk-theme
+materia-gtk-theme
 gnome-themes-extra
 adwaita-icon-theme
 adwaita-cursors
