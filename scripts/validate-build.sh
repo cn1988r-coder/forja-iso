@@ -10,6 +10,7 @@ done
 
 "$ROOT/scripts/validate-arch-profile.sh"
 "$ROOT/scripts/test-mate-panel.sh"
+"$ROOT/scripts/test-installer-static.sh"
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
