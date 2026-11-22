@@ -21,8 +21,8 @@ UUID=$(blkid -s UUID -o value -- "$ROOT_DEVICE")
 
 FSTAB="$ROOT_DIR/etc/fstab"
 [[ -f "$FSTAB" ]] || fail "fstab não foi criado pelo instalador"
-grep -Eq '[[:space:]]/[[:space:]].*subvol=@([,[:space:]]|$)' "$FSTAB" || fail "fstab não monta @ em /"
-grep -Eq '[[:space:]]/home[[:space:]].*subvol=@home([,[:space:]]|$)' "$FSTAB" || fail "fstab não monta @home em /home"
+grep -Eq '[[:space:]]/[[:space:]].*subvol=/?@([,[:space:]]|$)' "$FSTAB" || fail "fstab não monta @ em /"
+grep -Eq '[[:space:]]/home[[:space:]].*subvol=/?@home([,[:space:]]|$)' "$FSTAB" || fail "fstab não monta @home em /home"
 if grep -Eq '(^|,)subvolid=' "$FSTAB"; then
   fail "fstab contém subvolid fixo, incompatível com restauração de snapshots"
 fi
