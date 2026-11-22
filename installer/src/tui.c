@@ -140,8 +140,8 @@ static int choose_edition(void) {
     }
 }
 
-static gboolean valid_username(const gchar *name) {
-    if (name == NULL || !g_ascii_islower(name[0]) && name[0] != '_')
+static void secure_clear(void *memory, size_t length) {\n    volatile unsigned char *p = memory;\n    while (length--) *p++ = 0;\n}\n\nstatic gboolean valid_username(const gchar *name) {
+    if (name == NULL || (!g_ascii_islower(name[0]) && name[0] != '_'))
         return FALSE;
     for (const gchar *p = name + 1; *p != '\0'; p++) {
         if (!g_ascii_islower(*p) && !g_ascii_isdigit(*p) &&
@@ -191,8 +191,8 @@ static void configure_account(void) {
     curs_set(0);
 
     if (strlen(password) < 8 || strcmp(password, confirmation) != 0) {
-        explicit_bzero(password, sizeof(password));
-        explicit_bzero(confirmation, sizeof(confirmation));
+        secure_clear(password, sizeof(password));
+        secure_clear(confirmation, sizeof(confirmation));
         notice("SENHAS INVALIDAS",
                "As senhas precisam ter ao menos 8 caracteres e ser iguais.",
                "A conta nao foi configurada.");
@@ -200,7 +200,7 @@ static void configure_account(void) {
     }
 
     g_strlcpy(target_username, username, sizeof(target_username));
-    explicit_bzero(target_password, sizeof(target_password));
+    secure_clear(target_password, sizeof(target_password));
     g_strlcpy(target_password, password, sizeof(target_password));
     account_configured = TRUE;
     explicit_bzero(password, sizeof(password));
