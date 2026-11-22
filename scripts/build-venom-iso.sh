@@ -61,6 +61,7 @@ install -D "$ROOT/build/install-packages-xfce.x86_64" "$PROFILE/airootfs/usr/sha
 install -D "$ROOT/build/install-packages-mate.x86_64" "$PROFILE/airootfs/usr/share/venom/install-packages-mate.x86_64"
 install -d "$PROFILE/airootfs/usr/share/venom/install-overlay"
 cp -a "$ROOT/build/install-overlay/." "$PROFILE/airootfs/usr/share/venom/install-overlay/"
+install -D -m 0755 "$ROOT/installer/scripts/configure-btrfs-snapshots.sh" "$PROFILE/airootfs/usr/lib/venom/configure-btrfs-snapshots.sh"
 
 printf '[VENOM] Construindo ISO com Archiso oficial.\n'
 mkarchiso -v -w "$WORK/archiso" -o "$OUT" "$PROFILE"
