@@ -123,6 +123,7 @@ install -d "$MNT/etc"
 printf '%s\n' "$LOCALE UTF-8" > "$MNT/etc/locale.gen"
 arch-chroot "$MNT" locale-gen
 printf 'LANG=%s\n' "$LOCALE" > "$MNT/etc/locale.conf"
+ln -sf /usr/share/zoneinfo/America/Sao_Paulo "$MNT/etc/localtime"
 printf 'KEYMAP=%s\n' "$KEYMAP" > "$MNT/etc/vconsole.conf"
 printf 'VENOM-OS\n' > "$MNT/etc/hostname"
 cat > "$MNT/etc/hosts" <<'EOF'
