@@ -29,3 +29,5 @@ Correção BIOS #62: diagnóstico do artefato de boot mostrou bios-serial.log va
 
 
 Build solicitada em 21/11/2026: preflight atual #498 aprovado no HEAD da branch. Iniciar agora a compilação Archiso, Calamares 3.3.14 e testes BIOS/UEFI; preservar a branch main. Só disponibilizar ISO se ambos os testes de boot passarem.
+
+NOVA AUTORIZAÇÃO EXPRESSA DO USUÁRIO EM 21/11/2026: compilar agora a ISO VENOM OS XFCE a partir do HEAD atual desta branch, com o instalador gráfico próprio GTK4 integrado. Esta instrução substitui quaisquer instruções antigas neste arquivo que mencionem Calamares: NÃO incluir nem usar Calamares. Executar o workflow atual build-arch-iso.yml, compilar com Archiso oficial e executar os testes de boot BIOS e UEFI previstos. Preservar main. Não criar Release nem publicar externamente; disponibilizar o artefato somente se os gates definidos no workflow passarem.
