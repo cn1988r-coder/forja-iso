@@ -29,10 +29,10 @@ Usar a extensão Dash to Dock como referência funcional, sem instalar GNOME She
 Fixar no dock e disponibilizar no menu:
 1. Firefox.
 2. Ferdium.
-3. Gerenciador/loja gráfica de aplicativos do Arch Linux (identidade exata ainda precisa ser confirmada pelo usuário).
+3. Shelly: loja gráfica de aplicativos indicada pelo usuário para a VENOM OS, associada ao ecossistema Arch Linux.
 4. Pamac.
 
-Firefox já aparece nos manifestos atuais. Ferdium e a loja gráfica ainda não estão confirmados nos manifestos. Pamac/libpamac já aparecem como pacotes AUR nos manifestos atuais. Antes de adicionar novos pacotes, confirmar origem, nome do pacote, manutenção e compatibilidade com Arch Linux.
+Firefox já aparece nos manifestos atuais. Ferdium e Shelly ainda não estão confirmados nos manifestos. Pamac/libpamac já aparecem como pacotes AUR nos manifestos atuais. Antes de adicionar Shelly, confirmar o projeto/repositório correto, origem do pacote, manutenção e compatibilidade com Arch Linux.
 
 ## Critérios técnicos antes de implementar
 
