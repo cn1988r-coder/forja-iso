@@ -143,7 +143,9 @@ else
 fi
 install -d "$MNT/etc/lightdm/lightdm.conf.d"
 printf '[Seat:*]\nuser-session=%s\ngreeter-session=lightdm-gtk-greeter\n' "$EDITION" > "$MNT/etc/lightdm/lightdm.conf.d/50-venom-session.conf"
-arch-chroot "$MNT" dconf update\narch-chroot "$MNT" mkinitcpio -P\narch-chroot "$MNT" systemctl enable NetworkManager bluetooth.service lightdm.service cronie.service grub-btrfsd.service
+arch-chroot "$MNT" dconf update
+arch-chroot "$MNT" mkinitcpio -P
+arch-chroot "$MNT" systemctl enable NetworkManager.service bluetooth.service lightdm.service cronie.service grub-btrfsd.service
 if [[ "$FIRMWARE" == uefi ]]; then
   arch-chroot "$MNT" grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=VENOM
 else
