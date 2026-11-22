@@ -44,7 +44,7 @@ meson compile -C "$INSTALL_BUILD"
 DESTDIR="$INSTALL_ROOT" meson install -C "$INSTALL_BUILD"
 cp -a "$INSTALL_ROOT/." "$PROFILE/airootfs/"
 
-printf '[VENOM] Incluindo os manifestos das duas edicoes. Os pacotes serao instalados diretamente dos repositorios oficiais Arch Linux.\\n'
+printf '[VENOM] Incluindo os manifestos das duas edicoes. Os pacotes serao instalados diretamente dos repositorios oficiais Arch Linux.\n'
 install -D "$ROOT/build/install-packages-xfce.x86_64" "$PROFILE/airootfs/usr/share/venom/install-packages-xfce.x86_64"
 install -D "$ROOT/build/install-packages-mate.x86_64" "$PROFILE/airootfs/usr/share/venom/install-packages-mate.x86_64"
 install -d "$PROFILE/airootfs/usr/share/venom/install-overlay"
