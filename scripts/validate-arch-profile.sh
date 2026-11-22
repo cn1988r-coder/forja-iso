@@ -85,6 +85,7 @@ for edition in xfce mate; do
   grep -Fxq firefox "$manifest" || fail "Firefox ausente na edicao $edition"
   grep -Fxq pamac-aur "$manifest" || fail "Pamac AUR ausente na edicao $edition"
   grep -Fxq ferdium-bin "$manifest" || fail "Ferdium ausente na edicao $edition"
+  grep -Fxq base-devel "$manifest" || fail "base-devel ausente na edicao $edition"
 done
 
 grep -Fxq xfce4 "$BUILD/install-packages-xfce.x86_64" ||
@@ -107,7 +108,7 @@ grep -Fq 'https://geo.mirror.pkgbuild.com/$repo/os/$arch' "$BUILD/pacman.conf" |
 grep -Fq 'OFFLINE_SOURCE="$ROOT/build/offline-repo"' "$ROOT/scripts/build-venom-iso.sh" ||
   fail "bundle offline nao e incorporado a ISO"
 grep -Fq 'archlinux-appstream-data-pamac libpamac-aur pamac-aur ferdium-bin' "$ROOT/scripts/prepare-offline-repo.sh" ||
-  fail "preparacao nao exige os tres pacotes AUR necessarios"
+  fail "preparacao nao exige os quatro pacotes AUR necessarios"
 grep -Fq '/usr/share/venom/install-overlay' "$BUILD/airootfs/usr/lib/venom/install-system" ||
   fail "backend nao aplica configuracao visual VENOM"
 grep -Fq 'pacstrap -C "$OFFLINE_CONF" -K' "$BUILD/airootfs/usr/lib/venom/install-system" ||
