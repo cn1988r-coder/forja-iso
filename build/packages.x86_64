@@ -1,4 +1,4 @@
-# VENOM XFCE live system: official Arch packages plus the declared Arch AUR Pamac packages.
+# VENOM XFCE installer media: official Arch packages plus declared AUR Pamac packages.
 base
 base-devel
 ncurses
@@ -65,6 +65,7 @@ alsa-utils
 sof-firmware
 rtkit
 xorg-server
+xorg-xinit
 xorg-xauth
 xorg-xrandr
 xfce4
@@ -106,7 +107,7 @@ ttf-roboto
 fastfetch
 xdg-utils
 xdg-user-dirs
-# Runtime dependencies for upstream Calamares 3.3.14.
+# Runtime dependencies for standalone graphical GTK installer and Calamares.
 gtk4
 qt6-base
 qt6-declarative
