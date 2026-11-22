@@ -122,12 +122,15 @@ mapfile -t PACKAGES < <(grep -Ev '^[[:space:]]*(#|$)' "$MANIFEST")
 (("${#PACKAGES[@]}" > 0)) || fail "Manifesto de pacotes vazio."
 log "Instalando a edicao ${EDITION^^} a partir do repositorio local."
 pacstrap -C "$PACMAN_CONF" -M "$MNT" "${PACKAGES[@]}"
+# Aplica a base visual e os arquivos de primeiro login compartilhados pelas edicoes.
+[[ -d /usr/share/venom/install-overlay ]] || fail "Arquivos visuais VENOM ausentes na midia."
+cp -a /usr/share/venom/install-overlay/. "$MNT/"
 genfstab -U "$MNT" > "$MNT/etc/fstab"
 install -d "$MNT/etc"
 printf '%s\n' "$LOCALE UTF-8" > "$MNT/etc/locale.gen"
 arch-chroot "$MNT" locale-gen
 printf 'LANG=%s\n' "$LOCALE" > "$MNT/etc/locale.conf"
-printf '%s\n' "$KEYMAP" > "$MNT/etc/vconsole.conf"
+printf 'KEYMAP=%s\n' "$KEYMAP" > "$MNT/etc/vconsole.conf"
 printf 'VENOM-OS\n' > "$MNT/etc/hostname"
 cat > "$MNT/etc/hosts" <<'EOF'
 127.0.0.1 localhost
@@ -139,6 +142,12 @@ printf '%s:%s\n' "$USERNAME" "$PASSWORD" | arch-chroot "$MNT" chpasswd
 unset PASSWORD
 printf '%%wheel ALL=(ALL:ALL) ALL\n' > "$MNT/etc/sudoers.d/10-wheel"
 chmod 0440 "$MNT/etc/sudoers.d/10-wheel"
+install -d "$MNT/etc/X11/xorg.conf.d"
+if [[ "$KEYMAP" == br-abnt2 ]]; then
+  printf 'Section "InputClass"\n    Identifier "VENOM keyboard"\n    MatchIsKeyboard "on"\n    Option "XkbLayout" "br"\n    Option "XkbVariant" "abnt2"\nEndSection\n' > "$MNT/etc/X11/xorg.conf.d/00-keyboard.conf"
+else
+  printf 'Section "InputClass"\n    Identifier "VENOM keyboard"\n    MatchIsKeyboard "on"\n    Option "XkbLayout" "us"\nEndSection\n' > "$MNT/etc/X11/xorg.conf.d/00-keyboard.conf"
+fi
 install -d "$MNT/etc/lightdm/lightdm.conf.d"
 printf '[Seat:*]\nuser-session=%s\ngreeter-session=lightdm-gtk-greeter\n' "$EDITION" > "$MNT/etc/lightdm/lightdm.conf.d/50-venom-session.conf"
 arch-chroot "$MNT" systemctl enable NetworkManager bluetooth.service lightdm.service cronie.service
