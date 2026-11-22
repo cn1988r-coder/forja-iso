@@ -8,3 +8,17 @@ executable(
   install: true,
   install_dir: get_option('bindir'),
 )
+
+
+# Interface comum do instalador em modo texto, usada no boot direto.
+ncurses_dep = dependency('ncursesw')
+glib_dep = dependency('glib-2.0')
+json_glib_dep = dependency('json-glib-1.0')
+gio_dep = dependency('gio-2.0')
+executable(
+  'venom-installer-tui',
+  files('src/tui.c', 'src/disk.c', 'src/plan.c'),
+  dependencies: [ncurses_dep, glib_dep, json_glib_dep, gio_dep],
+  install: true,
+  install_dir: get_option('bindir'),
+)
