@@ -16,13 +16,17 @@ fail() {
   exit 1
 }
 
+XFCE_PACKAGES="$ROOT/build/install-packages-xfce.x86_64"
+MATE_PACKAGES="$ROOT/build/install-packages-mate.x86_64"
+
 for package in networkmanager network-manager-applet bluez bluez-utils blueman \
-               pipewire pipewire-audio pipewire-alsa pipewire-pulse wireplumber \
-               mate-panel mate-media polkit mate-polkit papirus-icon-theme; do
-  grep -Fxq "$package" "$ROOT/build/packages.x86_64" ||
-    fail "pacote live ausente: $package"
-  grep -Fxq "$package" "$ROOT/build/install-packages.x86_64" ||
-    fail "pacote do sistema instalado ausente: $package"
+               pipewire pipewire-alsa pipewire-pulse wireplumber; do
+  grep -Fxq "$package" "$XFCE_PACKAGES" || fail "pacote comum ausente na edicao XFCE: $package"
+  grep -Fxq "$package" "$MATE_PACKAGES" || fail "pacote comum ausente na edicao MATE: $package"
+done
+
+for package in mate-panel mate-media polkit mate-polkit papirus-icon-theme; do
+  grep -Fxq "$package" "$MATE_PACKAGES" || fail "pacote MATE ausente: $package"
 done
 
 for file in "$LIVE_LAYOUT" "$INSTALLED_LAYOUT" "$LIVE_DCONF" "$INSTALLED_DCONF" \
