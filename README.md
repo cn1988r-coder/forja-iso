@@ -1,34 +1,53 @@
 # VENOM OS
 
-Distribuição independente baseada diretamente no **Arch Linux oficial**, com identidade própria e um único ambiente gráfico: **MATE + LightDM**.
+Distribuição baseada diretamente no **Arch Linux oficial**, com duas edições completas: **XFCE** e **MATE**.
 
 ## Padrões do sistema
 
 - Base e repositórios: Arch Linux oficial.
-- Idioma: Português do Brasil (`pt_BR.UTF-8`).
-- Teclado: Brasil ABNT2 (`br-abnt2`).
-- Desktop: MATE.
-- Gerenciador de sessão: LightDM.
+- Edições: VENOM OS XFCE e VENOM OS MATE.
+- Gerenciador de sessão: LightDM, sem autologin.
+- Idioma padrão: Português do Brasil (`pt_BR.UTF-8`).
+- Teclado padrão: Brasil ABNT2 (`br-abnt2`).
 - Áudio: PipeWire, PipeWire Pulse e WirePlumber.
-- Atualizações do sistema: `sudo pacman -Syu`.
-- VENON: ferramenta separada e manual para atualizações próprias.
+- Sistema de arquivos: Btrfs, subvolumes `@` e `@home`.
+- Snapshots: Timeshift e integração GRUB-Btrfs.
+- Atualizações normais: `sudo pacman -Syu`.
 
-## Instalador VENOM
+## Instalador
 
-O instalador próprio está em desenvolvimento em C + GTK4. A interface gráfica está em Português do Brasil, enumera discos em modo somente leitura e apresenta uma prévia dos planos automáticos UEFI/BIOS e personalizados. O modo personalizado atual permite ajustar o tamanho da raiz e incluir swap opcional; a partição de boot é fixa nesta etapa.
+A mídia inicia diretamente no instalador próprio VENOM em modo texto ncurses. Não existe sessão Live nem desktop de demonstração.
 
-**A instalação permanece desabilitada.** Os planos são apenas propostas em memória. Ainda faltam o editor completo de partições, backend privilegiado, particionamento real, repositório local de pacotes oficiais assinados para instalação offline, configuração do usuário e do sistema, GRUB, progresso real, recuperação de falhas e testes em VM. A aplicação não deve ser apresentada como instalador funcional.
+O fluxo oferece:
+1. Escolha da edição XFCE ou MATE, com a arte da serpente VENOM.
+2. Seleção do disco inteiro de destino.
+3. Idioma e teclado.
+4. Criação de usuário e senha.
+5. Revisão e confirmação digitando `APAGAR`.
+6. Instalação offline e reinicialização.
 
-## Painel MATE
+O backend de instalação foi conectado ao fluxo e implementa particionamento GPT, formatação Btrfs, subvolumes, instalação via repositório local, configuração de usuário, LightDM, initramfs e GRUB. O script de build prepara o repositório offline com pacotes e dependências das duas edições.
 
-A configuração estática prevê:
+**Limite atual:** o backend ainda não foi validado em VMs descartáveis BIOS/UEFI nem em teste de instalação completo. Ferdium e Pamac também ainda não foram incorporados ao repositório offline. Portanto, não considerar a ISO pronta para uso.
 
-- **Rede:** NetworkManager, `nm-applet` e Notification Area.
-- **Bluetooth:** BlueZ, Blueman, `blueman-applet` e serviço Bluetooth.
-- **Volume/áudio:** applet Gvc do painel MATE, PipeWire e WirePlumber, sem ícone de volume duplicado.
+## Edições e identidade visual
 
-A validação automatizada confere pacotes oficiais, arquivos de autostart, executáveis, ícones, layout, configuração dconf e serviços no live e no sistema instalado. A confirmação visual dos três indicadores após login e reinicialização ainda depende de sessão gráfica/VM.
+- Tema GTK: Materia Dark.
+- Ícones: Yaru Blue.
+- Cursor: Bibata Modern Ice.
+- Papel de parede VENOM compartilhado.
 
-## Estado do projeto
+### XFCE
+XFCE/Xfwm4, Thunar e XFCE Terminal; painel inferior de 40 px, Whisker Menu com símbolo V, Docklike Taskbar, bandeja, volume e relógio; quatro áreas de trabalho.
 
-Em desenvolvimento. O perfil Archiso próprio existe, o instalador C/GTK4 possui interface de prévia e planejador declarativo, e a validação estática é separada da geração da mídia. Nenhuma ISO foi gerada nesta etapa. A compilação permanece bloqueada até autorização expressa do usuário.
+### MATE
+MATE/Marco, Caja e MATE Terminal; painel inferior único compacto, agrupamento permanente de janelas por aplicativo, bandeja, volume e relógio.
+
+## Compilação e validação
+
+- Projeto Meson em `installer/`.
+- Testes de leitura de discos e validação do plano de instalação.
+- Validação do perfil e dos scripts em `scripts/validate-arch-profile.sh`.
+- Build da mídia em `scripts/build-venom-iso.sh`, protegido por autorização explícita.
+
+Nenhuma ISO foi gerada nesta etapa. O estado de CI e o registro técnico estão em [GitHub Actions](https://github.com/cn1988r-coder/forja-iso/actions) e [docs/PROJECT-CONTINUITY.md](docs/PROJECT-CONTINUITY.md).
