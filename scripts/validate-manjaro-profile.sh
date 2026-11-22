@@ -34,6 +34,12 @@ grep -Fq "icon-theme='VENOM'" "$PROFILE/overlay-common/etc/dconf/db/local.d/00-v
 grep -Fq 'group-windows' "$PROFILE/overlay-common/etc/dconf/db/local.d/00-venom" || fail "agrupamento de janelas ausente"
 [[ -f "$PROFILE/desktop-overlay/etc/dconf/db/local.d/00-venom" ]] || fail "overlay instalado não preparado"
 [[ -f "$PROFILE/live-overlay/etc/dconf/db/local.d/00-venom" ]] || fail "overlay live não preparado"
+for overlay in desktop-overlay live-overlay; do
+  cmp -s "$PROFILE/overlay-common/etc/dconf/db/local.d/00-venom" "$PROFILE/$overlay/etc/dconf/db/local.d/00-venom" || fail "preferências MATE divergentes no overlay $overlay"
+  cmp -s "$PROFILE/overlay-common/usr/share/mate-panel/layouts/venom.layout" "$PROFILE/$overlay/usr/share/mate-panel/layouts/venom.layout" || fail "layout MATE divergente no overlay $overlay"
+  grep -Fq "custom-format='%d/%m/%Y  %H:%M'" "$PROFILE/$overlay/etc/dconf/db/local.d/00-venom" || fail "relógio dinâmico incorreto no overlay $overlay"
+  grep -Fq "group-windows='always'" "$PROFILE/$overlay/etc/dconf/db/local.d/00-venom" || fail "agrupamento de janelas ausente no overlay $overlay"
+done
 [[ -f "$PROFILE/live-overlay/etc/skel/.config/autostart/venom-installer.desktop" ]] || fail "autostart Calamares ausente"
 if grep -RniE 'archlinux|geo\.mirror\.pkgbuild\.com|mkarchiso|archiso' "$PROFILE"; then fail "referência Arch no perfil Manjaro"; fi
 grep -Fq -- '-k linux618' "$ROOT/scripts/validate-manjaro-build.sh" || fail "buildiso não seleciona linux618 LTS"
