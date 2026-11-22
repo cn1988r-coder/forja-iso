@@ -1,7 +1,15 @@
 name: VENOM OS ISO
 
 on:
-  # A ISO só é compilada manualmente depois da validação automática passar.
+  push:
+    branches:
+      - feature/venom-graphical-installer
+    paths:
+      - '.github/workflows/build-arch-iso.yml'
+      - 'build/**'
+      - 'installer/**'
+      - 'scripts/**'
+      - 'docs/BUILD-OFFLINE.md'
   workflow_dispatch:
 
 permissions:
@@ -13,7 +21,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate:
+    name: Testar antes de compilar a ISO
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Preparar ambiente Arch
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm git gcc meson ninja pkgconf glib2 ncurses json-glib python
+      - name: Obter codigo
+        uses: actions/checkout@v4
+      - name: Compilar instalador e executar testes
+        run: |
+          meson setup /tmp/venom-installer-build installer
+          meson compile -C /tmp/venom-installer-build
+          meson test -C /tmp/venom-installer-build --print-errorlogs
+      - name: Validar scripts, perfil e configurações
+        run: |
+          bash -n scripts/build-venom-iso.sh
+          bash -n scripts/prepare-offline-repo.sh
+          bash -n scripts/validate-offline-repo.sh
+          bash -n scripts/validate-arch-profile.sh
+          bash -n build/airootfs/usr/lib/venom/install-system
+          bash -n installer/scripts/configure-btrfs-snapshots.sh
+          scripts/validate-arch-profile.sh
+          python -c 'import glob, xml.etree.ElementTree as ET; [ET.parse(p) for p in glob.glob("build/install-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/*.xml")]'
+
   build-iso:
+    needs: validate
     name: Preparar pacotes offline e compilar ISO
     runs-on: ubuntu-latest
     container:
