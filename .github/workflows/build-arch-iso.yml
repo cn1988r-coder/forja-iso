@@ -7,12 +7,7 @@ on:
       - feature/venom-community-xfce
       - feature/venom-os-2.0-xfce
     paths:
-      - '.github/workflows/**'
-      - 'build/**'
-      - 'installer/**'
-      - 'scripts/**'
-      - 'docs/**'
-      - 'README.md'
+      - '.github/trigger-final-build.txt'
 
 permissions:
   contents: read
@@ -83,10 +78,8 @@ jobs:
             cp -a "$dest" "build/install-overlay/usr/share/icons/$theme"
           done
 
-
       - name: Mandatory VENOM preflight gate (no ISO build if rejected)
         run: python scripts/venom-preflight.py
-
 
       - name: Build and stage the simple VENOM installer
         run: |
@@ -126,26 +119,50 @@ jobs:
           grep -Fq 'venom ALL=(root) NOPASSWD: /usr/lib/venom/venom-install' build/airootfs/usr/local/lib/venom/venom-live-setup
           grep -q 'VENOM_LIVE_READY' build/airootfs/usr/local/lib/venom/venom-live-ready
 
-      - name: UEFI boot smoke test
-        id: uefi
+      - name: UEFI boot smoke test from ISO media
+        id: uefi-iso
         run: |
           ISO="$(find out -maxdepth 1 -type f -name '*.iso' -print -quit)"
           OVMF_CODE="$(find /usr/share/edk2 -type f -iname 'OVMF_CODE*.fd' | head -n 1)"
           OVMF_VARS="$(find /usr/share/edk2 -type f -iname 'OVMF_VARS*.fd' | head -n 1)"
           test -n "$OVMF_CODE" && test -n "$OVMF_VARS"
-          cp "$OVMF_VARS" /tmp/OVMF_VARS.fd
+          cp "$OVMF_VARS" /tmp/OVMF_VARS_ISO.fd
           set +e
           timeout 240s qemu-system-x86_64 -machine q35,accel=tcg -m 4096 -smp 2 \
             -drive if=pflash,format=raw,readonly=on,file="$OVMF_CODE" \
-            -drive if=pflash,format=raw,file=/tmp/OVMF_VARS.fd \
-            -cdrom "$ISO" -boot d -display none -serial file:uefi-serial.log -monitor none -no-reboot -no-shutdown
+            -drive if=pflash,format=raw,file=/tmp/OVMF_VARS_ISO.fd \
+            -cdrom "$ISO" -boot d -display none -serial file:uefi-iso-serial.log -monitor none -no-reboot -no-shutdown
           QEMU_STATUS=$?
           set -e
-          cat uefi-serial.log || true
+          cat uefi-iso-serial.log || true
           test "$QEMU_STATUS" -eq 124
-          grep -Fq 'VENOM_AUTOMATED_SCRIPT_DISPATCHED' uefi-serial.log
-          grep -Fq 'VENOM_LIVE_SETUP_STARTED' uefi-serial.log
-          grep -Fq 'VENOM_LIVE_READY' uefi-serial.log
+          grep -Fq 'VENOM_AUTOMATED_SCRIPT_DISPATCHED' uefi-iso-serial.log
+          grep -Fq 'VENOM_LIVE_SETUP_STARTED' uefi-iso-serial.log
+          grep -Fq 'VENOM_LIVE_READY' uefi-iso-serial.log
+
+      - name: UEFI boot smoke test from raw USB mass storage
+        id: uefi-usb
+        run: |
+          ISO="$(find out -maxdepth 1 -type f -name '*.iso' -print -quit)"
+          OVMF_CODE="$(find /usr/share/edk2 -type f -iname 'OVMF_CODE*.fd' | head -n 1)"
+          OVMF_VARS="$(find /usr/share/edk2 -type f -iname 'OVMF_VARS*.fd' | head -n 1)"
+          test -n "$OVMF_CODE" && test -n "$OVMF_VARS"
+          cp "$OVMF_VARS" /tmp/OVMF_VARS_USB.fd
+          set +e
+          timeout 240s qemu-system-x86_64 -machine q35,accel=tcg -m 4096 -smp 2 \
+            -drive if=pflash,format=raw,readonly=on,file="$OVMF_CODE" \
+            -drive if=pflash,format=raw,file=/tmp/OVMF_VARS_USB.fd \
+            -device qemu-xhci,id=xhci \
+            -drive if=none,id=venom_usb,format=raw,file="$ISO",readonly=on \
+            -device usb-storage,drive=venom_usb,bootindex=1 \
+            -boot order=c -display none -serial file:uefi-usb-serial.log -monitor none -no-reboot -no-shutdown
+          QEMU_STATUS=$?
+          set -e
+          cat uefi-usb-serial.log || true
+          test "$QEMU_STATUS" -eq 124
+          grep -Fq 'VENOM_AUTOMATED_SCRIPT_DISPATCHED' uefi-usb-serial.log
+          grep -Fq 'VENOM_LIVE_SETUP_STARTED' uefi-usb-serial.log
+          grep -Fq 'VENOM_LIVE_READY' uefi-usb-serial.log
 
       - name: Upload boot diagnostics
         if: always()
@@ -153,7 +170,8 @@ jobs:
         with:
           name: venom-xfce-boot-diagnostics
           path: |
-            uefi-serial.log
+            uefi-iso-serial.log
+            uefi-usb-serial.log
           if-no-files-found: warn
           retention-days: 7
 
@@ -164,6 +182,7 @@ jobs:
           path: |
             out/*.iso
             out/*.sha256
-            uefi-serial.log
+            uefi-iso-serial.log
+            uefi-usb-serial.log
           if-no-files-found: error
           retention-days: 14
