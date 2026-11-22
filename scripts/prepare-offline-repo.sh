@@ -7,7 +7,7 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 [[ "$EUID" -eq 0 ]] || { echo "Execute em Arch Linux como root." >&2; exit 1; }
 command -v pacman >/dev/null || { echo "pacman ausente." >&2; exit 1; }
-command -v repo-add >/dev/null || { echo "repo-add ausente (pacman)." >&2; exit 1; }
+command -v repo-add >/dev/null || { echo "repo-add ausente (pacman). " >&2; exit 1; }
 
 AUR_DIR="$ROOT/build/aur-packages"
 OUT="$ROOT/build/offline-repo"
@@ -21,7 +21,7 @@ for pkg in "${AUR_FILES[@]}"; do
   name="$(pacman -Qp --print-format '%n' "$pkg")"
   FOUND["$name"]=1
 done
-for required in archlinux-appstream-data-pamac libpamac-aur pamac-aur ferdium-bin; do
+for required in libpamac-aur pamac-aur ferdium-bin; do
   [[ -n "${FOUND[$required]:-}" ]] || {
     echo "Pacote AUR obrigatório ausente: $required. Compile-o e coloque o arquivo em $AUR_DIR." >&2
     exit 1
