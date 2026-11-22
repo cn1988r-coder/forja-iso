@@ -81,34 +81,91 @@ static void welcome(void) {
     (void) k;
 }
 
-static void show_disks(void) {
-    GError *error = NULL;
-    GPtrArray *disks = venom_disk_enumerate(&error);
-    frame("SELECAO DO DISCO", 1);
-    mvprintw(7, 4, "O disco selecionado sera APAGADO integralmente.");
-    mvprintw(8, 4, "Nenhuma operacao de gravacao esta habilitada neste prototipo.");
-    if (!disks) {
-        mvprintw(11, 4, "Erro ao consultar discos: %s",
-                 error ? error->message : "erro desconhecido");
-    } else if (disks->len == 0) {
-        mvprintw(11, 4, "Nenhum disco local encontrado.");
-    } else {
-        for (guint i = 0; i < disks->len && i < (guint)(LINES - 15); i++) {
-            VenomDisk *d = g_ptr_array_index(disks, i);
-            gchar *size = g_format_size(d->size_bytes);
-            mvprintw(11 + (int)i, 5, "%-14s %-24.24s %10s %s",
-                     d->path, d->model, size,
-                     d->read_only ? "[SOMENTE LEITURA]" : "");
-            g_free(size);
-        }
-    }
-    mvprintw(LINES - 2, 4, "ENTER/Q para voltar");
-    refresh();
-    getch();
-    if (disks) g_ptr_array_unref(disks);
-    g_clear_error(&error);
+static VenomDisk selected_disk = {0};
+static gboolean disk_selected = FALSE;
+
+static void clear_selected_disk(void) {
+    g_free(selected_disk.path);
+    g_free(selected_disk.model);
+    memset(&selected_disk, 0, sizeof(selected_disk));
+    disk_selected = FALSE;
 }
 
+static void select_disk(void) {
+    GError *error = NULL;
+    GPtrArray *disks = venom_disk_enumerate(&error);
+    if (!disks) {
+        notice("ERRO AO LER DISCOS", error ? error->message : "Falha ao executar lsblk.", "Nenhum disco foi modificado.");
+        g_clear_error(&error);
+        return;
+    }
+    if (disks->len == 0) {
+        notice("NENHUM DISCO ENCONTRADO", "Conecte o disco de destino e tente novamente.", "Nenhum disco foi modificado.");
+        g_ptr_array_unref(disks);
+        return;
+    }
+    const char **items = g_new0(const char *, disks->len);
+    for (guint i = 0; i < disks->len; i++) {
+        VenomDisk *d = g_ptr_array_index(disks, i);
+        gchar *size = g_format_size(d->size_bytes);
+        items[i] = g_strdup_printf("%-12s %-22.22s %10s %s", d->path, d->model, size, d->read_only ? "[SOMENTE LEITURA]" : "");
+        g_free(size);
+    }
+    int choice = menu("ESCOLHA O DISCO DE DESTINO", items, (int)disks->len, 1);
+    if (choice >= 0) {
+        VenomDisk *d = g_ptr_array_index(disks, (guint)choice);
+        clear_selected_disk();
+        selected_disk.path = g_strdup(d->path);
+        selected_disk.model = g_strdup(d->model);
+        selected_disk.size_bytes = d->size_bytes;
+        selected_disk.read_only = d->read_only;
+        disk_selected = TRUE;
+        gchar *size = g_format_size(d->size_bytes);
+        gchar *summary = g_strdup_printf("%s | %s | %s", d->path, d->model, size);
+        notice("DISCO SELECIONADO", summary, "ATENCAO: todo o conteudo deste disco sera apagado.");
+        g_free(summary);
+        g_free(size);
+    }
+    for (guint i = 0; i < disks->len; i++) g_free((gpointer)items[i]);
+    g_free(items);
+    g_ptr_array_unref(disks);
+}
+
+static void review_installation(void) {
+    GError *error = NULL;
+    if (!disk_selected) {
+        notice("FALTA SELECIONAR O DISCO", "Volte ao menu e escolha o disco de destino.", "A instalacao limpa apagara o disco inteiro.");
+        return;
+    }
+    VenomFirmwareMode firmware = g_file_test("/sys/firmware/efi", G_FILE_TEST_IS_DIR) ? VENOM_FIRMWARE_UEFI : VENOM_FIRMWARE_BIOS;
+    VenomInstallPlan *plan = venom_install_plan_automatic(&selected_disk, firmware, &error);
+    if (!plan) {
+        notice("NAO FOI POSSIVEL MONTAR O PLANO", error ? error->message : "Disco ou firmware invalido.", "Escolha outro disco ou verifique o equipamento.");
+        g_clear_error(&error);
+        return;
+    }
+    frame("REVISAO ANTES DA INSTALACAO", 2);
+    gchar *size = g_format_size(plan->disk_size_bytes);
+    mvprintw(7, 4, "DISCO: %s | %s | %s", plan->disk_path, selected_disk.model, size);
+    mvprintw(9, 4, "MODO: INSTALACAO LIMPA, DISCO INTEIRO");
+    mvprintw(10, 4, "FIRMWARE: %s", firmware == VENOM_FIRMWARE_UEFI ? "UEFI / GPT" : "BIOS / GPT");
+    mvprintw(12, 4, "PARTICOES PLANEJADAS:");
+    for (guint i = 0; i < plan->partitions->len; i++) {
+        VenomPartition *p = g_ptr_array_index(plan->partitions, i);
+        gchar *part_size = g_format_size(p->size_bytes);
+        const char *role = p->role == VENOM_PARTITION_EFI ? "EFI FAT32 /boot/efi" : p->role == VENOM_PARTITION_BIOS_GRUB ? "BIOS GRUB" : "RAIZ EXT4 /";
+        mvprintw(14 + (int)i, 6, "%s  %s", role, part_size);
+        g_free(part_size);
+    }
+    attron(A_BOLD);
+    mvprintw(LINES - 5, 4, "ATENCAO: O DISCO INTEIRO SERA APAGADO.");
+    attroff(A_BOLD);
+    mvprintw(LINES - 2, 4, "ENTER para voltar. A instalacao ainda esta bloqueada.");
+    refresh();
+    getch();
+    g_free(size);
+    venom_install_plan_free(plan);
+}
 static void notice(const char *title, const char *line1, const char *line2) {
     frame(title, 2);
     mvprintw(8, 5, "%s", line1);
@@ -154,10 +211,7 @@ int main(void) {
                    editions[edition],
                    "A mesma selecao de aplicativos sera mantida nas duas edicoes.");
         } else if (choice == 1) {
-            show_disks();
-            notice("INSTALACAO LIMPA",
-                   "Modo definido: apagar o disco inteiro e instalar a VENOM OS.",
-                   "Nao existe fluxo de dual boot neste projeto.");
+            select_disk();
         } else if (choice == 2) {
             int lang = menu("IDIOMA", locales, 2, 0);
             if (lang >= 0) {
@@ -172,9 +226,10 @@ int main(void) {
                    "A USB precisa conter repositorio local assinado, chaves e dependencias.",
                    "A instalacao real ainda nao esta implementada neste prototipo.");
         } else if (choice == 4) {
+            review_installation();
             notice("INSTALACAO AINDA BLOQUEADA",
-                   "O fluxo de instalacao foi selecionado, mas o backend nao esta pronto.",
-                   "Nenhum disco sera alterado nesta versao de desenvolvimento.");
+                   "O plano foi exibido, mas o backend de instalacao nao esta pronto.",
+                   "Nenhum disco sera particionado, formatado ou alterado.");
         }
     }
     endwin();
