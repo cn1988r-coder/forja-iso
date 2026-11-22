@@ -47,22 +47,36 @@ fi
 
 MANIFEST="/usr/share/venom/install-packages-${EDITION}.x86_64"
 [[ -s "$MANIFEST" ]] || fail "Manifesto da edicao ausente."
-[[ -s /etc/pacman.conf ]] || fail "Configuracao do Pacman ausente."
+[[ -s /etc/pacman.conf ]] || fail "Configuracao oficial do Pacman ausente."
 grep -Fxq '[core]' /etc/pacman.conf || fail "Repositorio oficial core do Arch Linux nao configurado."
 grep -Fxq '[extra]' /etc/pacman.conf || fail "Repositorio oficial extra do Arch Linux nao configurado."
-if grep -Eiq '^\\[venom\\]|file:///usr/share/venom' /etc/pacman.conf; then
-  fail "A configuracao nao pode conter repositorio local VENOM."
-fi
+OFFLINE_REPO="/usr/share/venom/offline-repo"
+OFFLINE_DB="$OFFLINE_REPO/venom.db"
+[[ -d "$OFFLINE_REPO" && -s "$OFFLINE_DB" ]] ||
+  fail "Pacotes offline da VENOM ausentes na ISO."
+OFFLINE_CONF="$(mktemp /run/venom-pacman.XXXXXX.conf)"
+trap 'rm -f "$OFFLINE_CONF"; cleanup 2>/dev/null || true' EXIT
+cat > "$OFFLINE_CONF" <<EOF
+[options]
+Architecture = auto
+CheckSpace
+SigLevel = Optional TrustAll
+
+[venom]
+SigLevel = Optional TrustAll
+Server = file://$OFFLINE_REPO
+EOF
 for cmd in sgdisk partprobe udevadm mkfs.fat mkfs.btrfs mount umount pacstrap genfstab arch-chroot grub-install grub-mkconfig; do
   command -v "$cmd" >/dev/null 2>&1 || fail "Ferramenta obrigatoria ausente: $cmd"
 done
 
 mapfile -t PACKAGES < <(grep -Ev '^[[:space:]]*(#|$)' "$MANIFEST")
 (("${#PACKAGES[@]}" > 0)) || fail "Manifesto de pacotes vazio."
-log "Sincronizando os repositorios oficiais e validando todos os pacotes ANTES de qualquer alteracao no disco."
-pacman -Sy --noconfirm
-pacman -Sp --noconfirm --needed "${PACKAGES[@]}" > /run/venom-package-plan.txt ||
-  fail "Nao foi possivel resolver todos os pacotes nos repositorios oficiais. O disco permanece intacto."
+log "Validando o conjunto completo de pacotes no repositorio offline da ISO."
+pacman --config "$OFFLINE_CONF" -Sy --noconfirm ||
+  fail "Nao foi possivel ler o indice do repositorio offline. O disco permanece intacto."
+pacman --config "$OFFLINE_CONF" -Sp --noconfirm --needed "${PACKAGES[@]}" > /run/venom-package-plan.txt ||
+  fail "A ISO nao contem algum pacote ou dependencia da edicao escolhida. O disco permanece intacto."
 
 read -r PASSWORD || fail "Senha nao recebida."
 [[ ${#PASSWORD} -ge 8 && ${#PASSWORD} -le 127 ]] || fail "A senha deve ter entre 8 e 127 caracteres."
@@ -115,8 +129,13 @@ if [[ "$FIRMWARE" == uefi ]]; then
   mount "$P1" "$MNT/boot/efi"
 fi
 
-log "Instalando a edicao ${EDITION^^} diretamente dos repositorios oficiais Arch Linux."
-pacstrap -C /etc/pacman.conf -K "$MNT" "${PACKAGES[@]}"
+log "Instalando a edicao ${EDITION^^} exclusivamente do repositorio local da ISO."
+pacstrap -C "$OFFLINE_CONF" -K "$MNT" "${PACKAGES[@]}"
+# A instalacao terminou offline. O sistema instalado passa a usar os repositorios oficiais Arch.
+install -D /etc/pacman.conf "$MNT/etc/pacman.conf"
+if [[ -s /etc/pacman.d/mirrorlist ]]; then
+  install -D /etc/pacman.d/mirrorlist "$MNT/etc/pacman.d/mirrorlist"
+fi
 # Aplica a base visual e os arquivos de primeiro login compartilhados pelas edicoes.
 [[ -d /usr/share/venom/install-overlay ]] || fail "Arquivos visuais VENOM ausentes na midia."
 cp -a /usr/share/venom/install-overlay/. "$MNT/"
