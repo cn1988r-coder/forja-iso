@@ -1,6 +1,6 @@
 #include <locale.h>
 #include <string.h>
-#include <ncursesw/curses.h>
+#include <curses.h>
 #include <glib.h>
 #include "disk.h"
 #include "plan.h"
