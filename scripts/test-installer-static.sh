@@ -27,4 +27,21 @@ grep -Fq 'arch-chroot "$MNT" mkinitcpio -P' "$BACKEND" || fail "mkinitcpio não 
 grep -Fq 'systemctl enable NetworkManager.service bluetooth.service lightdm.service' "$BACKEND" ||
   fail "serviços essenciais não são habilitados"
 
-printf 'OK: idioma, teclado, fuso, ordem segura de sincronização e comandos do backend.\n'
+
+SERVICE="$ROOT/build/airootfs/etc/systemd/system/getty@tty1.service.d/autologin.conf"
+INITRAMFS="$ROOT/build/airootfs/etc/mkinitcpio.conf.d/archiso.conf"
+GRUB="$ROOT/build/grub/grub.cfg"
+SYSLINUX="$ROOT/build/syslinux/archiso_sys-linux.cfg"
+
+grep -Fxq 'StandardOutput=tty' "$SERVICE" || fail "saida do instalador TUI nao esta ligada ao terminal"
+grep -Fxq 'StandardError=tty' "$SERVICE" || fail "erros do instalador TUI nao estao ligados ao terminal"
+grep -Fq 'mount "$P1" "$MNT/boot/efi"' "$BACKEND" || fail "particao EFI nao e montada em /boot/efi"
+grep -Fq 'grub-install --target=x86_64-efi --efi-directory=/boot/efi' "$BACKEND" || fail "GRUB UEFI nao usa o ponto de montagem EFI"
+grep -Fq 'Iniciar instalador VENOM OS' "$GRUB" || fail "entrada GRUB nao identifica o instalador"
+grep -Fq 'Instalador VENOM OS' "$SYSLINUX" || fail "entrada Syslinux nao identifica o instalador"
+! grep -Eiq 'archiso_pxe_(nbd|http|nfs)' "$INITRAMFS" || fail "hooks PXE sem dependencias foram mantidos na midia USB"
+! grep -Fq 'StandardOutput=journal' "$SERVICE" || fail "TUI esta sendo enviada ao journal em vez do terminal"
+! grep -Fq 'Nenhuma operacao de disco e executada nesta versao' "$TUI" || fail "mensagem antiga contradiz o backend conectado"
+! grep -Fq 'Requisitos da instalacao offline' "$TUI" || fail "rotulo offline contradiz o backend online"
+
+printf 'OK: TUI, boot, EFI, idioma, teclado, fuso e backend estaticamente verificados.\n'
