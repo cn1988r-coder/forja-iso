@@ -9,21 +9,20 @@ done
 for pkg in mate-panel network-manager-applet blueman manjaro-pipewire pamac-gtk; do
   grep -Fxq "$pkg" "$PROFILE/Packages-Desktop" || fail "pacote ausente: $pkg"
 done
-for item in Packages-Live Packages-Root Packages-Mhwd; do
-  [[ -L "$PROFILE/$item" ]] || fail "$item não é symlink"
-done
+for item in Packages-Live Packages-Root Packages-Mhwd; do [[ -L "$PROFILE/$item" ]] || fail "$item não é symlink"; done
 [[ "$(readlink "$PROFILE/Packages-Live")" == "../../shared/Packages-Live" ]] || fail "Packages-Live inválido"
 [[ "$(readlink "$PROFILE/Packages-Root")" == "../../shared/Packages-Root" ]] || fail "Packages-Root inválido"
 [[ "$(readlink "$PROFILE/Packages-Mhwd")" == "../../shared/Packages-Mhwd" ]] || fail "Packages-Mhwd inválido"
 grep -Fq 'displaymanager="lightdm"' "$PROFILE/profile.conf" || fail "LightDM ausente"
-grep -Fq 'venom-dconf-update' "$PROFILE/profile.conf" || fail "serviço dconf ausente"
-[[ -f "$PROFILE/desktop-overlay/etc/dconf/db/local.d/00-venom" ]] || fail "overlay instalado ausente"
-[[ -f "$PROFILE/live-overlay/etc/dconf/db/local.d/00-venom" ]] || fail "overlay live ausente"
-[[ -f "$PROFILE/live-overlay/etc/skel/.config/autostart/venom-installer.desktop" ]] || fail "autostart Calamares ausente no live"
-bash -n "$ROOT/scripts/prepare-manjaro-profile.sh"
-bash -n "$ROOT/scripts/validate-manjaro-profile.sh"
-bash -n "$ROOT/scripts/validate-manjaro-build.sh"
-bash -n "$ROOT/scripts/build-manjaro-iso.sh"
+grep -Fq 'venom-dconf-update' "$PROFILE/profile.conf" || fail "serviço de configuração ausente"
+for path in etc/locale.conf etc/locale.gen etc/vconsole.conf etc/X11/xorg.conf.d/00-keyboard.conf etc/dconf/db/local.d/00-venom usr/share/mate-panel/layouts/venom.layout usr/local/bin/venom-menu usr/local/bin/venom-mate-first-login; do
+  [[ -f "$PROFILE/overlay-common/$path" ]] || fail "overlay ausente: $path"
+done
+[[ -f "$PROFILE/desktop-overlay/etc/dconf/db/local.d/00-venom" ]] || fail "overlay instalado não preparado"
+[[ -f "$PROFILE/live-overlay/etc/dconf/db/local.d/00-venom" ]] || fail "overlay live não preparado"
+[[ -f "$PROFILE/live-overlay/etc/skel/.config/autostart/venom-installer.desktop" ]] || fail "autostart Calamares ausente"
+if grep -RniE 'archlinux|geo\.mirror\.pkgbuild\.com|mkarchiso|archiso' "$PROFILE"; then fail "referência Arch no perfil Manjaro"; fi
+bash -n "$ROOT/scripts/prepare-manjaro-profile.sh" "$ROOT/scripts/validate-manjaro-profile.sh" "$ROOT/scripts/validate-manjaro-build.sh" "$ROOT/scripts/build-manjaro-iso.sh"
 python3 -m py_compile "$PROFILE/overlay-common/usr/local/bin/venom-menu"
 echo "Validação estrutural estática: APROVADA."
 echo "Resolução de pacotes, Calamares, boot e instalação exigem ambiente Manjaro/VM."
