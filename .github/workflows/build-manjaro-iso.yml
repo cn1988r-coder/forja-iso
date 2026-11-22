@@ -1,0 +1,133 @@
+name: Construir VENOM OS com ferramentas oficiais Manjaro
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_iso:
+        description: "Gerar a ISO depois que a resolução de pacotes passar"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: venom-manjaro-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Preflight e compilação Manjaro
+    runs-on: [self-hosted, linux, manjaro, x64]
+    timeout-minutes: 360
+    steps:
+      - name: Baixar o projeto
+        uses: actions/checkout@v4
+
+      - name: Confirmar ambiente oficial Manjaro
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          source /etc/os-release
+          [[ "\${ID:-}" == manjaro ]] || {
+            echo "O runner precisa executar Manjaro Linux." >&2
+            exit 1
+          }
+          command -v pacman
+          command -v buildiso
+          command -v shellcheck
+          pacman -Qo "$(command -v buildiso)"
+          pacman -Q manjaro-tools-iso
+          pacman -Q linux618
+          pacman -Q manjaro-keyring
+
+      - name: Validar scripts e perfil
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          shellcheck -S error scripts/prepare-manjaro-profile.sh scripts/validate-manjaro-profile.sh scripts/validate-manjaro-build.sh scripts/build-manjaro-iso.sh scripts/test-manjaro-profile-links.sh
+          scripts/prepare-manjaro-profile.sh
+          scripts/validate-manjaro-profile.sh
+          scripts/test-manjaro-profile-links.sh
+
+      - name: Resolver dependências com buildiso -x
+        id: resolve
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p "$RUNNER_TEMP/venom-logs"
+          set -o pipefail
+          scripts/validate-manjaro-build.sh 2>&1 | tee "$RUNNER_TEMP/venom-logs/package-resolution.log"
+
+      - name: Gerar ISO e manifesto
+        if: \${{ inputs.build_iso }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          OUT="$RUNNER_TEMP/venom-iso-output"
+          ARTIFACTS="$GITHUB_WORKSPACE/venom-artifacts"
+          mkdir -p "$OUT" "$ARTIFACTS" "$RUNNER_TEMP/venom-logs"
+
+          cd /usr/share/manjaro-tools/iso-profiles
+          sudo buildiso -p venom-mate -b stable -k linux618 -t "$OUT" -v 2>&1 | tee "$RUNNER_TEMP/venom-logs/iso-build.log"
+
+          mapfile -t ISOS < <(find "$OUT" -maxdepth 1 -type f -name '*.iso' -print)
+          [[ "\${#ISOS[@]}" -eq 1 ]] || {
+            printf 'Esperada exatamente uma ISO; encontradas: %s\\n' "\${#ISOS[@]}" >&2
+            find "$OUT" -maxdepth 2 -type f -printf '%p\\n' >&2
+            exit 1
+          }
+
+          ISO="\${ISOS[0]}"
+          ISO_NAME="$(basename "$ISO")"
+          cp -- "$ISO" "$ARTIFACTS/$ISO_NAME"
+
+          mapfile -t PKG_MANIFESTS < <(find "$OUT" -maxdepth 1 -type f \\( -name '*-pkgs.txt' -o -name '*.pkgs' \\) -print)
+          [[ "\${#PKG_MANIFESTS[@]}" -ge 1 ]] || {
+            echo "O buildiso não produziu o manifesto de pacotes esperado." >&2
+            exit 1
+          }
+          for manifest in "\${PKG_MANIFESTS[@]}"; do
+            cp -- "$manifest" "$ARTIFACTS/"
+          done
+
+          (
+            cd "$ARTIFACTS"
+            md5sum "$ISO_NAME" > "$ISO_NAME.md5"
+            sha256sum "$ISO_NAME" > "$ISO_NAME.sha256"
+            sha512sum "$ISO_NAME" > "$ISO_NAME.sha512"
+          )
+
+          {
+            printf 'project=VENOM OS\\n'
+            printf 'branch=%s\\n' "$GITHUB_REF_NAME"
+            printf 'commit=%s\\n' "$GITHUB_SHA"
+            printf 'profile=venom-mate\\n'
+            printf 'repository_branch=stable\\n'
+            printf 'kernel=linux618\\n'
+            printf 'manjaro_tools_iso=%s\\n' "$(pacman -Q manjaro-tools-iso)"
+            printf 'built_at_utc=%s\\n' "$(date -u +%FT%TZ)"
+            printf 'iso=%s\\n' "$ISO_NAME"
+          } > "$ARTIFACTS/BUILD-MANIFEST.txt"
+
+          cp -- "$RUNNER_TEMP/venom-logs/package-resolution.log" "$ARTIFACTS/"
+          cp -- "$RUNNER_TEMP/venom-logs/iso-build.log" "$ARTIFACTS/"
+
+      - name: Guardar logs de validação
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: venom-build-logs
+          path: \${{ runner.temp }}/venom-logs/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Publicar artefatos da ISO
+        if: \${{ success() && inputs.build_iso }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: venom-os-manjaro-linux618
+          path: venom-artifacts/
+          if-no-files-found: error
+          retention-days: 30
