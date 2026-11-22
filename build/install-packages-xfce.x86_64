@@ -91,6 +91,7 @@ xfce4-xkb-plugin
 xfce4-datetime-plugin
 xfce4-mixer
 xfce4-sensors-plugin
+dconf
 materia-gtk-theme
 yaru-icon-theme
 bibata-cursor-theme
