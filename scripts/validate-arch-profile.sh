@@ -85,6 +85,8 @@ for edition in xfce mate; do
   grep -Fxq pamac-aur "$manifest" || fail "Pamac AUR ausente na edicao $edition"
   grep -Fxq ferdium-bin "$manifest" || fail "Ferdium ausente na edicao $edition"
   grep -Fxq base-devel "$manifest" || fail "base-devel ausente na edicao $edition"
+  grep -Fxq papirus-icon-theme "$manifest" || fail "Papirus ausente na edicao $edition"
+  if grep -Eiq "^(yaru-icon-theme)$" "$manifest"; then fail "tema Yaru nao deve permanecer no manifesto $edition"; fi
 done
 
 grep -Fxq xfce4 "$BUILD/install-packages-xfce.x86_64" ||
@@ -126,6 +128,10 @@ grep -Fq 'serpent_art' "$ROOT/installer/src/tui.c" ||
   fail "ilustracao da serpente ausente na selecao"
 grep -Fq "group-windows='always'" "$BUILD/install-overlay/etc/dconf/db/local.d/00-venom" ||
   fail "agrupamento permanente de janelas MATE ausente"
+grep -Fq 'value="Papirus-Dark"' "$BUILD/install-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml" ||
+  fail "tema Papirus Dark ausente da configuracao XFCE"
+grep -Fq "icon-theme='Papirus-Dark'" "$BUILD/install-overlay/etc/dconf/db/local.d/00-venom" ||
+  fail "tema Papirus Dark ausente da configuracao MATE"
 grep -Fq 'value="whiskermenu"' "$BUILD/install-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" ||
   fail "Whisker Menu ausente do painel XFCE"
 grep -Fq 'value="docklike"' "$BUILD/install-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" ||
