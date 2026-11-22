@@ -1,5 +1,7 @@
 #include <locale.h>
-#include <string.h>\n#include <unistd.h>\n#include <sys/reboot.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/reboot.h>
 #include <curses.h>
 #include <glib.h>
 #include "disk.h"
