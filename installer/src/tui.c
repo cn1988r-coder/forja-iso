@@ -253,12 +253,12 @@ static gboolean review_installation(void) {
     mvprintw(14, 4, "FIRMWARE: %s | GPT", firmware == VENOM_FIRMWARE_UEFI ? "UEFI" : "BIOS");
     mvprintw(15, 4, "ARQUIVOS: BTRFS | SUBVOLUMES @ E @home");
     mvprintw(16, 4, "SNAPSHOTS: TIMESHIFT + GRUB-BTRFS");
-    mvprintw(18, 4, "PARTICOES PLANEJADAS:");
+    mvprintw(16, 4, "PARTICOES PLANEJADAS:");
     for (guint i = 0; i < plan->partitions->len; i++) {
         VenomPartition *p = g_ptr_array_index(plan->partitions, i);
         gchar *part_size = g_format_size(p->size_bytes);
         const char *role = p->role == VENOM_PARTITION_EFI ? "EFI FAT32 /boot/efi" : p->role == VENOM_PARTITION_BIOS_GRUB ? "BIOS GRUB" : "RAIZ BTRFS / (subvolume @; /home em @home)";
-        mvprintw(19 + (int)i, 6, "%s  %s", role, part_size);
+        mvprintw(17 + (int)i, 6, "%s  %s", role, part_size);
         g_free(part_size);
     }
     attron(A_BOLD);
@@ -290,7 +290,6 @@ int main(void) {
     };
     const char *const locales[] = {"Portugues do Brasil (pt_BR.UTF-8)", "English (US)"};
     const char *const keyboards[] = {"Brasil ABNT2", "English US"};
-    int edition = 1;
     setlocale(LC_ALL, "");
     initscr();
     cbreak();
@@ -332,9 +331,6 @@ int main(void) {
         } else if (choice == 4) {
             if (review_installation())
                 confirm_wipe_intent();
-            notice("INSTALACAO AINDA BLOQUEADA",
-                   "A interface e a confirmacao estao em desenvolvimento.",
-                   "Nenhum disco sera particionado, formatado ou alterado.");
         }
     }
     endwin();
