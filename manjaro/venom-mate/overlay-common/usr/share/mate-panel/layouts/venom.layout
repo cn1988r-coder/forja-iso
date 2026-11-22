@@ -1,0 +1,42 @@
+[Toplevel bottom]
+expand=true
+orientation=bottom
+size=48
+
+[Object venom-launcher]
+object-type=launcher
+toplevel-id=bottom
+pack-index=0
+launcher-location=/usr/share/applications/venom-menu.desktop
+locked=true
+
+[Object venom-window-list]
+object-type=applet
+applet-iid=WnckletFactory::WindowListApplet
+toplevel-id=bottom
+pack-index=1
+locked=true
+
+[Object venom-notification-area]
+object-type=applet
+applet-iid=NotificationAreaAppletFactory::NotificationArea
+toplevel-id=bottom
+pack-type=end
+pack-index=2
+locked=true
+
+[Object venom-volume]
+object-type=applet
+applet-iid=GvcAppletFactory::GvcApplet
+toplevel-id=bottom
+pack-type=end
+pack-index=1
+locked=true
+
+[Object venom-clock]
+object-type=applet
+applet-iid=ClockAppletFactory::ClockApplet
+toplevel-id=bottom
+pack-type=end
+pack-index=0
+locked=true

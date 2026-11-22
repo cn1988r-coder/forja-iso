@@ -1,0 +1,32 @@
+name: Validar perfil Manjaro MATE VENOM
+on:
+  push:
+    branches: [optimize/venom-iso-size]
+    paths:
+      - 'AGENTS.md'
+      - 'README.md'
+      - 'manjaro/venom-mate/**'
+      - 'scripts/**'
+      - '.github/workflows/validate-manjaro-mate.yml'
+  pull_request:
+    branches: [optimize/venom-iso-size]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: venom-manjaro-validation-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  static-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar ferramentas
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck python3
+      - name: Validar perfil
+        run: |
+          chmod +x scripts/prepare-manjaro-profile.sh scripts/validate-manjaro-profile.sh
+          shellcheck -S error scripts/prepare-manjaro-profile.sh scripts/validate-manjaro-profile.sh
+          scripts/validate-manjaro-profile.sh

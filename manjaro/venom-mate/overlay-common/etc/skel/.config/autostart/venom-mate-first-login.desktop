@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Configuração inicial do MATE VENOM
+Comment=Aplica preferências visuais VENOM
+Exec=/usr/local/bin/venom-mate-first-login
+OnlyShowIn=MATE;
+X-MATE-Autostart-enabled=true
+NoDisplay=true
