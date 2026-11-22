@@ -631,7 +631,7 @@ on_activate(GtkApplication *application, gpointer user_data)
     page = make_page(
         "Revisão da instalação",
         "Idioma: Português do Brasil\nTeclado: Brasil ABNT2\n"
-        "Ambiente gráfico: MATE\nGerenciador de sessão: LightDM"
+        "Ambiente gráfico: edição selecionada na primeira etapa\nGerenciador de sessão: LightDM"
     );
     warning = gtk_label_new(
         "A instalação está bloqueada nesta versão inicial. O mecanismo "
