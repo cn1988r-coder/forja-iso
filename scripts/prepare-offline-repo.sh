@@ -18,7 +18,7 @@ declare -a AUR_FILES=("$AUR_DIR"/*.pkg.tar.zst)
 [[ -f "${AUR_FILES[0]}" ]] || { echo "Nenhum .pkg.tar.zst encontrado em $AUR_DIR." >&2; exit 1; }
 declare -A FOUND=()
 for pkg in "${AUR_FILES[@]}"; do
-  name="$(pacman -Qp --print-format '%n' "$pkg")"
+  name="$(pacman -Qp "$pkg" | awk 'NR == 1 { print $1 }')"
   FOUND["$name"]=1
 done
 for required in libpamac-aur pamac-aur ferdium-bin; do
