@@ -32,6 +32,7 @@ required=(
   "$ROOT/installer/tests/test-disk.c"
   "$ROOT/installer/tests/test-plan.c"
   "$ROOT/scripts/build-venom-iso.sh"
+  "$ROOT/scripts/prepare-offline-repo.sh"
 )
 for file in "${required[@]}"; do
   [[ -s "$file" ]] || fail "arquivo obrigatorio ausente: $file"
@@ -39,6 +40,7 @@ done
 
 for script in "$ROOT/scripts/build-venom-iso.sh" \
               "$ROOT/scripts/validate-arch-profile.sh" \
+              "$ROOT/scripts/prepare-offline-repo.sh" \
               "$BUILD/profiledef.sh" \
               "$BUILD/airootfs/usr/lib/venom/install-system"; do
   bash -n "$script" || fail "sintaxe Bash invalida: $script"
@@ -78,6 +80,9 @@ for edition in xfce mate; do
   grep -Fxq base "$manifest" || fail "pacote base ausente na edicao $edition"
   grep -Fxq firefox "$manifest" || fail "Firefox ausente na edicao $edition"
   grep -Fxq lightdm "$manifest" || fail "LightDM ausente na edicao $edition"
+  grep -Fxq firefox "$manifest" || fail "Firefox ausente na edicao $edition"
+  grep -Fxq pamac-aur "$manifest" || fail "Pamac AUR ausente na edicao $edition"
+  grep -Fxq ferdium-bin "$manifest" || fail "Ferdium ausente na edicao $edition"
 done
 
 grep -Fxq xfce4 "$BUILD/install-packages-xfce.x86_64" ||
@@ -97,6 +102,10 @@ grep -Fq 'pacstrap -C "$OFFLINE_CONF" -K' "$BUILD/airootfs/usr/lib/venom/install
   fail "instalacao via pacstrap e repositorio offline ausente"
 grep -Fq 'https://geo.mirror.pkgbuild.com/$repo/os/$arch' "$BUILD/pacman.conf" ||
   fail "mirror oficial Arch Linux ausente"
+grep -Fq 'OFFLINE_SOURCE="$ROOT/build/offline-repo"' "$ROOT/scripts/build-venom-iso.sh" ||
+  fail "bundle offline nao e incorporado a ISO"
+grep -Fq 'libpamac-aur pamac-aur ferdium-bin' "$ROOT/scripts/prepare-offline-repo.sh" ||
+  fail "preparacao nao exige os tres pacotes AUR necessarios"
 grep -Fq '/usr/share/venom/install-overlay' "$BUILD/airootfs/usr/lib/venom/install-system" ||
   fail "backend nao aplica configuracao visual VENOM"
 grep -Fq 'pacstrap -C "$OFFLINE_CONF" -K' "$BUILD/airootfs/usr/lib/venom/install-system" ||
@@ -125,4 +134,4 @@ if grep -Fxq '[Toplevel top]' "$BUILD/install-overlay/usr/share/mate-panel/layou
   fail "MATE deve usar somente um painel inferior"
 fi
 
-pass "Perfil TUI, instalacao offline e ativacao posterior dos repositorios oficiais Arch validados."
+pass "Perfil TUI, Firefox, Pamac, Ferdium, bundle offline e ativacao posterior dos repositorios oficiais Arch validados."
