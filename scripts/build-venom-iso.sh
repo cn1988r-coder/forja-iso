@@ -45,10 +45,10 @@ meson compile -C "$INSTALL_BUILD"
 DESTDIR="$INSTALL_ROOT" meson install -C "$INSTALL_BUILD"
 cp -a "$INSTALL_ROOT/." "$PROFILE/airootfs/"
 
-printf '[VENOM] Incluindo manifestos e repositorio offline completo das duas edicoes.\n'
+printf '[VENOM] Incluindo manifestos e pacotes temporários de instalação offline das duas edições.\n'
 OFFLINE_SOURCE="$ROOT/build/offline-repo"
-[[ -s "$OFFLINE_SOURCE/venom.db" ]] || {
-  printf 'ERRO: build/offline-repo/venom.db ausente. Prepare o bundle offline antes de compilar a ISO.\n' >&2
+[[ -s "$OFFLINE_SOURCE/offline.db" ]] || {
+  printf 'ERRO: build/offline-repo/offline.db ausente. Prepare o bundle offline antes de compilar a ISO.\n' >&2
   exit 1
 }
 [[ -n "$(find "$OFFLINE_SOURCE" -maxdepth 1 -type f -name '*.pkg.tar.*' -print -quit)" ]] || {
