@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+LOG=/var/log/venom-installer.log
+install -d -m 0755 /var/log
+touch "$LOG"
+exec > >(tee -a "$LOG") 2>&1
+TARGET=""
+cleanup() {
+  local rc=$?
+  mountpoint -q /mnt && umount -R /mnt || true
+  unset PASSWORD 2>/dev/null || true
+  if (( rc != 0 )); then printf '[VENOM] Falha (código %s). Consulte %s.\n' "$rc" "$LOG"; fi
+}
+trap cleanup EXIT
+fail() { printf '[VENOM] ERRO: %s\n' "$*" >&2; exit 1; }
+[[ $EUID -eq 0 && $# -eq 4 ]] || fail "Parâmetros ou permissões inválidos."
+TARGET=$1; USERNAME=$2; FULLNAME=$3; PASSWORD_FILE=$4
+[[ "$TARGET" == /dev/* && -b "$TARGET" ]] || fail "Disco inválido."
+[[ "$(lsblk -dnro TYPE "$TARGET")" == disk ]] || fail "Selecione um disco inteiro."
+[[ "$USERNAME" =~ ^[a-z_][a-z0-9_-]{0,30}$ ]] || fail "Nome de usuário inválido."
+[[ -n "$FULLNAME" && "$FULLNAME" != *$'\n'* ]] || fail "Nome completo inválido."
+[[ -f "$PASSWORD_FILE" ]] || fail "Senha temporária ausente."
+PASSWORD=$(<"$PASSWORD_FILE"); rm -f -- "$PASSWORD_FILE"
+[[ \${#PASSWORD} -ge 8 && "$PASSWORD" != *$'\n'* && "$PASSWORD" != *$'\r'* ]] || fail "Senha inválida."
+TARGET=$(readlink -f -- "$TARGET")
+LIVE_SOURCE=$(findmnt -nro SOURCE /run/archiso/bootmnt 2>/dev/null | head -n1 || true)
+if [[ -n "$LIVE_SOURCE" && -b "$LIVE_SOURCE" ]]; then
+  LIVE_DISK=$(lsblk -s -nrpo NAME "$LIVE_SOURCE" 2>/dev/null | tail -n1 || true)
+  LIVE_DISK=$(readlink -f -- "$LIVE_DISK" 2>/dev/null || true)
+  [[ -z "$LIVE_DISK" || "$LIVE_DISK" != "$TARGET" ]] || fail "Esse é o pendrive da sessão Live."
+fi
+SIZE=$(blockdev --getsize64 "$TARGET")
+(( SIZE >= 20 * 1024 * 1024 * 1024 )) || fail "O disco precisa ter pelo menos 20 GB."
+while IFS= read -r part; do
+  [[ -n "$part" ]] || continue
+  if findmnt -rn -S "$part" >/dev/null; then umount "$part" || fail "Não foi possível desmontar $part."; fi
+done < <(lsblk -lnpo NAME "$TARGET" | tail -n +2)
+if lsblk -nrpo MOUNTPOINT "$TARGET" | grep -qv '^[[:space:]]*$'; then fail "Há partições do disco em uso."; fi
+for f in /usr/share/venom/install-packages.x86_64 /usr/share/venom/pacman-install.conf /usr/share/venom/aur-repo/venom-aur.db; do
+  [[ -s "$f" ]] || fail "Arquivo necessário ausente: $f"
+done
+[[ -d /usr/share/venom/install-overlay ]] || fail "Configurações VENOM ausentes."
+curl -fsSI --max-time 20 https://geo.mirror.pkgbuild.com/core/os/x86_64/core.db >/dev/null || fail "Sem internet. Conecte à rede e tente novamente."
+printf '[VENOM] Preparando %s...\n' "$TARGET"
+wipefs --all --force "$TARGET"
+sgdisk --zap-all "$TARGET"
+parted --script "$TARGET" mklabel gpt
+UEFI=0
+if [[ -d /sys/firmware/efi ]]; then
+  UEFI=1
+  parted --script "$TARGET" mkpart ESP fat32 1MiB 1025MiB
+  parted --script "$TARGET" set 1 esp on
+  parted --script "$TARGET" mkpart primary ext4 1025MiB 100%
+else
+  parted --script "$TARGET" mkpart primary 1MiB 3MiB
+  parted --script "$TARGET" set 1 bios_grub on
+  parted --script "$TARGET" mkpart primary ext4 3MiB 100%
+fi
+partprobe "$TARGET"; udevadm settle
+mapfile -t PARTITIONS < <(lsblk -lnpo NAME,TYPE "$TARGET" | awk '$2=="part"{print $1}')
+[[ \${#PARTITIONS[@]} -eq 2 ]] || fail "Falha ao criar partições."
+if (( UEFI )); then EFI_PART=\${PARTITIONS[0]}; ROOT_PART=\${PARTITIONS[1]}; mkfs.fat -F32 "$EFI_PART"; else ROOT_PART=\${PARTITIONS[1]}; fi
+mkfs.ext4 -F "$ROOT_PART"
+mount "$ROOT_PART" /mnt
+if (( UEFI )); then install -d /mnt/boot; mount "$EFI_PART" /mnt/boot; fi
+mapfile -t PACKAGES < <(grep -Ev '^[[:space:]]*(#|$)' /usr/share/venom/install-packages.x86_64)
+printf '[VENOM] Instalando pacotes do Arch e da VENOM...\n'
+pacstrap -K -C /usr/share/venom/pacman-install.conf /mnt "\${PACKAGES[@]}"
+cp -a /usr/share/venom/install-overlay/. /mnt/
+genfstab -U /mnt > /mnt/etc/fstab
+printf 'venom-os\n' >/mnt/etc/hostname
+cat >/mnt/etc/hosts <<'EOF'
+127.0.0.1 localhost
+::1 localhost
+127.0.1.1 venom-os.localdomain venom-os
+EOF
+printf 'pt_BR.UTF-8 UTF-8\n' >/mnt/etc/locale.gen
+printf 'LANG=pt_BR.UTF-8\n' >/mnt/etc/locale.conf
+printf 'KEYMAP=br-abnt2\n' >/mnt/etc/vconsole.conf
+ln -sf /usr/share/zoneinfo/America/Sao_Paulo /mnt/etc/localtime
+arch-chroot /mnt locale-gen
+arch-chroot /mnt useradd --create-home --groups wheel,audio,video,storage --shell /bin/bash --comment "$FULLNAME" "$USERNAME"
+printf '%s:%s\n' "$USERNAME" "$PASSWORD" | arch-chroot /mnt chpasswd
+unset PASSWORD
+arch-chroot /mnt passwd --lock root
+install -d -m 0755 /mnt/etc/sudoers.d
+printf '%%wheel ALL=(ALL:ALL) ALL\n' >/mnt/etc/sudoers.d/10-wheel
+chmod 0440 /mnt/etc/sudoers.d/10-wheel
+arch-chroot /mnt visudo -cf /etc/sudoers.d/10-wheel
+arch-chroot /mnt systemctl enable NetworkManager.service bluetooth.service lightdm.service
+arch-chroot /mnt mkinitcpio -P
+install -d /mnt/boot/grub
+if (( UEFI )); then
+  arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=VENOM --no-nvram --removable --recheck
+else
+  arch-chroot /mnt grub-install --target=i386-pc "$TARGET" --recheck
+fi
+arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
+printf '\n[VENOM] Instalação concluída. Remova o pendrive e reinicie.\n'

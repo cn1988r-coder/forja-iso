@@ -100,26 +100,10 @@ ttf-roboto
 fastfetch
 xdg-utils
 xdg-user-dirs
-# Runtime dependencies for upstream Calamares 3.3.14.
 gtk4
-qt6-base
-qt6-declarative
-qt6-svg
-kconfig
-kcoreaddons
-kcrash
-kparts
-kirigami
-kpackage
-kpmcore
-yaml-cpp
 python
 python-yaml
-python-jsonschema
 libpwquality
-hwinfo
-polkit-qt6
-appstream-qt
 
 # Everyday desktop applications.
 mousepad

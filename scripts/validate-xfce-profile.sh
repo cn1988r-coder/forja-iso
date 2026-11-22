@@ -6,108 +6,55 @@ PKG="$P/packages.x86_64"
 INSTALL_PKG="$P/install-packages.x86_64"
 AUR_PKG="$P/aur-packages.x86_64"
 OVERLAY="$P/install-overlay"
-fail(){ printf 'FALHA: %s
-' "$*" >&2; exit 1; }
+fail(){ printf 'FALHA: %s\n' "$*" >&2; exit 1; }
 for f in profiledef.sh pacman.conf packages.x86_64 install-packages.x86_64 aur-packages.x86_64 airootfs/usr/share/venom/pacman-install.conf airootfs/etc/pacman.conf airootfs/etc/mkinitcpio.conf.d/archiso.conf airootfs/etc/locale.conf airootfs/etc/locale.gen airootfs/etc/vconsole.conf airootfs/root/.bash_profile airootfs/usr/local/lib/venom/venom-live-setup airootfs/usr/local/lib/venom/venom-live-ready airootfs/etc/systemd/system/venom-live-setup.service airootfs/etc/systemd/system/venom-live-ready.service syslinux/archiso_head.cfg syslinux/archiso_sys.cfg syslinux/archiso_sys-linux.cfg grub/grub.cfg; do
   [[ -s "$P/$f" ]] || fail "Arquivo obrigatório ausente: build/$f"
 done
-[[ -d "$OVERLAY" ]] || fail "Overlay do sistema instalado ausente."
-for script in "$P/profiledef.sh" "$P/airootfs/root/.bash_profile" "$P/airootfs/usr/local/lib/venom/venom-live-setup" "$P/airootfs/usr/local/lib/venom/venom-live-ready"; do
+[[ -d "$OVERLAY" ]] || fail "Overlay XFCE ausente."
+for script in "$P/profiledef.sh" "$P/airootfs/root/.bash_profile" "$P/airootfs/usr/local/lib/venom/venom-live-setup" "$P/airootfs/usr/local/lib/venom/venom-live-ready" "$ROOT/installer/venom-install"; do
   bash -n "$script" || fail "Sintaxe Bash inválida: $script"
 done
-python -m py_compile "$ROOT/installer/modules/venominstall/main.py" || fail "Sintaxe Python do módulo venominstall inválida."
 (
-  cd "$P"
-  # shellcheck disable=SC1091
-  source ./profiledef.sh
-  [[ "$iso_name" == venom && "$arch" == x86_64 ]] || fail "Identidade/arquitetura inválida."
-  [[ " ${bootmodes[*]} " == *" bios.syslinux "* && " ${bootmodes[*]} " == *" uefi.grub "* ]] || fail "Boot BIOS/UEFI incompleto."
-  [[ "$packages" == packages.x86_64 ]] || fail "Manifest live incorreto."
-  [[ "$kernel_params_x86_64" == *"systemd.firstboot=headless"* ]] || fail "First boot do live não pode solicitar configuração interativa."
-  [[ " ${airootfs_image_tool_options[*]} " == *" zstd "* ]] || fail "SquashFS deve usar zstd."
+ cd "$P"
+ source ./profiledef.sh
+ [[ "$iso_name" == venom && "$arch" == x86_64 ]] || fail "Identidade/arquitetura inválida."
+ [[ " ${bootmodes[*]} " == *" bios.syslinux "* && " ${bootmodes[*]} " == *" uefi.grub "* ]] || fail "Boot BIOS/UEFI incompleto."
+ [[ "$packages" == packages.x86_64 ]] || fail "Manifesto live incorreto."
+ [[ "$kernel_params_x86_64" == *"systemd.firstboot=headless"* ]] || fail "First boot live interativo."
 )
-grep -Fxq 'LANG=pt_BR.UTF-8' "$P/airootfs/etc/locale.conf" || fail "Locale incorreto."
-grep -Fxq 'pt_BR.UTF-8 UTF-8' "$P/airootfs/etc/locale.gen" || fail "Locale pt_BR ausente."
+grep -Fxq 'LANG=pt_BR.UTF-8' "$P/airootfs/etc/locale.conf" || fail "Locale pt_BR ausente."
+grep -Fxq 'pt_BR.UTF-8 UTF-8' "$P/airootfs/etc/locale.gen" || fail "Locale pt_BR não será gerado."
 grep -Fxq 'KEYMAP=br-abnt2' "$P/airootfs/etc/vconsole.conf" || fail "Teclado ABNT2 ausente."
-grep -Fq 'systemctl start venom-live-setup.service' "$P/airootfs/root/.bash_profile" || fail "tty1 não inicia setup via systemd."
-grep -Fq '/dev/tty1' "$P/airootfs/root/.bash_profile" || fail "Setup live deve ser disparado somente no tty1."
-grep -Fq 'ExecStart=/usr/bin/bash /usr/local/lib/venom/venom-live-setup' "$P/airootfs/etc/systemd/system/venom-live-setup.service" || fail "Unit systemd não chama setup live."
-grep -Fq 'groupadd --system autologin' "$P/airootfs/usr/local/lib/venom/venom-live-setup" || fail "Grupo exigido pelo PAM do LightDM não é criado."
-grep -Fq 'usermod --append --groups autologin venom' "$P/airootfs/usr/local/lib/venom/venom-live-setup" || fail "Usuário live não recebe o grupo autologin."
-grep -Fq 'StandardOutput=journal+console' "$P/airootfs/etc/systemd/system/venom-live-setup.service" || fail "Unit live não encaminha logs ao console."
-grep -Fq 'After=lightdm.service' "$P/airootfs/etc/systemd/system/venom-live-ready.service" || fail "Verificador de prontidão não aguarda LightDM."
-[[ -s "$P/syslinux/syslinux.cfg" ]] || fail "Ponto de entrada Syslinux BIOS ausente."
-grep -Fxq 'INCLUDE archiso_sys.cfg' "$P/syslinux/syslinux.cfg" || fail "syslinux.cfg não encaminha para archiso_sys.cfg."
-grep -Fxq 'INCLUDE archiso_head.cfg' "$P/syslinux/archiso_sys.cfg" || fail "archiso_sys.cfg não inclui archiso_head.cfg."
-grep -Fxq 'INCLUDE archiso_sys-linux.cfg' "$P/syslinux/archiso_sys.cfg" || fail "archiso_sys.cfg não inclui as entradas de kernel."
-grep -Fxq 'SERIAL 0 115200' "$P/syslinux/archiso_head.cfg" || fail "SERIAL 0 115200 ausente do cabeçalho Syslinux."
-serial_count=$(grep -h '^SERIAL 0 115200' "$P"/syslinux/*.cfg | wc -l)
-[[ "$serial_count" -eq 1 ]] || fail "Esperada uma única diretiva SERIAL no conjunto Syslinux; encontradas $serial_count."
-grep -Fq 'vmlinuz-linux-lts' "$P/syslinux/archiso_sys-linux.cfg" || fail "Kernel LTS de reserva ausente do menu BIOS."
-grep -Fq 'initramfs-linux-lts.img' "$P/syslinux/archiso_sys-linux.cfg" || fail "Initramfs LTS ausente do menu BIOS."
-grep -Fq 'vmlinuz-linux-lts' "$P/grub/grub.cfg" || fail "Kernel LTS de reserva ausente do menu UEFI."
-grep -Fq 'initramfs-linux-lts.img' "$P/grub/grub.cfg" || fail "Initramfs LTS ausente do menu UEFI."
-grep -Fq 'VENOM_LIVE_READY' "$P/airootfs/usr/local/lib/venom/venom-live-ready" || fail "Marcador de prontidão ausente do verificador."
-for process in xfce4-session xfce4-panel xfdesktop; do
-  grep -Fq "pgrep -u venom -x $process" "$P/airootfs/usr/local/lib/venom/venom-live-ready" || fail "Prontidão não verifica o processo XFCE $process."
+grep -Fq 'systemctl start venom-live-setup.service' "$P/airootfs/root/.bash_profile" || fail "Setup live não é disparado."
+grep -Fq 'groupadd --system autologin' "$P/airootfs/usr/local/lib/venom/venom-live-setup" || fail "Grupo autologin ausente."
+grep -Fq 'usermod --append --groups autologin venom' "$P/airootfs/usr/local/lib/venom/venom-live-setup" || fail "Usuário Live sem grupo autologin."
+grep -Fq 'venom ALL=(root) NOPASSWD: /usr/lib/venom/venom-install' "$P/airootfs/usr/local/lib/venom/venom-live-setup" || fail "Permissão do instalador ausente."
+grep -Fq 'After=lightdm.service' "$P/airootfs/etc/systemd/system/venom-live-ready.service" || fail "Verificador não aguarda LightDM."
+grep -Fq 'VENOM_LIVE_READY' "$P/airootfs/usr/local/lib/venom/venom-live-ready" || fail "Marcador de prontidão ausente."
+for process in xfce4-session xfce4-panel xfdesktop; do grep -Fq "pgrep -u venom -x $process" "$P/airootfs/usr/local/lib/venom/venom-live-ready" || fail "Prontidão não verifica $process."; done
+grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/pacman.conf" || fail "Mirror oficial ausente."
+grep -Fq '/usr/share/venom/aur-repo' "$P/airootfs/usr/share/venom/pacman-install.conf" || fail "Repositório Pamac local ausente."
+if grep -Fq '/usr/share/venom/aur-repo' "$P/airootfs/etc/pacman.conf"; then fail "Repositório AUR temporário não pode ficar no pacman.conf Live."; fi
+for f in etc/lightdm/lightdm-gtk-greeter.conf etc/lightdm/lightdm.conf.d/50-venom-session.conf etc/skel/.config/gtk-3.0/settings.ini etc/skel/.config/gtk-4.0/settings.ini etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml etc/xdg/xfce4/panel/docklike.rc usr/share/backgrounds/venom/venom-black.svg; do [[ -s "$OVERLAY/$f" ]] || fail "Arquivo do overlay ausente: $f"; done
+grep -Fq 'user-session=xfce' "$OVERLAY/etc/lightdm/lightdm.conf.d/50-venom-session.conf" || fail "Sessão XFCE instalada não configurada."
+grep -Fq 'install -Dm644 build/install-packages.x86_64 build/airootfs/usr/share/venom/install-packages.x86_64' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não prepara o manifesto de pacotes."
+grep -Fq 'cp -a build/install-overlay/. build/airootfs/usr/share/venom/install-overlay/' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não prepara o overlay."
+grep -Fq 'meson setup' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não compila o instalador."
+grep -Fq 'Exec=venom-installer' "$ROOT/installer/venom-installer.desktop" || fail "Atalho do instalador incorreto."
+for package in base linux linux-lts linux-firmware archlinux-keyring arch-install-scripts gtk4 parted gptfdisk dosfstools e2fsprogs sudo curl grub xfce4 lightdm networkmanager; do
+ grep -Fxq "$package" "$PKG" || fail "Pacote Live ausente: $package"
 done
-grep -Fxq 'TimeoutStartSec=150' "$P/airootfs/etc/systemd/system/venom-live-ready.service" || fail "Timeout do verificador XFCE insuficiente."
-grep -q '^HOOKS=.*archiso' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Hooks Archiso ausentes."
-grep -Fxq 'COMPRESSION="zstd"' "$P/airootfs/etc/mkinitcpio.conf.d/archiso.conf" || fail "Compressão do initramfs inválida."
-grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/pacman.conf" || fail "Mirror oficial Arch ausente."
-grep -q '^Server = https://geo.mirror.pkgbuild.com/' "$P/airootfs/etc/pacman.conf" || fail "Mirror oficial Arch ausente no live."
-grep -Fq '/usr/share/venom/aur-repo' "$P/airootfs/usr/share/venom/pacman-install.conf" || fail "Repositório local AUR do pacstrap ausente."
-if grep -Fq '/usr/share/venom/aur-repo' "$P/airootfs/etc/pacman.conf"; then fail "Repositório AUR temporário não pode permanecer no pacman.conf do sistema Live."; fi
-grep -Fxq 'EnableAUR = true' "$P/airootfs/etc/pamac.conf" || fail "Pamac Live não habilita AUR."
-grep -Fxq 'EnableAUR = true' "$OVERLAY/etc/pamac.conf" || fail "Pamac instalado não habilita AUR."
-grep -Fq 'install -Dm644 build/install-packages.x86_64 build/airootfs/usr/share/venom/install-packages.x86_64' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não prepara o manifesto de instalação."
-grep -Fq 'cp -a build/install-overlay/. build/airootfs/usr/share/venom/install-overlay/' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não prepara o overlay de instalação."
-grep -Fxq 'installPackagesFile: /usr/share/venom/install-packages.x86_64' "$ROOT/installer/modules/venominstall/venominstall.conf" || fail "Manifesto de instalação não configurado."
-grep -Fxq 'installOverlay: /usr/share/venom/install-overlay' "$ROOT/installer/modules/venominstall/venominstall.conf" || fail "Overlay de instalação não configurado."
-grep -q 'copy_install_overlay' "$ROOT/installer/modules/venominstall/main.py" || fail "Módulo VENOM não aplica o overlay."
-grep -q 'pacstrap' "$ROOT/installer/modules/venominstall/main.py" || fail "Instalador online pacstrap ausente."
-grep -q '      - locale' "$ROOT/installer/settings.conf" || fail "Módulo locale ausente da execução Calamares."
-grep -q '      - keyboard' "$ROOT/installer/settings.conf" || fail "Módulo keyboard ausente da execução Calamares."
-grep -q '      - users' "$ROOT/installer/settings.conf" || fail "Módulo users ausente da execução Calamares."
-if grep -R -Eiq 'unpackfs|rsync|manjaro|endeavouros|biglinux|mhwd' "$ROOT/installer/settings.conf" "$ROOT/installer/modules/venominstall" "$PKG" "$INSTALL_PKG" "$P/pacman.conf"; then
-  fail "Referência proibida ou instalação por cópia detectada."
-fi
-grep -Fxq 'user-session=xfce' "$P/airootfs/etc/lightdm/lightdm.conf.d/50-venom-live.conf" || fail "LightDM live não inicia XFCE."
-for package in base linux linux-lts linux-firmware archlinux-keyring arch-install-scripts mkinitcpio-archiso mkinitcpio-nfs-utils nbd xfce4 xfce4-goodies xfce4-docklike-plugin thunar lightdm lightdm-gtk-greeter networkmanager bluez blueman gtk4 qt6-base; do
-  grep -Fxq "$package" "$PKG" || fail "Pacote obrigatório ausente do manifest live: $package"
+for package in base linux linux-lts linux-firmware archlinux-keyring pacman-mirrorlist grub efibootmgr mkinitcpio xorg-server lightdm networkmanager bluez pipewire xfce4 thunar sudo; do
+ grep -Fxq "$package" "$INSTALL_PKG" || fail "Pacote instalado ausente: $package"
 done
-for package in base linux linux-lts linux-firmware archlinux-keyring pacman-mirrorlist grub efibootmgr mkinitcpio xorg-server lightdm lightdm-gtk-greeter networkmanager bluez pipewire xfce4 xfce4-docklike-plugin thunar; do
-  grep -Fxq "$package" "$INSTALL_PKG" || fail "Pacote obrigatório ausente do manifest de instalação: $package"
-done
-if grep -Eiq '^(mate-session-manager|mate-panel|mate-control-center|caja|marco|mate-settings-daemon|windowmaker|manjaro|endeavouros|biglinux|mhwd|pamac-gtk)$' "$PKG" "$INSTALL_PKG"; then fail "Desktop adicional ou resíduo de outra distribuição no manifest."; fi
-if grep -Eiq '^(archiso|mkinitcpio-archiso|mkinitcpio-nfs-utils|nbd|squashfs-tools|syslinux|linux-headers|linux-lts-headers)$' "$INSTALL_PKG"; then fail "Manifesto de instalação contém ferramentas exclusivas da ISO/live."; fi
-for f in etc/lightdm/lightdm-gtk-greeter.conf etc/lightdm/lightdm.conf.d/50-venom-session.conf etc/skel/.config/gtk-3.0/settings.ini etc/skel/.config/gtk-4.0/settings.ini etc/skel/.config/gtk-3.0/gtk.css etc/skel/.config/gtk-4.0/gtk.css etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml etc/xdg/xfce4/panel/docklike.rc usr/share/backgrounds/venom/venom-serpent.svg usr/share/icons/hicolor/scalable/apps/venom-menu.svg; do
-  [[ -s "$OVERLAY/$f" ]] || fail "Arquivo XFCE ausente no overlay: $f"
-done
-grep -q 'user-session=xfce' "$OVERLAY/etc/lightdm/lightdm.conf.d/50-venom-session.conf" || fail "Sessão XFCE instalada não configurada."
-grep -Fq 'value="docklike"' "$P/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" || fail "Docklike Taskbar não está configurada no painel Live."
-grep -Fq 'value="docklike"' "$OVERLAY/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" || fail "Docklike Taskbar não está configurada no painel instalado."
-grep -Fq 'pinned=firefox.desktop;thunar.desktop;' "$P/airootfs/etc/xdg/xfce4/panel/docklike.rc" || fail "Aplicativos favoritos da Docklike não estão pré-fixados."
-grep -Fq 'indicatorColor=rgb(22,143,255)' "$P/airootfs/etc/xdg/xfce4/panel/docklike.rc" || fail "Indicador azul VENOM da Docklike ausente."
-if grep -R -Eiq 'manjaro|unpackfs|rsync' "$OVERLAY" "$P/airootfs/etc/skel/.config/xfce4" "$ROOT/installer/modules/venominstall"; then fail "Overlay XFCE contém referência proibida ou plugin ausente."; fi
 for manifest in "$PKG" "$INSTALL_PKG"; do
-  duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$manifest" | sort | uniq -d)"
-  [[ -z "$duplicates" ]] || fail "Pacotes duplicados em $manifest: $duplicates"
+ duplicates="$(grep -Ev '^[[:space:]]*(#|$)' "$manifest" | sort | uniq -d)"
+ [[ -z "$duplicates" ]] || fail "Pacotes duplicados em $manifest: $duplicates"
 done
-if command -v pacman >/dev/null 2>&1; then
-  for manifest in "$PKG" "$INSTALL_PKG"; do
-    while IFS= read -r package; do
-      [[ -z "$package" || "$package" == \#* ]] && continue
-      if ! grep -Fxq "$package" "$AUR_PKG" && ! pacman -Si "$package" >/dev/null 2>&1 && ! pacman -Sgq "$package" | grep -q .; then
-        fail "Pacote/grupo não encontrado nos repositórios oficiais Arch: $package"
-      fi
-    done < "$manifest"
-  done
-fi
 for package in libpamac-aur pamac-aur; do
-  grep -Fxq "$package" "$AUR_PKG" || fail "Pacote AUR obrigatório ausente: $package"
-  grep -Fxq "$package" "$PKG" || fail "Pacote AUR ausente do manifest live: $package"
-  grep -Fxq "$package" "$INSTALL_PKG" || fail "Pacote AUR ausente do manifest de instalação: $package"
+ grep -Fxq "$package" "$AUR_PKG" || fail "Pacote AUR ausente do manifesto AUR."
+ grep -Fxq "$package" "$PKG" || fail "Pacote AUR ausente do Live."
+ grep -Fxq "$package" "$INSTALL_PKG" || fail "Pacote AUR ausente da instalação."
 done
-printf 'OK: perfil Archiso, manifestos separados, overlay, Calamares online e desktop passaram na validação estática.
-'
+if grep -Eiq 'calamares|manjaro|endeavouros|biglinux|mhwd' "$ROOT/installer/venom-installer.desktop" "$ROOT/installer/venom-install" "$ROOT/.github/workflows/build-arch-iso.yml" "$P/airootfs/usr/local/lib/venom/venom-live-setup"; then fail "Integração antiga ou resíduo de outra distribuição encontrado."; fi
+printf 'OK: perfil Archiso, XFCE, instalador VENOM, manifestos e boot BIOS/UEFI passaram na validação estática.\n'

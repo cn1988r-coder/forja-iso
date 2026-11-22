@@ -1,25 +1,23 @@
 # Instalador VENOM OS
 
-## Estado: protótipo de interface, não instalador funcional
+## Estado
 
-A primeira estrutura GTK4 foi iniciada em C. Ela apresenta:
-- janela gráfica em Português do Brasil;
-- enumeração informativa de discos por `lsblk`;
-- seleção visual de disco;
-- escolha entre modo automático e personalizado;
-- aviso sobre operações destrutivas.
+Instalador gráfico GTK4 simples para a edição VENOM OS XFCE baseada no Arch Linux.
 
-## Bloqueios deliberados
+## Fluxo
 
-O botão de instalação permanece sem operações de escrita. Não há backend de particionamento, formatação, cópia offline do sistema, criação de usuário, configuração de bootloader ou recuperação transacional. Nenhum disco pode ser alterado por esta versão.
+1. Selecionar o disco de destino.
+2. Informar nome completo, usuário e senha.
+3. Confirmar que o disco selecionado será apagado.
+4. O instalador cria as partições automaticamente, instala os pacotes do manifesto Arch, aplica o overlay VENOM, configura usuário, idioma, teclado, rede, LightDM e GRUB.
 
-## Próximas etapas obrigatórias
+O instalador exige conexão com a internet e um disco de pelo menos 20 GB. Funciona com inicialização UEFI e BIOS. O pendrive da sessão Live é protegido por uma verificação adicional e não pode ser selecionado como destino.
 
-1. Implementar backend privilegiado separado, com validação estrita dos dispositivos e argumentos.
-2. Definir e testar particionamento UEFI/BIOS e instalação automática/personalizada usando somente discos virtuais descartáveis.
-3. Implementar cópia offline do sistema da mídia para o destino, configuração de fstab, locale, ABNT2, MATE, LightDM, rede e GRUB.
-4. Adicionar progresso baseado em etapas reais, logs persistentes e tratamento de falhas.
-5. Criar testes unitários e de integração com mocks e loop devices/VM descartável.
-6. Integrar o aplicativo à sessão live e validar em VM antes de habilitar qualquer ação destrutiva.
+## Segurança e limitações
 
-Não habilitar instalação real nem declarar o instalador pronto antes de concluir e testar todas as etapas.
+- A operação destrutiva só começa depois da confirmação explícita do disco.
+- O backend valida que o destino é um disco inteiro e recusa o dispositivo de boot Live.
+- A senha é passada por arquivo temporário com permissão restrita, removido assim que é lido.
+- O log da instalação fica em `/var/log/venom-installer.log`.
+- O backend usa pacstrap e os manifestos de pacotes/configuração da própria ISO; não copia a raiz Live.
+- Ainda é necessário executar testes de instalação em discos virtuais descartáveis, nos modos BIOS e UEFI, antes de considerar o instalador validado para uso geral.
