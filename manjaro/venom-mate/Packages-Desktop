@@ -1,44 +1,11 @@
-## Base Manjaro
-base
-bash-completion
-ca-certificates
-curl
-git
-less
-man-db
-man-pages
-nano
-sudo
-which
-
-## Kernel and storage
-linux
-linux-firmware
-linux-headers
-efibootmgr
-grub
-mkinitcpio
-cryptsetup
-device-mapper
-dosfstools
-e2fsprogs
-exfatprogs
-f2fs-tools
-lvm2
-mtools
-ntfs-3g
-os-prober
-xfsprogs
-
-## Network and Bluetooth
-networkmanager
+## Rede e Bluetooth
 network-manager-applet
 bluez
 bluez-utils
 blueman
 openssh
 
-## Manjaro audio stack
+## Áudio Manjaro / PipeWire
 alsa-firmware
 alsa-utils
 manjaro-alsa
@@ -46,7 +13,7 @@ manjaro-pipewire
 pavucontrol
 rtkit
 
-## MATE desktop
+## Ambiente MATE
 mate-session-manager
 mate-panel
 mate-control-center
@@ -70,7 +37,7 @@ eom
 engrampa
 pluma
 
-## Xorg and LightDM
+## Xorg, LightDM e aceleração
 xorg-server
 xorg-xinit
 xorg-xrandr
@@ -85,7 +52,7 @@ lightdm-gtk-greeter-settings
 accountsservice
 polkit
 
-## Theme and utilities
+## Aparência VENOM
 materia-gtk-theme
 papirus-icon-theme
 dconf
@@ -94,6 +61,8 @@ gsettings-desktop-schemas
 ttf-dejavu
 noto-fonts
 noto-fonts-emoji
+
+## Aplicativos Manjaro e utilitários
 firefox
 pamac-gtk
 manjaro-hello
