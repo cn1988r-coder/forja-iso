@@ -29,18 +29,19 @@ Usar a extensão Dash to Dock como referência funcional, sem instalar GNOME She
 Fixar no dock e disponibilizar no menu:
 1. Firefox.
 2. Ferdium.
-3. Shelly: loja gráfica de aplicativos indicada pelo usuário para a VENOM OS, associada ao ecossistema Arch Linux.
+3. Pamac: gerenciador e loja gráfica de aplicativos da VENOM OS.
 4. Pamac.
 
-Firefox já aparece nos manifestos atuais. Ferdium e Shelly ainda não estão confirmados nos manifestos. Pamac/libpamac já aparecem como pacotes AUR nos manifestos atuais. Antes de adicionar Shelly, confirmar o projeto/repositório correto, origem do pacote, manutenção e compatibilidade com Arch Linux.
+Firefox já aparece nos manifestos atuais. Ferdium ainda não está confirmado nos manifestos. Pamac/libpamac já aparecem como pacotes AUR nos manifestos atuais. Antes de adicionar Shelly, confirmar o projeto/repositório correto, origem do pacote, manutenção e compatibilidade com Arch Linux.
 
-## Função da Shelly e do Pamac
+## Função do Pamac
 
-- **Pamac** será o gerenciador principal de pacotes/atualizações e deverá iniciar com a sessão XFCE, com seu indicador de bandeja habilitado para avisar sobre atualizações disponíveis. Confirmar o nome do executável, opção de autostart e suporte real ao indicador no pacote Arch/AUR escolhido.
-- **Shelly** será a loja gráfica para pesquisa e instalação de aplicativos sob demanda. Não precisa iniciar automaticamente com o sistema nem manter processo em segundo plano.
-- Os dois devem aparecer no menu e ter lançadores acessíveis no desktop/dock conforme os arquivos .desktop reais.
-- Evitar dois mecanismos de notificação concorrentes: Pamac sinaliza atualizações; Shelly permanece como interface de loja.
-- Se o indicador do Pamac depender de applet/daemon ou configuração adicional, incluí-los e validá-los no XFCE antes de considerar a tarefa concluída.
+- **Pamac será a única loja/gerenciador gráfico de aplicativos incluído na VENOM OS Exclusive.**
+- Não incluir Shelly nesta edição, para evitar duplicação de ferramentas e consumo desnecessário de recursos.
+- Pamac deverá iniciar com a sessão XFCE e exibir seu indicador de bandeja para avisar sobre atualizações disponíveis.
+- Confirmar o nome do executável, a opção de autostart e o suporte real ao indicador no pacote Arch/AUR escolhido.
+- Pamac deve aparecer no menu e ter lançador acessível no dock conforme o arquivo .desktop real.
+- Validar o indicador e as notificações em uma sessão XFCE real antes de considerar a tarefa concluída.
 
 ## Critérios técnicos antes de implementar
 
