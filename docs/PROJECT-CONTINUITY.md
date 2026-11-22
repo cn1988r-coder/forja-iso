@@ -1,45 +1,43 @@
-# Continuidade técnica VENOM OS
+# Continuidade técnica oficial: VENOM OS
 
-## Correção de arquitetura: repositórios de pacotes
+## Regra principal do projeto
 
-A VENOM OS utiliza exclusivamente os repositórios oficiais do Arch Linux. Não existe repositório de pacotes VENOM, banco `venom.db`, espelho local ou bundle de pacotes na ISO.
+A VENOM OS possui **um único instalador oficial**: o aplicativo próprio em C + ncurses, em modo texto (TUI), localizado em `installer/src/`.
 
-- `build/pacman.conf` e `build/airootfs/etc/pacman.conf` apontam para o mirror oficial `geo.mirror.pkgbuild.com`.
-- O instalador sincroniza os bancos oficiais com `pacman -Sy` antes de qualquer operação destrutiva.
-- O backend usa `pacstrap -C /etc/pacman.conf -K` e instala os manifestos XFCE/MATE diretamente dos repositórios oficiais.
-- A ISO contém apenas os manifestos e os arquivos do instalador/configuração, não um repositório de pacotes.
-- A instalação exige internet funcional. Sem conexão, o instalador deve parar antes de particionar/apagar o disco.
-- Não usar `repo-add`, `pacman -Sw` nem `file:///usr/share/venom`.
+- O pendrive inicia diretamente o instalador na tty1.
+- Não existe sessão Live nem desktop de demonstração.
+- Não criar, integrar ou manter um segundo frontend/instalador.
+- As únicas edições oferecidas são VENOM OS XFCE e VENOM OS MATE.
+- O fluxo de instalação seleciona o disco, cria a conta, apresenta a revisão e exige a confirmação literal `APAGAR` antes de apagar o disco inteiro.
 
-## Edições
+## Inicialização da mídia
 
-Duas edições completas: VENOM OS XFCE e VENOM OS MATE. A tela de escolha mantém a ilustração da serpente. O instalador é TUI ncurses e inicia diretamente na tty, sem desktop Live.
+- Perfil Archiso: `build/`.
+- BIOS: Syslinux.
+- UEFI: GRUB.
+- O perfil configura a inicialização direta do TUI na tty1.
+- A configuração BIOS deve conter `/syslinux/isolinux.cfg`, selecionar `DEFAULT venom` e incluir `archiso_sys-linux.cfg`.
+- O script de build agora extrai e valida `isolinux.cfg` de dentro da ISO antes de publicar o artefato. Se o arquivo estiver ausente ou apontar para outra entrada, a compilação falha.
 
-## Validação pendente
+## Instalação e edições
 
-A alteração do caminho de instalação ainda precisa passar pelo CI. Depois disso, é necessário testar instalação completa em VMs descartáveis BIOS e UEFI, incluindo falha de rede antes da confirmação destrutiva, instalação dos dois desktops e primeiro login. Nenhuma ISO foi gerada nesta alteração.
+A mídia inclui o bundle local de pacotes e dependências para XFCE e MATE. O backend em `build/airootfs/usr/lib/venom/install-system` aplica o plano, configura Btrfs, usuário, locale brasileiro, LightDM, initramfs e GRUB. A lista de aplicativos é a mesma nas duas edições, exceto os pacotes necessários ao ambiente desktop.
 
-## Correções de segurança e configuração regional (2026-11-22)
+## Validação automatizada
 
-- A TUI não oferece mais seleções de idioma/teclado: fixa pt_BR.UTF-8 e br-abnt2.
-- O backend rejeita parâmetros de idioma e teclado diferentes dos valores brasileiros e aplica America/Sao_Paulo.
-- A sincronização dos bancos oficiais do Arch foi movida para antes de wipefs/particionamento, reduzindo o risco de apagar o disco quando os repositórios já estão indisponíveis.
-- Comandos arch-chroot que estavam unidos por sequências literais \\n foram separados em linhas/comandos independentes.
-- A habilitação do NetworkManager usa explicitamente NetworkManager.service.
-- O teste do painel MATE agora consulta os manifestos reais install-packages-xfce.x86_64 e install-packages-mate.x86_64, em vez de um manifesto inexistente.
-- Foi adicionado scripts/test-installer-static.sh e ele é chamado pelo validador.
+O workflow `.github/workflows/build-arch-iso.yml`:
+1. Compila o TUI com Meson.
+2. Executa os testes unitários.
+3. Valida os scripts, o perfil e as configurações XFCE/MATE.
+4. Prepara e valida o bundle de pacotes offline.
+5. Gera a ISO com Archiso.
+6. Verifica a configuração Syslinux dentro da ISO.
+7. Publica a ISO e o checksum como artefatos.
 
-**Limitação ainda aberta:** esta correção não transforma a instalação atual em offline. O backend ainda usa pacstrap e depende de rede para instalar os pacotes. O requisito de mídia com pacotes incluídos, incluindo Pamac/Ferdium empacotados, continua pendente. Não declarar ISO final nem instalação offline concluída até implementar e testar essa etapa.
+O validador também impede que o workflow volte a instalar dependências de outro frontend.
 
-## Revisao de inicializacao e seguranca (2026-11-22)
+## Estado conhecido em 22/11/2026
 
-- A TUI ncurses agora envia stdout e stderr para a tty1; antes, ambos eram enviados ao journal e a interface poderia nao aparecer no terminal.
-- As entradas GRUB (UEFI) e Syslinux (BIOS) identificam explicitamente o instalador, nao uma sessao Live.
-- A particao EFI agora e montada em /boot/efi, em alinhamento com o plano de particoes e com o comando grub-install.
-- Foram removidos hooks PXE NBD/NFS/HTTP, pois esta imagem e destinada a inicializacao local por USB.
-- O menu informa que a instalacao atual usa os repositorios oficiais pela internet. Nao afirmar que a instalacao offline esta pronta.
-- O backend resolve os pacotes dos manifestos com pacman -Sp antes de qualquer wipefs ou particionamento. Se um pacote nao puder ser resolvido, a operacao deve parar com o disco intacto.
-- O tema de ícones foi padronizado em Papirus Dark, fornecido pelo pacote oficial `papirus-icon-theme` do repositório Extra do Arch Linux. Os manifests e as configurações XFCE/MATE devem permanecer alinhados.
-- dconf foi incluido no manifesto XFCE, pois o backend executa dconf update nas duas edicoes. Os manifestos duplicados usados pela validacao foram sincronizados.
+A compilação anterior gerou `venom-2026.11.22-x86_64.iso`, mas a foto enviada pelo usuário mostrou o ISOLINUX parado em `WARNING: No configuration file found` e no prompt `boot:`. Portanto, o boot BIOS dessa imagem ainda não está comprovado e essa ISO não deve ser declarada pronta para uso.
 
-**Ainda nao comprovado:** compilacao C, testes Meson, validacao completa do perfil, build da ISO, boot UEFI por USB no Dell, boot BIOS em VM e instalacao completa de XFCE/MATE. O estado atual nao autoriza declarar a ISO pronta.
+As alterações seguintes corrigem a documentação contraditória, removem as dependências gráficas desnecessárias do workflow e adicionam uma verificação obrigatória do arquivo `isolinux.cfg` na ISO. Ainda é necessário concluir o workflow atualizado e confirmar o boot BIOS/UEFI e a instalação em VM antes de entregar a imagem como final.
