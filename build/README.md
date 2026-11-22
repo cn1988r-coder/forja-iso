@@ -6,13 +6,13 @@ O conteúdo antigo de `build/` é legado Archiso e não pode construir a VENOM M
 
 Calamares deve vir da lista compartilhada oficial Manjaro `shared/Packages-Live`. A versão é resolvida pelo repositório Manjaro selecionado. Não baixar nem compilar Calamares upstream.
 
-## Ordem obrigatória
-1. Preparar o perfil na árvore oficial Manjaro.
-2. Validar estrutura, symlinks e listas de pacotes.
-3. Executar `buildiso -p venom-mate -x` em ambiente Manjaro para resolver/instalar pacotes sem gerar ISO.
-4. Inspecionar a configuração Calamares gerada.
-5. Testar MATE e indicadores em VM.
-6. Testar instalação e primeiro boot em VM UEFI e BIOS.
-7. Só então, com autorização expressa, gerar a ISO.
+## Validação e compilação
 
-Validação estática não substitui resolução de pacotes, boot ou instalação.
+- `scripts/prepare-manjaro-profile.sh`: sincroniza os overlays VENOM para a sessão live e o sistema instalado.
+- `scripts/validate-manjaro-profile.sh`: valida estrutura e arquivos localmente.
+- `scripts/validate-manjaro-build.sh`: em ambiente Manjaro, executa `buildiso -x` para resolver/instalar pacotes sem gerar ISO.
+- `scripts/build-manjaro-iso.sh`: só permite a geração completa com `VENOM_ISO_APPROVED=YES`.
+
+Ordem obrigatória: validação estrutural, resolução real de pacotes, inspeção do Calamares gerado, testes gráficos e instalação em VM UEFI/BIOS. Só depois de tudo aprovado e com autorização expressa pode ser gerada a ISO.
+
+A validação estática não substitui resolução de pacotes, boot ou instalação.

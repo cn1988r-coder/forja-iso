@@ -27,6 +27,6 @@ jobs:
           sudo apt-get install -y shellcheck python3
       - name: Preparar overlays e validar
         run: |
-          shellcheck -S error scripts/prepare-manjaro-profile.sh scripts/validate-manjaro-profile.sh
+          shellcheck -S error scripts/prepare-manjaro-profile.sh scripts/validate-manjaro-profile.sh scripts/validate-manjaro-build.sh scripts/build-manjaro-iso.sh
           scripts/prepare-manjaro-profile.sh
           scripts/validate-manjaro-profile.sh
