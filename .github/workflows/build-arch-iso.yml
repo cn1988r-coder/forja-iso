@@ -15,6 +15,11 @@ on:
 permissions:
   contents: read
 
+# Mantém apenas a compilação mais recente desta branch.
+concurrency:
+  group: venom-iso-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-iso:
     name: Preparar pacotes offline e compilar ISO
