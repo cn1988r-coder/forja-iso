@@ -21,7 +21,7 @@ for pkg in "${AUR_FILES[@]}"; do
   name="$(pacman -Qp --print-format '%n' "$pkg")"
   FOUND["$name"]=1
 done
-for required in libpamac-aur pamac-aur ferdium-bin; do
+for required in archlinux-appstream-data-pamac libpamac-aur pamac-aur ferdium-bin; do
   [[ -n "${FOUND[$required]:-}" ]] || {
     echo "Pacote AUR obrigatório ausente: $required. Compile-o e coloque o arquivo em $AUR_DIR." >&2
     exit 1
