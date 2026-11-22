@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=VENOM desktop configuration
+Comment=Configura o painel exclusivo VENOM
+Exec=/usr/local/bin/venom-panel-setup
+OnlyShowIn=MATE;
+X-GNOME-Autostart-enabled=true

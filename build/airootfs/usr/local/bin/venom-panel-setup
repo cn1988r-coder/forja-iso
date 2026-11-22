@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+command -v gsettings >/dev/null || exit 0
+
+# Identidade escura VENOM. Não importar nem restaurar o layout tradicional do MATE.
+gsettings set org.mate.interface gtk-theme 'Adwaita-dark' || true
+gsettings set org.mate.interface icon-theme 'Papirus-Dark' || true
+gsettings set org.mate.interface cursor-theme 'Bibata-Modern-Ice' || true
+gsettings set org.mate.Marco.general theme 'Adwaita-dark' || true
+gsettings set org.mate.background picture-options 'zoom' || true
+gsettings set org.mate.background primary-color '#05080d' || true
+gsettings set org.mate.background color-shading-type 'solid' || true
+
+# Layout de painel único: lançador V, tarefas agrupadas, bandeja, relógio.
+# gsettings/dconf é aplicado ao usuário da sessão, inclusive no Live e no sistema instalado.
+if command -v dconf >/dev/null; then
+dconf load /org/mate/panel/ <<'EOF'
+[general]
+toplevel-id-list=['venom-bottom']
+object-id-list=['venom-launcher','venom-window-list','venom-tray','venom-clock']
+[profiles/default]
+toplevel-id-list=['venom-bottom']
+object-id-list=['venom-launcher','venom-window-list','venom-tray','venom-clock']
+[toplevels/venom-bottom]
+orientation='bottom'
+expand=true
+size=48
+auto-hide=false
+enable-animations=true
+background-type='color'
+background-color='#080d15'
+background-opacity=96
+[objects/venom-launcher]
+object-type='launcher'
+toplevel-id='venom-bottom'
+position=0
+launcher-location='/usr/share/applications/venom-menu.desktop'
+[objects/venom-window-list]
+object-type='applet'
+applet-iid='WnckletFactory::WindowListApplet'
+toplevel-id='venom-bottom'
+position=1
+[objects/venom-tray]
+object-type='applet'
+applet-iid='NotificationAreaAppletFactory::NotificationArea'
+toplevel-id='venom-bottom'
+position=2
+[objects/venom-clock]
+object-type='applet'
+applet-iid='ClockAppletFactory::ClockApplet'
+toplevel-id='venom-bottom'
+position=3
+EOF
+fi

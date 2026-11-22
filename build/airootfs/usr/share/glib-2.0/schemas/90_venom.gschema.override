@@ -1,0 +1,4 @@
+[org.mate.interface]
+gtk-theme='Adwaita-dark'
+icon-theme='Papirus-Dark'
+cursor-theme='Bibata-Modern-Ice'

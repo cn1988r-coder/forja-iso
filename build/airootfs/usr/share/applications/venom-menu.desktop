@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Menu VENOM
+Comment=Central de aplicativos VENOM OS
+Exec=/usr/local/bin/venom-menu
+Icon=venom-symbol
+Terminal=false
+Categories=System;
