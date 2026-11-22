@@ -8,6 +8,7 @@ project(
 gtk4_dep = dependency('gtk4', version: '>=4.12')
 json_glib_dep = dependency('json-glib-1.0')
 gio_dep = dependency('gio-2.0')
+ncurses_dep = dependency('ncursesw')
 
 installer_sources = files('src/main.c', 'src/disk.c', 'src/plan.c')
 
@@ -35,4 +36,12 @@ test('validação de planos de partição sem escrita', plan_test)
 install_data(
   'venom-installer.desktop',
   install_dir: get_option('datadir') / 'applications'
+)
+
+# Instalador em modo texto para inicializacao direta no console.
+tui_executable = executable(
+  'venom-installer-tui',
+  files('src/tui.c', 'src/disk.c', 'src/plan.c'),
+  dependencies: [ncurses_dep, json_glib_dep, gio_dep],
+  install: true
 )
