@@ -1,78 +1,50 @@
-# Preparação da instalação offline da VENOM OS
+# Construção da ISO e instalação offline
 
-A mídia contém um repositório local com os pacotes e dependências das duas edições. Durante a instalação, o instalador usa exclusivamente esse repositório dentro da ISO. Depois do primeiro boot, o sistema instalado volta a usar os repositórios oficiais do Arch Linux.
+A VENOM OS é construída usando Archiso. O GitHub hospeda apenas o código-fonte e executa a construção. Não existe repositório de pacotes VENOM para atualizações do sistema instalado.
 
-## 1. Preparar os pacotes AUR
+## 1. Pacotes AUR necessários à ISO
 
-Em um ambiente Arch Linux conectado à internet, instale as ferramentas de compilação. Antes de executar cada `makepkg`, confira o `PKGBUILD` e os arquivos auxiliares do AUR:
+O processo de construção compila os pacotes AUR necessários e reúne seus arquivos de pacote para a instalação offline. Antes de usar qualquer PKGBUILD, revise seu conteúdo e os arquivos auxiliares.
 
-```bash
-sudo pacman -S --needed base-devel git
-mkdir -p "$HOME/venom-aur-packages"
-```
+Pacotes AUR usados atualmente:
+- `libpamac-aur`
+- `pamac-aur`
+- `ferdium-bin`
 
-Compile os quatro pacotes AUR na ordem abaixo. Execute `makepkg` como usuário comum, nunca como root. O `-si` instala o pacote compilado e as dependências oficiais necessárias para compilar o próximo.
+As dependências oficiais de compilação e execução devem vir dos repositórios oficiais do Arch Linux. O workflow instala as dependências gráficas oficiais de Pamac, compila `libpamac-aur`, instala esse pacote no ambiente descartável de construção para que o Pacman resolva a dependência de `pamac-aur`, e então constrói os demais pacotes.
 
-```bash
-cd /tmp
-git clone https://aur.archlinux.org/archlinux-appstream-data-pamac.git
-cd archlinux-appstream-data-pamac
-makepkg -si
-cp -v *.pkg.tar.zst "$HOME/venom-aur-packages/"
+O pacote AUR antigo `archlinux-appstream-data-pamac` não deve ser usado.
 
-cd /tmp
-git clone https://aur.archlinux.org/libpamac-aur.git
-cd libpamac-aur
-makepkg -si
-cp -v *.pkg.tar.zst "$HOME/venom-aur-packages/"
-```
+## 2. Conjunto temporário para instalação offline
+
+O script `scripts/prepare-offline-repo.sh` baixa dos repositórios oficiais Arch Linux os pacotes e dependências necessários às edições XFCE e MATE e inclui os pacotes AUR compilados.
+
+O resultado em `build/offline-repo/` é um conjunto temporário de pacotes e índice local, incorporado à ISO exclusivamente para a instalação sem internet. Seu identificador é `iso-offline`. Ele não é uma fonte de atualização da VENOM OS e não será configurado no sistema instalado.
+
+Valide o conjunto com:
 
 ```bash
-cd /tmp
-git clone https://aur.archlinux.org/pamac-aur.git
-cd pamac-aur
-makepkg -si
-cp -v *.pkg.tar.zst "$HOME/venom-aur-packages/"
-```
-
-```bash
-cd /tmp
-git clone https://aur.archlinux.org/ferdium-bin.git
-cd ferdium-bin
-makepkg -si
-cp -v *.pkg.tar.zst "$HOME/venom-aur-packages/"
-```
-
-Copie os quatro arquivos de `$HOME/venom-aur-packages/` para `build/aur-packages/` no repositório VENOM OS. Os nomes internos precisam ser `archlinux-appstream-data-pamac`, `libpamac-aur`, `pamac-aur` e `ferdium-bin`. A imagem também inclui `base-devel` e `git` para permitir compilar pacotes AUR depois da instalação.
-
-## 2. Montar e verificar o repositório offline
-
-Na raiz do repositório VENOM OS, execute:
-
-```bash
-sudo bash scripts/prepare-offline-repo.sh
 bash scripts/validate-offline-repo.sh
 ```
 
-O preparador baixa do Arch Linux oficial todos os pacotes e dependências que faltam para a união das edições XFCE e MATE, inclui os pacotes AUR compilados e testa a resolução usando somente o repositório local. O resultado fica em `build/offline-repo/`.
+## 3. Sistema instalado e atualizações
 
-Não apague nem edite manualmente os arquivos desse diretório. Se precisar reconstruí-lo, mova o diretório existente para outro local antes de executar novamente o preparador.
+Durante a instalação, o backend usa o conjunto offline embarcado na mídia. Ao terminar, ele instala a configuração oficial do Pacman no sistema de destino.
 
-## 3. Compilar a ISO
+Depois do primeiro boot:
+- Pamac é a interface gráfica de gerenciamento;
+- os pacotes oficiais vêm dos repositórios oficiais do Arch Linux;
+- os pacotes comunitários são obtidos pelo AUR através do suporte AUR do Pamac.
 
-Em um ambiente Arch Linux com `archiso`, `meson`, `ninja`, `gcc` e `pkg-config` instalados:
+Nenhum repositório ou atualizador próprio da VENOM OS deve permanecer no sistema instalado.
+
+## 4. Construção da ISO
+
+Em ambiente Arch Linux com as ferramentas necessárias:
 
 ```bash
 sudo pacman -S --needed archiso meson ninja gcc pkgconf
 sudo VENOM_ISO_BUILD_AUTHORIZED=YES bash scripts/build-venom-iso.sh
 ```
 
-A compilação executa os validadores, compila o instalador TUI e incorpora o repositório offline completo à mídia. A ISO e seu SHA-256 são gravados em `out/`.
-
-## Conteúdo esperado
-
-- Uma ISO com seleção entre VENOM OS XFCE e VENOM OS MATE.
-- Firefox, Pamac e Ferdium nas duas edições.
-- Instalação sem conexão com a internet.
-- Após a instalação, NetworkManager e os repositórios oficiais Arch ficam disponíveis para atualizações online.
-- O instalador continua sem desktop Live e preserva os arquivos de personalização existentes.
+O processo valida o perfil, o conjunto offline e o instalador, compila a imagem com Archiso e grava a ISO e seu SHA-256 em `out/`.
