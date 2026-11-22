@@ -17,6 +17,8 @@ required=(
   "$BUILD/airootfs/usr/lib/venom/install-system"
   "$BUILD/airootfs/usr/share/venom/install-packages-xfce.x86_64"
   "$BUILD/airootfs/usr/share/venom/install-packages-mate.x86_64"
+  "$BUILD/install-overlay/usr/share/backgrounds/venom/venom-wallpaper.svg"
+  "$BUILD/install-overlay/usr/share/mate-panel/layouts/venom.layout"
   "$ROOT/installer/meson.build"
   "$ROOT/installer/src/tui.c"
   "$ROOT/installer/src/disk.c"
@@ -87,6 +89,8 @@ grep -Fq 'pacman -Sw' "$ROOT/scripts/build-venom-iso.sh" ||
   fail "download offline de pacotes ausente"
 grep -Fq 'repo-add' "$ROOT/scripts/build-venom-iso.sh" ||
   fail "criacao do repositorio offline ausente"
+grep -Fq '/usr/share/venom/install-overlay' "$BUILD/airootfs/usr/lib/venom/install-system" ||
+  fail "backend nao aplica configuracao visual VENOM"
 grep -Fq 'pacstrap -C' "$BUILD/airootfs/usr/lib/venom/install-system" ||
   fail "backend nao instala a partir da configuracao do repositorio local"
 grep -Fq 'wipefs --all --force' "$BUILD/airootfs/usr/lib/venom/install-system" ||
