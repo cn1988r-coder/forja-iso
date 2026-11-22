@@ -29,7 +29,7 @@ static void serpent_art(int y, int x) {
 
 static void frame(const char *section, int step) {
     static const char *const steps[] = {
-        "EDICAO", "DISCO", "IDIOMA", "CONTA", "REVISAO", "INSTALACAO"
+        "EDICAO", "DISCO", "REGIAO", "CONTA", "REVISAO", "INSTALACAO"
     };
     erase();
     attron(COLOR_PAIR(BLUE) | A_BOLD);
@@ -88,8 +88,6 @@ static gboolean welcome(void) {
 static VenomDisk selected_disk = {0};
 static gboolean disk_selected = FALSE;
 static int selected_edition = 1;
-static int selected_locale = 0;
-static int selected_keyboard = 0;
 static gchar target_username[32] = {0};
 static gchar target_password[128] = {0};
 static gboolean account_configured = FALSE;
@@ -371,8 +369,8 @@ static void confirm_wipe_intent(void) {
     gchar *size_text = g_strdup_printf("%" G_GUINT64_FORMAT,
                                        selected_disk.size_bytes);
     gchar *edition = g_strdup(selected_edition == 0 ? "xfce" : "mate");
-    gchar *locale_name = g_strdup(selected_locale == 0 ? "pt_BR.UTF-8" : "en_US.UTF-8");
-    gchar *keymap = g_strdup(selected_keyboard == 0 ? "br-abnt2" : "us");
+    gchar *locale_name = g_strdup("pt_BR.UTF-8");
+    gchar *keymap = g_strdup("br-abnt2");
     gchar *firmware_name = g_strdup(g_file_test("/sys/firmware/efi", G_FILE_TEST_IS_DIR) ? "uefi" : "bios");
     gchar *argv[] = {
         "/usr/lib/venom/install-system",
@@ -459,8 +457,8 @@ static gboolean review_installation(void) {
     frame("REVISAO ANTES DA INSTALACAO", 2);
     gchar *size = g_format_size(plan->disk_size_bytes);
     mvprintw(7, 28, "EDICAO: %s", selected_edition == 0 ? "XFCE" : "MATE");
-    mvprintw(8, 28, "IDIOMA: %s", selected_locale == 0 ? "Portugues do Brasil" : "English (US)");
-    mvprintw(9, 28, "TECLADO: %s", selected_keyboard == 0 ? "Brasil ABNT2" : "English US");
+    mvprintw(8, 28, "IDIOMA: Portugues do Brasil (pt_BR.UTF-8)");
+    mvprintw(9, 28, "TECLADO: Brasil ABNT2 (br-abnt2)");
     mvprintw(10, 28, "USUARIO: %s", target_username);
     mvprintw(11, 28, "DISCO: %s | %s | %s", plan->disk_path, selected_disk.model, size);
     mvprintw(13, 28, "MODO: INSTALACAO LIMPA, DISCO INTEIRO");
@@ -531,8 +529,6 @@ int main(void) {
         } else if (choice == 1) {
             select_disk();
         } else if (choice == 2) {
-            selected_locale = 0;
-            selected_keyboard = 0;
             notice("CONFIGURACAO REGIONAL FIXA",
                    "Idioma: Portugues do Brasil (pt_BR.UTF-8).",
                    "Teclado: Brasil ABNT2 | Fuso: America/Sao_Paulo.");
