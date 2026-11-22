@@ -80,6 +80,28 @@ static GtkWidget *section_title(const char *text) {
     return label;
 }
 
+static void install_style(void) {
+    static const gchar css[] =
+        "window { background: #080b10; color: #e9f0f8; }"
+        ".title-1, .title-2, .title-3 { color: #f4f7fb; font-weight: 800; }"
+        ".description, .dim-label { color: #aab8c8; }"
+        "label { color: #e1e9f2; }"
+        "button { background: #151d28; color: #eaf3fc; border: 1px solid #263b52; border-radius: 8px; padding: 8px 14px; }"
+        "button:hover { background: #1b2b3e; border-color: #168de0; }"
+        "button.suggested-action { background: #075da3; color: #ffffff; border: 1px solid #168de0; font-weight: 700; }"
+        "entry, dropdown, checkbutton { color: #edf4fc; }"
+        "entry, dropdown { background: #111923; border: 1px solid #29425c; border-radius: 7px; }"
+        ".warning { color: #f2c879; }";
+    GtkCssProvider *provider = gtk_css_provider_new();
+    GdkDisplay *display = gdk_display_get_default();
+    gtk_css_provider_load_from_string(provider, css);
+    if (display != NULL)
+        gtk_style_context_add_provider_for_display(
+            display, GTK_STYLE_PROVIDER(provider),
+            GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    g_object_unref(provider);
+}
+
 static void activate(GtkApplication *application, gpointer user_data) {
     (void)user_data;
     Installer *app = g_new0(Installer, 1);
@@ -152,6 +174,7 @@ static void activate(GtkApplication *application, gpointer user_data) {
     g_signal_connect(app->install_button, "clicked", G_CALLBACK(install_clicked), app);
     gtk_box_append(GTK_BOX(root), app->install_button);
 
+    install_style();
     refresh_disks(NULL, app);
     gtk_window_present(GTK_WINDOW(app->window));
 }
