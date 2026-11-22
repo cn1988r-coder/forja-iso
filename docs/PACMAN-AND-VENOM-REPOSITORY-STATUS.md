@@ -1,35 +1,27 @@
-# Estado do Pacman e do repositório VENON
+# Atualizações do sistema VENOM OS
 
-Registro atualizado em 20/11/2026.
+## Regra definitiva
 
-## Arquitetura
+A VENOM OS é apenas o projeto de construção da imagem ISO. Ela não mantém, hospeda nem administra um repositório próprio de pacotes para o sistema instalado.
 
-- O Pacman oficial é o único gerenciador de atualizações normais do sistema e dos aplicativos Arch.
-- A atualização geral é feita pelo usuário com `sudo pacman -Syu`.
-- A configuração global do Pacman utiliza somente os repositórios oficiais Arch.
-- VENON é um mecanismo próprio, totalmente independente do Pacman.
-- VENON não chama `pacman` ou `pacman-key`, não altera o banco de pacotes do Pacman e não participa das atualizações normais.
-- Nenhum serviço ou timer ativa VENON automaticamente.
+Depois da instalação, as atualizações são feitas exclusivamente por:
 
-## Comandos definitivos
+- **Pamac**, como interface gráfica de gerenciamento;
+- **repositórios oficiais do Arch Linux**, para pacotes oficiais;
+- **AUR**, pelo suporte AUR do Pamac, para pacotes comunitários que precisam ser construídos.
 
-- `venon-upgrade`: consulta e lista atualizações VENON disponíveis. Não instala.
-- `venon-update`: baixa e instala atualizações VENON somente após confirmação explícita.
+Não criar serviços, timers, comandos ou mecanismos próprios de atualização da VENOM OS. Não adicionar seção [venom] ou qualquer servidor de pacotes VENOM ao /etc/pacman.conf do sistema instalado.
 
-## Estado atual
+## Instalação offline
 
-Os dois comandos estão presentes como bloqueios seguros. Eles não consultam nem instalam pacotes, pois o mecanismo independente VENON ainda não foi implementado.
+Durante a construção da ISO, os pacotes necessários podem ser reunidos em um conjunto local temporário, incorporado à mídia para permitir a instalação sem internet. Esse conjunto serve somente ao instalador. Ele não é um repositório de atualização, não é configurado no sistema instalado e não permanece como fonte de pacotes após a instalação.
 
-Ainda faltam hospedagem, protocolo de metadados assinados, chave pública própria, verificação criptográfica independente, formato de pacote e mecanismo seguro de instalação e recuperação.
+Ao concluir a instalação, o sistema recebe a configuração padrão dos repositórios oficiais do Arch Linux. O Pamac fica com o suporte ao AUR habilitado.
 
-## Critério para habilitação
+## Verificação obrigatória
 
-O VENON só poderá ser ativado depois de implementar e testar:
-- repositório HTTPS próprio;
-- metadados assinados por chave VENON independente;
-- verificação criptográfica sem Pacman ou pacman-key;
-- formato de pacote próprio com hashes, permissões e regras de instalação e remoção;
-- mecanismo de recuperação contra interrupções e conflitos;
-- confirmação explícita antes de aplicar atualizações.
-
-Não usar VENON para administrar pacotes Arch ou dependências do sistema. Essas tarefas permanecem exclusivamente com o Pacman.
+- /etc/pacman.conf do sistema instalado contém somente repositórios oficiais Arch Linux.
+- Nenhum endereço, chave, serviço ou timer de repositório VENOM é instalado.
+- Pamac abre e consegue atualizar pacotes oficiais.
+- Suporte AUR do Pamac permite pesquisar e construir pacotes AUR.
+- O conjunto offline da ISO é usado apenas durante a instalação e não é registrado como fonte permanente.
