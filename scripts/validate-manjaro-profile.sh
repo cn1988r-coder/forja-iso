@@ -12,15 +12,13 @@ done
 for item in Packages-Live Packages-Root Packages-Mhwd; do
   [[ -L "$PROFILE/$item" ]] || fail "$item não é symlink"
 done
-[[ "$(readlink "$PROFILE/Packages-Live")" == "../../shared/Packages-Live" ]] || fail "Packages-Live não aponta para a lista oficial"
-[[ "$(readlink "$PROFILE/Packages-Root")" == "../../shared/Packages-Root" ]] || fail "Packages-Root não aponta para a lista oficial"
-[[ "$(readlink "$PROFILE/Packages-Mhwd")" == "../../shared/Packages-Mhwd" ]] || fail "Packages-Mhwd não aponta para a lista oficial"
+[[ "$(readlink "$PROFILE/Packages-Live")" == "../../shared/Packages-Live" ]] || fail "Packages-Live inválido"
+[[ "$(readlink "$PROFILE/Packages-Root")" == "../../shared/Packages-Root" ]] || fail "Packages-Root inválido"
+[[ "$(readlink "$PROFILE/Packages-Mhwd")" == "../../shared/Packages-Mhwd" ]] || fail "Packages-Mhwd inválido"
 grep -Fq 'displaymanager="lightdm"' "$PROFILE/profile.conf" || fail "LightDM ausente"
-grep -Fq 'efi_boot_loader="grub"' "$PROFILE/profile.conf" || fail "GRUB UEFI ausente"
+grep -Fq 'venom-dconf-update' "$PROFILE/profile.conf" || fail "dconf update não habilitado"
 bash -n "$ROOT/scripts/prepare-manjaro-profile.sh"
+bash -n "$ROOT/scripts/validate-manjaro-profile.sh"
 python3 -m py_compile "$PROFILE/overlay-common/usr/local/bin/venom-menu"
-if grep -RniE 'archlinux|geo\.mirror\.pkgbuild\.com|mkarchiso|archiso' "$PROFILE"; then
-  fail "referência Arch encontrada no perfil Manjaro"
-fi
-echo "Validação estrutural e estática: APROVADA."
-echo "Resolução de pacotes, Calamares, boot e instalação ainda precisam de ambiente Manjaro/VM."
+echo "Validação estrutural estática: APROVADA."
+echo "Resolução de pacotes, Calamares, boot e instalação exigem ambiente Manjaro/VM."

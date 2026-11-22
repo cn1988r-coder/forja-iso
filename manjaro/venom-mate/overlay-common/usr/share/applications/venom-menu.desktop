@@ -3,6 +3,6 @@ Type=Application
 Name=Menu VENOM
 Comment=Menu de aplicativos da VENOM OS
 Exec=/usr/local/bin/venom-menu
-Icon=applications-system
+Icon=venom
 Terminal=false
 Categories=System;

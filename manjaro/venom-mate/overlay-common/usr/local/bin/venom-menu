@@ -2,18 +2,15 @@
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
-
 CSS = b"""
 window { background: #080c12; color: #eaf2fb; }
 entry { background: #101c2a; color: #f4f8ff; border: 1px solid #164c78; border-radius: 7px; padding: 10px; }
 button { background: #111d2c; color: #eaf2fb; border: 1px solid #1b4568; border-radius: 7px; padding: 8px; }
 button:hover { background: #10385b; border-color: #168cff; }
-.venom-title { color: #168cff; font-weight: bold; font-size: 20px; }
 """
 provider = Gtk.CssProvider()
 provider.load_from_data(CSS)
 Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-
 class Menu(Gtk.Window):
     def __init__(self):
         super().__init__(title="VENOM OS")
@@ -58,16 +55,13 @@ class Menu(Gtk.Window):
             self.entries.append((row, (app.get_display_name() or "").casefold()))
         self.show_all()
         self.search.grab_focus()
-
     def filter(self, _entry):
         query = self.search.get_text().casefold().strip()
         for row, name in self.entries:
             row.set_visible(not query or query in name)
-
     def start_app(self, app):
         app.launch([], None)
         self.destroy()
-
 window = Menu()
 window.connect("destroy", Gtk.main_quit)
 window.connect("key-press-event", lambda _window, event: (window.destroy(), True) if event.keyval == Gdk.KEY_Escape else False)

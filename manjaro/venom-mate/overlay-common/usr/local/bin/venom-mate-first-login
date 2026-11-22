@@ -4,11 +4,9 @@ set -Eeuo pipefail
 command -v gsettings >/dev/null 2>&1 || exit 0
 marker="$HOME/.config/venom-mate-setup.done"
 [[ -e "$marker" ]] && exit 0
-
 set_setting() {
   local schema="$1" key="$2" value="$3"
-  if gsettings list-schemas | grep -Fxq "$schema" &&
-     gsettings list-keys "$schema" | grep -Fxq "$key"; then
+  if gsettings list-schemas | grep -Fxq "$schema" && gsettings list-keys "$schema" | grep -Fxq "$key"; then
     gsettings set "$schema" "$key" "$value"
   fi
 }
