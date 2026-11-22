@@ -89,6 +89,54 @@ static int selected_edition = 1;
 static int selected_locale = 0;
 static int selected_keyboard = 0;
 
+static int choose_edition(void) {
+    static const char *const names[] = {
+        "VENOM OS  |  XFCE",
+        "VENOM OS  |  MATE"
+    };
+    static const char *const descriptions[] = {
+        "Desktop XFCE: leve, rapido e altamente configuravel.",
+        "Desktop MATE: classico, familiar e completo."
+    };
+    int selected = selected_edition;
+    int key;
+
+    for (;;) {
+        frame("ESCOLHA A EDICAO", 0);
+        attron(COLOR_PAIR(BLUE) | A_BOLD);
+        mvprintw(6, 29, "DUAS EDICOES. UMA VENOM.");
+        attroff(COLOR_PAIR(BLUE) | A_BOLD);
+
+        /* A ilustração da serpente acompanha a escolha das interfaces. */
+        serpent_art(8, 34);
+
+        for (int i = 0; i < 2; i++) {
+            int y = 15 + i * 4;
+            if (i == selected)
+                attron(A_REVERSE | COLOR_PAIR(SELECTED) | A_BOLD);
+            mvprintw(y, 30, "%s", names[i]);
+            if (i == selected)
+                attroff(A_REVERSE | COLOR_PAIR(SELECTED) | A_BOLD);
+            mvprintw(y + 1, 32, "%s", descriptions[i]);
+        }
+
+        attron(COLOR_PAIR(MUTED));
+        mvprintw(23, 30, "As duas incluem os mesmos aplicativos e recursos VENOM.");
+        attroff(COLOR_PAIR(MUTED));
+        refresh();
+
+        key = getch();
+        if ((key == KEY_UP || key == 'k') && selected > 0)
+            selected--;
+        else if ((key == KEY_DOWN || key == 'j') && selected < 1)
+            selected++;
+        else if (key == '\n' || key == KEY_ENTER)
+            return selected;
+        else if (key == 27 || key == 'q' || key == 'Q')
+            return -1;
+    }
+}
+
 static void clear_selected_disk(void) {
     g_free(selected_disk.path);
     g_free(selected_disk.model);
@@ -308,11 +356,13 @@ int main(void) {
         int choice = menu("PAINEL PRINCIPAL", actions, 6, 0);
         if (choice < 0 || choice == 5) break;
         if (choice == 0) {
-            int selected = menu("ESCOLHA A EDICAO", editions, 2, 0);
-            if (selected >= 0) selected_edition = selected;
-            notice("EDICAO SELECIONADA",
-                   editions[selected_edition],
-                   "A mesma selecao de aplicativos sera mantida nas duas edicoes.");
+            int selected = choose_edition();
+            if (selected >= 0) {
+                selected_edition = selected;
+                notice("EDICAO SELECIONADA",
+                       editions[selected_edition],
+                       "A mesma selecao de aplicativos sera mantida nas duas edicoes.");
+            }
         } else if (choice == 1) {
             select_disk();
         } else if (choice == 2) {
