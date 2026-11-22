@@ -244,7 +244,7 @@ static void review_installation(void) {
     gchar *size = g_format_size(plan->disk_size_bytes);
     mvprintw(7, 4, "DISCO: %s | %s | %s", plan->disk_path, selected_disk.model, size);
     mvprintw(9, 4, "MODO: INSTALACAO LIMPA, DISCO INTEIRO");
-    mvprintw(11, 4, "ARQUIVOS: BTRFS | SNAPSHOTS: TIMESHiFT + GRUB-BTRFS");
+    mvprintw(11, 4, "ARQUIVOS: BTRFS | SNAPSHOTS: TIMESHIFT + GRUB-BTRFS");
     mvprintw(10, 4, "FIRMWARE: %s", firmware == VENOM_FIRMWARE_UEFI ? "UEFI / GPT" : "BIOS / GPT");
     mvprintw(13, 4, "PARTICOES PLANEJADAS:");
     for (guint i = 0; i < plan->partitions->len; i++) {
