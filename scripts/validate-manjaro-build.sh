@@ -16,4 +16,4 @@ if find /var/cache/manjaro-tools/iso -type f -name '*.iso' -print -quit | grep -
   echo "ERRO: buildiso -x não deveria gerar ISO." >&2
   exit 1
 fi
-echo "Resolução e instalação dos pacotes concluídas. Nenhuma ISO foi gerada."
+echo "Resolução de pacotes Stable concluída com kernel linux618 LTS. Nenhuma ISO foi gerada."

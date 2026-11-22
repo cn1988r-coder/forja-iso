@@ -4,17 +4,18 @@ Distribuição baseada no **Manjaro Linux**, com uma única edição: **MATE + L
 
 - Idioma: Português do Brasil (pt_BR.UTF-8).
 - Teclado: Brasil ABNT2.
-- Tema escuro VENOM: preto/grafite, azul elétrico e prata.
-- Painel inferior próprio com lançador V e janelas agrupadas.
+- Kernel padrão: **Linux 6.18 LTS do Manjaro**.
+- Tema VENOM: preto/grafite, azul elétrico e prata.
+- MATE tradicional com painel superior e inferior.
+- Brisk Menu no painel superior, com o símbolo V fornecido pelo tema de ícones VENOM.
+- Painel inferior com lista de janelas agrupadas.
 
 ## Base e instalador
 
 A construção usa os perfis oficiais Manjaro ISO Profiles e o utilitário `buildiso`. O perfil está em `manjaro/venom-mate`.
 
-O instalador é o **Calamares fornecido pelos repositórios oficiais do Manjaro**. Não baixar, compilar ou substituir Calamares por versões upstream ou externas.
+O instalador é o **Calamares fornecido pelos repositórios oficiais do Manjaro**. Pamac, MATE, Brisk Menu, kernel, drivers e demais pacotes também devem ser resolvidos exclusivamente nos repositórios oficiais Manjaro. Não usar AUR, pacotes externos ou versões upstream baixadas separadamente.
 
 ## Estado
 
-A validação estrutural e a integração com os perfis oficiais Manjaro passaram. A resolução real dos pacotes e a validação de Calamares, boot e instalação continuam em andamento. Nenhuma ISO foi gerada.
-
-Consulte [Construção e validação](docs/BUILD.md) para a sequência de testes obrigatória.
+A configuração do perfil e os testes de integração estrutural não substituem a resolução real dos pacotes, a inspeção do Calamares gerado nem os testes de boot e instalação. Nenhuma ISO deve ser gerada antes dessas etapas e da autorização expressa.

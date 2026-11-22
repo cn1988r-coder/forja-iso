@@ -13,7 +13,9 @@ manjaro-pipewire
 pavucontrol
 rtkit
 
-## Ambiente MATE
+## Ambiente MATE e menu Brisk (pacote Manjaro Stable)
+brisk-menu
+mate-session-manager
 mate-session-manager
 mate-panel
 mate-control-center

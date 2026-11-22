@@ -11,7 +11,7 @@ set_setting() {
   fi
 }
 set_setting org.mate.interface gtk-theme "'Materia-dark'"
-set_setting org.mate.interface icon-theme "'Papirus-Dark'"
+set_setting org.mate.interface icon-theme "'VENOM'"
 set_setting org.mate.interface cursor-theme "'Adwaita'"
 set_setting org.mate.Marco.general theme "'Materia-dark'"
 set_setting org.mate.background picture-filename "'/usr/share/backgrounds/venom/venom-wallpaper.svg'"

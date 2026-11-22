@@ -1,6 +1,6 @@
 [org/mate/desktop/interface]
 gtk-theme='Materia-dark'
-icon-theme='Papirus-Dark'
+icon-theme='VENOM'
 cursor-theme='Adwaita'
 font-name='Noto Sans 10'
 gtk-enable-animations=false
@@ -18,6 +18,15 @@ button-layout=':minimize,maximize,close'
 
 [org/mate/panel]
 default-layout='venom'
+
+[org/mate/panel/toplevels/top]
+orientation='top'
+expand=true
+size=34
+auto-hide=false
+background-type='color'
+background-color='#080d15'
+background-opacity=96
 
 [org/mate/panel/toplevels/bottom]
 orientation='bottom'

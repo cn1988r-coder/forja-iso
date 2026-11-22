@@ -1,13 +1,49 @@
+[Toplevel top]
+expand=true
+orientation=top
+size=34
+
 [Toplevel bottom]
 expand=true
 orientation=bottom
 size=48
 
-[Object venom-launcher]
-object-type=launcher
+[Object venom-brisk-menu]
+object-type=applet
+applet-iid=BriskMenuFactory::BriskMenu
+toplevel-id=top
+pack-index=0
+locked=true
+
+[Object venom-top-notification-area]
+object-type=applet
+applet-iid=NotificationAreaAppletFactory::NotificationArea
+toplevel-id=top
+pack-type=end
+pack-index=2
+locked=true
+
+[Object venom-top-volume]
+object-type=applet
+applet-iid=GvcAppletFactory::GvcApplet
+toplevel-id=top
+pack-type=end
+pack-index=1
+locked=true
+
+[Object venom-top-clock]
+object-type=applet
+applet-iid=ClockAppletFactory::ClockApplet
+toplevel-id=top
+pack-type=end
+pack-index=0
+locked=true
+
+[Object venom-show-desktop]
+object-type=applet
+applet-iid=WnckletFactory::ShowDesktopApplet
 toplevel-id=bottom
 pack-index=0
-launcher-location=/usr/share/applications/venom-menu.desktop
 locked=true
 
 [Object venom-window-list]
@@ -17,25 +53,9 @@ toplevel-id=bottom
 pack-index=1
 locked=true
 
-[Object venom-notification-area]
+[Object venom-workspace-switcher]
 object-type=applet
-applet-iid=NotificationAreaAppletFactory::NotificationArea
-toplevel-id=bottom
-pack-type=end
-pack-index=2
-locked=true
-
-[Object venom-volume]
-object-type=applet
-applet-iid=GvcAppletFactory::GvcApplet
-toplevel-id=bottom
-pack-type=end
-pack-index=1
-locked=true
-
-[Object venom-clock]
-object-type=applet
-applet-iid=ClockAppletFactory::ClockApplet
+applet-iid=WnckletFactory::WorkspaceSwitcherApplet
 toplevel-id=bottom
 pack-type=end
 pack-index=0
