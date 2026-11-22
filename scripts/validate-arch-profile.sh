@@ -82,7 +82,6 @@ for edition in xfce mate; do
   grep -Fxq base "$manifest" || fail "pacote base ausente na edicao $edition"
   grep -Fxq firefox "$manifest" || fail "Firefox ausente na edicao $edition"
   grep -Fxq lightdm "$manifest" || fail "LightDM ausente na edicao $edition"
-  grep -Fxq firefox "$manifest" || fail "Firefox ausente na edicao $edition"
   grep -Fxq pamac-aur "$manifest" || fail "Pamac AUR ausente na edicao $edition"
   grep -Fxq ferdium-bin "$manifest" || fail "Ferdium ausente na edicao $edition"
   grep -Fxq base-devel "$manifest" || fail "base-devel ausente na edicao $edition"
