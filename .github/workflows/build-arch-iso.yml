@@ -28,7 +28,7 @@ jobs:
       - name: Install Arch build and test tools
         run: |
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm git archiso base-devel cmake meson ninja extra-cmake-modules python python-yaml libpwquality parted shellcheck qemu-system-x86 edk2-ovmf grub syslinux
+          pacman -S --needed --noconfirm git archiso base-devel cmake meson ninja extra-cmake-modules gtk4 python python-yaml libpwquality parted shellcheck qemu-system-x86 edk2-ovmf grub syslinux
 
       - name: Checkout
         uses: actions/checkout@v4

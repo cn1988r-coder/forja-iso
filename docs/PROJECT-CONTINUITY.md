@@ -1,14 +1,14 @@
 # Continuidade técnica: VENOM OS XFCE
 
-Atualizado em 21/11/2026, decisão do usuário: Calamares oficial com personalização VENOM.
+Atualizado em 22/11/2026. Decisão mais recente do usuário: instalador gráfico próprio, simples, em GTK4; a decisão anterior de usar Calamares está **SUBSTITUÍDA**.
 
 ## Arquitetura
-- Branch: `feature/venom-community-xfce`.
+- Branch de trabalho atual: `feature/venom-os-2.0-xfce`.
 - Base: Arch Linux oficial e repositórios oficiais.
 - Desktop: XFCE real + LightDM; sem MATE ou Window Maker.
 - Idioma pt_BR.UTF-8; teclado br-abnt2.
 - Mídia Archiso oficial.
-- Instalador oficial: Calamares upstream 3.3.14, compilado a partir da tag oficial fixada no workflow, com branding VENOM OS e módulo próprio `venominstall`. Esta é a escolha aprovada para esta edição XFCE.
+- Instalador atual: aplicativo próprio GTK4 (`venom-installer`) com backend Bash (`/usr/lib/venom/venom-install`), usando pacstrap, manifesto de pacotes, overlay VENOM e GRUB. A decisão anterior de Calamares foi substituída pelo pedido explícito do usuário em 22/11/2026.
 - Instalação exclusivamente online via pacstrap/Pacman. Sem unpackfs, rsync ou cópia da raiz live.
 - Atualizações normais pelo Pacman; VENON separado e manual.
 
@@ -18,8 +18,8 @@ Atualizado em 21/11/2026, decisão do usuário: Calamares oficial com personaliz
 - Pacotes do sistema instalado incluem XFCE, Thunar, LightDM, Xorg, rede, Bluetooth, áudio, GRUB e dependências básicas, sem ferramentas de criação da ISO.
 - LightDM configurado para a sessão `xfce`; sem autologin no sistema instalado.
 - Overlay de instalação inclui configurações XFCE/GTK, tema XFWM4, wallpaper, ícones e configuração de LightDM.
-- Módulo VENOM instala pacotes oficiais com pacstrap e copia somente o overlay explícito, antes da criação do usuário. Não copia a raiz live.
-- Sequência Calamares executa locale, keyboard e users, além de fstab, displaymanager, serviços, initramfs e bootloader.
+- Backend próprio instala pacotes com pacstrap e aplica somente o overlay explícito, antes de criar o usuário. Não copia a raiz live.
+- O backend configura locale pt_BR, teclado ABNT2, usuário, fstab, NetworkManager, Bluetooth, LightDM, initramfs e GRUB para BIOS/UEFI.
 - Removidos workflows e diretórios operacionais Manjaro, perfis antigos, Pamac, MHWD e credenciais padrão.
 - Workflow Archiso e validador específico `scripts/validate-xfce-profile.sh`.
 
@@ -69,7 +69,7 @@ Esta seção registra a direção visual aprovada pelo usuário. As referências
 - Os logs seriais mostram que o boot parou no serviço `systemd-firstboot.service`, que abriu o assistente interativo "Please enter the new timezone name or number". Por isso o script `/root/venom-live-setup` não chegou a emitir `VENOM_LIVE_READY`.
 - Correção aplicada em `build/profiledef.sh`: adicionar `systemd.firstboot=headless` aos parâmetros de kernel comuns a BIOS e UEFI. Esse modo suprime perguntas interativas do systemd-firstboot, preservando a configuração automática que não exige entrada.
 - O validador `scripts/validate-xfce-profile.sh` agora exige explicitamente esse parâmetro, para evitar regressão.
-- Critério da próxima compilação: validação estática aprovada; ISO gerada; Calamares 3.3.14 e configuração VENOM verificados; BIOS e UEFI devem alcançar `VENOM_LIVE_READY` e LightDM ativo; gate final deve aprovar ambos antes de publicar o artefato ISO.
+- Critério da próxima compilação: validação estática aprovada; aplicativo GTK4 e backend VENOM presentes na ISO; BIOS e UEFI devem alcançar `VENOM_LIVE_READY` e LightDM ativo; gate final deve aprovar ambos antes de publicar o artefato ISO.
 - A correção não desativa nem remove os testes. Se algum modo falhar novamente, preservar os logs seriais e investigar a nova causa antes de outra tentativa.
 
 ## Preparação para retomada em 22/11/2026
@@ -96,6 +96,16 @@ Esta seção registra a direção visual aprovada pelo usuário. As referências
 - Próxima validação: reconstruir e executar novamente BIOS e UEFI. Exigir os marcadores de despacho, início do setup e `VENOM_LIVE_READY`, além de LightDM ativo. A ISO só pode ser publicada se ambos os modos passarem. O log BIOS vazio ainda precisa ser reavaliado na nova execução.
 
 ## Diagnóstico da compilação #61
-- Run #61, ID 44929473954: pré-check, compilação Calamares 3.3.14, staging do branding, validação Archiso, geração da ISO e verificação do payload passaram. Os testes de boot chegaram ao sistema e iniciaram LightDM, mas ambos reprovaram na prontidão XFCE.
+- Run #61, ID 44929473954: pré-check, compilação do Calamares (fluxo antigo, posteriormente substituído), staging do branding, validação Archiso, geração da ISO e verificação do payload passaram. Os testes de boot chegaram ao sistema e iniciaram LightDM, mas ambos reprovaram na prontidão XFCE.
 - Log PAM do LightDM: requisito user ingroup autologin não atendido para venom; o script criava venom nos grupos wheel/audio/video/storage, sem autologin. A sessão gráfica não iniciou e não houve processos xfce4-session, xfce4-panel ou xfdesktop.
 - Correção: criar o grupo autologin se ausente e adicionar venom a ele mesmo se a conta já existir. O validador passa a exigir essas operações. Nova compilação e testes BIOS/UEFI necessários; nenhuma ISO publicada.
+
+
+## Instalador gráfico próprio (decisão de 22/11/2026)
+
+- **DECISÃO ATUAL:** substituir o Calamares por um instalador gráfico próprio e simples, a pedido explícito do usuário. Não voltar a integrar nem depender do Calamares.
+- Interface GTK4: seleção do disco, nome completo, usuário, senha e confirmação de apagamento.
+- Backend Bash: valida disco inteiro, recusa mídia Live, exige internet e disco de pelo menos 20 GB, cria partições automaticamente, instala o manifesto com pacstrap, aplica overlay, cria usuário, configura pt_BR/ABNT2, serviços e GRUB para BIOS/UEFI.
+- A instalação apaga completamente o disco escolhido depois da confirmação. A interface não oferece particionamento manual.
+- **Estado técnico:** código inicial implementado e commitado; ainda não compilado, nem testado em VM ou hardware. Não entregar a ISO como instalável até validar o aplicativo, backend e instalação completa em discos virtuais descartáveis, nos dois modos de boot.
+- O workflow foi alterado para compilar e incluir o instalador GTK4. Nenhuma nova compilação foi iniciada nesta etapa.

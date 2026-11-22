@@ -40,6 +40,7 @@ grep -Fq 'user-session=xfce' "$OVERLAY/etc/lightdm/lightdm.conf.d/50-venom-sessi
 grep -Fq 'install -Dm644 build/install-packages.x86_64 build/airootfs/usr/share/venom/install-packages.x86_64' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não prepara o manifesto de pacotes."
 grep -Fq 'cp -a build/install-overlay/. build/airootfs/usr/share/venom/install-overlay/' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não prepara o overlay."
 grep -Fq 'meson setup' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Workflow não compila o instalador."
+grep -Fq 'extra-cmake-modules gtk4 python' "$ROOT/.github/workflows/build-arch-iso.yml" || fail "Dependência GTK4 ausente do ambiente de compilação."
 grep -Fq 'Exec=venom-installer' "$ROOT/installer/venom-installer.desktop" || fail "Atalho do instalador incorreto."
 for package in base linux linux-lts linux-firmware archlinux-keyring arch-install-scripts gtk4 parted gptfdisk dosfstools e2fsprogs sudo curl grub xfce4 lightdm networkmanager; do
  grep -Fxq "$package" "$PKG" || fail "Pacote Live ausente: $package"

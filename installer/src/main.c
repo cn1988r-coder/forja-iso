@@ -21,7 +21,7 @@ static char *selected_disk(Installer *a){
  const char *e=strchr(s,' '); return e?g_strndup(s,e-s):g_strdup(s);
 }
 static void refresh_disks(Installer *a){
- const char *argv[]={"lsblk","-dnpo","NAME,SIZE,MODEL,TYPE,RM",NULL};
+ const char *argv[]={"lsblk","-dnpo","NAME,SIZE,TYPE,RM,MODEL",NULL};
  gchar *out=NULL,*errout=NULL; gint status=0; GError *error=NULL;
  GtkStringList *items=gtk_string_list_new(NULL);
  if(g_spawn_sync(NULL,(gchar **)argv,NULL,G_SPAWN_SEARCH_PATH,NULL,NULL,&out,&errout,&status,&error)){
@@ -31,7 +31,7 @@ static void refresh_disks(Installer *a){
    gchar **raw=g_strsplit_set(line," \t",-1); GPtrArray *tok=g_ptr_array_new();
    for(guint j=0;raw[j];j++)if(*raw[j])g_ptr_array_add(tok,raw[j]);
    guint n=tok->len;
-   if(n>=5 && g_str_equal(g_ptr_array_index(tok,n-2),"disk") && g_str_equal(g_ptr_array_index(tok,n-1),"0"))
+   if(n>=4 && g_str_equal(g_ptr_array_index(tok,2),"disk") && g_str_equal(g_ptr_array_index(tok,3),"0"))
     gtk_string_list_append(items,line);
    g_ptr_array_unref(tok); g_strfreev(raw);
   }

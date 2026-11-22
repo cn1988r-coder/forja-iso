@@ -2,8 +2,8 @@
 
 **Projeto:** VENOM OS  
 **Repositório:** `cn1988r-coder/forja-iso`  
-**Branch de trabalho:** `feature/venom-community-xfce`  
-**Última atualização:** 2026-11-21
+**Branch de trabalho:** `feature/venom-os-2.0-xfce`  
+**Última atualização:** 2026-11-22
 
 Este arquivo é a referência versionada para as decisões do projeto. Deve ser consultado antes de planejar ou executar mudanças.
 
@@ -68,3 +68,13 @@ Este arquivo é a referência versionada para as decisões do projeto. Deve ser 
 ## 5. Estado inicial deste registro
 
 Este documento registra as decisões confirmadas nesta conversa em 2026-11-21. Não presume que funcionalidades ou etapas técnicas estejam implementadas apenas por estarem descritas aqui. Para o estado de implementação, verificar a branch, os arquivos, os commits e os resultados dos testes.
+
+
+### 2026-11-22 | Instalador gráfico simples próprio
+
+- **APROVADO:** por pedido explícito do usuário, substituir o Calamares por um instalador gráfico próprio, simples e suficiente para instalar a VENOM OS. A decisão anterior de usar Calamares está **SUBSTITUÍDA**.
+- **APROVADO:** fluxo mínimo: selecionar disco, informar nome completo, usuário e senha, confirmar apagamento, instalar automaticamente e concluir.
+- **APROVADO:** instalação limpa no disco escolhido, com aviso/confirmacão explícita; sem particionamento manual ou recursos extras.
+- **IMPLEMENTAÇÃO INICIAL:** interface GTK4 e backend Bash adicionados à branch XFCE. Backend usa pacstrap, manifesto e overlay existentes, configura usuário, pt_BR, ABNT2, serviços e GRUB para BIOS/UEFI.
+- **SEGURANÇA:** o backend recusa o disco de boot Live, exige disco inteiro com ao menos 20 GB e conexão com a internet. A senha é recebida por arquivo temporário com permissão restrita.
+- **PENDENTE:** compilar, testar a interface, testar o backend em discos virtuais descartáveis em BIOS e UEFI e validar uma instalação completa antes de declarar a ISO pronta. Nenhuma nova compilação foi iniciada nesta alteração.
