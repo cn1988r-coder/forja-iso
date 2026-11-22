@@ -216,10 +216,11 @@ scrollbar slider:hover {
 CSS
 done
 
-# Docklike is integrated into the existing panel, not a separate floating dock.
+# Docklike is the single app dock/taskbar: each app keeps one pinned icon and all its windows
+# are grouped under that same icon (no separate window buttons).
 cat >"$ROOT/etc/xdg/xfce4/panel/docklike.rc" <<'RC'
 [user]
-pinned=firefox.desktop;thunar.desktop;
+pinned=firefox.desktop;thunar.desktop;xfce4-terminal.desktop;
 forceIconSize=true
 iconSize=32
 showPreviews=true
