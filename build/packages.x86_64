@@ -121,6 +121,13 @@ hwinfo
 polkit-qt6
 appstream-qt
 
+# Everyday desktop applications.
+mousepad
+ristretto
+parole
+file-roller
+xfce4-screenshooter
+
 # Pamac packages built from Arch AUR recipes.
 libpamac-aur
 pamac-aur
