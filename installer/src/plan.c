@@ -94,6 +94,8 @@ venom_install_plan_free(gpointer data)
 
     g_free(plan->disk_path);
     g_free(plan->partition_table);
+    g_free(plan->root_subvolume);
+    g_free(plan->home_subvolume);
     g_clear_pointer(&plan->partitions, g_ptr_array_unref);
     g_free(plan);
 }
@@ -112,6 +114,10 @@ plan_new(const VenomDisk *disk,
     plan->partition_table = g_strdup("GPT");
     plan->partitions = g_ptr_array_new_with_free_func(partition_free);
     plan->requires_confirmation = TRUE;
+    /* Timeshift-compatible flat Btrfs layout; no default-subvolume switch. */
+    plan->root_subvolume = g_strdup("@");
+    plan->home_subvolume = g_strdup("@home");
+    plan->snapshot_support = TRUE;
     return plan;
 }
 
@@ -163,7 +169,7 @@ add_partition(VenomInstallPlan *plan,
             g_free(partition);
             return FALSE;
         }
-        partition->filesystem = VENOM_FILESYSTEM_EXT4;
+        partition->filesystem = VENOM_FILESYSTEM_BTRFS;
         partition->mount_point = g_strdup("/");
         break;
     case VENOM_PARTITION_SWAP:
