@@ -44,7 +44,7 @@ Architecture = auto
 SigLevel = Required DatabaseOptional
 LocalFileSigLevel = Optional TrustAll
 
-[iso-offline]
+[offline]
 SigLevel = Optional TrustAll
 Server = file://$STAGE
 
@@ -76,7 +76,7 @@ cat > "$VERIFY_CONF" <<EOF
 Architecture = auto
 SigLevel = Optional TrustAll
 
-[iso-offline]
+[offline]
 SigLevel = Optional TrustAll
 Server = file://$STAGE
 EOF
