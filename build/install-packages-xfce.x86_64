@@ -1,5 +1,6 @@
 # Sistema instalado: base Arch e componentes comuns da VENOM OS.
 base
+base-devel
 linux
 linux-firmware
 archlinux-keyring
