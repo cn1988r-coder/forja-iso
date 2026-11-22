@@ -2,32 +2,25 @@
 
 A mídia usa o Archiso oficial e pacotes dos repositórios oficiais do Arch Linux. O perfil x86_64 está em `build/`.
 
-## Conteúdo do perfil
+## Inicialização
 
-- Boot BIOS via Syslinux e UEFI via GRUB.
-- Sessão live MATE com LightDM.
-- Locale exclusivo `pt_BR.UTF-8` e teclado Brasil ABNT2.
-- NetworkManager, BlueZ, PipeWire e os três indicadores do painel MATE.
-- Aplicação gráfica do instalador em C + GTK4, compilada somente durante uma preparação futura autorizada da mídia.
+- BIOS via Syslinux e UEFI via GRUB.
+- A mídia inicia diretamente o instalador TUI VENOM na tty1.
+- Não há sessão Live, ambiente gráfico de demonstração ou desktop carregado pelo pendrive.
+- A imagem contém somente a base necessária para iniciar o instalador em C + ncurses e executar o backend.
 
-## Estado do instalador
+## Instalador único
 
-A interface identifica discos em modo somente leitura e apresenta uma prévia dos planos automático e personalizado. O modo personalizado permite ajustar o tamanho da raiz e incluir uma partição swap opcional; EFI ou BIOS boot é proposto automaticamente conforme o firmware detectado. A biblioteca valida as propostas, mas não executa operações de disco. O botão de instalação permanece desabilitado.
+O único instalador da VENOM OS está em `installer/src/` e é compilado pelo Meson durante a geração da ISO. O executável é instalado na mídia como `/usr/bin/venom-installer`.
 
-Ainda não existe backend que particione, instale pacotes offline, configure usuário, sistema e GRUB ou reinicie após a instalação. A arquitetura offline prevista usa um repositório local com pacotes oficiais assinados, incluído na mídia; a preparação e a montagem desse repositório ainda precisam ser implementadas e testadas.
+O fluxo oferece exclusivamente VENOM OS XFCE e VENOM OS MATE. O backend executa a instalação no disco selecionado, com confirmação destrutiva explícita. Não adicionar outro frontend ou tecnologia de instalação.
+
+## Pacotes de instalação
+
+A preparação da ISO monta um repositório local com os pacotes e dependências exigidos pelas duas edições. Esse repositório é incluído na mídia e usado pelo backend para instalar o sistema sem depender de conexão de rede durante a instalação.
 
 ## Validação
 
-A workflow de validação executa análise estática, ShellCheck, compilação do componente GTK4 e testes unitários de descoberta de discos e planejamento de partições. Ela não gera ISO.
+O workflow compila o TUI, executa os testes Meson, valida os scripts e o perfil Archiso, prepara os pacotes offline e gera a ISO. A geração também verifica se o arquivo de configuração do Syslinux foi incluído na imagem, evitando publicar uma ISO que pare em `ISOLINUX: No configuration file found`.
 
-A workflow de geração da mídia está bloqueada e apenas informa que aguarda autorização expressa do usuário. O script `scripts/build-venom-iso.sh` também recusa execução sem autorização explícita. Não iniciar uma compilação neste estágio.
-
-## Testes ainda necessários
-
-- Completar o editor de particionamento personalizado e a revisão destrutiva.
-- Implementar e testar o backend em discos virtuais descartáveis.
-- Validar instalação offline completa em BIOS e UEFI.
-- Confirmar primeiro boot, conta criada, LightDM, MATE e serviços.
-- Abrir uma sessão gráfica MATE e comprovar REDE, BLUETOOTH e VOLUME/ÁUDIO após login e reinicialização.
-
-A presença de arquivos e pacotes não comprova o funcionamento gráfico ou a instalação completa.
+A compilação e a presença dos arquivos de boot não substituem os testes de inicialização BIOS/UEFI e a instalação completa em máquinas virtuais descartáveis.
