@@ -44,7 +44,18 @@ meson compile -C "$INSTALL_BUILD"
 DESTDIR="$INSTALL_ROOT" meson install -C "$INSTALL_BUILD"
 cp -a "$INSTALL_ROOT/." "$PROFILE/airootfs/"
 
-printf '[VENOM] Incluindo os manifestos das duas edicoes. Os pacotes serao instalados diretamente dos repositorios oficiais Arch Linux.\n'
+printf '[VENOM] Incluindo manifestos e repositorio offline completo das duas edicoes.\n'
+OFFLINE_SOURCE="$ROOT/build/offline-repo"
+[[ -s "$OFFLINE_SOURCE/venom.db" ]] || {
+  printf 'ERRO: build/offline-repo/venom.db ausente. Prepare o bundle offline antes de compilar a ISO.\\n' >&2
+  exit 1
+}
+[[ -n "$(find "$OFFLINE_SOURCE" -maxdepth 1 -type f -name '*.pkg.tar.*' -print -quit)" ]] || {
+  printf 'ERRO: nenhum pacote foi encontrado no bundle offline.\\n' >&2
+  exit 1
+}
+install -d "$PROFILE/airootfs/usr/share/venom/offline-repo"
+cp -a "$OFFLINE_SOURCE/." "$PROFILE/airootfs/usr/share/venom/offline-repo/"
 install -D "$ROOT/build/install-packages-xfce.x86_64" "$PROFILE/airootfs/usr/share/venom/install-packages-xfce.x86_64"
 install -D "$ROOT/build/install-packages-mate.x86_64" "$PROFILE/airootfs/usr/share/venom/install-packages-mate.x86_64"
 install -d "$PROFILE/airootfs/usr/share/venom/install-overlay"
