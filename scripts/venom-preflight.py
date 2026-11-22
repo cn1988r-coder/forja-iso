@@ -64,7 +64,8 @@ def main():
         "build/syslinux/syslinux.cfg", "build/syslinux/archiso_sys.cfg",
         "build/syslinux/archiso_head.cfg", "build/syslinux/archiso_sys-linux.cfg",
         "build/grub/grub.cfg",
-        "installer/meson.build", "installer/src/main.c", "installer/venom-install",\n        "installer/venom-installer.desktop", "scripts/validate-xfce-profile.sh",
+        "installer/meson.build", "installer/src/main.c", "installer/venom-install",
+        "installer/venom-installer.desktop", "scripts/validate-xfce-profile.sh",
         ".github/workflows/build-arch-iso.yml",
         ".github/workflows/validate-arch-xfce.yml"
     ]
