@@ -106,6 +106,22 @@ grep -Fq 'pacstrap -C "$OFFLINE_CONF" -K' "$BUILD/airootfs/usr/lib/venom/install
   fail "instalacao via pacstrap e repositorio offline ausente"
 grep -Fq 'https://geo.mirror.pkgbuild.com/$repo/os/$arch' "$BUILD/pacman.conf" ||
   fail "mirror oficial Arch Linux ausente"
+
+# O sistema instalado só pode receber os repositórios oficiais do Arch Linux.
+cmp -s "$BUILD/pacman.conf" "$BUILD/airootfs/etc/pacman.conf" ||
+  fail "configurações do Pacman do perfil e da mídia divergem"
+for conf in "$BUILD/pacman.conf" "$BUILD/airootfs/etc/pacman.conf"; do
+  sections="$(grep -E '^\\[[^]]+\\]' "$conf" | tr -d '[]')"
+  for section in $sections; do
+    case "$section" in
+      core|extra|multilib) ;;
+      *) fail "repositório não oficial encontrado na configuração instalada: [$section]" ;;
+    esac
+  done
+  if grep -Eiq '^[[:space:]]*(Server|Include)[[:space:]]*=[[:space:]]*file://' "$conf"; then
+    fail "repositório local de construção não pode ser instalado no sistema"
+  fi
+done
 grep -Fq 'OFFLINE_SOURCE="$ROOT/build/offline-repo"' "$ROOT/scripts/build-venom-iso.sh" ||
   fail "bundle offline nao e incorporado a ISO"
 grep -Fq 'for required in libpamac-aur pamac-aur ferdium-bin' "$ROOT/scripts/prepare-offline-repo.sh" ||
