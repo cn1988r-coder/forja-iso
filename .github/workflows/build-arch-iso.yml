@@ -1,16 +1,72 @@
-name: VENOM OS ISO (aguardando autorização)
+name: VENOM OS ISO
 
 on:
+  push:
+    branches:
+      - feature/venom-graphical-installer
+    paths:
+      - '.github/workflows/build-arch-iso.yml'
+      - 'build/**'
+      - 'installer/**'
+      - 'scripts/**'
+      - 'docs/BUILD-OFFLINE.md'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  blocked:
+  build-iso:
+    name: Preparar pacotes offline e compilar ISO
     runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    timeout-minutes: 360
     steps:
-      - name: Informar bloqueio de segurança
+      - name: Preparar ambiente Arch Linux
         run: |
-          echo "::notice::A geração da ISO aguarda autorização expressa do usuário."
-          echo "Nenhuma compilação, publicação ou teste de mídia foi iniciado."
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm base-devel git sudo archiso meson ninja gcc pkgconf
+          useradd --create-home --shell /bin/bash builder
+          install -d -o builder -g builder /home/builder/.cache
+
+      - name: Obter codigo
+        uses: actions/checkout@v4
+
+      - name: Compilar pacotes AUR exigidos pela VENOM
+        run: |
+          set -Eeuo pipefail
+          install -d -o builder -g builder build/aur-packages
+          build_aur() {
+            local package="$1"
+            local directory="/tmp/aur-${package}"
+            git clone "https://aur.archlinux.org/${package}.git" "$directory"
+            chown -R builder:builder "$directory"
+            su builder -s /bin/bash -c "cd '$directory' && makepkg --syncdeps --noconfirm"
+            install -m 0644 "$directory"/*.pkg.tar.zst build/aur-packages/
+          }
+          build_aur archlinux-appstream-data-pamac
+          build_aur libpamac-aur
+          build_aur pamac-aur
+          build_aur ferdium-bin
+
+      - name: Montar e validar repositorio offline
+        run: |
+          bash scripts/prepare-offline-repo.sh
+          bash scripts/validate-offline-repo.sh
+
+      - name: Validar perfil e compilar instalador
+        run: |
+          bash scripts/validate-arch-profile.sh
+          VENOM_ISO_BUILD_AUTHORIZED=YES bash scripts/build-venom-iso.sh
+
+      - name: Publicar ISO e checksum como artefatos
+        uses: actions/upload-artifact@v4
+        with:
+          name: venom-os-iso-x86_64
+          path: |
+            out/*.iso
+            out/*.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
