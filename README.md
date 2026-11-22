@@ -1,34 +1,37 @@
 # VENOM OS
 
-Distribuição baseada diretamente no **Arch Linux oficial**, com duas edições completas: **XFCE** e **MATE**.
+Distribuição baseada diretamente no **Arch Linux oficial**, com duas edições: **XFCE** e **MATE**.
 
 ## Padrões do sistema
 
 - Base e repositórios: Arch Linux oficial.
 - Edições: VENOM OS XFCE e VENOM OS MATE.
-- Gerenciador de sessão: LightDM, sem autologin.
-- Idioma padrão: Português do Brasil (`pt_BR.UTF-8`).
-- Teclado padrão: Brasil ABNT2 (`br-abnt2`).
+- Gerenciador de sessão instalado: LightDM, sem autologin.
+- Idioma: Português do Brasil (`pt_BR.UTF-8`).
+- Teclado: Brasil ABNT2 (`br-abnt2`).
 - Áudio: PipeWire, PipeWire Pulse e WirePlumber.
 - Sistema de arquivos: Btrfs, subvolumes `@` e `@home`.
 - Snapshots: Timeshift e integração GRUB-Btrfs.
-- Atualizações normais: `sudo pacman -Syu`.
 
-## Instalador
+## Único instalador oficial
 
-A mídia inicia diretamente no instalador próprio VENOM em modo texto ncurses. Não existe sessão Live nem desktop de demonstração.
+A VENOM OS possui **um único instalador: o instalador próprio em modo texto (TUI), escrito em C com ncurses**.
 
-O fluxo oferece:
-1. Escolha da edição XFCE ou MATE, com a arte da serpente VENOM.
+- A mídia inicia diretamente no instalador pela tty1.
+- Não existe sessão Live, desktop de demonstração ou instalador gráfico.
+- A navegação é feita por teclado, com setas, Enter e Esc.
+- As únicas edições disponíveis são XFCE e MATE.
+
+### Fluxo
+
+1. Boas-vindas e escolha entre XFCE e MATE.
 2. Seleção do disco inteiro de destino.
-3. Idioma e teclado.
-4. Criação de usuário e senha.
-5. Revisão e confirmação digitando `APAGAR`.
-6. Instalação pela internet e reinicialização.
+3. Criação de usuário e senha.
+4. Revisão da instalação.
+5. Confirmação explícita digitando `APAGAR`.
+6. Instalação e reinicialização.
 
-O backend implementa particionamento GPT, formatação Btrfs, subvolumes, instalação via repositórios oficiais do Arch Linux, configuração de usuário, LightDM, initramfs e GRUB. Antes de alterar o disco, sincroniza os bancos e tenta resolver todos os pacotes do manifesto; se algum não estiver disponível, deve interromper sem apagar o disco. A partição EFI é montada em /boot/efi.
-
-**Limites atuais:** nenhuma ISO desta revisão foi compilada ou testada em USB/VM. A instalação ainda depende de internet. O tema de ícones usa `papirus-icon-theme`, disponível no repositório oficial Extra do Arch Linux. Ferdium e Pamac ainda precisam passar pela validação de disponibilidade e instalação. Portanto, ainda não considerar a ISO pronta para uso.
+A instalação usa o repositório local de pacotes incluído na mídia, preparado para as duas edições. O backend configura GPT, EFI ou BIOS, Btrfs, subvolumes, usuário, idioma, teclado, LightDM, initramfs e GRUB.
 
 ## Edições e identidade visual
 
@@ -38,16 +41,17 @@ O backend implementa particionamento GPT, formatação Btrfs, subvolumes, instal
 - Papel de parede VENOM compartilhado.
 
 ### XFCE
-XFCE/Xfwm4, Thunar e XFCE Terminal; painel inferior de 40 px, Whisker Menu com símbolo V, Docklike Taskbar, bandeja, volume e relógio; quatro áreas de trabalho.
+XFCE/Xfwm4, Thunar e XFCE Terminal; painel inferior, Whisker Menu com símbolo V, Docklike Taskbar, bandeja, volume e relógio.
 
 ### MATE
 MATE/Marco, Caja e MATE Terminal; painel inferior único compacto, agrupamento permanente de janelas por aplicativo, bandeja, volume e relógio.
 
 ## Compilação e validação
 
+- Código do único instalador em `installer/src/`.
 - Projeto Meson em `installer/`.
-- Testes de leitura de discos e validação do plano de instalação.
-- Validação do perfil e dos scripts em `scripts/validate-arch-profile.sh`.
-- Build da mídia em `scripts/build-venom-iso.sh`, protegido por autorização explícita.
+- Testes unitários do TUI, leitura de discos e planejamento.
+- Validação do perfil em `scripts/validate-arch-profile.sh`.
+- Geração da mídia em `scripts/build-venom-iso.sh`.
 
-Nenhuma ISO foi gerada nesta etapa. O estado de CI e o registro técnico estão em [GitHub Actions](https://github.com/cn1988r-coder/forja-iso/actions) e [docs/PROJECT-CONTINUITY.md](docs/PROJECT-CONTINUITY.md).
+A compilação automatizada não substitui o teste real de inicialização BIOS/UEFI e a instalação completa em máquina virtual. A ISO só deve ser considerada pronta depois dessas verificações.
