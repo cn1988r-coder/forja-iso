@@ -119,8 +119,8 @@ filesystem_name(VenomFilesystem filesystem)
         return "sem formatação";
     case VENOM_FILESYSTEM_FAT32:
         return "FAT32";
-    case VENOM_FILESYSTEM_EXT4:
-        return "ext4";
+    case VENOM_FILESYSTEM_BTRFS:
+        return "Btrfs";
     case VENOM_FILESYSTEM_SWAP:
         return "swap";
     }
