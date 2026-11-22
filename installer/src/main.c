@@ -71,7 +71,8 @@ static void begin_install(Installer *a,const char *disk){
   message(GTK_WINDOW(a->window),"Dados inválidos","Informe o nome completo e um usuário válido (letras minúsculas, números, _ ou -).");return;}
  if(strlen(pass)<8||!g_str_equal(pass,confirm)){
   message(GTK_WINDOW(a->window),"Senha inválida","As senhas devem ser iguais e ter pelo menos 8 caracteres.");return;}
- if(!g_file_open_tmp("/tmp/venom-password-XXXXXX",&a->password_file,&e,&fd)){
+ fd=g_file_open_tmp("/tmp/venom-password-XXXXXX",&a->password_file,&e);
+ if(fd<0){
   message(GTK_WINDOW(a->window),"Erro",e?e->message:"Não foi possível preparar a senha.");g_clear_error(&e);return;}
  (void)fchmod(fd,0600);
  gchar *payload=g_strdup_printf("%s\n",pass); gsize payload_len=strlen(payload);
