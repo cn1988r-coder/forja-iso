@@ -62,7 +62,7 @@ Architecture = auto
 CheckSpace
 SigLevel = Optional TrustAll
 
-[venom]
+[iso-offline]
 SigLevel = Optional TrustAll
 Server = file://$OFFLINE_REPO
 EOF
