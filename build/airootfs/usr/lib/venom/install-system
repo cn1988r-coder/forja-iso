@@ -125,6 +125,7 @@ pacstrap -C "$PACMAN_CONF" -M "$MNT" "${PACKAGES[@]}"
 # Aplica a base visual e os arquivos de primeiro login compartilhados pelas edicoes.
 [[ -d /usr/share/venom/install-overlay ]] || fail "Arquivos visuais VENOM ausentes na midia."
 cp -a /usr/share/venom/install-overlay/. "$MNT/"
+if [[ -f "$MNT/usr/local/bin/venom-mate-first-login" ]]; then chmod 0755 "$MNT/usr/local/bin/venom-mate-first-login"; fi
 genfstab -U "$MNT" > "$MNT/etc/fstab"
 install -d "$MNT/etc"
 printf '%s\n' "$LOCALE UTF-8" > "$MNT/etc/locale.gen"
