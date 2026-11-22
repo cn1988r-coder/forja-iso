@@ -31,6 +31,7 @@ required=(
   "$ROOT/installer/src/plan.h"
   "$ROOT/installer/tests/test-disk.c"
   "$ROOT/installer/tests/test-plan.c"
+  "$ROOT/installer/scripts/configure-btrfs-snapshots.sh"
   "$ROOT/scripts/build-venom-iso.sh"
   "$ROOT/scripts/prepare-offline-repo.sh"
   "$ROOT/scripts/validate-offline-repo.sh"
@@ -43,6 +44,7 @@ for script in "$ROOT/scripts/build-venom-iso.sh" \
               "$ROOT/scripts/validate-arch-profile.sh" \
               "$ROOT/scripts/prepare-offline-repo.sh" \
               "$ROOT/scripts/validate-offline-repo.sh" \
+              "$ROOT/installer/scripts/configure-btrfs-snapshots.sh" \
               "$BUILD/profiledef.sh" \
               "$BUILD/airootfs/usr/lib/venom/install-system"; do
   bash -n "$script" || fail "sintaxe Bash invalida: $script"
@@ -130,6 +132,10 @@ grep -Fq '/usr/share/venom/install-overlay' "$BUILD/airootfs/usr/lib/venom/insta
   fail "backend nao aplica configuracao visual VENOM"
 grep -Fq 'pacstrap -C "$OFFLINE_CONF" -K' "$BUILD/airootfs/usr/lib/venom/install-system" ||
   fail "backend nao instala pela configuracao offline da ISO"
+grep -Fq '/usr/lib/venom/configure-btrfs-snapshots.sh "$MNT" "$P2"' "$BUILD/airootfs/usr/lib/venom/install-system" ||
+  fail "backend nao configura snapshots Btrfs na instalacao"
+grep -Fq 'configure-btrfs-snapshots.sh' "$ROOT/scripts/build-venom-iso.sh" ||
+  fail "script de snapshots nao e incorporado a ISO"
 grep -Fq 'install -D /etc/pacman.conf "$MNT/etc/pacman.conf"' "$BUILD/airootfs/usr/lib/venom/install-system" ||
   fail "configuracao oficial online nao e restaurada no sistema instalado"
 grep -Fq 'EnableAUR' "$BUILD/airootfs/usr/lib/venom/install-system" ||
