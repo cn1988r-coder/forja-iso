@@ -66,7 +66,7 @@ static int menu(const char *title, const char *const *items, int count, int step
         key = getch();
         if ((key == KEY_UP || key == 'k') && selected > 0) selected--;
         else if ((key == KEY_DOWN || key == 'j') && selected < count - 1) selected++;
-        else if (key == '\n' || key == KEY_ENTER) return selected;
+        else if (key == '\\n' || key == KEY_ENTER) return selected;
         else if (key == 'q' || key == 'Q' || key == 27) return -1;
     }
 }
@@ -109,10 +109,7 @@ static int choose_edition(void) {
         attron(COLOR_PAIR(BLUE) | A_BOLD);
         mvprintw(6, 29, "DUAS EDICOES. UMA VENOM.");
         attroff(COLOR_PAIR(BLUE) | A_BOLD);
-
-        /* A ilustração da serpente acompanha a escolha das interfaces. */
         serpent_art(8, 34);
-
         for (int i = 0; i < 2; i++) {
             int y = 15 + i * 4;
             if (i == selected)
@@ -122,18 +119,16 @@ static int choose_edition(void) {
                 attroff(A_REVERSE | COLOR_PAIR(SELECTED) | A_BOLD);
             mvprintw(y + 1, 32, "%s", descriptions[i]);
         }
-
         attron(COLOR_PAIR(MUTED));
         mvprintw(23, 30, "As duas incluem os mesmos aplicativos VENOM.");
         attroff(COLOR_PAIR(MUTED));
         refresh();
-
         key = getch();
         if ((key == KEY_UP || key == 'k') && selected > 0)
             selected--;
         else if ((key == KEY_DOWN || key == 'j') && selected < 1)
             selected++;
-        else if (key == '\n' || key == KEY_ENTER)
+        else if (key == '\\n' || key == KEY_ENTER)
             return selected;
         else if (key == 27 || key == 'q' || key == 'Q')
             return -1;
@@ -149,7 +144,7 @@ static gboolean valid_username(const gchar *name) {
     if (name == NULL || g_str_equal(name, "root") ||
         (!g_ascii_islower(name[0]) && name[0] != '_'))
         return FALSE;
-    for (const gchar *p = name + 1; *p != '\0'; p++) {
+    for (const gchar *p = name + 1; *p != '\\0'; p++) {
         if (!g_ascii_islower(*p) && !g_ascii_isdigit(*p) &&
             *p != '_' && *p != '-')
             return FALSE;
@@ -159,8 +154,6 @@ static gboolean valid_username(const gchar *name) {
 
 static void configure_account(void) {
     account_configured = FALSE;
-    secure_clear(target_password, sizeof(target_password));
-    memset(target_username, 0, sizeof(target_username));
     secure_clear(target_password, sizeof(target_password));
     memset(target_username, 0, sizeof(target_username));
     gchar username[32] = {0};
@@ -268,7 +261,6 @@ static void select_disk(void) {
     g_ptr_array_unref(disks);
 }
 
-
 /*
  * Confirma apenas a intenção do usuário. Esta etapa NÃO executa operações
  * de disco: o backend destrutivo permanece desabilitado até ser implementado
@@ -291,7 +283,6 @@ static void confirm_wipe_intent(void) {
         return;
     }
 
-    /* Reconsulta os dispositivos para impedir confirmar um disco que mudou. */
     disks = venom_disk_enumerate(&error);
     if (disks == NULL) {
         notice("NAO FOI POSSIVEL REVALIDAR O DISCO",
@@ -385,14 +376,14 @@ static void confirm_wipe_intent(void) {
     };
     gchar **env = g_get_environ();
     env = g_environ_setenv(env, "VENOM_EXPECTED_DISK_BYTES", size_text, TRUE);
-    gchar *password_input = g_strdup_printf("%s\n", target_password);
+    gchar *password_input = g_strdup_printf("%s\\n", target_password);
     gchar *stdout_text = NULL;
     gchar *stderr_text = NULL;
     gint wait_status = 0;
     GError *spawn_error = NULL;
 
     endwin();
-    g_print("\n[VENOM] Instalando VENOM OS %s. Nao desligue o computador.\n", edition);
+    g_print("\\n[VENOM] Instalando VENOM OS %s. Nao desligue o computador.\\n", edition);
     gboolean spawned = g_spawn_sync(NULL, argv, env, G_SPAWN_SEARCH_PATH,
                                      NULL, password_input, &stdout_text,
                                      &stderr_text, &wait_status, &spawn_error);
@@ -403,10 +394,10 @@ static void confirm_wipe_intent(void) {
     g_strfreev(env);
 
     if (!spawned || !g_spawn_check_wait_status(wait_status, &spawn_error)) {
-        g_printerr("\n[VENOM] A instalacao falhou: %s\n%s\n",
+        g_printerr("\\n[VENOM] A instalacao falhou: %s\\n%s\\n",
                    spawn_error ? spawn_error->message : "erro desconhecido",
                    stderr_text ? stderr_text : "");
-        g_printerr("O disco pode ter sido alterado. Nao remova a energia.\n");
+        g_printerr("O disco pode ter sido alterado. Nao remova a energia.\\n");
         g_clear_error(&spawn_error);
         g_free(stdout_text);
         g_free(stderr_text);
@@ -415,13 +406,13 @@ static void confirm_wipe_intent(void) {
         g_free(locale_name);
         g_free(keymap);
         g_free(firmware_name);
-        g_print("Pressione ENTER para retornar ao instalador.\n");
+        g_print("Pressione ENTER para retornar ao instalador.\\n");
         (void)getchar();
         refresh();
         return;
     }
 
-    g_print("%s\n", stdout_text ? stdout_text : "");
+    g_print("%s\\n", stdout_text ? stdout_text : "");
     g_free(stdout_text);
     g_free(stderr_text);
     g_free(size_text);
@@ -429,7 +420,7 @@ static void confirm_wipe_intent(void) {
     g_free(locale_name);
     g_free(keymap);
     g_free(firmware_name);
-    g_print("\nInstalacao concluida. Remova a USB e pressione ENTER para reiniciar.\n");
+    g_print("\\nInstalacao concluida. Remova a USB e pressione ENTER para reiniciar.\\n");
     (void)getchar();
     sync();
     reboot(RB_AUTOBOOT);
@@ -444,7 +435,7 @@ static gboolean review_installation(void) {
         return FALSE;
     }
     if (!disk_selected) {
-        notice("FALTA SELECIONAR O DISCO", "Volte ao menu e escolha o disco de destino.", "A instalacao limpa apagara o disco inteiro.");
+        notice("FALTA SELECIONAR O DISCO", "Volte ao menu e escolha um disco de destino.", "A instalacao limpa apagara o disco inteiro.");
         return FALSE;
     }
     VenomFirmwareMode firmware = g_file_test("/sys/firmware/efi", G_FILE_TEST_IS_DIR) ? VENOM_FIRMWARE_UEFI : VENOM_FIRMWARE_BIOS;
@@ -487,7 +478,7 @@ static void notice(const char *title, const char *line1, const char *line2) {
     frame(title, 2);
     mvprintw(8, 28, "%s", line1);
     mvprintw(10, 28, "%s", line2);
-    mvprintw(13, 28, "Nenhuma operacao de disco e executada nesta versao.");
+    mvprintw(13, 28, "Esta tela nao executa operacoes de disco.");
     mvprintw(LINES - 2, 28, "Pressione uma tecla para voltar");
     refresh();
     getch();
@@ -498,7 +489,7 @@ int main(void) {
     const char *const actions[] = {
         "Escolher edicao", "Selecionar disco (instalacao limpa)",
         "Configuracao regional automatica", "Criar usuario e senha",
-        "Requisitos da instalacao offline", "INICIAR INSTALACAO", "Sair"
+        "Requisitos da instalacao pela internet", "INICIAR INSTALACAO", "Sair"
     };
     setlocale(LC_ALL, "");
     initscr();
@@ -535,9 +526,9 @@ int main(void) {
         } else if (choice == 3) {
             configure_account();
         } else if (choice == 4) {
-            notice("INSTALACAO OFFLINE",
-                   "A USB precisa conter repositorio local assinado, chaves e dependencias.",
-                   "A instalacao real ainda nao esta implementada neste prototipo.");
+            notice("REQUISITOS DE INSTALACAO",
+                   "A instalacao usa os repositorios oficiais do Arch Linux pela internet.",
+                   "Conecte o computador a internet antes de iniciar a instalacao.");
         } else if (choice == 5) {
             if (review_installation())
                 confirm_wipe_intent();
