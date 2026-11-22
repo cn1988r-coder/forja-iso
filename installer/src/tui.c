@@ -1,5 +1,5 @@
 #include <locale.h>
-#include <string.h>
+#include <string.h>\n#include <unistd.h>\n#include <sys/reboot.h>
 #include <curses.h>
 #include <glib.h>
 #include "disk.h"
@@ -355,10 +355,85 @@ static void confirm_wipe_intent(void) {
         return;
     }
 
-    notice("CONFIRMACAO REGISTRADA",
-           "O usuario confirmou a intencao de apagar o disco selecionado.",
-           "Instalacao bloqueada: backend ainda nao implementado.");
     g_ptr_array_unref(disks);
+
+    if (!g_file_test("/usr/lib/venom/install-system", G_FILE_TEST_IS_EXECUTABLE) ||
+        !g_file_test("/usr/share/venom/repo/venom.db", G_FILE_TEST_EXISTS) &&
+        !g_file_test("/usr/share/venom/repo/venom.db.tar.gz", G_FILE_TEST_EXISTS) &&
+        !g_file_test("/usr/share/venom/repo/venom.db.tar.zst", G_FILE_TEST_EXISTS)) {
+        notice("MIDIA DE INSTALACAO INCOMPLETA",
+               "O backend ou o repositorio offline nao esta presente.",
+               "Nenhuma particao foi alterada.");
+        return;
+    }
+
+    gchar *size_text = g_strdup_printf("%" G_GUINT64_FORMAT,
+                                       selected_disk.size_bytes);
+    gchar *edition = g_strdup(selected_edition == 0 ? "xfce" : "mate");
+    gchar *locale_name = g_strdup(selected_locale == 0 ? "pt_BR.UTF-8" : "en_US.UTF-8");
+    gchar *keymap = g_strdup(selected_keyboard == 0 ? "br-abnt2" : "us");
+    gchar *firmware_name = g_strdup(g_file_test("/sys/firmware/efi", G_FILE_TEST_IS_DIR) ? "uefi" : "bios");
+    gchar *argv[] = {
+        "/usr/lib/venom/install-system",
+        "--disk", selected_disk.path,
+        "--edition", edition,
+        "--locale", locale_name,
+        "--keymap", keymap,
+        "--username", target_username,
+        "--firmware", firmware_name,
+        "--confirm", "APAGAR",
+        NULL
+    };
+    gchar **env = g_get_environ();
+    env = g_environ_setenv(env, "VENOM_EXPECTED_DISK_BYTES", size_text, TRUE);
+    gchar *password_input = g_strdup_printf("%s\n", target_password);
+    gchar *stdout_text = NULL;
+    gchar *stderr_text = NULL;
+    gint wait_status = 0;
+    GError *spawn_error = NULL;
+
+    endwin();
+    g_print("\n[VENOM] Instalando VENOM OS %s. Nao desligue o computador.\n", edition);
+    gboolean spawned = g_spawn_sync(NULL, argv, env, G_SPAWN_SEARCH_PATH,
+                                     NULL, password_input, &stdout_text,
+                                     &stderr_text, &wait_status, &spawn_error);
+    secure_clear(target_password, sizeof(target_password));
+    account_configured = FALSE;
+    secure_clear(password_input, strlen(password_input));
+    g_free(password_input);
+    g_strfreev(env);
+
+    if (!spawned || !g_spawn_check_wait_status(wait_status, &spawn_error)) {
+        g_printerr("\n[VENOM] A instalacao falhou: %s\n%s\n",
+                   spawn_error ? spawn_error->message : "erro desconhecido",
+                   stderr_text ? stderr_text : "");
+        g_printerr("O disco pode ter sido alterado. Nao remova a energia.\n");
+        g_clear_error(&spawn_error);
+        g_free(stdout_text);
+        g_free(stderr_text);
+        g_free(size_text);
+        g_free(edition);
+        g_free(locale_name);
+        g_free(keymap);
+        g_free(firmware_name);
+        g_print("Pressione ENTER para retornar ao instalador.\n");
+        (void)getchar();
+        refresh();
+        return;
+    }
+
+    g_print("%s\n", stdout_text ? stdout_text : "");
+    g_free(stdout_text);
+    g_free(stderr_text);
+    g_free(size_text);
+    g_free(edition);
+    g_free(locale_name);
+    g_free(keymap);
+    g_free(firmware_name);
+    g_print("\nInstalacao concluida. Remova a USB e pressione ENTER para reiniciar.\n");
+    (void)getchar();
+    sync();
+    reboot(RB_AUTOBOOT);
 }
 
 static gboolean review_installation(void) {
