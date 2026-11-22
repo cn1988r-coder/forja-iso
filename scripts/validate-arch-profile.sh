@@ -19,6 +19,10 @@ required=(
   "$BUILD/airootfs/usr/share/venom/install-packages-mate.x86_64"
   "$BUILD/install-overlay/usr/share/backgrounds/venom/venom-wallpaper.svg"
   "$BUILD/install-overlay/usr/share/mate-panel/layouts/venom.layout"
+  "$BUILD/install-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml"
+  "$BUILD/install-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml"
+  "$BUILD/install-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml"
+  "$BUILD/install-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml"
   "$ROOT/installer/meson.build"
   "$ROOT/installer/src/tui.c"
   "$ROOT/installer/src/disk.c"
@@ -103,5 +107,9 @@ grep -Fq 'choose_edition' "$ROOT/installer/src/tui.c" ||
   fail "selecao das duas edicoes ausente no TUI"
 grep -Fq 'serpent_art' "$ROOT/installer/src/tui.c" ||
   fail "ilustracao da serpente ausente na selecao"
+grep -Fq "group-windows='always'" "$BUILD/install-overlay/etc/dconf/db/local.d/00-venom" ||
+  fail "agrupamento permanente de janelas MATE ausente"
+[[ "$(grep -c '^\\[Toplevel ' "$BUILD/install-overlay/usr/share/mate-panel/layouts/venom.layout")" == 1 ]] ||
+  fail "MATE deve usar um unico painel inferior"
 
 pass "Perfil TUI e backend offline das edicoes XFCE/MATE validados."
