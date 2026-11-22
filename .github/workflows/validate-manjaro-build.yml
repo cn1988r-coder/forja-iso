@@ -1,107 +1,29 @@
-name: Resolver pacotes Manjaro MATE sem gerar ISO
+name: Preflight do perfil Manjaro MATE VENOM (sem compilação)
 on:
-  push:
-    branches: [optimize/venom-iso-size]
-    paths:
-      - 'manjaro/venom-mate/**'
-      - 'scripts/prepare-manjaro-profile.sh'
-      - '.github/workflows/validate-manjaro-build.yml'
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: venom-manjaro-package-resolution
+  group: venom-manjaro-preflight
   cancel-in-progress: true
 jobs:
-  resolve-packages:
+  preflight:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Instalar dependências do buildiso
+      - name: Instalar ferramentas de validação
         run: |
           sudo apt-get update
-          sudo apt-get install -y gdisk systemd-container asciidoc libarchive-tools git build-essential cmake libarchive-dev pkg-config libcurl4-openssl-dev libgpgme-dev libssl-dev fakeroot dh-autoreconf haveged os-prober kwalify dosfstools squashfs-tools doxygen zstd xorriso wget curl meson ninja-build
-      - name: Compilar pacman host conforme o fluxo oficial Manjaro
-        env:
-          PACMAN_VERSION: "6.0.2"
+          sudo apt-get install -y shellcheck
+      - name: Validar scripts e perfil
         run: |
-          wget -q https://code.manjaro.org/packages/PKGBUILDs/raw/branch/main/core/pacman/pacman.conf
-          wget -q https://code.manjaro.org/packages/PKGBUILDs/raw/branch/main/core/pacman/makepkg.conf
-          wget -q "https://sources.archlinux.org/other/pacman/pacman-${PACMAN_VERSION}.tar.xz"
-          tar -xf "pacman-${PACMAN_VERSION}.tar.xz"
-          cd "pacman-${PACMAN_VERSION}"
-          meson setup --prefix=/usr --buildtype=plain -Ddoc=disabled -Ddoxygen=enabled -Dscriptlet-shell=/usr/bin/bash -Dldconfig=/usr/bin/ldconfig build
-          ninja -C build
-          sudo ninja -C build install
-          cd ..
-          sudo install -m644 pacman.conf /etc/pacman.conf
-          sudo install -m644 makepkg.conf /etc/makepkg.conf
-          sudo install -d /etc/pacman.d
-          echo 'Server = https://mirrors.manjaro.org/repo/$repo/$arch' | sudo tee /etc/pacman.d/mirrorlist
-      - name: Configurar keyrings oficiais Manjaro e Arch
+          shellcheck -S error scripts/prepare-manjaro-profile.sh scripts/validate-manjaro-profile.sh scripts/validate-manjaro-build.sh scripts/build-manjaro-iso.sh scripts/test-manjaro-profile-links.sh
+          scripts/prepare-manjaro-profile.sh
+          scripts/validate-manjaro-profile.sh
+      - name: Conferir integração com os perfis oficiais Manjaro
+        run: scripts/test-manjaro-profile-links.sh
+      - name: Limite desta validação
         run: |
-          sudo install -dm755 /usr/share/pacman/keyrings
-          for file in manjaro.gpg manjaro-revoked manjaro-trusted; do
-            wget -q "https://code.manjaro.org/packages/PKGBUILDs/raw/branch/main/core/manjaro-keyring/$file"
-            sudo install -m0644 "$file" /usr/share/pacman/keyrings/
-          done
-          mkdir archlinux-keyring
-          cd archlinux-keyring
-          wget -q https://archlinux.org/packages/core/any/archlinux-keyring/download -O /tmp/archlinux-keyring.tar.zst
-          tar --use-compress-program=unzstd --strip-components=4 --wildcards -xf /tmp/archlinux-keyring.tar.zst 'usr/share/pacman/keyrings/*'
-          sudo install -m0644 archlinux.gpg archlinux-trusted archlinux-revoked /usr/share/pacman/keyrings/
-          cd ..
-          sudo pacman-key --init
-          sudo pacman-key --populate archlinux manjaro
-      - name: Instalar scripts e schemas Calamares Manjaro
-        run: |
-          VERSION=27
-          wget -q "https://github.com/archlinux/arch-install-scripts/archive/refs/tags/v${VERSION}.tar.gz" -O arch-install-scripts.tar.gz
-          tar -xf arch-install-scripts.tar.gz
-          make -C "arch-install-scripts-${VERSION}"
-          make -C "arch-install-scripts-${VERSION}" check
-          sudo make -C "arch-install-scripts-${VERSION}" PREFIX=/usr install
-          wget -q https://code.manjaro.org/applications/pacman-mirrors/raw/branch/master/data/etc/pacman-mirrors.conf -O pacman-mirrors.conf
-          sudo install -m644 pacman-mirrors.conf /etc/pacman-mirrors.conf
-          git clone --depth 1 https://code.manjaro.org/applications/calamares-tools.git
-          sudo install -d /usr/share/calamares
-          sudo cp -a calamares-tools/schemas /usr/share/calamares/
-      - name: Instalar mkinitcpio usado pelo build Manjaro
-        run: |
-          VERSION=32
-          wget -q "https://gitlab.archlinux.org/archlinux/mkinitcpio/mkinitcpio/-/archive/v${VERSION}/mkinitcpio-v${VERSION}.tar.gz"
-          tar -xf "mkinitcpio-v${VERSION}.tar.gz"
-          sudo make -C "mkinitcpio-v${VERSION}" install
-          sudo sed -i -e 's|File|Path|' /usr/share/libalpm/hooks/*hook
-      - name: Instalar manjaro-tools oficial e perfis ISO oficiais
-        run: |
-          git clone --depth 1 https://code.manjaro.org/tools/manjaro-tools.git
-          cd manjaro-tools
-          make -o doc SYSCONFDIR=/etc PREFIX=/usr
-          sudo make -o doc SYSCONFDIR=/etc PREFIX=/usr install_base
-          sudo make -o doc SYSCONFDIR=/etc PREFIX=/usr install_yaml
-          sudo make -o doc SYSCONFDIR=/etc PREFIX=/usr install_iso
-          cd ..
-          git clone --depth 1 https://code.manjaro.org/profiles/iso-profiles.git
-          cp -a manjaro/venom-mate iso-profiles/manjaro/venom-mate
-          VENOM_PROFILE_DIR="$PWD/iso-profiles/manjaro/venom-mate" scripts/prepare-manjaro-profile.sh
-      - name: Validar configuração e dependências do perfil
-        run: |
-          cd iso-profiles
-          check-yaml -p venom-mate -c
-          source <(curl -fsSL https://code.manjaro.org/packages/PKGBUILDs/raw/branch/main/core/manjaro-release/lsb-release)
-          sudo sed -i -e 's|dist_name=$(get_distname)|dist_name="VENOM OS"|g' /usr/lib/manjaro-tools/util.sh
-          sudo sed -i -e 's|iso_name=$(get_osid)|iso_name=venom|g' /usr/lib/manjaro-tools/util.sh
-          sudo sed -i -e "s|dist_release=\$(get_release)|dist_release=${DISTRIB_RELEASE}|g" /usr/lib/manjaro-tools/util.sh
-          sudo sed -i -e "s|dist_codename=\$(get_codename)|dist_codename=${DISTRIB_CODENAME}|g" /usr/lib/manjaro-tools/util.sh
-          sudo sed -i -e "s|build_mirror='https://mirror.easyname.at/manjaro'|build_mirror='https://mirrors.manjaro.org/repo'|g" /usr/lib/manjaro-tools/util.sh
-      - name: Resolver pacotes com buildiso -x, sem ISO
-        run: |
-          cd iso-profiles
-          sudo buildiso -p venom-mate -b stable -k linux618 -x
-          if find /var/cache/manjaro-tools/iso -type f -name '*.iso' -print -quit | grep -q .; then
-            echo "ERRO: buildiso -x não deveria gerar ISO." >&2
-            exit 1
-          fi
-          echo "Pacotes resolvidos. Nenhuma ISO foi gerada."
+          echo "Preflight estático concluído. Nenhum pacote foi resolvido e nenhuma ISO foi compilada."
+          echo "A resolução real deve ser executada em ambiente Manjaro com ferramentas e repositórios oficiais."
