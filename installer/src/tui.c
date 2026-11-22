@@ -54,10 +54,10 @@ static int menu(const char *title, const char *const *items, int count, int step
     int selected = 0, key;
     while (1) {
         frame(title, step);
-        mvprintw(7, 30, "%s", title);
+        mvprintw(7, 28, "%s", title);
         for (int i = 0; i < count; i++) {
             if (i == selected) attron(A_REVERSE | COLOR_PAIR(SELECTED) | A_BOLD);
-            mvprintw(9 + i * 2, 32, "%s", items[i]);
+            mvprintw(9 + i * 2, 30, "%s", items[i]);
             if (i == selected) attroff(A_REVERSE | COLOR_PAIR(SELECTED) | A_BOLD);
         }
         refresh();
@@ -71,13 +71,13 @@ static int menu(const char *title, const char *const *items, int count, int step
 
 static gboolean welcome(void) {
     frame("BEM-VINDO AO INSTALADOR", -1);
-    serpent_art(6, 31);
+    serpent_art(6, COLS > 42 ? (COLS - 42) / 2 : 1);
     attron(A_BOLD);
-    mvprintw(14, 30, "INSTALACAO LIMPA. SISTEMA UNICO. SEM DUAL BOOT.");
+    mvprintw(14, (COLS - 51) > 1 ? (COLS - 51) / 2 : 1, "INSTALACAO LIMPA. SISTEMA UNICO. SEM DUAL BOOT.");
     attroff(A_BOLD);
-    mvprintw(16, 30, "Instalacao preparada para funcionar sem conexao com a internet.");
-    mvprintw(18, 30, "Pacotes e dependencias incluidos na midia USB.");
-    mvprintw(LINES - 5, 30, "ENTER para iniciar   Q para sair");
+    mvprintw(16, (COLS - 65) > 1 ? (COLS - 65) / 2 : 1, "Instalacao preparada para funcionar sem conexao com a internet.");
+    mvprintw(18, (COLS - 48) > 1 ? (COLS - 48) / 2 : 1, "Pacotes e dependencias incluidos na midia USB.");
+    mvprintw(LINES - 5, (COLS - 30) > 1 ? (COLS - 30) / 2 : 1, "ENTER para iniciar   Q para sair");
     refresh();
     int k = getch();
     return k != 'q' && k != 'Q' && k != 27;
@@ -189,19 +189,19 @@ static void confirm_wipe_intent(void) {
 
     frame("CONFIRMACAO DE APAGAMENTO", 2);
     attron(A_BOLD);
-    mvprintw(7, 4, "ATENCAO: A VENOM OS NAO OFERECE DUAL BOOT.");
-    mvprintw(9, 4, "O DISCO INTEIRO SERA APAGADO, INCLUINDO TODAS AS PARTICOES.");
+    mvprintw(7, 28, "ATENCAO: A VENOM OS NAO OFERECE DUAL BOOT.");
+    mvprintw(9, 28, "O DISCO INTEIRO SERA APAGADO, INCLUINDO TODAS AS PARTICOES.");
     attroff(A_BOLD);
-    mvprintw(12, 4, "DISCO: %s", current->path);
-    mvprintw(13, 4, "MODELO: %.48s", current->model);
-    mvprintw(14, 4, "CAPACIDADE: %s", g_format_size(current->size_bytes));
-    mvprintw(17, 4, "Digite APAGAR para continuar ou qualquer outra coisa para cancelar:");
-    mvprintw(19, 4, "> ");
+    mvprintw(12, 28, "DISCO: %s", current->path);
+    mvprintw(13, 28, "MODELO: %.48s", current->model);
+    mvprintw(14, 28, "CAPACIDADE: %s", g_format_size(current->size_bytes));
+    mvprintw(17, 28, "Digite APAGAR para continuar ou qualquer outra coisa para cancelar:");
+    mvprintw(19, 28, "> ");
     refresh();
 
     echo();
     curs_set(1);
-    move(19, 6);
+    move(19, 30);
     getnstr(typed, (int)sizeof(typed) - 1);
     noecho();
     curs_set(0);
@@ -244,26 +244,26 @@ static gboolean review_installation(void) {
     }
     frame("REVISAO ANTES DA INSTALACAO", 2);
     gchar *size = g_format_size(plan->disk_size_bytes);
-    mvprintw(7, 4, "EDICAO: %s", selected_edition == 0 ? "XFCE" : "MATE");
-    mvprintw(8, 4, "IDIOMA: %s", selected_locale == 0 ? "Portugues do Brasil" : "English (US)");
-    mvprintw(9, 4, "TECLADO: %s", selected_keyboard == 0 ? "Brasil ABNT2" : "English US");
-    mvprintw(11, 4, "DISCO: %s | %s | %s", plan->disk_path, selected_disk.model, size);
-    mvprintw(13, 4, "MODO: INSTALACAO LIMPA, DISCO INTEIRO");
-    mvprintw(14, 4, "FIRMWARE: %s | GPT", firmware == VENOM_FIRMWARE_UEFI ? "UEFI" : "BIOS");
-    mvprintw(15, 4, "ARQUIVOS: BTRFS | SUBVOLUMES @ E @home");
-    mvprintw(16, 4, "SNAPSHOTS: TIMESHIFT + GRUB-BTRFS");
-    mvprintw(17, 4, "PARTICOES PLANEJADAS:");
+    mvprintw(7, 28, "EDICAO: %s", selected_edition == 0 ? "XFCE" : "MATE");
+    mvprintw(8, 28, "IDIOMA: %s", selected_locale == 0 ? "Portugues do Brasil" : "English (US)");
+    mvprintw(9, 28, "TECLADO: %s", selected_keyboard == 0 ? "Brasil ABNT2" : "English US");
+    mvprintw(11, 28, "DISCO: %s | %s | %s", plan->disk_path, selected_disk.model, size);
+    mvprintw(13, 28, "MODO: INSTALACAO LIMPA, DISCO INTEIRO");
+    mvprintw(14, 28, "FIRMWARE: %s | GPT", firmware == VENOM_FIRMWARE_UEFI ? "UEFI" : "BIOS");
+    mvprintw(15, 28, "ARQUIVOS: BTRFS | SUBVOLUMES @ E @home");
+    mvprintw(16, 28, "SNAPSHOTS: TIMESHIFT + GRUB-BTRFS");
+    mvprintw(17, 28, "PARTICOES PLANEJADAS:");
     for (guint i = 0; i < plan->partitions->len; i++) {
         VenomPartition *p = g_ptr_array_index(plan->partitions, i);
         gchar *part_size = g_format_size(p->size_bytes);
         const char *role = p->role == VENOM_PARTITION_EFI ? "EFI FAT32 /boot/efi" : p->role == VENOM_PARTITION_BIOS_GRUB ? "BIOS GRUB" : "RAIZ BTRFS / (subvolume @; /home em @home)";
-        mvprintw(18 + (int)i, 6, "%s  %s", role, part_size);
+        mvprintw(18 + (int)i, 30, "%s  %s", role, part_size);
         g_free(part_size);
     }
     attron(A_BOLD);
-    mvprintw(LINES - 5, 4, "ATENCAO: O DISCO INTEIRO SERA APAGADO.");
+    mvprintw(LINES - 5, 28, "ATENCAO: O DISCO INTEIRO SERA APAGADO.");
     attroff(A_BOLD);
-    mvprintw(LINES - 2, 4, "ENTER para continuar a confirmacao   ESC para voltar");
+    mvprintw(LINES - 2, 28, "ENTER confirma   ESC volta");
     refresh();
     int key = getch();
     g_free(size);
@@ -272,10 +272,10 @@ static gboolean review_installation(void) {
 }
 static void notice(const char *title, const char *line1, const char *line2) {
     frame(title, 2);
-    mvprintw(8, 5, "%s", line1);
-    mvprintw(10, 5, "%s", line2);
-    mvprintw(13, 5, "Este prototipo nao executa particionamento nem formatacao.");
-    mvprintw(LINES - 2, 4, "Pressione uma tecla para voltar");
+    mvprintw(8, 28, "%s", line1);
+    mvprintw(10, 28, "%s", line2);
+    mvprintw(13, 28, "Nenhuma operacao de disco e executada nesta versao.");
+    mvprintw(LINES - 2, 28, "Pressione uma tecla para voltar");
     refresh();
     getch();
 }
