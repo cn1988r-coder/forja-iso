@@ -13,18 +13,21 @@ sudo pacman -S --needed base-devel git
 Compile os três pacotes AUR na ordem abaixo. Execute `makepkg` como usuário comum, nunca como root. O `-si` instala o pacote compilado e as dependências oficiais necessárias para compilar o próximo.
 
 ```bash
+cd /tmp
 git clone https://aur.archlinux.org/libpamac-aur.git
 cd libpamac-aur
 makepkg -si
 ```
 
 ```bash
+cd /tmp
 git clone https://aur.archlinux.org/pamac-aur.git
 cd pamac-aur
 makepkg -si
 ```
 
 ```bash
+cd /tmp
 git clone https://aur.archlinux.org/ferdium-bin.git
 cd ferdium-bin
 makepkg -si
