@@ -24,7 +24,7 @@ typedef enum {
 typedef enum {
     VENOM_FILESYSTEM_NONE,
     VENOM_FILESYSTEM_FAT32,
-    VENOM_FILESYSTEM_EXT4,
+    VENOM_FILESYSTEM_BTRFS,
     VENOM_FILESYSTEM_SWAP
 } VenomFilesystem;
 
@@ -49,6 +49,9 @@ typedef struct {
     gchar *partition_table;
     GPtrArray *partitions;
     gboolean requires_confirmation;
+    gchar *root_subvolume;
+    gchar *home_subvolume;
+    gboolean snapshot_support;
 } VenomInstallPlan;
 
 /*
