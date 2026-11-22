@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+# Backend de instalacao limpa VENOM OS. Executado somente apos confirmacao explicita.
+set -Eeuo pipefail
+umask 077
+
+log() { printf '[VENOM] %s\n' "$*"; }
+fail() { printf '[VENOM][ERRO] %s\n' "$*" >&2; exit 1; }
+
+[[ $EUID -eq 0 ]] || fail "O instalador precisa de privilegios de administrador."
+[[ $# -eq 14 ]] || fail "Parametros de instalacao invalidos."
+
+DISK="$2"; EDITION="$4"; LOCALE="$6"; KEYMAP="$8"
+USERNAME="${10}"; FIRMWARE="${12}"; CONFIRM="${14}"
+[[ "$1" == "--disk" && "$3" == "--edition" && "$5" == "--locale" &&
+   "$7" == "--keymap" && "$9" == "--username" &&
+   "${11}" == "--firmware" && "${13}" == "--confirm" ]] ||
+   fail "Sequencia de parametros invalida."
+[[ "$CONFIRM" == "APAGAR" ]] || fail "Confirmacao destrutiva ausente."
+[[ "$EDITION" == "xfce" || "$EDITION" == "mate" ]] || fail "Edicao desconhecida."
+[[ "$FIRMWARE" == "uefi" || "$FIRMWARE" == "bios" ]] || fail "Firmware desconhecido."
+[[ "$LOCALE" == "pt_BR.UTF-8" || "$LOCALE" == "en_US.UTF-8" ]] || fail "Idioma nao suportado."
+[[ "$KEYMAP" == "br-abnt2" || "$KEYMAP" == "us" ]] || fail "Teclado nao suportado."
+[[ "$USERNAME" =~ ^[a-z_][a-z0-9_-]{0,30}$ && "$USERNAME" != root ]] || fail "Nome de usuario invalido."
+[[ "$DISK" =~ ^/dev/[a-zA-Z0-9._-]+$ && -b "$DISK" ]] || fail "Disco de destino invalido."
+[[ -d /sys/firmware/efi ]] && [[ "$FIRMWARE" == uefi ]] && : || {
+  [[ ! -d /sys/firmware/efi && "$FIRMWARE" == bios ]] || fail "Modo de firmware diverge da inicializacao atual."
+}
+
+EXPECTED_SIZE="${VENOM_EXPECTED_DISK_BYTES:-0}"
+ACTUAL_SIZE="$(blockdev --getsize64 "$DISK")"
+[[ "$EXPECTED_SIZE" =~ ^[0-9]+$ && "$EXPECTED_SIZE" == "$ACTUAL_SIZE" ]] ||
+  fail "O tamanho do disco mudou desde a selecao."
+[[ "$(lsblk -dnro TYPE "$DISK")" == disk ]] || fail "O destino nao e um disco inteiro."
+[[ "$(lsblk -dnro RO "$DISK")" == 0 ]] || fail "O disco esta somente para leitura."
+if lsblk -nrpo MOUNTPOINT "$DISK" | grep -q '[^[:space:]]'; then
+  fail "Existem particoes montadas no disco escolhido."
+fi
+
+BOOT_SOURCE="$(findmnt -nro SOURCE /run/archiso/bootmnt 2>/dev/null || true)"
+if [[ -n "$BOOT_SOURCE" ]]; then
+  BOOT_DISK="$(lsblk -s -nrpo NAME "$BOOT_SOURCE" 2>/dev/null | tail -n1 || true)"
+  TARGET_REAL="$(readlink -f "$DISK")"
+  [[ -z "$BOOT_DISK" || "$(readlink -f "$BOOT_DISK")" != "$TARGET_REAL" ]] ||
+    fail "O disco de inicializacao USB nao pode ser apagado."
+fi
+
+REPO=/usr/share/venom/repo
+MANIFEST="/usr/share/venom/install-packages-${EDITION}.x86_64"
+[[ -s "$REPO/venom.db" || -s "$REPO/venom.db.tar.gz" || -s "$REPO/venom.db.tar.zst" ]] ||
+  fail "Repositorio offline VENOM ausente na midia."
+[[ -s "$MANIFEST" ]] || fail "Manifesto da edicao ausente."
+for cmd in sgdisk partprobe udevadm mkfs.fat mkfs.btrfs mount umount pacstrap genfstab arch-chroot grub-install grub-mkconfig; do
+  command -v "$cmd" >/dev/null 2>&1 || fail "Ferramenta obrigatoria ausente: $cmd"
+done
+
+read -r PASSWORD || fail "Senha nao recebida."
+[[ ${#PASSWORD} -ge 8 && ${#PASSWORD} -le 127 ]] || fail "A senha deve ter entre 8 e 127 caracteres."
+[[ "$PASSWORD" != *$'\n'* && "$PASSWORD" != *$'\r'* ]] || fail "Senha invalida."
+
+MNT=/mnt/venom-target
+cleanup() {
+  set +e
+  swapoff -a >/dev/null 2>&1
+  umount -R "$MNT" >/dev/null 2>&1
+  rmdir "$MNT" >/dev/null 2>&1
+  unset PASSWORD
+}
+trap cleanup EXIT
+
+if [[ "$DISK" =~ (nvme|mmcblk|loop)[0-9] ]]; then
+  P1="${DISK}p1"; P2="${DISK}p2"
+else
+  P1="${DISK}1"; P2="${DISK}2"
+fi
+
+log "Preparando tabela GPT e particoes do disco confirmado."
+wipefs --all --force "$DISK"
+sgdisk --zap-all "$DISK"
+if [[ "$FIRMWARE" == uefi ]]; then
+  sgdisk --new=1:0:+1024M --typecode=1:ef00 --change-name=1:VENOM_EFI \
+         --new=2:0:0 --typecode=2:8300 --change-name=2:VENOM_ROOT "$DISK"
+else
+  sgdisk --new=1:0:+2M --typecode=1:ef02 --change-name=1:VENOM_BIOS \
+         --new=2:0:0 --typecode=2:8300 --change-name=2:VENOM_ROOT "$DISK"
+fi
+partprobe "$DISK"
+udevadm settle
+for _ in {1..20}; do [[ -b "$P2" ]] && break; sleep 1; done
+[[ -b "$P2" ]] || fail "As particoes nao apareceram apos a tabela GPT."
+
+if [[ "$FIRMWARE" == uefi ]]; then
+  mkfs.fat -F32 -n VENOM_EFI "$P1"
+fi
+mkfs.btrfs -f -L VENOM_ROOT "$P2"
+mkdir -p "$MNT"
+mount "$P2" "$MNT"
+btrfs subvolume create "$MNT/@"
+btrfs subvolume create "$MNT/@home"
+umount "$MNT"
+mount -o noatime,compress=zstd,subvol=@ "$P2" "$MNT"
+mkdir -p "$MNT/home"
+mount -o noatime,compress=zstd,subvol=@home "$P2" "$MNT/home"
+if [[ "$FIRMWARE" == uefi ]]; then
+  mkdir -p "$MNT/boot"
+  mount "$P1" "$MNT/boot"
+fi
+
+PACMAN_CONF="$(mktemp)"
+cat > "$PACMAN_CONF" <<EOF
+[options]
+Architecture = auto
+Color
+CheckSpace
+SigLevel = Required DatabaseOptional
+LocalFileSigLevel = Optional
+[venom]
+Server = file:///usr/share/venom/repo
+SigLevel = PackageRequired DatabaseOptional
+EOF
+trap 'rm -f "$PACMAN_CONF"; cleanup' EXIT
+mapfile -t PACKAGES < <(grep -Ev '^[[:space:]]*(#|$)' "$MANIFEST")
+(("${#PACKAGES[@]}" > 0)) || fail "Manifesto de pacotes vazio."
+log "Instalando a edicao ${EDITION^^} a partir do repositorio local."
+pacstrap -C "$PACMAN_CONF" -M "$MNT" "${PACKAGES[@]}"
+genfstab -U "$MNT" > "$MNT/etc/fstab"
+install -d "$MNT/etc"
+printf '%s\n' "$LOCALE UTF-8" > "$MNT/etc/locale.gen"
+arch-chroot "$MNT" locale-gen
+printf 'LANG=%s\n' "$LOCALE" > "$MNT/etc/locale.conf"
+printf '%s\n' "$KEYMAP" > "$MNT/etc/vconsole.conf"
+printf 'VENOM-OS\n' > "$MNT/etc/hostname"
+cat > "$MNT/etc/hosts" <<'EOF'
+127.0.0.1 localhost
+::1 localhost
+127.0.1.1 VENOM-OS.localdomain VENOM-OS
+EOF
+arch-chroot "$MNT" useradd -m -G wheel,audio,video,storage,power -s /bin/bash "$USERNAME"
+printf '%s:%s\n' "$USERNAME" "$PASSWORD" | arch-chroot "$MNT" chpasswd
+unset PASSWORD
+printf '%%wheel ALL=(ALL:ALL) ALL\n' > "$MNT/etc/sudoers.d/10-wheel"
+chmod 0440 "$MNT/etc/sudoers.d/10-wheel"
+install -d "$MNT/etc/lightdm/lightdm.conf.d"
+printf '[Seat:*]\nuser-session=%s\ngreeter-session=lightdm-gtk-greeter\n' "$EDITION" > "$MNT/etc/lightdm/lightdm.conf.d/50-venom-session.conf"
+arch-chroot "$MNT" systemctl enable NetworkManager bluetooth.service lightdm.service cronie.service
+if [[ "$FIRMWARE" == uefi ]]; then
+  arch-chroot "$MNT" grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=VENOM
+else
+  arch-chroot "$MNT" grub-install --target=i386-pc "$DISK"
+fi
+arch-chroot "$MNT" grub-mkconfig -o /boot/grub/grub.cfg
+log "Instalacao concluida. Removendo montagens e preparando reinicializacao."
+trap - EXIT
+rm -f "$PACMAN_CONF"
+cleanup
+log "VENOM OS ${EDITION^^} instalada. Remova a midia USB e reinicie."
