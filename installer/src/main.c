@@ -120,7 +120,12 @@ static void activate(GtkApplication *app,gpointer data){
  a->status=label("Detectando discos...");gtk_label_set_wrap(GTK_LABEL(a->status),TRUE);gtk_box_append(GTK_BOX(box),a->status);
  a->install_button=gtk_button_new_with_label("Instalar VENOM OS");gtk_widget_add_css_class(a->install_button,"suggested-action");
  g_signal_connect(a->install_button,"clicked",G_CALLBACK(install_clicked),a);gtk_box_append(GTK_BOX(box),a->install_button);
- refresh_disks(a);gtk_window_present(GTK_WINDOW(a->window));
+ refresh_disks(a);
+ if(!g_file_test("/sys/firmware/efi",G_FILE_TEST_IS_DIR)){
+  gtk_label_set_text(GTK_LABEL(a->status),"Inicialize o pendrive em modo UEFI. A instalação da VENOM não oferece modo Legacy/CSM.");
+  gtk_widget_set_sensitive(a->install_button,FALSE);
+ }
+ gtk_window_present(GTK_WINDOW(a->window));
 }
 int main(int argc,char **argv){
  GtkApplication *app=gtk_application_new("org.venomos.installer",G_APPLICATION_DEFAULT_FLAGS);
