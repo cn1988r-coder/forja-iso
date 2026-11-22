@@ -64,8 +64,7 @@ static int menu(const char *title, const char *const *items, int count, int step
         key = getch();
         if ((key == KEY_UP || key == 'k') && selected > 0) selected--;
         else if ((key == KEY_DOWN || key == 'j') && selected < count - 1) selected++;
-        else if (key == '
-' || key == KEY_ENTER) return selected;
+        else if (key == '\n' || key == KEY_ENTER) return selected;
         else if (key == 'q' || key == 'Q' || key == 27) return -1;
     }
 }
@@ -99,8 +98,8 @@ static int choose_edition(void) {
         "VENOM OS  |  MATE"
     };
     static const char *const descriptions[] = {
-        "Desktop XFCE: leve, rapido e altamente configuravel.",
-        "Desktop MATE: classico, familiar e completo."
+        "XFCE: leve, rapido e configuravel.",
+        "MATE: classico, familiar e completo."
     };
     int selected = selected_edition;
     int key;
@@ -125,7 +124,7 @@ static int choose_edition(void) {
         }
 
         attron(COLOR_PAIR(MUTED));
-        mvprintw(23, 30, "As duas incluem os mesmos aplicativos e recursos VENOM.");
+        mvprintw(23, 30, "As duas incluem os mesmos aplicativos VENOM.");
         attroff(COLOR_PAIR(MUTED));
         refresh();
 
