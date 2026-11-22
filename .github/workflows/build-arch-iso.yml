@@ -1,60 +1,18 @@
-name: Construir ISO VENOM OS
+name: ISO Arch antiga (desativada)
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - optimize/venom-iso-size
-    paths:
-      - 'build/**'
-      - 'installer/**'
-      - 'scripts/build-venom-iso.sh'
-      - 'scripts/validate-arch-profile.sh'
-      - 'scripts/validate-scope.sh'
-      - '.github/workflows/build-arch-iso.yml'
 
 permissions:
   contents: read
 
-concurrency:
-  group: venom-iso-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
-  build:
+  disabled:
     runs-on: ubuntu-latest
-    container:
-      image: archlinux:latest
     steps:
-      - name: Instalar ferramentas oficiais Archiso
+      - name: Bloqueio de segurança
         run: |
-          pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm archiso base-devel git meson ninja pkgconf gtk4 json-glib glib2 shellcheck xorriso
-
-      - name: Baixar código
-        uses: actions/checkout@v4
-
-      - name: Construir ISO VENOM
-        run: |
-          chmod +x scripts/*.sh
-          VENOM_ISO_BUILD_AUTHORIZED=YES scripts/build-venom-iso.sh
-
-      - name: Verificar imagem e boot BIOS/UEFI
-        run: |
-          set -euo pipefail
-          mapfile -t images < <(find out -maxdepth 1 -type f -name '*.iso' -print)
-          test "${#images[@]}" -eq 1
-          file "${images[0]}"
-          xorriso -indev "${images[0]}" -report_el_torito as_mkisofs
-          grep -q 'El Torito' < <(xorriso -indev "${images[0]}" -report_el_torito plain 2>&1)
-          sha256sum -c "${images[0]}.sha256"
-
-      - name: Publicar ISO e checksum
-        uses: actions/upload-artifact@v4
-        with:
-          name: VENOM-OS-ISO
-          path: |
-            out/*.iso
-            out/*.iso.sha256
-          if-no-files-found: error
-          retention-days: 14
+          echo "Esta rotina Archiso foi desativada."
+          echo "A VENOM OS está migrando para Manjaro e Calamares oficial."
+          echo "Nenhuma ISO será gerada por esta workflow."
+          exit 1
