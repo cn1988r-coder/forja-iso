@@ -262,9 +262,8 @@ static void select_disk(void) {
 }
 
 /*
- * Confirma apenas a intenção do usuário. Esta etapa NÃO executa operações
- * de disco: o backend destrutivo permanece desabilitado até ser implementado
- * e testado em máquinas virtuais descartáveis.
+ * Revalida o disco, exige confirmação explícita e chama o backend de instalação.
+ * O backend só deve ser liberado após validação completa em VMs descartáveis.
  */
 static void confirm_wipe_intent(void) {
     GError *error = NULL;
