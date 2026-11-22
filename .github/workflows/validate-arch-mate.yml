@@ -34,10 +34,16 @@ jobs:
         run: |
           pacman -Syu --noconfirm
           pacman -Fy --noconfirm
-          pacman -S --needed --noconfirm git gcc meson ninja pkgconf gtk4 json-glib shellcheck
+          pacman -S --needed --noconfirm git gcc meson ninja pkgconf gtk4 json-glib glib2 ncurses shellcheck
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Compilar TUI e executar testes do instalador
+        run: |
+          meson setup /tmp/venom-installer-build installer
+          meson compile -C /tmp/venom-installer-build
+          meson test -C /tmp/venom-installer-build --print-errorlogs
 
       - name: Validar perfil, painel, compilação GTK4 e testes
         run: |
