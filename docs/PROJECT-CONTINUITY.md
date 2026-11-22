@@ -6,6 +6,7 @@
 - Perfil: manjaro/venom-mate.
 - Desktop: MATE tradicional com painel superior e inferior.
 - Menu: Brisk Menu no painel superior, com símbolo V através do tema de ícones VENOM; não usar o menu padrão MATE nem o antigo lançador personalizado.
+- Painel superior: relógio com hora 24h e data `DD/MM/AAAA` na mesma linha (`HH:MM  DD/MM/AAAA`); atalho Pamac centralizado; área de notificação e volume mantidos.
 - Kernel padrão da imagem: linux618, Linux 6.18 LTS.
 - Construção: perfis oficiais Manjaro ISO Profiles e buildiso compatível com mt-0.15.
 - Calamares, Pamac, Brisk Menu, MATE, kernel e demais pacotes: somente repositórios oficiais Manjaro Stable. Sem AUR ou fontes externas.

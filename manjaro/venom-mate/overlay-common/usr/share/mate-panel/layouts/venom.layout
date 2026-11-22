@@ -15,6 +15,14 @@ toplevel-id=top
 pack-index=0
 locked=true
 
+[Object venom-pamac-launcher]
+object-type=launcher
+toplevel-id=top
+launcher-location=/usr/share/applications/venom-pamac.desktop
+pack-type=center
+pack-index=0
+locked=true
+
 [Object venom-top-notification-area]
 object-type=applet
 applet-iid=NotificationAreaAppletFactory::NotificationArea

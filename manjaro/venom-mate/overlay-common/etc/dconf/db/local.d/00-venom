@@ -39,3 +39,9 @@ background-opacity=96
 
 [org/mate/panel/objects/venom-window-list]
 group-windows='always'
+
+[org/mate/panel/objects/venom-top-clock/prefs]
+format='custom'
+custom-format='%H:%M  %d/%m/%Y'
+show-date=true
+show-seconds=false

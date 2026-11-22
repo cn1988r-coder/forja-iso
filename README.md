@@ -8,6 +8,8 @@ Distribuição baseada no **Manjaro Linux**, com uma única edição: **MATE + L
 - Tema VENOM: preto/grafite, azul elétrico e prata.
 - MATE tradicional com painel superior e inferior.
 - Brisk Menu no painel superior, com o símbolo V fornecido pelo tema de ícones VENOM.
+- Relógio superior em formato 24 horas, com data `DD/MM/AAAA` ao lado (`HH:MM  DD/MM/AAAA`).
+- Atalho do Pamac centralizado no painel superior; área de notificação mantém os indicadores de Bluetooth e volume.
 - Painel inferior com lista de janelas agrupadas.
 
 ## Base e instalador

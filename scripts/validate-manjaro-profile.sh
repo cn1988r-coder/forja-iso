@@ -20,6 +20,12 @@ for path in etc/locale.conf etc/locale.gen etc/vconsole.conf etc/X11/xorg.conf.d
 done
 LAYOUT="$PROFILE/overlay-common/usr/share/mate-panel/layouts/venom.layout"
 grep -Fq 'applet-iid=BriskMenuFactory::BriskMenu' "$LAYOUT" || fail "Brisk Menu ausente do painel superior"
+grep -Fq 'launcher-location=/usr/share/applications/venom-pamac.desktop' "$LAYOUT" || fail "atalho Pamac ausente do painel superior"
+grep -Fq 'applet-iid=ClockAppletFactory::ClockApplet' "$LAYOUT" || fail "relógio ausente do painel superior"
+[[ -f "$PROFILE/overlay-common/usr/share/applications/venom-pamac.desktop" ]] || fail "lançador Pamac ausente"
+CLOCK="$PROFILE/overlay-common/etc/dconf/db/local.d/00-venom"
+grep -Fq "[org/mate/panel/objects/venom-top-clock/prefs]" "$CLOCK" || fail "preferências do relógio ausentes"
+grep -Fq "custom-format='%H:%M  %d/%m/%Y'" "$CLOCK" || fail "data do relógio não está no formato DD/MM/AAAA"
 grep -Fq '[Toplevel top]' "$LAYOUT" || fail "painel superior ausente"
 grep -Fq '[Toplevel bottom]' "$LAYOUT" || fail "painel inferior ausente"
 grep -Fq "icon-theme='VENOM'" "$PROFILE/overlay-common/etc/dconf/db/local.d/00-venom" || fail "tema de ícones VENOM ausente"
