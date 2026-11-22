@@ -60,7 +60,7 @@ jobs:
       - name: Preparar ambiente Arch Linux
         run: |
           pacman -Syu --noconfirm
-          pacman -S --needed --noconfirm base-devel git sudo archiso meson ninja gcc pkgconf gtk4 libhandy libadwaita
+          pacman -S --needed --noconfirm base-devel git sudo archiso grub meson ninja gcc pkgconf gtk4 libhandy libadwaita
           useradd --create-home --shell /bin/bash builder
           printf 'builder ALL=(ALL:ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/90-builder
           chmod 0440 /etc/sudoers.d/90-builder
