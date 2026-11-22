@@ -407,11 +407,20 @@ static void
 install_style(void)
 {
     static const gchar css[] =
-        "window { background: #0b0d11; color: #edf1f7; }"
-        ".title-1 { color: #f4f6fa; font-weight: 700; }"
-        ".description { color: #b8c0cc; }"
-        "button.suggested-action { background: #174f83; }"
-        "entry, dropdown { background: #171b22; color: #edf1f7; }";
+        "window { background: #080b10; color: #e9f0f8; }"
+        "headerbar { background: #0d121a; color: #f4f7fb; border-bottom: 1px solid #174b78; }"
+        ".title-1, .title-2, .title-3 { color: #f4f7fb; font-weight: 800; }"
+        ".description, .dim-label { color: #aab8c8; }"
+        "label { color: #e1e9f2; }"
+        "button { background: #151d28; color: #eaf3fc; border: 1px solid #263b52; border-radius: 8px; padding: 8px 14px; }"
+        "button:hover { background: #1b2b3e; border-color: #168de0; }"
+        "button.suggested-action { background: #075da3; color: #ffffff; border: 1px solid #168de0; font-weight: 700; }"
+        "button.suggested-action:hover { background: #0876c9; }"
+        "entry, dropdown, spinbutton, textview { background: #111923; color: #edf4fc; border: 1px solid #29425c; border-radius: 7px; }"
+        "entry:focus, dropdown:focus, spinbutton:focus { border-color: #168de0; }"
+        "stacksidebar row:selected { background: #10385b; border-left: 3px solid #168de0; }"
+        "separator { background: #24384d; }"
+        ".warning { color: #f2c879; }";
 
     GtkCssProvider *provider = gtk_css_provider_new();
     GdkDisplay *display = gdk_display_get_default();
