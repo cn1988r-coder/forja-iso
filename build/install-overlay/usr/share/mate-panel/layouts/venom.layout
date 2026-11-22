@@ -1,43 +1,12 @@
-# Ícones de rede e Bluetooth são iniciados pelos arquivos XDG oficiais dos pacotes
-# network-manager-applet e blueman; a Notification Area exibe os dois no MATE.
-# O volume usa o applet Gvc do painel, sem um segundo ícone de status.
-[Toplevel top]
-expand=true
-orientation=top
-size=30
-
+# Painel inferior unico VENOM MATE. Os applets ficam agrupados na mesma barra.
 [Toplevel bottom]
 expand=true
 orientation=bottom
-size=30
+size=38
 
 [Object menu-bar]
 object-type=menu-bar
-toplevel-id=top
-pack-index=0
-locked=true
-
-[Object notification-area]
-object-type=applet
-applet-iid=NotificationAreaAppletFactory::NotificationArea
-toplevel-id=top
-pack-type=end
-pack-index=2
-locked=true
-
-[Object volume-control]
-object-type=applet
-applet-iid=GvcAppletFactory::GvcApplet
-toplevel-id=top
-pack-type=end
-pack-index=1
-locked=true
-
-[Object clock]
-object-type=applet
-applet-iid=ClockAppletFactory::ClockApplet
-toplevel-id=top
-pack-type=end
+toplevel-id=bottom
 pack-index=0
 locked=true
 
@@ -45,19 +14,43 @@ locked=true
 object-type=applet
 applet-iid=WnckletFactory::ShowDesktopApplet
 toplevel-id=bottom
-pack-index=0
+pack-index=1
 locked=true
 
 [Object window-list]
 object-type=applet
 applet-iid=WnckletFactory::WindowListApplet
 toplevel-id=bottom
-pack-index=1
+pack-index=2
+locked=true
+
+[Object notification-area]
+object-type=applet
+applet-iid=NotificationAreaAppletFactory::NotificationArea
+toplevel-id=bottom
+pack-type=end
+pack-index=3
+locked=true
+
+[Object volume-control]
+object-type=applet
+applet-iid=GvcAppletFactory::GvcApplet
+toplevel-id=bottom
+pack-type=end
+pack-index=2
 locked=true
 
 [Object workspace-switcher]
 object-type=applet
 applet-iid=WnckletFactory::WorkspaceSwitcherApplet
+toplevel-id=bottom
+pack-type=end
+pack-index=1
+locked=true
+
+[Object clock]
+object-type=applet
+applet-iid=ClockAppletFactory::ClockApplet
 toplevel-id=bottom
 pack-type=end
 pack-index=0
