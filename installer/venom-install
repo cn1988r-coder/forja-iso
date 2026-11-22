@@ -7,7 +7,7 @@ exec > >(tee -a "$LOG") 2>&1
 TARGET=""
 cleanup() {
   local rc=$?
-  mountpoint -q /mnt && umount -R /mnt || true
+  if mountpoint -q /mnt; then umount -R /mnt || true; fi
   unset PASSWORD 2>/dev/null || true
   if (( rc != 0 )); then printf '[VENOM] Falha (código %s). Consulte %s.\n' "$rc" "$LOG"; fi
 }
@@ -19,7 +19,8 @@ TARGET=$1; USERNAME=$2; FULLNAME=$3; PASSWORD_FILE=$4
 [[ "$(lsblk -dnro TYPE "$TARGET")" == disk ]] || fail "Selecione um disco inteiro."
 [[ "$USERNAME" =~ ^[a-z_][a-z0-9_-]{0,30}$ ]] || fail "Nome de usuário inválido."
 [[ -n "$FULLNAME" && "$FULLNAME" != *$'\n'* ]] || fail "Nome completo inválido."
-[[ -f "$PASSWORD_FILE" ]] || fail "Senha temporária ausente."
+[[ "$(dirname -- "$PASSWORD_FILE")" == /tmp && "$(basename -- "$PASSWORD_FILE")" == venom-password-* && -f "$PASSWORD_FILE" && ! -L "$PASSWORD_FILE" ]] || fail "Arquivo temporário de senha inválido."
+[[ -n "${SUDO_UID:-}" && "$(stat -c %u -- "$PASSWORD_FILE")" == "$SUDO_UID" && "$(stat -c %a -- "$PASSWORD_FILE")" == 600 ]] || fail "Permissões do arquivo temporário de senha inválidas."
 PASSWORD=$(<"$PASSWORD_FILE"); rm -f -- "$PASSWORD_FILE"
 [[ ${#PASSWORD} -ge 8 && "$PASSWORD" != *$'\n'* && "$PASSWORD" != *$'\r'* ]] || fail "Senha inválida."
 TARGET=$(readlink -f -- "$TARGET")

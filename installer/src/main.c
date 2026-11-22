@@ -71,9 +71,15 @@ static void begin_install(Installer *a,const char *disk){
   message(GTK_WINDOW(a->window),"Dados inválidos","Informe o nome completo e um usuário válido (letras minúsculas, números, _ ou -).");return;}
  if(strlen(pass)<8||!g_str_equal(pass,confirm)){
   message(GTK_WINDOW(a->window),"Senha inválida","As senhas devem ser iguais e ter pelo menos 8 caracteres.");return;}
- if(!g_file_open_tmp("venom-password-XXXXXX",&a->password_file,&e,&fd)){
+ if(!g_file_open_tmp("/tmp/venom-password-XXXXXX",&a->password_file,&e,&fd)){
   message(GTK_WINDOW(a->window),"Erro",e?e->message:"Não foi possível preparar a senha.");g_clear_error(&e);return;}
- (void)fchmod(fd,0600); dprintf(fd,"%s\n",pass); close(fd);
+ (void)fchmod(fd,0600);
+ gchar *payload=g_strdup_printf("%s\n",pass); gsize payload_len=strlen(payload);
+ ssize_t written=write(fd,payload,payload_len); close(fd); g_free(payload);
+ if(written!=(ssize_t)payload_len){g_unlink(a->password_file);g_clear_pointer(&a->password_file,g_free);
+  message(GTK_WINDOW(a->window),"Erro","Não foi possível preparar a senha.");return;}
+ gtk_editable_set_text(GTK_EDITABLE(a->password),"");
+ gtk_editable_set_text(GTK_EDITABLE(a->confirm_password),"");
  a->process=g_subprocess_new(G_SUBPROCESS_FLAGS_NONE,&e,"sudo","-n",INSTALLER,disk,user,name,a->password_file,NULL);
  if(!a->process){g_unlink(a->password_file);g_clear_pointer(&a->password_file,g_free);
   message(GTK_WINDOW(a->window),"Erro ao iniciar",e?e->message:"Backend indisponível.");g_clear_error(&e);return;}
