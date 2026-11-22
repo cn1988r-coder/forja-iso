@@ -54,3 +54,14 @@ A única modalidade é **instalação limpa com substituição integral do siste
 - Não iniciar particionamento, formatação ou escrita no disco antes da confirmação.
 
 Essa regra é idêntica para VENOM OS XFCE e VENOM OS MATE. Não adicionar opção de dual boot em menus, telas, documentação ou backend. A seleção de disco e a tela de revisão já existentes são apenas protótipos; enquanto o backend não estiver implementado e testado, a instalação deve permanecer bloqueada e nenhum disco pode ser alterado.
+
+
+## Política obrigatória de snapshots e recuperação
+
+- O sistema instalado usa **Btrfs** na partição raiz, com layout plano compatível com Timeshift: subvolume `@` montado em `/` e `@home` montado em `/home`.
+- **Timeshift** deve operar em modo Btrfs e permanecer instalado nas duas edições.
+- **GRUB permanece como único gerenciador de inicialização**. Não instalar nem configurar systemd-boot.
+- Instalar `grub-btrfs` e `inotify-tools`; o serviço `grub-btrfsd` deve observar snapshots do Timeshift e atualizar o submenu de snapshots do GRUB.
+- O initramfs do sistema instalado deve incluir o módulo `btrfs` via configuração do mkinitcpio.
+- Não alterar o subvolume padrão do Btrfs nem gravar IDs de subvolume no fstab. Usar `subvol=@` e `subvol=@home` para permitir restauração sem IDs obsoletos.
+- A integração só pode ser considerada funcional depois de criar snapshots reais em VM, verificar sua aparição no GRUB e testar o boot de um snapshot em BIOS e UEFI.
