@@ -33,6 +33,7 @@ required=(
   "$ROOT/installer/tests/test-plan.c"
   "$ROOT/scripts/build-venom-iso.sh"
   "$ROOT/scripts/prepare-offline-repo.sh"
+  "$ROOT/scripts/validate-offline-repo.sh"
 )
 for file in "${required[@]}"; do
   [[ -s "$file" ]] || fail "arquivo obrigatorio ausente: $file"
@@ -41,6 +42,7 @@ done
 for script in "$ROOT/scripts/build-venom-iso.sh" \
               "$ROOT/scripts/validate-arch-profile.sh" \
               "$ROOT/scripts/prepare-offline-repo.sh" \
+              "$ROOT/scripts/validate-offline-repo.sh" \
               "$BUILD/profiledef.sh" \
               "$BUILD/airootfs/usr/lib/venom/install-system"; do
   bash -n "$script" || fail "sintaxe Bash invalida: $script"
