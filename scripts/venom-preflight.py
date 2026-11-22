@@ -423,6 +423,10 @@ def main():
         "Aplicativo gráfico GTK4 configurado" if has_gtk4 else "Dependência GTK4 ausente do projeto Meson")
     has_flow = all(token in installer_source for token in
                    ("Disco de destino", "Nome completo", "Nome de usuário", "Senha", "Apagar e instalar"))
+    has_uefi_guard = ("/sys/firmware/efi" in installer_source and "Legacy/CSM" in installer_source)
+    add("OK" if has_uefi_guard else "ERROR", "Instalador",
+        "Interface informa e bloqueia instalação fora de UEFI" if has_uefi_guard
+        else "Interface não bloqueia inicialização Legacy/CSM")
     add("OK" if has_flow else "ERROR", "Instalador",
         "Interface contém seleção de disco, conta e confirmação destrutiva" if has_flow
         else "Interface GTK4 incompleta")
@@ -477,6 +481,12 @@ def main():
     add("OK" if guarded else "ERROR", "Workflows",
         "Build por push limitado ao arquivo de gatilho dedicado" if guarded
         else "Não foi possível confirmar proteção por gatilho dedicado")
+    usb_smoke = ("UEFI boot smoke test from raw USB mass storage" in build_workflow
+                 and "usb-storage,drive=venom_usb" in build_workflow
+                 and "uefi-usb-serial.log" in build_workflow)
+    add("OK" if usb_smoke else "ERROR", "USB/UEFI",
+        "Workflow testa boot UEFI da ISO como dispositivo USB e guarda diagnóstico"
+        if usb_smoke else "Teste de boot UEFI por dispositivo USB ausente")
     if re.search(r"^\s*workflow_dispatch:", build_workflow, re.M):
         add("WARNING", "Workflows", "Build permite disparo manual; exige autorização expressa")
     if (ROOT / ".github/trigger-final-build.txt").is_file():
