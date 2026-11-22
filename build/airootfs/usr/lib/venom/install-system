@@ -60,7 +60,6 @@ read -r PASSWORD || fail "Senha nao recebida."
 MNT=/mnt/venom-target
 cleanup() {
   set +e
-  swapoff -a >/dev/null 2>&1
   umount -R "$MNT" >/dev/null 2>&1
   rmdir "$MNT" >/dev/null 2>&1
   unset PASSWORD
