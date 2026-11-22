@@ -22,7 +22,7 @@ cat > "$CONF" <<EOF
 Architecture = auto
 SigLevel = Optional TrustAll
 
-[iso-offline]
+[offline]
 SigLevel = Optional TrustAll
 Server = file://$REPO
 EOF
