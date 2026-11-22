@@ -1,34 +1,20 @@
 # VENOM OS
 
-Distribuição independente baseada diretamente no **Arch Linux oficial**, com identidade própria e um único ambiente gráfico: **MATE + LightDM**.
+Distribuição baseada no **Manjaro Linux**, com uma única edição: **MATE + LightDM**.
 
-## Padrões do sistema
+- Idioma: Português do Brasil (pt_BR.UTF-8).
+- Teclado: Brasil ABNT2.
+- Tema escuro VENOM: preto/grafite, azul elétrico e prata.
+- Painel inferior próprio com lista de janelas agrupadas.
 
-- Base e repositórios: Arch Linux oficial.
-- Idioma: Português do Brasil (`pt_BR.UTF-8`).
-- Teclado: Brasil ABNT2 (`br-abnt2`).
-- Desktop: MATE.
-- Gerenciador de sessão: LightDM.
-- Áudio: PipeWire, PipeWire Pulse e WirePlumber.
-- Atualizações do sistema: `sudo pacman -Syu`.
-- VENON: ferramenta separada e manual para atualizações próprias.
+## Base e instalador
 
-## Instalador VENOM
+A construção usa os perfis oficiais Manjaro ISO Profiles e o utilitário `buildiso`. O perfil está em `manjaro/venom-mate`.
 
-O instalador próprio está em desenvolvimento em C + GTK4. A interface gráfica está em Português do Brasil, enumera discos em modo somente leitura e apresenta uma prévia dos planos automáticos UEFI/BIOS e personalizados. O modo personalizado atual permite ajustar o tamanho da raiz e incluir swap opcional; a partição de boot é fixa nesta etapa.
+O instalador é o **Calamares fornecido pelos repositórios oficiais do Manjaro**. Não baixar, compilar ou substituir Calamares por versões upstream ou externas.
 
-**A instalação permanece desabilitada.** Os planos são apenas propostas em memória. Ainda faltam o editor completo de partições, backend privilegiado, particionamento real, repositório local de pacotes oficiais assinados para instalação offline, configuração do usuário e do sistema, GRUB, progresso real, recuperação de falhas e testes em VM. A aplicação não deve ser apresentada como instalador funcional.
+## Estado
 
-## Painel MATE
+A migração do perfil antigo Archiso para Manjaro está em andamento. O perfil e a validação estática não comprovam uma ISO funcional. Antes de gerar mídia, é necessário resolver os pacotes em ambiente Manjaro, inspecionar a configuração do Calamares e testar sessão live, instalação e primeiro boot em VM UEFI e BIOS.
 
-A configuração estática prevê:
-
-- **Rede:** NetworkManager, `nm-applet` e Notification Area.
-- **Bluetooth:** BlueZ, Blueman, `blueman-applet` e serviço Bluetooth.
-- **Volume/áudio:** applet Gvc do painel MATE, PipeWire e WirePlumber, sem ícone de volume duplicado.
-
-A validação automatizada confere pacotes oficiais, arquivos de autostart, executáveis, ícones, layout, configuração dconf e serviços no live e no sistema instalado. A confirmação visual dos três indicadores após login e reinicialização ainda depende de sessão gráfica/VM.
-
-## Estado do projeto
-
-Em desenvolvimento. O perfil Archiso próprio existe, o instalador C/GTK4 possui interface de prévia e planejador declarativo, e a validação estática é separada da geração da mídia. Nenhuma ISO foi gerada nesta etapa. A compilação permanece bloqueada até autorização expressa do usuário.
+**Nenhuma ISO deve ser gerada até essas verificações serem aprovadas e o usuário autorizar a compilação.**
