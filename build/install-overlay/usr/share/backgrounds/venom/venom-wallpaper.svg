@@ -41,7 +41,7 @@
   <text x="96" y="690" fill="#f1f3f5" font-size="76" font-weight="700" letter-spacing="13">VENOM</text>
   <text x="102" y="755" fill="#aab2bb" font-size="27" font-weight="400" letter-spacing="12">OPERATING SYSTEM</text>
   <path d="M100 800H480" stroke="#cbd2d9" stroke-opacity=".55" stroke-width="2"/>
-  <text x="100" y="850" fill="#727b85" font-size="18" letter-spacing="5">ARCH LINUX  /  MATE DESKTOP</text>
+  <text x="100" y="850" fill="#727b85" font-size="18" letter-spacing="5">ARCH LINUX  /  VENOM OS</text>
 </g>
 <g fill="none" stroke="#cbd2d9" opacity=".12">
   <path d="M90 980H660M90 1000H430" stroke-width="1"/>
