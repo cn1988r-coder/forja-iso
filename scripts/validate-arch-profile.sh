@@ -109,7 +109,10 @@ grep -Fq 'serpent_art' "$ROOT/installer/src/tui.c" ||
   fail "ilustracao da serpente ausente na selecao"
 grep -Fq "group-windows='always'" "$BUILD/install-overlay/etc/dconf/db/local.d/00-venom" ||
   fail "agrupamento permanente de janelas MATE ausente"
-[[ "$(grep -Fc '[Toplevel ' "$BUILD/install-overlay/usr/share/mate-panel/layouts/venom.layout")" == 1 ]] ||
-  fail "MATE deve usar um unico painel inferior"
+grep -Fxq '[Toplevel bottom]' "$BUILD/install-overlay/usr/share/mate-panel/layouts/venom.layout" ||
+  fail "painel inferior MATE ausente"
+if grep -Fxq '[Toplevel top]' "$BUILD/install-overlay/usr/share/mate-panel/layouts/venom.layout"; then
+  fail "MATE deve usar somente um painel inferior"
+fi
 
 pass "Perfil TUI e backend offline das edicoes XFCE/MATE validados."
