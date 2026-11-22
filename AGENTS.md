@@ -1,57 +1,50 @@
 # AGENTS.md
 
-## Identidade do produto
+## Produto e arquitetura
 
 - Nome: VENOM OS.
-- Base técnica única: Arch Linux oficial e seus repositórios oficiais.
-- Desktop único: MATE.
-- Gerenciador de sessão: LightDM.
-- Idioma único: Português do Brasil, `pt_BR.UTF-8`.
-- Teclado padrão: Brasil ABNT2, `br-abnt2` no console e `br` + variante `abnt2` no X11.
-- Não criar edições, sessões ou seletores de idioma/layout adicionais neste produto.
+- Base única: Arch Linux oficial e repositórios oficiais.
+- Duas edições completas: XFCE e MATE. Não adicionar Cinnamon.
+- A mídia inicia diretamente no instalador TUI ncurses na tty1. Não existe Live desktop, sessão de demonstração ou instalador GTK.
+- LightDM no sistema instalado, sem autologin.
+- Idioma padrão: Português do Brasil (`pt_BR.UTF-8`); teclado padrão Brasil ABNT2.
+- Sistema instalado em Btrfs com subvolumes `@` e `@home`, Timeshift e GRUB-Btrfs.
+- Atualizações normais via Pacman. Não criar atualização automática.
 
 ## Repositório e branch
 
 - Repositório: `cn1988r-coder/forja-iso`.
-- Branch de trabalho autorizada: `optimize/venom-iso-size`.
-- Confirmar HEAD e workflows ativos antes de editar.
-- Não alterar `main`, outras branches ou o repositório sem autorização.
+- Branch ativa de trabalho: `feature/venom-graphical-installer`.
+- Confirmar HEAD e arquivos atuais antes de editar.
+- Não alterar `main`, outras branches ou repositórios.
 - Fazer commits pequenos, claros e verificáveis.
-- Não apagar branches, artefatos históricos ou arquivos fora do escopo.
 
-## Instalador próprio
+## Instalador
 
-- Interface nativa em C + GTK4.
-- Separar interface, descoberta de dispositivos, plano de instalação e backend privilegiado.
-- O protótipo atual enumera discos em modo de leitura e apresenta uma prévia gráfica de planos automáticos UEFI/BIOS e personalizados. O modo personalizado atual permite definir o tamanho da raiz e incluir swap opcional; a partição de boot é fixa nesta etapa. O planejador valida caminhos, capacidade, alinhamento, funções e exigência de confirmação, mas não executa operações de disco. Não existe backend de escrita. O botão de instalação deve permanecer desabilitado até que o fluxo completo seja implementado e testado.
-- O instalador final deverá oferecer instalação automática e personalizada, particionamento revisável, confirmação explícita antes de qualquer escrita, criação de usuário, configuração de locale/teclado, MATE, LightDM, serviços, initramfs, GRUB, progresso, logs, erros compreensíveis e reinicialização.
-- A instalação deverá funcionar offline usando um repositório local de pacotes oficiais e assinados, incluído na própria mídia. Não depender da rede durante a instalação e não copiar a raiz live como substituto da instalação por pacotes.
-- Operações destrutivas nunca podem ser executadas sem revisão e confirmação explícita.
-- Não usar instaladores externos, código Python para o instalador, wrappers frágeis ou permissões amplas de sudo.
+- Código da interface: C + ncurses.
+- Tela de escolha de edição deve manter a arte da serpente VENOM e oferecer somente XFCE/MATE.
+- Fluxo: edição, disco inteiro, idioma/teclado, conta, revisão, confirmação literal `APAGAR`, instalação e reinicialização.
+- A senha não pode ser passada em argumentos de processo nem gravada em disco.
+- O backend está em `build/airootfs/usr/lib/venom/install-system`.
+- A instalação é limpa, sem dual boot e sem particionamento manual.
+- Nenhuma escrita em disco antes da revisão e confirmação explícita.
+- Validar novamente disco, tamanho, estado somente leitura, montagens e mídia de boot antes de apagar.
+- Instalação offline por repositório local de pacotes e dependências incluídos na ISO.
+- Não declarar backend funcional sem testes completos em VMs descartáveis BIOS e UEFI.
 
-## Painel MATE: requisitos obrigatórios
+## Aplicativos e desktops
 
-- Rede: pacote oficial `network-manager-applet`, processo `nm-applet` iniciado pelo autostart fornecido pelo pacote e Notification Area presente no layout do painel. Habilitar `NetworkManager.service`.
-- Bluetooth: `bluez`, `bluez-utils` e `blueman`; o autostart oficial inicia `blueman-applet`, exibido pela Notification Area. Habilitar `bluetooth.service`.
-- Volume/áudio: applet `GvcAppletFactory::GvcApplet` fornecido por `mate-media`, com `pipewire-audio`, `pipewire-pulse` e `wireplumber`. Não iniciar um segundo ícone de volume na bandeja.
-- Manter as mesmas configurações do painel no sistema live e no overlay do sistema instalado.
-- Validar estaticamente pacotes, arquivos de autostart, applets, serviços e ausência de duplicatas.
-- Nunca declarar os três indicadores visualmente validados sem sessão gráfica real e teste após reinicialização. Se não houver VM/sessão gráfica, registrar a validação como pendente.
-
-## Atualizações
-
-- Pacman administra atualizações normais: `sudo pacman -Syu`.
-- VENON é independente e manual: `venon-upgrade` apenas consulta/lista; `venon-update` instala somente após confirmação.
-- Não criar timers, atualização automática ou integração do VENON com Pacman.
+- Manter a mesma seleção de aplicativos nas duas edições, exceto componentes próprios de cada desktop.
+- XFCE: Thunar, XFCE Terminal, Whisker Menu, Docklike, bandeja, volume e relógio.
+- MATE: Caja, MATE Terminal, Marco, painel inferior único, janelas agrupadas por aplicativo, bandeja, volume e relógio.
+- Tema padrão: Materia Dark; ícones Yaru Blue; cursor Bibata; papel de parede VENOM.
+- Não declarar Ferdium ou Pamac incluídos até que os pacotes e dependências estejam efetivamente no repositório offline.
 
 ## Builds e validação
 
-- Não gerar, publicar, solicitar nem disparar ISO sem autorização expressa posterior do usuário.
-- A workflow de ISO permanece bloqueada. O script exige uma autorização explícita antes de qualquer compilação.
-- Compilar e testar componentes C/GTK4, executar testes unitários, validações estáticas e ShellCheck é permitido.
-- Não executar particionamento em discos reais. Testes futuros do backend devem usar mocks, imagens descartáveis e VMs isoladas.
-- Nunca afirmar que o instalador, a ISO, o boot ou os indicadores gráficos funcionam sem executar e registrar o teste correspondente.
-
-## Registro de continuidade
-
-Atualizar `docs/PROJECT-CONTINUITY.md` com branch, HEAD-base, commits, arquivos alterados, testes realmente executados, falhas, bloqueios, próximos passos e confirmação explícita de que nenhuma ISO foi gerada.
+- Compilar e testar C, Meson, scripts, manifestos e configuração estática é permitido.
+- Não executar particionamento em discos reais.
+- Testes destrutivos futuros devem usar imagens descartáveis e VMs isoladas.
+- Não gerar/publicar ISO nem iniciar build de mídia sem autorização expressa.
+- Nunca afirmar que a ISO, o boot ou os dois desktops funcionam sem executar e registrar os testes correspondentes.
+- Atualizar `docs/PROJECT-CONTINUITY.md` com branch, HEAD, commits, testes reais, falhas, pendências e confirmação de que nenhuma ISO foi gerada.
