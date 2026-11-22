@@ -14,6 +14,11 @@ Compile os três pacotes AUR na ordem abaixo. Execute `makepkg` como usuário co
 
 ```bash
 cd /tmp
+git clone https://aur.archlinux.org/archlinux-appstream-data-pamac.git
+cd archlinux-appstream-data-pamac
+makepkg -si
+
+cd /tmp
 git clone https://aur.archlinux.org/libpamac-aur.git
 cd libpamac-aur
 makepkg -si
@@ -33,7 +38,7 @@ cd ferdium-bin
 makepkg -si
 ```
 
-Copie os três arquivos `.pkg.tar.zst` gerados para `build/aur-packages/` no repositório VENOM OS. Os nomes internos precisam ser `libpamac-aur`, `pamac-aur` e `ferdium-bin`.
+Copie os três arquivos `.pkg.tar.zst` gerados para `build/aur-packages/` no repositório VENOM OS. Os nomes internos precisam ser `archlinux-appstream-data-pamac`, `libpamac-aur`, `pamac-aur` e `ferdium-bin`. A imagem também inclui `base-devel` e `git` para permitir compilar pacotes AUR depois da instalação.
 
 ## 2. Montar e verificar o repositório offline
 
