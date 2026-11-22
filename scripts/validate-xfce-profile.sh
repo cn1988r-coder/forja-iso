@@ -32,6 +32,9 @@ grep -Fq 'venom ALL=(root) NOPASSWD: /usr/lib/venom/venom-install' "$P/airootfs/
 grep -Fq '/home/venom/Desktop/Instalar-VENOM-OS.desktop' "$P/airootfs/usr/local/lib/venom/venom-live-setup" || fail "Atalho do instalador ausente da área de trabalho Live."
 grep -Fq 'install -m 0644 /etc/pacman.conf /mnt/etc/pacman.conf' "$ROOT/installer/venom-install" || fail "Pacman.conf limpo não é instalado no sistema de destino."
 grep -Fq 'SUDO_UID' "$ROOT/installer/venom-install" || fail "Arquivo temporário da senha não valida o usuário de origem."
+grep -Fq '[[ -d /sys/firmware/efi ]]' "$ROOT/installer/venom-install" || fail "Instalador não exige UEFI."
+grep -Fq -- '--target=x86_64-efi' "$ROOT/installer/venom-install" || fail "GRUB UEFI x86_64 ausente."
+if grep -Fq -- '--target=i386-pc' "$ROOT/installer/venom-install"; then fail "Instalador ainda contém caminho BIOS/Legacy."; fi
 grep -Fq 'After=lightdm.service' "$P/airootfs/etc/systemd/system/venom-live-ready.service" || fail "Verificador não aguarda LightDM."
 grep -Fq 'VENOM_LIVE_READY' "$P/airootfs/usr/local/lib/venom/venom-live-ready" || fail "Marcador de prontidão ausente."
 for process in xfce4-session xfce4-panel xfdesktop; do grep -Fq "pgrep -u venom -x $process" "$P/airootfs/usr/local/lib/venom/venom-live-ready" || fail "Prontidão não verifica $process."; done
