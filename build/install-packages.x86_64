@@ -5,6 +5,10 @@ linux-firmware
 archlinux-keyring
 pacman-mirrorlist
 sudo
+btrfs-progs
+grub-btrfs
+inotify-tools
+timeshift
 bash-completion
 ca-certificates
 curl
