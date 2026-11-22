@@ -64,7 +64,8 @@ static int menu(const char *title, const char *const *items, int count, int step
         key = getch();
         if ((key == KEY_UP || key == 'k') && selected > 0) selected--;
         else if ((key == KEY_DOWN || key == 'j') && selected < count - 1) selected++;
-        else if (key == '\n' || key == KEY_ENTER) return selected;
+        else if (key == '
+' || key == KEY_ENTER) return selected;
         else if (key == 'q' || key == 'Q' || key == 27) return -1;
     }
 }
@@ -133,14 +134,20 @@ static int choose_edition(void) {
             selected--;
         else if ((key == KEY_DOWN || key == 'j') && selected < 1)
             selected++;
-        else if (key == '\n' || key == KEY_ENTER)
+        else if (key == '
+' || key == KEY_ENTER)
             return selected;
         else if (key == 27 || key == 'q' || key == 'Q')
             return -1;
     }
 }
 
-static void secure_clear(void *memory, size_t length) {\n    volatile unsigned char *p = memory;\n    while (length--) *p++ = 0;\n}\n\nstatic gboolean valid_username(const gchar *name) {
+static void secure_clear(void *memory, size_t length) {
+    volatile unsigned char *p = memory;
+    while (length--) *p++ = 0;
+}
+
+static gboolean valid_username(const gchar *name) {
     if (name == NULL || (!g_ascii_islower(name[0]) && name[0] != '_'))
         return FALSE;
     for (const gchar *p = name + 1; *p != '\0'; p++) {
@@ -367,7 +374,8 @@ static gboolean review_installation(void) {
     gchar *size = g_format_size(plan->disk_size_bytes);
     mvprintw(7, 28, "EDICAO: %s", selected_edition == 0 ? "XFCE" : "MATE");
     mvprintw(8, 28, "IDIOMA: %s", selected_locale == 0 ? "Portugues do Brasil" : "English (US)");
-    mvprintw(9, 28, "TECLADO: %s", selected_keyboard == 0 ? "Brasil ABNT2" : "English US");\n    mvprintw(10, 28, "USUARIO: %s", target_username);
+    mvprintw(9, 28, "TECLADO: %s", selected_keyboard == 0 ? "Brasil ABNT2" : "English US");
+    mvprintw(10, 28, "USUARIO: %s", target_username);
     mvprintw(11, 28, "DISCO: %s | %s | %s", plan->disk_path, selected_disk.model, size);
     mvprintw(13, 28, "MODO: INSTALACAO LIMPA, DISCO INTEIRO");
     mvprintw(14, 28, "FIRMWARE: %s | GPT", firmware == VENOM_FIRMWARE_UEFI ? "UEFI" : "BIOS");
@@ -405,8 +413,8 @@ int main(void) {
     const char *const editions[] = {"VENOM OS XFCE", "VENOM OS MATE"};
     const char *const actions[] = {
         "Escolher edicao", "Selecionar disco (instalacao limpa)",
-        "Idioma e teclado", "Requisitos da instalacao offline",
-        "INICIAR INSTALACAO", "Sair"
+        "Idioma e teclado", "Criar usuario e senha",
+        "Requisitos da instalacao offline", "INICIAR INSTALACAO", "Sair"
     };
     const char *const locales[] = {"Portugues do Brasil (pt_BR.UTF-8)", "English (US)"};
     const char *const keyboards[] = {"Brasil ABNT2", "English US"};
@@ -447,10 +455,12 @@ int main(void) {
                    selected_locale == 0 ? "Idioma: Portugues do Brasil." : "Idioma: English (US).",
                    selected_keyboard == 0 ? "Teclado: Brasil ABNT2." : "Teclado: English US.");
         } else if (choice == 3) {
+            configure_account();
+        } else if (choice == 4) {
             notice("INSTALACAO OFFLINE",
                    "A USB precisa conter repositorio local assinado, chaves e dependencias.",
                    "A instalacao real ainda nao esta implementada neste prototipo.");
-        } else if (choice == 4) {
+        } else if (choice == 5) {
             if (review_installation())
                 confirm_wipe_intent();
         }
