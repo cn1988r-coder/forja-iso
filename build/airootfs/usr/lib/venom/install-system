@@ -18,8 +18,8 @@ USERNAME="${10}"; FIRMWARE="${12}"; CONFIRM="${14}"
 [[ "$CONFIRM" == "APAGAR" ]] || fail "Confirmacao destrutiva ausente."
 [[ "$EDITION" == "xfce" || "$EDITION" == "mate" ]] || fail "Edicao desconhecida."
 [[ "$FIRMWARE" == "uefi" || "$FIRMWARE" == "bios" ]] || fail "Firmware desconhecido."
-[[ "$LOCALE" == "pt_BR.UTF-8" || "$LOCALE" == "en_US.UTF-8" ]] || fail "Idioma nao suportado."
-[[ "$KEYMAP" == "br-abnt2" || "$KEYMAP" == "us" ]] || fail "Teclado nao suportado."
+[[ "$LOCALE" == "pt_BR.UTF-8" ]] || fail "A VENOM OS utiliza exclusivamente pt_BR.UTF-8."
+[[ "$KEYMAP" == "br-abnt2" ]] || fail "A VENOM OS utiliza exclusivamente o teclado br-abnt2."
 [[ "$USERNAME" =~ ^[a-z_][a-z0-9_-]{0,30}$ && "$USERNAME" != root ]] || fail "Nome de usuario invalido."
 [[ "$DISK" =~ ^/dev/[a-zA-Z0-9._-]+$ && -b "$DISK" ]] || fail "Disco de destino invalido."
 [[ -d /sys/firmware/efi ]] && [[ "$FIRMWARE" == uefi ]] && : || {
@@ -48,8 +48,8 @@ fi
 MANIFEST="/usr/share/venom/install-packages-${EDITION}.x86_64"
 [[ -s "$MANIFEST" ]] || fail "Manifesto da edicao ausente."
 [[ -s /etc/pacman.conf ]] || fail "Configuracao do Pacman ausente."
-grep -Eq '^\\[core\\]' /etc/pacman.conf || fail "Repositorio oficial core do Arch Linux nao configurado."
-grep -Eq '^\\[extra\\]' /etc/pacman.conf || fail "Repositorio oficial extra do Arch Linux nao configurado."
+grep -Fxq '[core]' /etc/pacman.conf || fail "Repositorio oficial core do Arch Linux nao configurado."
+grep -Fxq '[extra]' /etc/pacman.conf || fail "Repositorio oficial extra do Arch Linux nao configurado."
 if grep -Eiq '^\\[venom\\]|file:///usr/share/venom' /etc/pacman.conf; then
   fail "A configuracao nao pode conter repositorio local VENOM."
 fi
@@ -76,6 +76,8 @@ else
   P1="${DISK}1"; P2="${DISK}2"
 fi
 
+log "Verificando os repositorios oficiais e sincronizando os bancos ANTES de qualquer alteracao no disco."
+pacman -Sy --noconfirm
 log "Preparando tabela GPT e particoes do disco confirmado."
 wipefs --all --force "$DISK"
 sgdisk --zap-all "$DISK"
@@ -110,8 +112,6 @@ fi
 
 mapfile -t PACKAGES < <(grep -Ev '^[[:space:]]*(#|$)' "$MANIFEST")
 (("${#PACKAGES[@]}" > 0)) || fail "Manifesto de pacotes vazio."
-log "Atualizando bancos e verificando acesso aos repositorios oficiais do Arch Linux."
-pacman -Sy --noconfirm
 log "Instalando a edicao ${EDITION^^} diretamente dos repositorios oficiais Arch Linux."
 pacstrap -C /etc/pacman.conf -K "$MNT" "${PACKAGES[@]}"
 # Aplica a base visual e os arquivos de primeiro login compartilhados pelas edicoes.
