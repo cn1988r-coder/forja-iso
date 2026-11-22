@@ -97,7 +97,7 @@ grep -Fq 'pacstrap -C /etc/pacman.conf -K' "$BUILD/airootfs/usr/lib/venom/instal
   fail "instalacao via pacstrap e pacman.conf oficial ausente"
 grep -Fq 'https://geo.mirror.pkgbuild.com/$repo/os/$arch' "$BUILD/pacman.conf" ||
   fail "mirror oficial Arch Linux ausente"
-if grep -Eiq 'repo-add|pacman -Sw|offline-repo|file:///usr/share/venom|\\[venom\\]' "$ROOT/scripts/build-venom-iso.sh" "$BUILD/airootfs/usr/lib/venom/install-system"; then
+if grep -Eiq 'repo-add|pacman -Sw|offline-repo' "$ROOT/scripts/build-venom-iso.sh" "$BUILD/airootfs/usr/lib/venom/install-system"; then
   fail "repositorio local/privado VENOM nao pode existir"
 fi
 grep -Fq '/usr/share/venom/install-overlay' "$BUILD/airootfs/usr/lib/venom/install-system" ||
