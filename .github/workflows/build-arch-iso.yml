@@ -5,8 +5,11 @@ on:
   push:
     branches:
       - feature/venom-community-xfce
+      - feature/venom-os-2.0-xfce
     paths:
       - '.github/trigger-final-build.txt'
+      - '.github/workflows/build-arch-iso.yml'
+      - 'build/packages.x86_64'
 
 permissions:
   contents: read
