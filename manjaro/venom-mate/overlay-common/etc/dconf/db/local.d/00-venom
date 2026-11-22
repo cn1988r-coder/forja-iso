@@ -42,6 +42,6 @@ group-windows='always'
 
 [org/mate/panel/objects/venom-top-clock/prefs]
 format='custom'
-custom-format='%H:%M  %d/%m/%Y'
+custom-format='%d/%m/%Y  %H:%M'
 show-date=true
 show-seconds=false
