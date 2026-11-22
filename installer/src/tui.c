@@ -77,8 +77,8 @@ static gboolean welcome(void) {
     attron(A_BOLD);
     mvprintw(14, (COLS - 51) > 1 ? (COLS - 51) / 2 : 1, "INSTALACAO LIMPA. SISTEMA UNICO. SEM DUAL BOOT.");
     attroff(A_BOLD);
-    mvprintw(16, (COLS - 65) > 1 ? (COLS - 65) / 2 : 1, "Instalacao pela internet usando os repositorios oficiais Arch Linux.");
-    mvprintw(18, (COLS - 48) > 1 ? (COLS - 48) / 2 : 1, "Pacotes baixados diretamente dos servidores oficiais do Arch.");
+    mvprintw(16, (COLS - 62) > 1 ? (COLS - 62) / 2 : 1, "Idioma e formatos: Portugues do Brasil (pt_BR.UTF-8).");
+    mvprintw(18, (COLS - 39) > 1 ? (COLS - 39) / 2 : 1, "Teclado: Brasil ABNT2 | Fuso: Sao Paulo.");
     mvprintw(LINES - 5, (COLS - 30) > 1 ? (COLS - 30) / 2 : 1, "ENTER para iniciar   Q para sair");
     refresh();
     int k = getch();
@@ -368,31 +368,6 @@ static void confirm_wipe_intent(void) {
         return;
     }
 
-    gchar *preflight_argv[] = { "pacman", "-Sy", "--noconfirm", NULL };
-    gchar *preflight_stdout = NULL;
-    gchar *preflight_stderr = NULL;
-    gint preflight_status = 0;
-    GError *preflight_error = NULL;
-    gboolean preflight_started = g_spawn_sync(NULL, preflight_argv, NULL,
-        G_SPAWN_SEARCH_PATH, NULL, NULL, &preflight_stdout,
-        &preflight_stderr, &preflight_status, &preflight_error);
-    gboolean repositories_ready = preflight_started &&
-        g_spawn_check_wait_status(preflight_status, &preflight_error);
-    if (!repositories_ready) {
-        const gchar *reason = preflight_error ? preflight_error->message :
-            (preflight_stderr && *preflight_stderr ? preflight_stderr :
-             "Nao foi possivel acessar os repositorios oficiais do Arch Linux.");
-        notice("INTERNET / REPOSITORIOS INDISPONIVEIS", reason,
-               "O disco nao sera apagado. Conecte a internet e tente novamente.");
-        g_clear_error(&preflight_error);
-        g_free(preflight_stdout);
-        g_free(preflight_stderr);
-        return;
-    }
-    g_clear_error(&preflight_error);
-    g_free(preflight_stdout);
-    g_free(preflight_stderr);
-
     gchar *size_text = g_strdup_printf("%" G_GUINT64_FORMAT,
                                        selected_disk.size_bytes);
     gchar *edition = g_strdup(selected_edition == 0 ? "xfce" : "mate");
@@ -524,11 +499,9 @@ int main(void) {
     const char *const editions[] = {"VENOM OS XFCE", "VENOM OS MATE"};
     const char *const actions[] = {
         "Escolher edicao", "Selecionar disco (instalacao limpa)",
-        "Idioma e teclado", "Criar usuario e senha",
+        "Configuracao regional automatica", "Criar usuario e senha",
         "Requisitos da instalacao offline", "INICIAR INSTALACAO", "Sair"
     };
-    const char *const locales[] = {"Portugues do Brasil (pt_BR.UTF-8)", "English (US)"};
-    const char *const keyboards[] = {"Brasil ABNT2", "English US"};
     setlocale(LC_ALL, "");
     initscr();
     cbreak();
@@ -558,13 +531,11 @@ int main(void) {
         } else if (choice == 1) {
             select_disk();
         } else if (choice == 2) {
-            int lang = menu("IDIOMA", locales, 2, 0);
-            if (lang >= 0) selected_locale = lang;
-            int kb = menu("LAYOUT DO TECLADO", keyboards, 2, 0);
-            if (kb >= 0) selected_keyboard = kb;
-            notice("PREFERENCIAS",
-                   selected_locale == 0 ? "Idioma: Portugues do Brasil." : "Idioma: English (US).",
-                   selected_keyboard == 0 ? "Teclado: Brasil ABNT2." : "Teclado: English US.");
+            selected_locale = 0;
+            selected_keyboard = 0;
+            notice("CONFIGURACAO REGIONAL FIXA",
+                   "Idioma: Portugues do Brasil (pt_BR.UTF-8).",
+                   "Teclado: Brasil ABNT2 | Fuso: America/Sao_Paulo.");
         } else if (choice == 3) {
             configure_account();
         } else if (choice == 4) {
