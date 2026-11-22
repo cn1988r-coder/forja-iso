@@ -108,7 +108,7 @@ grep -Fq 'https://geo.mirror.pkgbuild.com/$repo/os/$arch' "$BUILD/pacman.conf" |
   fail "mirror oficial Arch Linux ausente"
 
 # O sistema instalado só pode receber os repositórios oficiais do Arch Linux.
-cmp -s "$BUILD/pacman.conf" "$BUILD/airootfs/etc/pacman.conf" ||
+[[ "$(<"$BUILD/pacman.conf")" == "$(<"$BUILD/airootfs/etc/pacman.conf")" ]] ||
   fail "configurações do Pacman do perfil e da mídia divergem"
 for conf in "$BUILD/pacman.conf" "$BUILD/airootfs/etc/pacman.conf"; do
   sections="$(grep -E '^\[[^]]+\]' "$conf" | tr -d '[]')"
