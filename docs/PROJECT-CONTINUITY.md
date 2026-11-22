@@ -1,3 +1,48 @@
+# Continuidade técnica VENOM OS, 22/11/2026
+
+## Estado atual
+
+- Repositório: `cn1988r-coder/forja-iso`.
+- Branch: `feature/venom-graphical-installer`.
+- HEAD registrado nesta atualização: `a39952eca2bffb730203d0f00fc80c5c98e5ecb3`.
+- Duas edições completas previstas: XFCE e MATE.
+- Boot da mídia diretamente no instalador TUI ncurses; sem desktop Live.
+- Arte ASCII da serpente na tela real de escolha de edição.
+- Backend de instalação offline conectado à confirmação do TUI.
+- Manifestos XFCE/MATE separados, com GNOME Calculator incluído nas duas edições.
+- Tema compartilhado Materia Dark, Yaru Blue, Bibata Modern Ice e papel de parede VENOM.
+- XFCE: painel inferior de 40 px, Whisker Menu com ícone V, Docklike, bandeja, volume e relógio.
+- MATE: painel inferior único compacto, agrupamento permanente de janelas, bandeja, volume e relógio.
+- Build da mídia prepara repositório offline local a partir dos manifestos e dependências.
+
+## Alterações implementadas nesta sequência
+
+- `installer/src/tui.c`: a confirmação explícita chama `/usr/lib/venom/install-system`, envia a senha por stdin, passa a identificação e o tamanho do disco, limpa a senha da memória após a chamada e reinicia após sucesso.
+- `build/airootfs/usr/lib/venom/install-system`: valida argumentos, firmware, disco, tamanho, somente leitura, montagens, mídia de boot e palavra `APAGAR`; prepara GPT/EFI ou BIOS, Btrfs, subvolumes, repositório local, pacotes, usuário, locale, teclado, LightDM, initramfs e GRUB.
+- `scripts/build-venom-iso.sh`: baixa pacotes/dependências para ambas as edições, cria banco local com `repo-add` e inclui o repositório e o overlay visual na mídia. A geração da ISO continua protegida pela variável explícita `VENOM_ISO_BUILD_AUTHORIZED=YES`.
+- `scripts/validate-arch-profile.sh`: substituída a validação antiga GTK/MATE-only por verificações TUI, backend, pacotes, dois manifestos, tema, painel XFCE e painel MATE.
+- `build/install-overlay`: tema Materia Dark, ícones Yaru Blue, cursor Bibata Modern Ice, papel de parede VENOM, configuração XFCE e painel MATE inferior único com agrupamento de janelas.
+- `README.md`, `installer/README.md` e `AGENTS.md`: atualizados para refletir as duas edições e o instalador TUI.
+
+## Validação realmente executada
+
+- Workflow `44997373647`, commit `4f61795e`: **sucesso**. Compilação C/ncurses, testes Meson, sintaxe Bash e validação estática do perfil/duas edições.
+- Workflow `44997335110`, commit `70f88480`: **sucesso**. Inclui os manifestos sincronizados das duas edições e GNOME Calculator.
+- Workflow `44997416434`, commit `a39952ec`: estava em execução quando este registro foi atualizado; confirmar resultado antes de declarar a validação do HEAD atual.
+- A compilação e os testes unitários não executam o backend destrutivo.
+- Nenhuma instalação completa em VM BIOS/UEFI foi executada.
+- Nenhuma sessão gráfica dos dois desktops foi testada após primeiro boot.
+
+## Pendências e bloqueios
+
+- O backend ainda precisa de teste integral em VMs descartáveis BIOS e UEFI antes de uso real. Não testar em discos com dados importantes.
+- Ferdium e Pamac ainda não foram incorporados ao repositório offline; não afirmar que estão instalados.
+- O painel MATE foi validado estaticamente, mas não visualmente em sessão real.
+- O painel XFCE e seus plugins foram validados estaticamente; falta teste de primeiro login em VM.
+- Nenhuma ISO foi gerada e nenhum disco real foi alterado nesta sequência.
+
+---
+
 # Atualizacao visual do instalador TUI em 22/11/2026
 
 - Atualizado `installer/src/tui.c` no commit `6376ec431c26c9d74435bc1da4ce2d8927069d92`.
