@@ -45,7 +45,8 @@ jobs:
             su builder -s /bin/bash -c "cd '$directory' && makepkg --syncdeps --noconfirm"
             install -m 0644 "$directory"/*.pkg.tar.zst build/aur-packages/
           }
-          build_aur archlinux-appstream-data-pamac
+          # libpamac-aur atual depende do pacote oficial archlinux-appstream-data.
+          # O antigo archlinux-appstream-data-pamac usa snapshots removidos e falha com HTTP 404.
           build_aur libpamac-aur
           build_aur pamac-aur
           build_aur ferdium-bin
