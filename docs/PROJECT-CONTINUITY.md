@@ -30,3 +30,16 @@ A alteração do caminho de instalação ainda precisa passar pelo CI. Depois di
 - Foi adicionado scripts/test-installer-static.sh e ele é chamado pelo validador.
 
 **Limitação ainda aberta:** esta correção não transforma a instalação atual em offline. O backend ainda usa pacstrap e depende de rede para instalar os pacotes. O requisito de mídia com pacotes incluídos, incluindo Pamac/Ferdium empacotados, continua pendente. Não declarar ISO final nem instalação offline concluída até implementar e testar essa etapa.
+
+## Revisao de inicializacao e seguranca (2026-11-22)
+
+- A TUI ncurses agora envia stdout e stderr para a tty1; antes, ambos eram enviados ao journal e a interface poderia nao aparecer no terminal.
+- As entradas GRUB (UEFI) e Syslinux (BIOS) identificam explicitamente o instalador, nao uma sessao Live.
+- A particao EFI agora e montada em /boot/efi, em alinhamento com o plano de particoes e com o comando grub-install.
+- Foram removidos hooks PXE NBD/NFS/HTTP, pois esta imagem e destinada a inicializacao local por USB.
+- O menu informa que a instalacao atual usa os repositorios oficiais pela internet. Nao afirmar que a instalacao offline esta pronta.
+- O backend resolve os pacotes dos manifestos com pacman -Sp antes de qualquer wipefs ou particionamento. Se um pacote nao puder ser resolvido, a operacao deve parar com o disco intacto.
+- O pacote yaru-icon-theme permanece nos manifestos, mas nao esta disponivel nos repositorios oficiais do Arch Linux; a origem do tema precisa ser resolvida antes da instalacao completa. Nao remover nem substituir o tema sem decisao explicita do projeto.
+- dconf foi incluido no manifesto XFCE, pois o backend executa dconf update nas duas edicoes. Os manifestos duplicados usados pela validacao foram sincronizados.
+
+**Ainda nao comprovado:** compilacao C, testes Meson, validacao completa do perfil, build da ISO, boot UEFI por USB no Dell, boot BIOS em VM e instalacao completa de XFCE/MATE. O estado atual nao autoriza declarar a ISO pronta.
