@@ -26,9 +26,9 @@ O fluxo oferece:
 5. Revisão e confirmação digitando `APAGAR`.
 6. Instalação pela internet e reinicialização.
 
-O backend de instalação foi conectado ao fluxo e implementa particionamento GPT, formatação Btrfs, subvolumes, instalação via repositórios oficiais do Arch Linux, configuração de usuário, LightDM, initramfs e GRUB. O script de build prepara o repositórios oficiais do Arch Linux com pacotes e dependências das duas edições.
+O backend implementa particionamento GPT, formatação Btrfs, subvolumes, instalação via repositórios oficiais do Arch Linux, configuração de usuário, LightDM, initramfs e GRUB. Antes de alterar o disco, sincroniza os bancos e tenta resolver todos os pacotes do manifesto; se algum não estiver disponível, deve interromper sem apagar o disco. A partição EFI é montada em /boot/efi.
 
-**Limite atual:** o backend ainda não foi validado em VMs descartáveis BIOS/UEFI nem em teste de instalação completo. Ferdium e Pamac também ainda não foram incorporados ao repositórios oficiais do Arch Linux. Portanto, não considerar a ISO pronta para uso.
+**Limites atuais:** nenhuma ISO desta revisão foi compilada ou testada em USB/VM. A instalação ainda depende de internet. O manifesto inclui yaru-icon-theme, que não está nos repositórios oficiais do Arch Linux e exige resolver a origem do tema antes que o preflight permita instalar. Ferdium e Pamac também ainda não foram incorporados. Portanto, ainda não considerar a ISO pronta para uso.
 
 ## Edições e identidade visual
 
