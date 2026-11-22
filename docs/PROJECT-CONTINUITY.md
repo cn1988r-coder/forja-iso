@@ -7,27 +7,23 @@
 - Construção: perfis oficiais Manjaro ISO Profiles e buildiso compatível com mt-0.15.
 - Calamares: pacote da lista compartilhada oficial Manjaro Packages-Live; nenhuma versão upstream ou fonte externa.
 - O perfil usa as listas compartilhadas oficiais Packages-Root, Packages-Live e Packages-Mhwd.
-- O perfil antigo Archiso em build/ é legado e não deve gerar a ISO Manjaro.
+- Os antigos arquivos Archiso, scripts de build Arch e o instalador próprio C/GTK4/TUI foram retirados para impedir uso acidental da base errada.
 
 ## Estado desta etapa
 - Perfil inicial Manjaro MATE criado com LightDM, GRUB, NetworkManager, Bluetooth e áudio Manjaro PipeWire.
-- Configuração Calamares personalizada via opções suportadas pelo profile.conf (janela fullscreen e cores VENOM).
-- Overlay comum para live e instalado com MATE escuro, painel inferior, menu VENOM, wallpaper, locale pt_BR e teclado ABNT2.
-- Calamares configurado para iniciar automaticamente na sessão live MATE; o sistema instalado mantém a sessão MATE normal.
-- Scripts criados para sincronizar overlays, validar estrutura, testar resolução de pacotes com buildiso -x e bloquear a geração da ISO sem autorização explícita.
+- Calamares vem da lista oficial Manjaro Packages-Live e inicia automaticamente na sessão live MATE.
+- Overlays comuns para live e instalado com tema escuro, painel inferior, menu VENOM, wallpaper, locale pt_BR e teclado ABNT2.
+- Serviços de rede, Bluetooth e atualização do banco dconf configurados.
+- Validação estática e integração estrutural com o repositório oficial de perfis Manjaro aprovadas no commit 8506bf84c29ab19197007338173d7f0e106d6c68 (workflow 45082441054).
+- Workflow de resolução real de pacotes sem ISO iniciada no commit 3cb752f0be7bcfd8b7428f9c4e0b4359a42c04dd (workflow 45082537559). Resultado ainda pendente neste registro.
 - Nenhuma ISO foi gerada.
 
-## Validação já observada
-- A primeira execução da validação estática falhou porque symlinks oficiais ainda não existem na árvore local; o verificador foi corrigido para validar os links sem exigir que os destinos compartilhados estejam clonados.
-- A execução corrigida precisa ser confirmada pela workflow mais recente.
-- Ainda não houve resolução real de pacotes com buildiso, teste visual MATE, teste do Calamares ou instalação em VM.
-
 ## Pendências obrigatórias
-1. Executar scripts/validate-manjaro-build.sh em ambiente Manjaro e corrigir todos os pacotes ausentes.
-2. Confirmar que Calamares foi instalado da lista/repositório oficial Manjaro e inspecionar settings/modules gerados.
-3. Testar inicialização direta do instalador, idioma pt_BR, teclado ABNT2 e comportamento de saída/erro.
-4. Validar tema, painel, agrupamento de janelas, rede, Bluetooth e áudio em VM.
+1. Concluir buildiso -x e corrigir todos os pacotes ausentes/incompatíveis.
+2. Inspecionar a configuração Calamares gerada e confirmar a versão instalada a partir do repositório oficial Manjaro.
+3. Testar inicialização direta do instalador, idioma pt_BR, teclado ABNT2 e fluxo de saída/erro.
+4. Validar tema, painel, agrupamento, rede, Bluetooth e áudio em sessão MATE real.
 5. Testar instalação e primeiro boot em VM UEFI e BIOS.
 6. Só depois de aprovado e com autorização expressa, gerar a ISO.
 
-Perfil criado não significa ISO pronta ou validada.
+Perfil e validação estática aprovados não significam ISO pronta ou validada.

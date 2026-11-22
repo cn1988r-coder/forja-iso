@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Configuração inicial do MATE VENOM
-Comment=Aplica as preferências visuais da VENOM OS no primeiro acesso
-Exec=/usr/bin/bash /usr/local/bin/venom-mate-first-login
-OnlyShowIn=MATE;
-X-MATE-Autostart-enabled=true
-NoDisplay=true

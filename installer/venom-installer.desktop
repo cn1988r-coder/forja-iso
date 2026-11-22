@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Instalador VENOM OS
-Comment=Instale a VENOM OS em seu computador
-Exec=venom-installer
-Icon=system-software-install
-Terminal=false
-Categories=System;
