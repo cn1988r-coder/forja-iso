@@ -22,9 +22,9 @@ A senha é mantida apenas em memória durante a sessão do instalador e enviada 
 
 ## Backend
 
-O backend está em `build/airootfs/usr/lib/venom/install-system`. Ele valida a edição, firmware, disco, tamanho, estado somente leitura, montagens existentes e confirmação literal `APAGAR`. Depois prepara GPT, EFI ou BIOS boot, Btrfs, subvolumes `@` e `@home`, instala pacotes via repositório local, configura usuário, idioma, teclado, LightDM, initramfs e GRUB.
+O backend está em `build/airootfs/usr/lib/venom/install-system`. Ele valida a edição, firmware, disco, tamanho, estado somente leitura, montagens existentes e confirmação literal `APAGAR`. Depois prepara GPT, EFI ou BIOS boot, Btrfs, subvolumes `@` e `@home`, instala pacotes via repositórios oficiais do Arch Linux, configura usuário, idioma, teclado, LightDM, initramfs e GRUB.
 
-O build baixa pacotes e dependências das duas listas, cria um repositório local com `repo-add` e o inclui na mídia. A instalação não depende de rede.
+O build baixa pacotes e dependências das duas listas, cria um repositórios oficiais do Arch Linux com `pacman` e o inclui na mídia. A instalação não depende de rede.
 
 ## Edições
 
@@ -47,4 +47,4 @@ O build baixa pacotes e dependências das duas listas, cria um repositório loca
 
 A compilação C e os testes unitários do TUI, parser de discos e planejador são executados pelo workflow de validação. O perfil também valida os dois manifestos, backend, scripts e arquivos de configuração.
 
-**Ainda pendente:** teste integral do backend em VMs descartáveis BIOS e UEFI, validação visual dos dois desktops após primeiro boot e inclusão de Ferdium/Pamac no repositório offline. Nenhuma ISO foi gerada. Não usar o backend em disco com dados importantes até a validação completa.
+**Ainda pendente:** teste integral do backend em VMs descartáveis BIOS e UEFI, validação visual dos dois desktops após primeiro boot e inclusão de Ferdium/Pamac no repositórios oficiais do Arch Linux. Nenhuma ISO foi gerada. Não usar o backend em disco com dados importantes até a validação completa.
