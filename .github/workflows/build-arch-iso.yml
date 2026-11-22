@@ -9,6 +9,8 @@ on:
       - 'build/**'
       - 'installer/**'
       - 'scripts/build-venom-iso.sh'
+      - 'scripts/validate-arch-profile.sh'
+      - 'scripts/validate-scope.sh'
       - '.github/workflows/build-arch-iso.yml'
 
 permissions:
