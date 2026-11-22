@@ -30,7 +30,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           source /etc/os-release
-          [[ "\${ID:-}" == manjaro ]] || {
+          [[ "${ID:-}" == manjaro ]] || {
             echo "O runner precisa executar Manjaro Linux." >&2
             exit 1
           }
@@ -61,7 +61,7 @@ jobs:
           scripts/validate-manjaro-build.sh 2>&1 | tee "$RUNNER_TEMP/venom-logs/package-resolution.log"
 
       - name: Gerar ISO e manifesto
-        if: \${{ inputs.build_iso }}
+        if: ${{ inputs.build_iso }}
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -73,22 +73,22 @@ jobs:
           sudo buildiso -p venom-mate -b stable -k linux618 -t "$OUT" -v 2>&1 | tee "$RUNNER_TEMP/venom-logs/iso-build.log"
 
           mapfile -t ISOS < <(find "$OUT" -maxdepth 1 -type f -name '*.iso' -print)
-          [[ "\${#ISOS[@]}" -eq 1 ]] || {
-            printf 'Esperada exatamente uma ISO; encontradas: %s\\n' "\${#ISOS[@]}" >&2
-            find "$OUT" -maxdepth 2 -type f -printf '%p\\n' >&2
+          [[ "${#ISOS[@]}" -eq 1 ]] || {
+            printf 'Esperada exatamente uma ISO; encontradas: %s\n' "${#ISOS[@]}" >&2
+            find "$OUT" -maxdepth 2 -type f -printf '%p\n' >&2
             exit 1
           }
 
-          ISO="\${ISOS[0]}"
+          ISO="${ISOS[0]}"
           ISO_NAME="$(basename "$ISO")"
           cp -- "$ISO" "$ARTIFACTS/$ISO_NAME"
 
-          mapfile -t PKG_MANIFESTS < <(find "$OUT" -maxdepth 1 -type f \\( -name '*-pkgs.txt' -o -name '*.pkgs' \\) -print)
-          [[ "\${#PKG_MANIFESTS[@]}" -ge 1 ]] || {
+          mapfile -t PKG_MANIFESTS < <(find "$OUT" -maxdepth 1 -type f \( -name '*-pkgs.txt' -o -name '*.pkgs' \) -print)
+          [[ "${#PKG_MANIFESTS[@]}" -ge 1 ]] || {
             echo "O buildiso não produziu o manifesto de pacotes esperado." >&2
             exit 1
           }
-          for manifest in "\${PKG_MANIFESTS[@]}"; do
+          for manifest in "${PKG_MANIFESTS[@]}"; do
             cp -- "$manifest" "$ARTIFACTS/"
           done
 
@@ -100,15 +100,15 @@ jobs:
           )
 
           {
-            printf 'project=VENOM OS\\n'
-            printf 'branch=%s\\n' "$GITHUB_REF_NAME"
-            printf 'commit=%s\\n' "$GITHUB_SHA"
-            printf 'profile=venom-mate\\n'
-            printf 'repository_branch=stable\\n'
-            printf 'kernel=linux618\\n'
-            printf 'manjaro_tools_iso=%s\\n' "$(pacman -Q manjaro-tools-iso)"
-            printf 'built_at_utc=%s\\n' "$(date -u +%FT%TZ)"
-            printf 'iso=%s\\n' "$ISO_NAME"
+            printf 'project=VENOM OS\n'
+            printf 'branch=%s\n' "$GITHUB_REF_NAME"
+            printf 'commit=%s\n' "$GITHUB_SHA"
+            printf 'profile=venom-mate\n'
+            printf 'repository_branch=stable\n'
+            printf 'kernel=linux618\n'
+            printf 'manjaro_tools_iso=%s\n' "$(pacman -Q manjaro-tools-iso)"
+            printf 'built_at_utc=%s\n' "$(date -u +%FT%TZ)"
+            printf 'iso=%s\n' "$ISO_NAME"
           } > "$ARTIFACTS/BUILD-MANIFEST.txt"
 
           cp -- "$RUNNER_TEMP/venom-logs/package-resolution.log" "$ARTIFACTS/"
@@ -119,12 +119,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: venom-build-logs
-          path: \${{ runner.temp }}/venom-logs/
+          path: ${{ runner.temp }}/venom-logs/
           if-no-files-found: ignore
           retention-days: 14
 
       - name: Publicar artefatos da ISO
-        if: \${{ success() && inputs.build_iso }}
+        if: ${{ success() && inputs.build_iso }}
         uses: actions/upload-artifact@v4
         with:
           name: venom-os-manjaro-linux618
