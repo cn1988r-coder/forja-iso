@@ -114,6 +114,8 @@ grep -Fq 'pacstrap -C "$OFFLINE_CONF" -K' "$BUILD/airootfs/usr/lib/venom/install
   fail "backend nao instala pela configuracao offline da ISO"
 grep -Fq 'install -D /etc/pacman.conf "$MNT/etc/pacman.conf"' "$BUILD/airootfs/usr/lib/venom/install-system" ||
   fail "configuracao oficial online nao e restaurada no sistema instalado"
+grep -Fq 'EnableAUR' "$BUILD/airootfs/usr/lib/venom/install-system" ||
+  fail "Pamac nao habilita suporte AUR por padrao"
 grep -Fq 'wipefs --all --force' "$BUILD/airootfs/usr/lib/venom/install-system" ||
   fail "backend nao possui etapa de particionamento explicita"
 grep -Fq 'APAGAR' "$BUILD/airootfs/usr/lib/venom/install-system" ||
