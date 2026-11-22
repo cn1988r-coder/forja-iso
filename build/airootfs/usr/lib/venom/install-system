@@ -45,11 +45,14 @@ if [[ -n "$BOOT_SOURCE" ]]; then
     fail "O disco de inicializacao USB nao pode ser apagado."
 fi
 
-REPO=/usr/share/venom/repo
 MANIFEST="/usr/share/venom/install-packages-${EDITION}.x86_64"
-[[ -s "$REPO/venom.db" || -s "$REPO/venom.db.tar.gz" || -s "$REPO/venom.db.tar.zst" ]] ||
-  fail "Repositorio offline VENOM ausente na midia."
 [[ -s "$MANIFEST" ]] || fail "Manifesto da edicao ausente."
+[[ -s /etc/pacman.conf ]] || fail "Configuracao do Pacman ausente."
+grep -Eq '^\\[core\\]' /etc/pacman.conf || fail "Repositorio oficial core do Arch Linux nao configurado."
+grep -Eq '^\\[extra\\]' /etc/pacman.conf || fail "Repositorio oficial extra do Arch Linux nao configurado."
+if grep -Eiq '^\\[venom\\]|file:///usr/share/venom' /etc/pacman.conf; then
+  fail "A configuracao nao pode conter repositorio local VENOM."
+fi
 for cmd in sgdisk partprobe udevadm mkfs.fat mkfs.btrfs mount umount pacstrap genfstab arch-chroot grub-install grub-mkconfig; do
   command -v "$cmd" >/dev/null 2>&1 || fail "Ferramenta obrigatoria ausente: $cmd"
 done
@@ -105,23 +108,12 @@ if [[ "$FIRMWARE" == uefi ]]; then
   mount "$P1" "$MNT/boot"
 fi
 
-PACMAN_CONF="$(mktemp)"
-cat > "$PACMAN_CONF" <<EOF
-[options]
-Architecture = auto
-Color
-CheckSpace
-SigLevel = Required DatabaseOptional
-LocalFileSigLevel = Optional
-[venom]
-Server = file:///usr/share/venom/repo
-SigLevel = PackageRequired DatabaseOptional
-EOF
-trap 'rm -f "$PACMAN_CONF"; cleanup' EXIT
 mapfile -t PACKAGES < <(grep -Ev '^[[:space:]]*(#|$)' "$MANIFEST")
 (("${#PACKAGES[@]}" > 0)) || fail "Manifesto de pacotes vazio."
-log "Instalando a edicao ${EDITION^^} a partir do repositorio local."
-pacstrap -C "$PACMAN_CONF" -M "$MNT" "${PACKAGES[@]}"
+log "Atualizando bancos e verificando acesso aos repositorios oficiais do Arch Linux."
+pacman -Sy --noconfirm
+log "Instalando a edicao ${EDITION^^} diretamente dos repositorios oficiais Arch Linux."
+pacstrap -C /etc/pacman.conf -K "$MNT" "${PACKAGES[@]}"
 # Aplica a base visual e os arquivos de primeiro login compartilhados pelas edicoes.
 [[ -d /usr/share/venom/install-overlay ]] || fail "Arquivos visuais VENOM ausentes na midia."
 cp -a /usr/share/venom/install-overlay/. "$MNT/"
@@ -160,6 +152,5 @@ fi
 arch-chroot "$MNT" grub-mkconfig -o /boot/grub/grub.cfg
 log "Instalacao concluida. Removendo montagens e preparando reinicializacao."
 trap - EXIT
-rm -f "$PACMAN_CONF"
 cleanup
 log "VENOM OS ${EDITION^^} instalada. Remova a midia USB e reinicie."
