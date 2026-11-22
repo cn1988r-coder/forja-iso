@@ -164,7 +164,6 @@ jobs:
           path: |
             out/*.iso
             out/*.sha256
-            bios-serial.log
             uefi-serial.log
           if-no-files-found: error
           retention-days: 14
