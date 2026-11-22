@@ -18,6 +18,6 @@ meson setup "$TMP_DIR/installer-build" "$ROOT/installer"
 meson compile -C "$TMP_DIR/installer-build"
 meson test -C "$TMP_DIR/installer-build" --print-errorlogs
 
-printf 'OK: interface C/GTK4 compilada e testes unitários concluídos.\n'
-printf 'PENDENTE: backend de instalação, instalação offline e testes de VM.\n'
+printf 'OK: interface TUI ncurses compilada e testes unitários concluídos.\n'
+printf 'PENDENTE: validar instalação offline e testes de VM BIOS/UEFI.\n'
 printf 'ISO: nenhuma compilação executada por este validador.\n'
