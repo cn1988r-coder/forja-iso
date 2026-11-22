@@ -34,6 +34,7 @@ grep -Fq 'install -m 0644 /etc/pacman.conf /mnt/etc/pacman.conf' "$ROOT/installe
 grep -Fq 'SUDO_UID' "$ROOT/installer/venom-install" || fail "Arquivo temporário da senha não valida o usuário de origem."
 grep -Fq '[[ -d /sys/firmware/efi ]]' "$ROOT/installer/venom-install" || fail "Instalador não exige UEFI."
 grep -Fq -- '--target=x86_64-efi' "$ROOT/installer/venom-install" || fail "GRUB UEFI x86_64 ausente."
+grep -Fq '<property name="use_compositing" type="bool" value="false"/>' "$P/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml" || fail "Compositor XFCE deve permanecer desativado para estabilidade gráfica."
 if grep -Fq -- '--target=i386-pc' "$ROOT/installer/venom-install"; then fail "Instalador ainda contém caminho BIOS/Legacy."; fi
 grep -Fq 'After=lightdm.service' "$P/airootfs/etc/systemd/system/venom-live-ready.service" || fail "Verificador não aguarda LightDM."
 grep -Fq 'VENOM_LIVE_READY' "$P/airootfs/usr/local/lib/venom/venom-live-ready" || fail "Marcador de prontidão ausente."
