@@ -1,6 +1,8 @@
 # VENOM XFCE live system: official Arch packages plus the declared Arch AUR Pamac packages.
 base
 base-devel
+ncurses
+json-glib
 archlinux-keyring
 arch-install-scripts
 pacman-mirrorlist
