@@ -30,6 +30,7 @@ EXPECTED_SIZE="${VENOM_EXPECTED_DISK_BYTES:-0}"
 ACTUAL_SIZE="$(blockdev --getsize64 "$DISK")"
 [[ "$EXPECTED_SIZE" =~ ^[0-9]+$ && "$EXPECTED_SIZE" == "$ACTUAL_SIZE" ]] ||
   fail "O tamanho do disco mudou desde a selecao."
+(( ACTUAL_SIZE >= 20 * 1024 * 1024 * 1024 )) || fail "O disco precisa ter pelo menos 20 GiB."
 [[ "$(lsblk -dnro TYPE "$DISK")" == disk ]] || fail "O destino nao e um disco inteiro."
 [[ "$(lsblk -dnro RO "$DISK")" == 0 ]] || fail "O disco esta somente para leitura."
 if lsblk -nrpo MOUNTPOINT "$DISK" | grep -q '[^[:space:]]'; then
