@@ -91,14 +91,19 @@ grep -Fxq caja "$BUILD/install-packages-mate.x86_64" ||
 
 grep -Fq 'VENOM_ISO_BUILD_AUTHORIZED' "$ROOT/scripts/build-venom-iso.sh" ||
   fail "build da ISO nao exige autorizacao explicita"
-grep -Fq 'pacman -Sw' "$ROOT/scripts/build-venom-iso.sh" ||
-  fail "download offline de pacotes ausente"
-grep -Fq 'repo-add' "$ROOT/scripts/build-venom-iso.sh" ||
-  fail "criacao do repositorio offline ausente"
+grep -Fq 'pacman -Sy --noconfirm' "$BUILD/airootfs/usr/lib/venom/install-system" ||
+  fail "sincronizacao dos repositorios oficiais Arch ausente"
+grep -Fq 'pacstrap -C /etc/pacman.conf -K' "$BUILD/airootfs/usr/lib/venom/install-system" ||
+  fail "instalacao via pacstrap e pacman.conf oficial ausente"
+grep -Fq 'https://geo.mirror.pkgbuild.com/$repo/os/$arch' "$BUILD/pacman.conf" ||
+  fail "mirror oficial Arch Linux ausente"
+if grep -Eiq 'repo-add|pacman -Sw|offline-repo|file:///usr/share/venom|\\[venom\\]' "$ROOT/scripts/build-venom-iso.sh" "$BUILD/airootfs/usr/lib/venom/install-system"; then
+  fail "repositorio local/privado VENOM nao pode existir"
+fi
 grep -Fq '/usr/share/venom/install-overlay' "$BUILD/airootfs/usr/lib/venom/install-system" ||
   fail "backend nao aplica configuracao visual VENOM"
-grep -Fq 'pacstrap -C' "$BUILD/airootfs/usr/lib/venom/install-system" ||
-  fail "backend nao instala a partir da configuracao do repositorio local"
+grep -Fq 'pacstrap -C /etc/pacman.conf -K' "$BUILD/airootfs/usr/lib/venom/install-system" ||
+  fail "backend nao instala pela configuracao oficial do Pacman"
 grep -Fq 'wipefs --all --force' "$BUILD/airootfs/usr/lib/venom/install-system" ||
   fail "backend nao possui etapa de particionamento explicita"
 grep -Fq 'APAGAR' "$BUILD/airootfs/usr/lib/venom/install-system" ||
@@ -121,4 +126,4 @@ if grep -Fxq '[Toplevel top]' "$BUILD/install-overlay/usr/share/mate-panel/layou
   fail "MATE deve usar somente um painel inferior"
 fi
 
-pass "Perfil TUI e backend offline das edicoes XFCE/MATE validados."
+pass "Perfil TUI e instalacao pelas fontes oficiais Arch das edicoes XFCE/MATE validados."
