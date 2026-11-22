@@ -17,6 +17,9 @@ command -v arch-chroot >/dev/null || fail "arch-chroot não encontrado no ambien
 FSTYPE=$(blkid -s TYPE -o value -- "$ROOT_DEVICE")
 UUID=$(blkid -s UUID -o value -- "$ROOT_DEVICE")
 [[ "$FSTYPE" == btrfs ]] || fail "a partição raiz precisa ser Btrfs"
+
+BOOT_FS=$(findmnt -n -o FSTYPE -T "$ROOT_DIR/boot")
+[[ "$BOOT_FS" == btrfs ]] || fail "/boot precisa estar dentro do Btrfs raiz para que kernel e initramfs entrem nos snapshots"
 [[ "$UUID" =~ ^[A-Fa-f0-9-]+$ ]] || fail "UUID Btrfs inválido"
 
 FSTAB="$ROOT_DIR/etc/fstab"
