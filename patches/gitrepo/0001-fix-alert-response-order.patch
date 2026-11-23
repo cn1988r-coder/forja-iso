@@ -1,7 +1,7 @@
 diff --git a/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py b/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 --- a/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 +++ b/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
-@@
+@@ -814,1 +814,2 @@
 -            dialog.connect("closed", lambda _alert: self._apply_resolutions())
 +            from gi.repository import GLib
 +            GLib.idle_add(self._apply_resolutions)
