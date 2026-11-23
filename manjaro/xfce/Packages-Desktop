@@ -1,0 +1,42 @@
+# XFCE desktop
+xfce4-session
+xfce4-panel
+xfce4-settings
+xfce4-appfinder
+xfce4-whiskermenu-plugin
+xfce4-docklike-plugin
+xfce4-panel-profiles
+xfdesktop
+xfwm4
+xfconf
+exo
+garcon
+thunar
+thunar-archive-plugin
+thunar-volman
+tumbler
+
+# Display manager
+lightdm
+lightdm-gtk-greeter
+
+# Panel indicators and desktop essentials
+network-manager-applet
+xfce4-pulseaudio-plugin
+xfce4-power-manager
+xfce4-notifyd
+xfce4-screenshooter
+xfce4-taskmanager
+xfce4-screensaver
+pavucontrol
+blueman
+
+# Xorg session
+xorg-server
+xorg-xinit
+
+# File system integration
+gvfs
+gvfs-mtp
+gvfs-smb
+udisks2
