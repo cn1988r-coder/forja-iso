@@ -1,0 +1,49 @@
+name: VENOM OS - Preparar ambiente Manjaro
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: venom-manjaro-runner-preparation
+  cancel-in-progress: false
+
+jobs:
+  prepare-runner:
+    # Requer um runner próprio com Manjaro Linux instalado e registrado
+    # no repositório, usando as etiquetas self-hosted, Linux, X64 e manjaro.
+    runs-on: [self-hosted, Linux, X64, manjaro]
+    timeout-minutes: 30
+
+    steps:
+      - name: Obter o código da VENOM OS
+        uses: actions/checkout@v4
+
+      - name: Instalar ferramentas oficiais do Manjaro
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo pacman -Syu --needed --noconfirm git manjaro-tools-iso-git
+
+      - name: Preparar diretórios de trabalho
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/venom-workspace/source"
+          mkdir -p "$HOME/venom-workspace/cache"
+          mkdir -p "$HOME/venom-workspace/chroots"
+          mkdir -p "$HOME/venom-workspace/logs"
+          mkdir -p "$HOME/venom-workspace/output"
+
+      - name: Registrar fonte do projeto no workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$GITHUB_WORKSPACE" > "$HOME/venom-workspace/source/repository-path.txt"
+
+      # BLOQUEIO PERMANENTE NESTA ETAPA:
+      # Não adicionar buildiso, buildpkg, buildtree, check-yaml,
+      # geração de ISO, testes ou validações neste workflow.
+      # Essas operações exigem autorização explícita e workflow separado.
