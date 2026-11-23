@@ -1,0 +1,13 @@
+[user]
+pinned=
+forceIconSize=true
+iconSize=32
+indicatorStyle=1
+inactiveIndicatorStyle=1
+indicatorOrientation=1
+indicatorColorFromTheme=true
+middleButtonBehavior=1
+showPreviews=false
+showWindowCount=false
+onlyDisplayVisible=false
+onlyDisplayScreen=false
