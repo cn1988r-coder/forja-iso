@@ -64,7 +64,7 @@ jobs:
       - name: Suíte completa de testes do GitRepo
         working-directory: vendor/gitrepo
         env:
-          PYTHONPATH: \${{ github.workspace }}/vendor/gitrepo/usr/share
+          PYTHONPATH: ${{ github.workspace }}/vendor/gitrepo/usr/share
         run: xvfb-run -a python3 -m pytest -q
 
   manjaro-preflight:
@@ -92,7 +92,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           source /etc/os-release
-          [[ "\${ID:-}" == manjaro ]] || {
+          [[ "${ID:-}" == manjaro ]] || {
             echo "O runner precisa executar Manjaro Linux." >&2
             exit 1
           }
@@ -122,7 +122,7 @@ jobs:
           scripts/validate-manjaro-build.sh 2>&1 | tee "$RUNNER_TEMP/venom-logs/package-resolution.log"
 
       - name: Gerar ISO candidata e manifesto
-        if: \${{ inputs.build_iso }}
+        if: ${{ inputs.build_iso }}
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -134,22 +134,22 @@ jobs:
           sudo buildiso -p venom-mate -b stable -k linux618 -t "$OUT" -v 2>&1 | tee "$RUNNER_TEMP/venom-logs/iso-build.log"
 
           mapfile -t ISOS < <(find "$OUT" -maxdepth 1 -type f -name '*.iso' -print)
-          [[ "\${#ISOS[@]}" -eq 1 ]] || {
-            printf 'Esperada exatamente uma ISO; encontradas: %s\n' "\${#ISOS[@]}" >&2
+          [[ "${#ISOS[@]}" -eq 1 ]] || {
+            printf 'Esperada exatamente uma ISO; encontradas: %s\n' "${#ISOS[@]}" >&2
             find "$OUT" -maxdepth 2 -type f -printf '%p\n' >&2
             exit 1
           }
 
-          ISO="\${ISOS[0]}"
+          ISO="${ISOS[0]}"
           ISO_NAME="$(basename "$ISO")"
           cp -- "$ISO" "$ARTIFACTS/$ISO_NAME"
 
           mapfile -t PKG_MANIFESTS < <(find "$OUT" -maxdepth 1 -type f \( -name '*-pkgs.txt' -o -name '*.pkgs' \) -print)
-          [[ "\${#PKG_MANIFESTS[@]}" -ge 1 ]] || {
+          [[ "${#PKG_MANIFESTS[@]}" -ge 1 ]] || {
             echo "O buildiso não produziu o manifesto de pacotes esperado." >&2
             exit 1
           }
-          for manifest in "\${PKG_MANIFESTS[@]}"; do
+          for manifest in "${PKG_MANIFESTS[@]}"; do
             cp -- "$manifest" "$ARTIFACTS/"
           done
 
@@ -182,12 +182,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: venom-preflight-logs
-          path: \${{ runner.temp }}/venom-logs/
+          path: ${{ runner.temp }}/venom-logs/
           if-no-files-found: ignore
           retention-days: 14
 
       - name: Enviar ISO somente como candidata
-        if: \${{ success() && inputs.build_iso }}
+        if: ${{ success() && inputs.build_iso }}
         uses: actions/upload-artifact@v4
         with:
           name: venom-os-candidate-manjaro-linux618
@@ -197,7 +197,7 @@ jobs:
 
   candidate-integrity:
     name: Verificar integridade da ISO candidata
-    if: \${{ inputs.build_iso }}
+    if: ${{ inputs.build_iso }}
     needs: manjaro-preflight
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -217,11 +217,11 @@ jobs:
           cd candidate
 
           mapfile -t ISOS < <(find . -maxdepth 1 -type f -name '*.iso' -print)
-          [[ "\${#ISOS[@]}" -eq 1 ]] || {
+          [[ "${#ISOS[@]}" -eq 1 ]] || {
             echo "O artefato deve conter exatamente uma ISO." >&2
             exit 1
           }
-          ISO="\${ISOS[0]}"
+          ISO="${ISOS[0]}"
 
           test -s BUILD-MANIFEST.txt
           grep -qx 'status=candidate_not_release' BUILD-MANIFEST.txt
