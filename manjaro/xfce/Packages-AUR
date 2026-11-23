@@ -1,0 +1,4 @@
+# Pacotes adicionais do AUR para a edição XFCE da VENOM OS
+# Estes pacotes NÃO pertencem aos repositórios oficiais do Manjaro.
+# A obtenção e integração devem ocorrer separadamente do manifesto Packages-Desktop.
+ferdium-bin
