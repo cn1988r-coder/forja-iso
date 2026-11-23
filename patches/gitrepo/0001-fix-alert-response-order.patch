@@ -1,7 +1,7 @@
 diff --git a/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py b/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 --- a/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 +++ b/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
-@@ -806,9 +806,10 @@
+@@ -806,9 +806,8 @@
 -        """Continue only after the explicit file-deletion response.
 -
 -        The alert is still open while it emits its response, and closing this
