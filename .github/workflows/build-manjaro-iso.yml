@@ -60,22 +60,21 @@ jobs:
 
           path = Path("usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py")
           source = path.read_text()
-          old = (
-              '        if response == "delete":\\n'
-              '            dialog.connect("closed", lambda _alert: self._apply_resolutions())'
-          )
-          new = (
-              '        if response == "delete":\\n'
-              '            from gi.repository import GLib\\n'
-              '\\n'
-              '            GLib.idle_add(self._apply_resolutions)'
-          )
-          count = source.count(old)
-          if count != 1:
+          lines = source.splitlines()
+          matches = [
+              index
+              for index, line in enumerate(lines)
+              if line.strip() == 'dialog.connect("closed", lambda _alert: self._apply_resolutions())'
+          ]
+          if len(matches) != 1:
               raise SystemExit(
-                  f"Esperado exatamente um callback upstream para corrigir; encontrados: {count}"
+                  f"Esperado exatamente um callback upstream para corrigir; encontrados: {len(matches)}"
               )
-          path.write_text(source.replace(old, new, 1))
+          index = matches[0]
+          indent = lines[index][: len(lines[index]) - len(lines[index].lstrip())]
+          lines[index] = indent + "from gi.repository import GLib"
+          lines.insert(index + 1, indent + "GLib.idle_add(self._apply_resolutions)")
+          path.write_text("\n".join(lines) + "\n")
           PY
           grep -Fq 'GLib.idle_add(self._apply_resolutions)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 
