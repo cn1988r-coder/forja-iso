@@ -76,9 +76,14 @@ jobs:
           lines.insert(index + 1, indent + 'print("VENOM_DIAG: delete response callback entered", flush=True)')
           lines.insert(index + 2, indent + "def _apply_after_alert():")
           lines.insert(index + 3, indent + '    print("VENOM_DIAG: idle callback entered", flush=True)')
-          lines.insert(index + 4, indent + "    self._apply_resolutions()")
-          lines.insert(index + 5, indent + "    return GLib.SOURCE_REMOVE")
-          lines.insert(index + 6, indent + "GLib.idle_add(_apply_after_alert)")
+          lines.insert(index + 4, indent + '    print("VENOM_DIAG: before apply_resolutions", flush=True)')
+          lines.insert(index + 5, indent + "    try:")
+          lines.insert(index + 6, indent + "        self._apply_resolutions()")
+          lines.insert(index + 7, indent + '        print(f"VENOM_DIAG: after apply_resolutions visible={self.get_visible()}", flush=True)')
+          lines.insert(index + 8, indent + "    except BaseException as error:")
+          lines.insert(index + 9, indent + '        print(f"VENOM_DIAG: apply_resolutions raised {type(error).__name__}: {error}", flush=True)')
+          lines.insert(index + 10, indent + "    return GLib.SOURCE_REMOVE")
+          lines.insert(index + 11, indent + "GLib.idle_add(_apply_after_alert)")
           path.write_text("\n".join(lines) + "\n")
           PY
           grep -Fq 'GLib.idle_add(_apply_after_alert)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
