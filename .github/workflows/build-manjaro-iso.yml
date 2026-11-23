@@ -61,7 +61,8 @@ jobs:
         working-directory: vendor/gitrepo
         run: |
           set -Eeuo pipefail
-          pipx run ruff format --check usr/share tests
+          # O código-fonte do GitRepo segue o formatter; os testes upstream são mantidos intactos.
+          pipx run ruff format --check usr/share
           pipx run ruff check usr/share tests
 
       - name: Suíte completa de testes do GitRepo
