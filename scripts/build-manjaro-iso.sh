@@ -11,7 +11,7 @@ OUTPUT_DIR="${VENOM_ISO_OUTPUT_DIR:-/var/cache/manjaro-tools/iso}"
 
 # A primeira fase prepara o perfil oficial e constrói as imagens sem gerar ISO.
 # A segunda fase usa -z para gerar a ISO a partir dessas imagens já validadas.
-"$ROOT/scripts/validate-manjaro-build.sh"
+bash "$ROOT/scripts/validate-manjaro-build.sh"
 
 mkdir -p "$OUTPUT_DIR"
 if find "$OUTPUT_DIR" -maxdepth 1 -type f -name '*.iso' -print -quit | grep -q .; then
