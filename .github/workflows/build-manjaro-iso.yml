@@ -71,9 +71,9 @@ jobs:
         run: |
           set -Eeuo pipefail
           shellcheck -S error scripts/prepare-manjaro-profile.sh scripts/validate-manjaro-profile.sh scripts/validate-manjaro-build.sh scripts/build-manjaro-iso.sh scripts/test-manjaro-profile-links.sh
-          scripts/prepare-manjaro-profile.sh
-          scripts/validate-manjaro-profile.sh
-          scripts/test-manjaro-profile-links.sh
+          bash scripts/prepare-manjaro-profile.sh
+          bash scripts/validate-manjaro-profile.sh
+          bash scripts/test-manjaro-profile-links.sh
 
       - name: Construir imagens e gerar a ISO VENOM OS
         shell: bash
