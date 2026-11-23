@@ -11,8 +11,19 @@ Desktop XFCE com aparência moderna inspirada na organização do Windows 10/11,
 - Menu Whisker no extremo esquerdo.
 - Docklike Taskbar como único componente de lista/gerenciamento de aplicativos e janelas.
 - Área de notificação e indicadores do sistema no lado direito.
+- Indicador de volume próximo à área de notificação.
 - Relógio no extremo direito.
 - Sem painel superior e sem dock adicional.
+
+## Ordem dos componentes
+
+1. Whisker Menu.
+2. Separador expansível para reservar espaço.
+3. Docklike Taskbar para aplicativos fixados e janelas abertas.
+4. Separador expansível.
+5. Área de notificação, incluindo os ícones do NetworkManager e Blueman.
+6. Indicador de volume do PulseAudio/PipeWire.
+7. Relógio.
 
 ## Componentes
 
@@ -20,12 +31,23 @@ Desktop XFCE com aparência moderna inspirada na organização do Windows 10/11,
 - Menu: xfce4-whiskermenu-plugin.
 - Lista de aplicativos e janelas: xfce4-docklike-plugin.
 - Gerenciador de janelas: xfwm4.
-- Indicadores: network-manager-applet, xfce4-pulseaudio-plugin e blueman.
+- Rede: network-manager-applet.
+- Bluetooth: blueman-applet, com serviço bluetooth.
+- Áudio: PipeWire, WirePlumber, xfce4-pulseaudio-plugin e pavucontrol.
+- Login gráfico: LightDM com lightdm-gtk-greeter.
 
 ## Regra contra ícones duplicados
 
-O Docklike Taskbar deve ser o único plugin de lista de janelas/aplicativos no painel. Não adicionar Window Buttons, DockBarX ou outro tasklist junto dele. Os ícones de rede, volume e Bluetooth permanecem na área de notificação/indicadores, separados da lista de aplicativos.
+O Docklike Taskbar é o único componente de lista de janelas/aplicativos. Não adicionar Window Buttons, DockBarX ou outro tasklist junto dele. Os ícones de rede e Bluetooth ficam na área de notificação, separados da lista de aplicativos.
 
-## Estado da implementação
+## Organização dos arquivos
 
-Este diretório registra o perfil e a seleção de pacotes da edição XFCE. A configuração visual efetiva do painel ainda precisa ser implementada e validada em ambiente Manjaro compatível. Nenhuma ISO foi construída e nenhum teste técnico foi executado.
+- `profile.conf`: perfil XFCE e serviços.
+- `Packages-Desktop`: seleção de pacotes do desktop.
+- `desktop-overlay/etc/skel/`: configurações padrão copiadas para novos usuários.
+
+A base `manjaro/base/` permanece separada e sem ambiente gráfico. A edição XFCE acrescenta somente os componentes desta camada.
+
+## Estado do trabalho
+
+A seleção de pacotes e os arquivos iniciais de configuração do painel foram escritos no repositório. Ainda não houve compilação de pacotes, construção de ISO, execução de testes ou validação em sessão gráfica. A aparência final e o comportamento dos indicadores permanecem sem comprovação prática.
