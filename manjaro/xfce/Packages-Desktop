@@ -13,6 +13,11 @@ exo
 garcon
 
 # Basic desktop applications
+firefox
+pamac-gtk
+xfce4-terminal
+mousepad
+xarchiver
 xfce4-terminal
 mousepad
 xarchiver
