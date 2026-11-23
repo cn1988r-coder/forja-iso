@@ -42,12 +42,16 @@ O Docklike Taskbar é o único componente de lista de janelas/aplicativos. Não 
 
 ## Organização dos arquivos
 
-- `profile.conf`: perfil XFCE e serviços.
-- `Packages-Desktop`: seleção de pacotes do desktop.
-- `desktop-overlay/etc/skel/`: configurações padrão copiadas para novos usuários.
+- `Packages-Root`: cópia sem alterações do manifesto da base Manjaro em `../base/Packages-Root`, para deixar o perfil XFCE completo para o sistema de construção do Manjaro.
+- `profile.conf`: perfil XFCE e serviços NetworkManager/Bluetooth.
+- `Packages-Desktop`: seleção de pacotes do desktop e aplicativos básicos.
+- `desktop-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml`: configuração inicial do painel.
+- `desktop-overlay/etc/skel/.config/xfce4/panel/docklike-3.rc`: preferências iniciais do Docklike.
 
-A base `manjaro/base/` permanece separada e sem ambiente gráfico. A edição XFCE acrescenta somente os componentes desta camada.
+A base `manjaro/base/` permanece separada e sem ambiente gráfico. A edição XFCE acrescenta somente os componentes desta camada. O manifesto `Packages-Root` da edição XFCE é uma cópia do manifesto base, não uma nova base ou uma distribuição diferente.
 
 ## Estado do trabalho
 
-A seleção de pacotes e os arquivos iniciais de configuração do painel foram escritos no repositório. Ainda não houve compilação de pacotes, construção de ISO, execução de testes ou validação em sessão gráfica. A aparência final e o comportamento dos indicadores permanecem sem comprovação prática.
+A estrutura do perfil XFCE, a seleção de pacotes e a configuração inicial do painel foram escritas no repositório. Os arquivos representam a configuração pretendida, não uma comprovação de funcionamento.
+
+Não houve compilação de pacotes, construção de ISO, execução de testes, validação em sessão gráfica ou disparo de workflows. A aparência final e o comportamento dos indicadores permanecem sem comprovação prática.
