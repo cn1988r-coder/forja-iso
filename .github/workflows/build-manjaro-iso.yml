@@ -62,6 +62,7 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
+          git apply --check "$GITHUB_WORKSPACE/patches/gitrepo/0001-fix-alert-response-order.patch"
           git apply "$GITHUB_WORKSPACE/patches/gitrepo/0001-fix-alert-response-order.patch"
           git diff --check
           ! grep -Fq 'dialog.connect("closed", lambda _alert: self._apply_resolutions())' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
