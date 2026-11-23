@@ -1,4 +1,4 @@
-name: VENOM OS - Preparar ambiente Manjaro
+name: VENOM OS - Preparar ambiente Ubuntu
 
 on:
   workflow_dispatch:
@@ -7,25 +7,26 @@ permissions:
   contents: read
 
 concurrency:
-  group: venom-manjaro-runner-preparation
+  group: venom-ubuntu-runner-preparation
   cancel-in-progress: false
 
 jobs:
   prepare-runner:
-    # Requer um runner próprio com Manjaro Linux instalado e registrado
-    # no repositório, usando as etiquetas self-hosted, Linux, X64 e manjaro.
-    runs-on: [self-hosted, Linux, X64, manjaro]
+    # Runner hospedado pelo GitHub. O ambiente e descartável ao fim do job.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     steps:
       - name: Obter o código da VENOM OS
         uses: actions/checkout@v4
 
-      - name: Instalar ferramentas oficiais do Manjaro
+      - name: Preparar utilitários básicos do ambiente
         shell: bash
         run: |
           set -euo pipefail
-          sudo pacman -Syu --needed --noconfirm git manjaro-tools-iso-git
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            git curl wget xz-utils squashfs-tools dosfstools mtools
 
       - name: Preparar diretórios de trabalho
         shell: bash
@@ -43,7 +44,9 @@ jobs:
           set -euo pipefail
           printf '%s\n' "$GITHUB_WORKSPACE" > "$HOME/venom-workspace/source/repository-path.txt"
 
-      # BLOQUEIO PERMANENTE NESTA ETAPA:
-      # Não adicionar buildiso, buildpkg, buildtree, check-yaml,
-      # geração de ISO, testes ou validações neste workflow.
-      # Essas operações exigem autorização explícita e workflow separado.
+      # BLOQUEIO DESTA ETAPA:
+      # Não instalar nem executar ferramentas de construção do Manjaro.
+      # Não executar buildiso, buildpkg, buildtree ou check-yaml.
+      # Não criar chroots, gerar ISO, executar testes ou validações.
+      # O ambiente Ubuntu hospedado pelo GitHub é temporário e não equivale
+      # a uma máquina Manjaro persistente.
