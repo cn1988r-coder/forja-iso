@@ -1,4 +1,4 @@
-name: Construir e validar VENOM OS com ferramentas oficiais Manjaro
+name: Validar VENOM OS com ferramentas oficiais Manjaro (geração de ISO bloqueada)
 
 on:
   push:
@@ -7,13 +7,6 @@ on:
   pull_request:
     branches:
       - optimize/venom-iso-size
-  workflow_dispatch:
-    inputs:
-      build_iso:
-        description: "Gerar uma ISO candidata depois que todas as validações passarem"
-        required: true
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -135,62 +128,6 @@ jobs:
           set -o pipefail
           scripts/validate-manjaro-build.sh 2>&1 | tee "$RUNNER_TEMP/venom-logs/package-resolution.log"
 
-      - name: Gerar ISO candidata e manifesto
-        if: ${{ inputs.build_iso }}
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          OUT="$RUNNER_TEMP/venom-iso-output"
-          ARTIFACTS="$GITHUB_WORKSPACE/venom-artifacts"
-          mkdir -p "$OUT" "$ARTIFACTS" "$RUNNER_TEMP/venom-logs"
-
-          cd /usr/share/manjaro-tools/iso-profiles
-          sudo buildiso -p venom-mate -b stable -k linux618 -t "$OUT" -v 2>&1 | tee "$RUNNER_TEMP/venom-logs/iso-build.log"
-
-          mapfile -t ISOS < <(find "$OUT" -maxdepth 1 -type f -name '*.iso' -print)
-          [[ "${#ISOS[@]}" -eq 1 ]] || {
-            printf 'Esperada exatamente uma ISO; encontradas: %s\n' "${#ISOS[@]}" >&2
-            find "$OUT" -maxdepth 2 -type f -printf '%p\n' >&2
-            exit 1
-          }
-
-          ISO="${ISOS[0]}"
-          ISO_NAME="$(basename "$ISO")"
-          cp -- "$ISO" "$ARTIFACTS/$ISO_NAME"
-
-          mapfile -t PKG_MANIFESTS < <(find "$OUT" -maxdepth 1 -type f \( -name '*-pkgs.txt' -o -name '*.pkgs' \) -print)
-          [[ "${#PKG_MANIFESTS[@]}" -ge 1 ]] || {
-            echo "O buildiso não produziu o manifesto de pacotes esperado." >&2
-            exit 1
-          }
-          for manifest in "${PKG_MANIFESTS[@]}"; do
-            cp -- "$manifest" "$ARTIFACTS/"
-          done
-
-          (
-            cd "$ARTIFACTS"
-            md5sum "$ISO_NAME" > "$ISO_NAME.md5"
-            sha256sum "$ISO_NAME" > "$ISO_NAME.sha256"
-            sha512sum "$ISO_NAME" > "$ISO_NAME.sha512"
-          )
-
-          {
-            printf 'project=VENOM OS\n'
-            printf 'branch=%s\n' "$GITHUB_REF_NAME"
-            printf 'commit=%s\n' "$GITHUB_SHA"
-            printf 'profile=venom-mate\n'
-            printf 'repository_branch=stable\n'
-            printf 'kernel=linux618\n'
-            printf 'manjaro_tools_iso=%s\n' "$(pacman -Q manjaro-tools-iso)"
-            printf 'gitrepo_commit=%s\n' "$(git -C "$GITHUB_WORKSPACE/vendor/gitrepo" rev-parse HEAD)"
-            printf 'built_at_utc=%s\n' "$(date -u +%FT%TZ)"
-            printf 'iso=%s\n' "$ISO_NAME"
-            printf 'status=candidate_not_release\n'
-          } > "$ARTIFACTS/BUILD-MANIFEST.txt"
-
-          cp -- "$RUNNER_TEMP/venom-logs/package-resolution.log" "$ARTIFACTS/"
-          cp -- "$RUNNER_TEMP/venom-logs/iso-build.log" "$ARTIFACTS/"
-
       - name: Guardar logs de validação
         if: always()
         uses: actions/upload-artifact@v4
@@ -200,53 +137,3 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Enviar ISO somente como candidata
-        if: ${{ success() && inputs.build_iso }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: venom-os-candidate-manjaro-linux618
-          path: venom-artifacts/
-          if-no-files-found: error
-          retention-days: 30
-
-  candidate-integrity:
-    name: Verificar integridade da ISO candidata
-    if: ${{ inputs.build_iso }}
-    needs: manjaro-preflight
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    steps:
-      - name: Baixar artefato candidato
-        uses: actions/download-artifact@v4
-        with:
-          name: venom-os-candidate-manjaro-linux618
-          path: candidate
-
-      - name: Verificar manifesto, checksums e catálogo de boot
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          sudo apt-get update
-          sudo apt-get install -y xorriso
-          cd candidate
-
-          mapfile -t ISOS < <(find . -maxdepth 1 -type f -name '*.iso' -print)
-          [[ "${#ISOS[@]}" -eq 1 ]] || {
-            echo "O artefato deve conter exatamente uma ISO." >&2
-            exit 1
-          }
-          ISO="${ISOS[0]}"
-
-          test -s BUILD-MANIFEST.txt
-          grep -qx 'status=candidate_not_release' BUILD-MANIFEST.txt
-          grep -qx 'profile=venom-mate' BUILD-MANIFEST.txt
-          grep -qx 'kernel=linux618' BUILD-MANIFEST.txt
-
-          sha256sum -c "$(basename "$ISO").sha256"
-          sha512sum -c "$(basename "$ISO").sha512"
-          md5sum -c "$(basename "$ISO").md5"
-
-          xorriso -indev "$ISO" -report_el_torito plain 2>&1 | tee boot-catalog-report.txt
-          grep -qi 'El Torito' boot-catalog-report.txt
-
-          echo "Integridade e catálogo de boot verificados. A ISO continua sendo candidata; ainda exige teste real em máquina virtual antes de qualquer liberação."
