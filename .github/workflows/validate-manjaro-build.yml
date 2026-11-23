@@ -1,111 +1,18 @@
-name: VENOM OS XFCE - Validacao e ISO candidata
+name: VENOM OS XFCE - Fluxo de configuracao
+
 on:
-  push:
-    branches: [feature/venom-os-xfce-stable]
-  pull_request:
-    branches: [feature/venom-os-xfce-stable]
   workflow_dispatch:
+
 permissions:
   contents: read
-concurrency:
-  group: venom-xfce-validation
-  cancel-in-progress: false
+
 jobs:
-  etapa-01-perfil:
-    name: "01 - Perfil da distribuicao"
+  configuracao:
+    name: Configuracao do XFCE (sem testes ou build)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - run: bash scripts/test-venom-xfce.sh
-
-  etapa-02-pacotes:
-    name: "02 - Pacotes e dependencias"
-    needs: etapa-01-perfil
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - run: bash scripts/validate-venom-prebuild.sh packages
-
-  etapa-03-codigo:
-    name: "03 - Revisao estatica do codigo"
-    needs: etapa-02-pacotes
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck
-          shellcheck -S error scripts/*.sh
-          bash -n scripts/*.sh
-
-  etapa-04-build-pacotes:
-    name: "04 - Construcao automatizada de pacotes proprios"
-    needs: etapa-03-codigo
-    runs-on: [self-hosted, linux, manjaro, x64]
-    steps:
-      - uses: actions/checkout@v4
-      - run: bash scripts/validate-venom-prebuild.sh package-build
-
-  etapa-05-canais:
-    name: "05 - Repositorios testing e stable"
-    needs: etapa-04-build-pacotes
-    runs-on: [self-hosted, linux, manjaro, x64]
-    steps:
-      - uses: actions/checkout@v4
-      - run: bash scripts/validate-venom-prebuild.sh channels
-
-  etapa-06-kernel-drivers:
-    name: "06 - Kernel e drivers"
-    needs: etapa-05-canais
-    runs-on: [self-hosted, linux, manjaro, x64]
-    steps:
-      - uses: actions/checkout@v4
-      - run: bash scripts/validate-venom-prebuild.sh kernel
-
-  etapa-07-integracao-continua:
-    name: "07 - Integracao continua"
-    needs: etapa-06-kernel-drivers
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - run: bash scripts/validate-venom-prebuild.sh ci
-
-  etapa-08-iso-candidata:
-    name: "08 - Construcao da ISO candidata"
-    needs: etapa-07-integracao-continua
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: [self-hosted, linux, manjaro, x64]
-    timeout-minutes: 360
-    steps:
-      - uses: actions/checkout@v4
-      - name: Conferir ferramentas oficiais Manjaro
+      - name: Informar escopo autorizado
         run: |
-          set -Eeuo pipefail
-          source /etc/os-release
-          [[ "${ID:-}" == manjaro ]]
-          command -v pacman
-          command -v buildiso
-          pacman -Qo "$(command -v buildiso)"
-          pacman -Q manjaro-tools-iso
-          pacman -Q linux618
-          pacman -Si calamares
-      - name: Resolver pacotes sem gerar ISO
-        run: bash scripts/validate-manjaro-build.sh
-      - name: Construir ISO candidata
-        env:
-          VENOM_ISO_APPROVED: YES
-          VENOM_ISO_OUTPUT_DIR: ${{ runner.temp }}/venom-xfce-candidate
-        run: bash scripts/build-manjaro-iso.sh
-      - name: Gerar checksum e manifesto
-        run: |
-          set -Eeuo pipefail
-          ISO="$(find "${{ runner.temp }}/venom-xfce-candidate" -maxdepth 1 -type f -name '*.iso' -print -quit)"
-          test -n "$ISO"
-          sha256sum "$ISO" > "${{ runner.temp }}/venom-xfce-candidate/SHA256SUMS"
-          printf 'run_id=%s\ncommit=%s\n' "$GITHUB_RUN_ID" "$GITHUB_SHA" > "${{ runner.temp }}/venom-xfce-candidate/CANDIDATE.txt"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: venom-os-xfce-candidate
-          path: ${{ runner.temp }}/venom-xfce-candidate/
-          if-no-files-found: error
-          retention-days: 30
+          echo "Fluxo reservado ao acompanhamento da configuracao do VENOM OS XFCE."
+          echo "Nenhum teste, validacao, compilacao, construcao de pacote ou ISO sera executado."
+          echo "A configuracao do XFCE deve ser editada diretamente no repositorio.";
