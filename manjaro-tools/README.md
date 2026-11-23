@@ -67,7 +67,7 @@ O formato dos perfis deve permanecer alinhado ao repositório oficial `iso-profi
 
 Não criar listas ou overlays fictícios apenas para preencher a estrutura. Arquivos adicionais serão incluídos somente quando houver necessidade definida para a VENOM OS.
 
-Referência oficial: https://code.manjaro.org/profiles/iso-profiles
+Referência oficial: https://code.manjaro.org/profiles-and-settings/iso-profiles
 
 ## 5. Calamares
 
