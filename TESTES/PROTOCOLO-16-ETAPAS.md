@@ -24,7 +24,7 @@ Não interpretar a existência deste protocolo como autorização. Não iniciar 
 
 As etapas são obrigatórias, sequenciais e não podem ser puladas. A descrição de uma etapa define o que deverá ser avaliado futuramente; não é uma ordem para executar agora.
 
-1. **Perfil próprio XFCE:** definir e revisar o perfil da edição XFCE, sua estrutura e suas configurações. A base atual do repositório permanece neutra, sem ambiente gráfico; esta etapa não autoriza adicionar XFCE agora.
+1. **Perfil próprio XFCE:** revisar o perfil já registrado em `manjaro/xfce`, sua estrutura, manifestos, serviços, overlay e configurações do desktop. A base `manjaro/base` permanece neutra e sem ambiente gráfico; o XFCE é uma camada separada da edição.
 2. **Pacotes e dependências:** estabelecer a lista de pacotes e avaliar dependências, conflitos, disponibilidade e compatibilidade com os repositórios Manjaro escolhidos.
 3. **Desenvolvimento e código:** revisar o código, scripts, configurações e automações mantidos pelo projeto.
 4. **Construção de pacotes:** avaliar o processo de empacotamento, integridade, dependências e rastreabilidade dos pacotes do projeto. Nenhuma compilação está autorizada no estado atual.
@@ -93,8 +93,8 @@ Este é o estado deliberado do projeto. Nenhum teste técnico foi autorizado por
 
 ## 7. Referências de processo
 
-- BigLinux ISO Profiles: https://github.com/biglinux/iso-profiles
-- Processo openQA documentado pelo BigLinux: https://github.com/biglinux/iso-profiles/tree/main/openqa
 - Documentação Manjaro: https://wiki.manjaro.org/
+- Perfis oficiais do Manjaro: https://code.manjaro.org/profiles-and-settings/iso-profiles
+- Ferramentas oficiais do Manjaro: https://code.manjaro.org/tools/manjaro-tools
 
-As referências servem como inspiração para organização de testes e portões de liberação. As 16 etapas acima são regras deste repositório, não uma lista oficial atribuída ao BigLinux.
+As 16 etapas acima são regras próprias deste repositório VENOM OS.
