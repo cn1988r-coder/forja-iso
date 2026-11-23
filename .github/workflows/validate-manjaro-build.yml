@@ -1,4 +1,4 @@
-name: Testes VENOM OS XFCE
+name: VENOM OS XFCE - Validacao e ISO candidata
 on:
   push:
     branches: [feature/venom-os-xfce-stable]
@@ -11,26 +11,74 @@ concurrency:
   group: venom-xfce-validation
   cancel-in-progress: false
 jobs:
-  static-tests:
+  etapa-01-perfil:
+    name: "01 - Perfil da distribuicao"
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Instalar ShellCheck
-        run: |
+      - run: bash scripts/test-venom-xfce.sh
+
+  etapa-02-pacotes:
+    name: "02 - Pacotes e dependencias"
+    needs: etapa-01-perfil
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/validate-venom-prebuild.sh packages
+
+  etapa-03-codigo:
+    name: "03 - Revisao estatica do codigo"
+    needs: etapa-02-pacotes
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
           sudo apt-get update
           sudo apt-get install -y shellcheck
-      - name: Testes estruturais e sintaxe
-        run: |
-          set -Eeuo pipefail
-          shellcheck -S error scripts/test-venom-xfce.sh scripts/validate-manjaro-build.sh scripts/build-manjaro-iso.sh
-          bash scripts/test-venom-xfce.sh
-  manjaro-package-resolution:
-    needs: static-tests
+          shellcheck -S error scripts/*.sh
+          bash -n scripts/*.sh
+
+  etapa-04-build-pacotes:
+    name: "04 - Construcao automatizada de pacotes proprios"
+    needs: etapa-03-codigo
+    runs-on: [self-hosted, linux, manjaro, x64]
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/validate-venom-prebuild.sh package-build
+
+  etapa-05-canais:
+    name: "05 - Repositorios testing e stable"
+    needs: etapa-04-build-pacotes
+    runs-on: [self-hosted, linux, manjaro, x64]
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/validate-venom-prebuild.sh channels
+
+  etapa-06-kernel-drivers:
+    name: "06 - Kernel e drivers"
+    needs: etapa-05-canais
+    runs-on: [self-hosted, linux, manjaro, x64]
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/validate-venom-prebuild.sh kernel
+
+  etapa-07-integracao-continua:
+    name: "07 - Integracao continua"
+    needs: etapa-06-kernel-drivers
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/validate-venom-prebuild.sh ci
+
+  etapa-08-iso-candidata:
+    name: "08 - Construcao da ISO candidata"
+    needs: etapa-07-integracao-continua
+    if: github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, linux, manjaro, x64]
     timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
-      - name: Confirmar ferramentas oficiais Manjaro
+      - name: Conferir ferramentas oficiais Manjaro
         run: |
           set -Eeuo pipefail
           source /etc/os-release
@@ -41,23 +89,23 @@ jobs:
           pacman -Q manjaro-tools-iso
           pacman -Q linux618
           pacman -Si calamares
-      - name: Resolver pacotes e construir imagens sem ISO
+      - name: Resolver pacotes sem gerar ISO
         run: bash scripts/validate-manjaro-build.sh
-  build-iso:
-    if: github.event_name == 'workflow_dispatch'
-    needs: manjaro-package-resolution
-    runs-on: [self-hosted, linux, manjaro, x64]
-    timeout-minutes: 360
-    steps:
-      - uses: actions/checkout@v4
-      - name: Construir ISO XFCE
+      - name: Construir ISO candidata
         env:
           VENOM_ISO_APPROVED: YES
-          VENOM_ISO_OUTPUT_DIR: ${{ runner.temp }}/venom-xfce-iso
+          VENOM_ISO_OUTPUT_DIR: ${{ runner.temp }}/venom-xfce-candidate
         run: bash scripts/build-manjaro-iso.sh
+      - name: Gerar checksum e manifesto
+        run: |
+          set -Eeuo pipefail
+          ISO="$(find "${{ runner.temp }}/venom-xfce-candidate" -maxdepth 1 -type f -name '*.iso' -print -quit)"
+          test -n "$ISO"
+          sha256sum "$ISO" > "${{ runner.temp }}/venom-xfce-candidate/SHA256SUMS"
+          printf 'run_id=%s\ncommit=%s\n' "$GITHUB_RUN_ID" "$GITHUB_SHA" > "${{ runner.temp }}/venom-xfce-candidate/CANDIDATE.txt"
       - uses: actions/upload-artifact@v4
         with:
-          name: venom-os-xfce-iso
-          path: ${{ runner.temp }}/venom-xfce-iso/
+          name: venom-os-xfce-candidate
+          path: ${{ runner.temp }}/venom-xfce-candidate/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
