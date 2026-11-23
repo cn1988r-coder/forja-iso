@@ -29,16 +29,16 @@ jobs:
       - name: Instalar dependências de teste GTK
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            gettext \
-            python3-gi \
-            python3-pytest \
-            python3-requests \
-            python3-rich \
-            gir1.2-gtk-4.0 \
-            gir1.2-adw-1 \
-            gir1.2-secret-1 \
-            xvfb \
+          sudo apt-get install -y \\
+            gettext \\
+            python3-gi \\
+            python3-pytest \\
+            python3-requests \\
+            python3-rich \\
+            gir1.2-gtk-4.0 \\
+            gir1.2-adw-1 \\
+            gir1.2-secret-1 \\
+            xvfb \\
             pipx
 
       - name: Conferir versão upstream fixada
@@ -50,7 +50,7 @@ jobs:
           git -C vendor/gitrepo rev-parse HEAD
           git -C vendor/gitrepo status --short
 
-      - name: Corrigir callback de confirmação no GitRepo fixado
+      - name: Corrigir fechamento da janela de conflitos no GitRepo fixado
         working-directory: vendor/gitrepo
         shell: bash
         run: |
@@ -60,41 +60,30 @@ jobs:
 
           path = Path("usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py")
           source = path.read_text()
-          lines = source.splitlines()
-          matches = [
-              index
-              for index, line in enumerate(lines)
-              if line.strip() == 'dialog.connect("closed", lambda _alert: self._apply_resolutions())'
-          ]
-          if len(matches) != 1:
-              raise SystemExit(
-                  f"Esperado exatamente um callback upstream para corrigir; encontrados: {len(matches)}"
-              )
-          index = matches[0]
-          indent = lines[index][: len(lines[index]) - len(lines[index].lstrip())]
-          lines[index] = indent + "from gi.repository import GLib"
-          lines.insert(index + 1, indent + 'print("VENOM_DIAG: delete response callback entered", flush=True)')
-          lines.insert(index + 2, indent + "def _apply_after_alert():")
-          lines.insert(index + 3, indent + '    print("VENOM_DIAG: idle callback entered", flush=True)')
-          lines.insert(index + 4, indent + '    print("VENOM_DIAG: before apply_resolutions", flush=True)')
-          lines.insert(index + 5, indent + "    try:")
-          lines.insert(index + 6, indent + "        self._apply_resolutions()")
-          lines.insert(index + 7, indent + '        print(f"VENOM_DIAG: after apply_resolutions visible={self.get_visible()}", flush=True)')
-          lines.insert(index + 8, indent + "    except BaseException as error:")
-          lines.insert(index + 9, indent + '        print(f"VENOM_DIAG: apply_resolutions raised {type(error).__name__}: {error}", flush=True)')
-          lines.insert(index + 10, indent + "    return GLib.SOURCE_REMOVE")
-          lines.insert(index + 11, indent + "GLib.idle_add(_apply_after_alert)")
-          for line_index, line in enumerate(lines):
-              if line.strip() == "if self.apply_resolution(filepath, action):":
-                  loop_indent = line[: len(line) - len(line.lstrip())]
-                  lines[line_index] = loop_indent + "resolved = self.apply_resolution(filepath, action)"
-                  lines.insert(line_index + 1, loop_indent + 'print(f"VENOM_DIAG: resolution {filepath!r} action={action!r} result={resolved}", flush=True)')
-                  lines.insert(line_index + 2, loop_indent + "if resolved:")
-                  break
-          else:
-              raise SystemExit("Não foi possível instrumentar o resultado de apply_resolution")
-          path.write_text("\n".join(lines) + "\n")
+
+          init_line = "        super().__init__(transient_for=parent, modal=True)"
+          if source.count(init_line) != 1:
+              raise SystemExit("Esperada exatamente uma inicialização de ConflictDialog")
+          source = source.replace(
+              init_line,
+              init_line + "\\n        self.set_hide_on_close(True)",
+              1,
+          )
+
+          callback_line = '            dialog.connect("closed", lambda _alert: self._apply_resolutions())'
+          if source.count(callback_line) != 1:
+              raise SystemExit("Esperado exatamente um callback upstream de confirmação")
+          callback_replacement = """            from gi.repository import GLib
+
+                      def _apply_after_alert():
+                          self._apply_resolutions()
+                          return GLib.SOURCE_REMOVE
+
+                      dialog.connect("closed", lambda _alert: GLib.idle_add(_apply_after_alert))"""
+          source = source.replace(callback_line, callback_replacement, 1)
+          path.write_text(source)
           PY
+          grep -Fq 'self.set_hide_on_close(True)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
           grep -Fq 'GLib.idle_add(_apply_after_alert)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 
       - name: Formatação e análise estática do GitRepo
@@ -106,11 +95,12 @@ jobs:
           pipx run ruff format --check usr/share
           pipx run ruff check usr/share tests
 
-      - name: Diagnosticar teste de exclusão do GitRepo
+      - name: Testes upstream completos do GitRepo
         working-directory: vendor/gitrepo
         env:
           PYTHONPATH: ${{ github.workspace }}/vendor/gitrepo/usr/share
-        run: xvfb-run -a python3 -m pytest -vv -s tests/build_package/test_conflict_dialog_deletion.py::test_delete_and_apply_closes_the_dialog
+          GTK_A11Y: none
+        run: xvfb-run -a python3 -m pytest -vv
 
   manjaro-preflight:
     name: Pré-validação no Manjaro
