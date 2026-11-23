@@ -1,0 +1,35 @@
+############################################################
+# VENOM OS - exemplo de configuração do Manjaro Tools
+#
+# Modelo para futura configuração LOCAL do computador
+# de preparação. Não copiar automaticamente para /etc.
+# Não executar ferramentas nesta etapa.
+############################################################
+
+# Configuração geral
+# target_branch=stable
+# target_arch=x86_64
+
+# Diretórios de trabalho. Definir caminhos reais somente
+# no computador de preparação, após escolher o armazenamento.
+# cache_dir=/CAMINHO/REAL/venom-cache
+# chroots_dir=/CAMINHO/REAL/venom-chroots
+# log_dir=/CAMINHO/REAL/venom-logs
+
+# Repositório/mirror de construção:
+# manter o padrão oficial do Manjaro até existir necessidade
+# documentada de configuração específica.
+# build_mirror=
+
+######################## buildiso ########################
+
+# O caminho dos perfis é configurado separadamente em
+# iso-profiles.conf. Não definir branch de perfis aqui até
+# confirmar a branch compatível com a versão instalada
+# do manjaro-tools-iso e com a base Manjaro escolhida.
+
+# branch=
+# dist_release=auto
+# dist_branding=MANJARO
+
+# Não inserir comandos, hooks ou execução automática neste arquivo.
