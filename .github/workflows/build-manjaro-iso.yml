@@ -73,7 +73,12 @@ jobs:
           index = matches[0]
           indent = lines[index][: len(lines[index]) - len(lines[index].lstrip())]
           lines[index] = indent + "from gi.repository import GLib"
-          lines.insert(index + 1, indent + "GLib.idle_add(self._apply_resolutions)")
+          lines.insert(index + 1, indent + 'print("VENOM_DIAG: delete response callback entered", flush=True)')
+          lines.insert(index + 2, indent + "def _apply_after_alert():")
+          lines.insert(index + 3, indent + '    print("VENOM_DIAG: idle callback entered", flush=True)')
+          lines.insert(index + 4, indent + "    self._apply_resolutions()")
+          lines.insert(index + 5, indent + "    return GLib.SOURCE_REMOVE")
+          lines.insert(index + 6, indent + "GLib.idle_add(_apply_after_alert)")
           path.write_text("\n".join(lines) + "\n")
           PY
           grep -Fq 'GLib.idle_add(self._apply_resolutions)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
@@ -87,11 +92,11 @@ jobs:
           pipx run ruff format --check usr/share
           pipx run ruff check usr/share tests
 
-      - name: Suíte completa de testes do GitRepo
+      - name: Diagnosticar teste de exclusão do GitRepo
         working-directory: vendor/gitrepo
         env:
           PYTHONPATH: ${{ github.workspace }}/vendor/gitrepo/usr/share
-        run: xvfb-run -a python3 -m pytest -q
+        run: xvfb-run -a python3 -m pytest -vv -s tests/build_package/test_conflict_dialog_deletion.py::test_delete_and_apply_closes_the_dialog
 
   manjaro-preflight:
     name: Pré-validação no Manjaro
