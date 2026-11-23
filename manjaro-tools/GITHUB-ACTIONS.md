@@ -1,49 +1,60 @@
-# GitHub Actions: ambiente de preparação Ubuntu
+# GitHub Actions: preparação do ambiente virtual Manjaro
 
 ## Objetivo
 
-A preparação inicial da VENOM OS foi direcionada para um runner Ubuntu hospedado pelo próprio GitHub Actions, sem depender de uma máquina Manjaro externa ou de um runner self-hosted.
+Preparar, sob demanda, um ambiente temporário no GitHub Actions para o trabalho futuro da VENOM OS XFCE. O runner hospedado pelo GitHub fornece a infraestrutura de execução; um contêiner `manjarolinux/base` fornece o ambiente Manjaro isolado.
 
 Workflow: `.github/workflows/venom-preparacao-manjaro.yml`
 
-## O que o workflow está configurado para fazer
+O workflow é exclusivamente manual (`workflow_dispatch`). Não é disparado por push, pull request ou agendamento.
 
-Quando for autorizado e iniciado manualmente, o workflow:
+## O que a preparação está configurada para fazer
 
-1. Utiliza o runner hospedado `ubuntu-24.04`.
-2. Obtém o código do repositório VENOM OS.
-3. Instala somente utilitários básicos disponíveis nos repositórios Ubuntu: Git, curl, wget, xz-utils, squashfs-tools, dosfstools e mtools.
-4. Cria diretórios de organização para fonte, cache, chroots, logs e saída. Criar o diretório chamado `chroots` não cria nem inicia um chroot.
-5. Registra o caminho do checkout do projeto no workspace.
+Quando alguém iniciar manualmente este workflow:
 
-## Limite importante do Ubuntu
+1. Usar um runner hospedado `ubuntu-24.04`.
+2. Instalar no runner ferramentas de virtualização QEMU/OVMF e utilitários de manipulação de imagens.
+3. Baixar a imagem de contêiner `manjarolinux/base:latest`.
+4. Dentro do contêiner Manjaro, atualizar os pacotes do ambiente e instalar `git` e `manjaro-tools-iso-git`, conforme o procedimento documentado pelo Manjaro.
+5. Criar diretórios temporários separados para fonte, cache, chroots (somente diretório vazio), logs, saída, perfis e configurações.
+6. Clonar o repositório oficial de perfis Manjaro em `https://code.manjaro.org/profiles-and-settings/iso-profiles.git`.
+7. Copiar os modelos locais de configuração do projeto e ajustar o caminho do checkout de perfis.
+8. Registrar o commit da VENOM OS e as informações da preparação.
+9. Guardar os arquivos resultantes como artefato do workflow por 14 dias.
 
-O runner Ubuntu não é uma instalação Manjaro. Esta preparação não instala `manjaro-tools`, não configura uma base Manjaro e não torna o ambiente pronto para construir uma ISO Manjaro.
+Referências do procedimento de ferramentas e perfis:
+- https://wiki.manjaro.org/index.php?title=Build_Manjaro_ISOs_with_buildiso
+- https://code.manjaro.org/profiles-and-settings/iso-profiles
+- https://github.com/manjaro/manjaro-docker
 
-O runner hospedado pelo GitHub é temporário: o ambiente e os arquivos locais do job são descartados ao final da execução. Portanto, os diretórios criados não constituem armazenamento persistente entre execuções.
+## Limites técnicos importantes
 
-A Action oficial `manjaro-iso-action` não foi adicionada nem chamada. Ela contém etapas que compilam componentes e executam `buildiso`, operações que permanecem bloqueadas nesta etapa.
+- O contêiner Manjaro é um ambiente de preparação de ferramentas, não uma máquina virtual completa com boot gráfico.
+- QEMU e OVMF são instalados no runner para uma futura fase de virtualização. Nenhuma máquina virtual é iniciada nesta preparação.
+- Criar o diretório `chroots` não cria nem inicia um chroot.
+- O checkout de perfis oficiais é apenas obtenção de referência; não executa análise, validação ou build.
+- O runner e o contêiner são descartáveis ao fim do job. O artefato preserva os arquivos de preparação, não uma máquina virtual ligada nem um ambiente Manjaro persistente.
+- A imagem `latest` pode mudar ao longo do tempo. O relatório deve ser associado ao commit do projeto e à execução que o gerou.
 
-## Bloqueios mantidos
+## Proibições mantidas
 
-Este workflow não deve receber nem executar:
+Este workflow não pode executar:
 
-- `buildiso`
-- `buildpkg`
-- `buildtree`
-- `check-yaml`
-- criação ou inicialização de chroots
-- compilação de ferramentas ou pacotes
-- geração de ISO
-- testes ou validações técnicas
-- publicação ou upload de artefatos
+- `buildiso`, `buildpkg`, `buildtree` ou `check-yaml`;
+- compilação ou construção de pacotes;
+- criação ou inicialização de chroots;
+- geração de ISO;
+- inicialização de QEMU ou de qualquer máquina virtual;
+- testes automatizados ou manuais;
+- validações técnicas, verificações de dependências ou verificações de integridade;
+- publicação ou distribuição de artefatos do sistema.
 
-Essas atividades continuam bloqueadas e exigem autorização explícita separada.
+A instalação de ferramentas e a organização de arquivos são preparação de ambiente, não evidência de que a VENOM OS funciona.
 
 ## Estado
 
-- Configuração do workflow para runner Ubuntu hospedado pelo GitHub: registrada no repositório.
-- Workflow executado: não.
-- Ferramentas básicas instaladas no runner: não, pois nenhuma execução foi iniciada.
-- Ambiente Manjaro de construção: não configurado por este workflow.
-- Compilação, ISO, testes e validações: bloqueados e não executados.
+- Workflow configurado no repositório: sim.
+- Workflow executado nesta alteração: não.
+- Ambiente virtual efetivamente preparado: não, depende de execução manual futura do workflow.
+- Artefato de preparação produzido: não.
+- Compilação, ISO, testes e validações: não executados e continuam proibidos.
