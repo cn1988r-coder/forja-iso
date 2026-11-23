@@ -50,12 +50,33 @@ jobs:
           git -C vendor/gitrepo rev-parse HEAD
           git -C vendor/gitrepo status --short
 
-      - name: Corrigir ordem do callback de confirmação no GitRepo fixado
+      - name: Corrigir callback de confirmação no GitRepo fixado
         working-directory: vendor/gitrepo
         shell: bash
         run: |
           set -Eeuo pipefail
-          git apply ../../patches/gitrepo/0001-fix-alert-response-order.patch
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py")
+          source = path.read_text()
+          old = (
+              '        if response == "delete":\\n'
+              '            dialog.connect("closed", lambda _alert: self._apply_resolutions())'
+          )
+          new = (
+              '        if response == "delete":\\n'
+              '            from gi.repository import GLib\\n'
+              '\\n'
+              '            GLib.idle_add(self._apply_resolutions)'
+          )
+          count = source.count(old)
+          if count != 1:
+              raise SystemExit(
+                  f"Esperado exatamente um callback upstream para corrigir; encontrados: {count}"
+              )
+          path.write_text(source.replace(old, new, 1))
+          PY
           grep -Fq 'GLib.idle_add(self._apply_resolutions)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 
       - name: Formatação e análise estática do GitRepo
@@ -134,4 +155,3 @@ jobs:
           path: ${{ runner.temp }}/venom-logs/
           if-no-files-found: ignore
           retention-days: 14
-
