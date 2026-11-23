@@ -1,4 +1,4 @@
-name: Validar VENOM OS com ferramentas oficiais Manjaro (geração de ISO bloqueada)
+name: Construir e validar VENOM OS
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - optimize/venom-iso-size
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,133 +17,38 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  gitrepo-quality:
-    name: Testes upstream do GitRepo
+  profile-quality:
+    name: Auditoria estrutural do perfil VENOM
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
-      - name: Baixar VENOM OS e GitRepo fixado
+      - name: Baixar código da VENOM OS
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
-      - name: Instalar dependências de teste GTK
+      - name: Instalar ShellCheck
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            gettext \
-            python3-gi \
-            python3-pytest \
-            python3-requests \
-            python3-rich \
-            gir1.2-gtk-4.0 \
-            gir1.2-adw-1 \
-            gir1.2-secret-1 \
-            xvfb \
-            pipx
+          sudo apt-get install -y shellcheck
 
-      - name: Conferir versão upstream fixada
-        run: |
-          set -Eeuo pipefail
-          test -f vendor/gitrepo/LICENSE
-          test -f vendor/gitrepo/pyproject.toml
-          test -d vendor/gitrepo/tests
-          git -C vendor/gitrepo rev-parse HEAD
-          git -C vendor/gitrepo status --short
-
-      - name: Corrigir fechamento da janela de conflitos no GitRepo fixado
-        working-directory: vendor/gitrepo
+      - name: Validar scripts e perfil MATE
         shell: bash
         run: |
           set -Eeuo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
+          shellcheck -S error scripts/prepare-manjaro-profile.sh scripts/validate-manjaro-profile.sh scripts/validate-manjaro-build.sh scripts/build-manjaro-iso.sh scripts/test-manjaro-profile-links.sh
+          scripts/prepare-manjaro-profile.sh
+          scripts/validate-manjaro-profile.sh
+          scripts/test-manjaro-profile-links.sh
 
-          path = Path("usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py")
-          source = path.read_text()
-
-          init_line = "        super().__init__(transient_for=parent, modal=True)"
-          if source.count(init_line) != 1:
-              raise SystemExit("Esperada exatamente uma inicialização de ConflictDialog")
-          source = source.replace(
-              init_line,
-              init_line + "\n        self.set_hide_on_close(True)",
-              1,
-          )
-
-          import_line = "from gi.repository import Adw, GObject, Gtk, Pango"
-          if source.count(import_line) != 1:
-              raise SystemExit("Esperada exatamente uma linha de imports GTK")
-          source = source.replace(import_line, "from gi.repository import Adw, GLib, GObject, Gtk, Pango", 1)
-
-          callback_line = '            dialog.connect("closed", lambda _alert: self._apply_resolutions())'
-          if source.count(callback_line) != 1:
-              raise SystemExit("Esperado exatamente um callback upstream de confirmação")
-          source = source.replace(
-              callback_line,
-              '            GLib.idle_add(lambda: (self._apply_resolutions(), GLib.SOURCE_REMOVE)[1])',
-              1,
-          )
-
-          close_block = "\n".join([
-              '        self.emit("conflicts-resolved", success)',
-              "        self.close()",
-          ])
-          if source.count(close_block) != 1:
-              raise SystemExit("Esperado exatamente um fechamento após resolver conflitos")
-          source = source.replace(
-              close_block,
-              "\n".join([
-                  '        self.emit("conflicts-resolved", success)',
-                  "        self.close()",
-                  "        self.set_visible(False)",
-              ]),
-              1,
-          )
-          path.write_text(source)
-          PY
-          grep -Fq 'self.set_hide_on_close(True)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
-          grep -Fq 'GLib.idle_add' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
-          grep -Fq 'self.close()' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
-          grep -Fq 'self.set_visible(False)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
-
-      - name: Formatação e análise estática do GitRepo
-        working-directory: vendor/gitrepo
-        run: |
-          set -Eeuo pipefail
-          # O código-fonte do GitRepo segue o formatter; os testes upstream são mantidos intactos.
-          pipx run ruff format usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
-          pipx run ruff format --check usr/share
-          pipx run ruff check usr/share tests
-
-      - name: Testes upstream completos do GitRepo
-        working-directory: vendor/gitrepo
-        env:
-          PYTHONPATH: ${{ github.workspace }}/vendor/gitrepo/usr/share
-          GTK_A11Y: none
-        run: xvfb-run -a python3 -m pytest -vv
-
-  manjaro-preflight:
-    name: Pré-validação no Manjaro
-    needs: gitrepo-quality
+  manjaro-iso:
+    name: Construção real da ISO no Manjaro
+    needs: profile-quality
     runs-on: [self-hosted, linux, manjaro, x64]
     timeout-minutes: 360
     steps:
-      - name: Baixar VENOM OS e ferramentas upstream fixadas
+      - name: Baixar código da VENOM OS
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
-      - name: Confirmar ferramentas upstream disponíveis
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          test -f vendor/gitrepo/LICENSE
-          test -f vendor/gitrepo/usr/bin/biso
-          test -f vendor/gitrepo/usr/share/gitrepo/build_iso/core/iso_builder.py
-          git -C vendor/gitrepo rev-parse HEAD
-
-      - name: Confirmar ambiente oficial Manjaro
+      - name: Confirmar ambiente e ferramentas oficiais
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -156,10 +62,11 @@ jobs:
           command -v shellcheck
           pacman -Qo "$(command -v buildiso)"
           pacman -Q manjaro-tools-iso
-          pacman -Q linux618
           pacman -Q manjaro-keyring
+          pacman -Si linux618
+          pacman -Si calamares
 
-      - name: Validar scripts e perfil MATE
+      - name: Validar novamente o perfil no ambiente de construção
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -168,19 +75,19 @@ jobs:
           scripts/validate-manjaro-profile.sh
           scripts/test-manjaro-profile-links.sh
 
-      - name: Resolver dependências sem compilar ISO
+      - name: Construir imagens e gerar a ISO VENOM OS
         shell: bash
+        env:
+          VENOM_ISO_APPROVED: YES
+          VENOM_ISO_OUTPUT_DIR: ${{ runner.temp }}/venom-iso
         run: |
           set -Eeuo pipefail
-          mkdir -p "$RUNNER_TEMP/venom-logs"
-          set -o pipefail
-          scripts/validate-manjaro-build.sh 2>&1 | tee "$RUNNER_TEMP/venom-logs/package-resolution.log"
+          scripts/build-manjaro-iso.sh
 
-      - name: Guardar logs de validação
-        if: always()
+      - name: Publicar artefato de teste da ISO
         uses: actions/upload-artifact@v4
         with:
-          name: venom-preflight-logs
-          path: ${{ runner.temp }}/venom-logs/
-          if-no-files-found: ignore
+          name: venom-os-mate-iso
+          path: ${{ runner.temp }}/venom-iso/
+          if-no-files-found: error
           retention-days: 14
