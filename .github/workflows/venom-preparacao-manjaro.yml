@@ -1,4 +1,4 @@
-name: VENOM OS - Preparar ambiente Ubuntu
+name: VENOM OS - Preparar ambiente virtual Manjaro
 
 on:
   workflow_dispatch:
@@ -7,46 +7,92 @@ permissions:
   contents: read
 
 concurrency:
-  group: venom-ubuntu-runner-preparation
+  group: venom-preparacao-virtual-manjaro
   cancel-in-progress: false
 
 jobs:
-  prepare-runner:
-    # Runner hospedado pelo GitHub. O ambiente e descartável ao fim do job.
+  preparar-ambiente:
+    # O runner Ubuntu hospeda o Docker; as ferramentas Manjaro ficam
+    # isoladas no contêiner oficial mantido pela comunidade Manjaro.
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
-      - name: Obter o código da VENOM OS
+      - name: Obter o repositório VENOM OS
         uses: actions/checkout@v4
 
-      - name: Preparar utilitários básicos do ambiente
+      - name: Preparar ferramentas de virtualização no runner
         shell: bash
         run: |
           set -euo pipefail
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends \
-            git curl wget xz-utils squashfs-tools dosfstools mtools
+            qemu-system-x86 qemu-utils ovmf xz-utils squashfs-tools \
+            dosfstools mtools git curl wget
 
-      - name: Preparar diretórios de trabalho
+      - name: Criar áreas de trabalho temporárias
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "$HOME/venom-workspace/source"
-          mkdir -p "$HOME/venom-workspace/cache"
-          mkdir -p "$HOME/venom-workspace/chroots"
-          mkdir -p "$HOME/venom-workspace/logs"
-          mkdir -p "$HOME/venom-workspace/output"
+          mkdir -p "$RUNNER_TEMP/venom-workspace"/{source,cache,chroots,logs,output,profiles,config}
+          printf '%s\n' "$GITHUB_WORKSPACE" > "$RUNNER_TEMP/venom-workspace/source/repository-path.txt"
 
-      - name: Registrar fonte do projeto no workspace
+      - name: Preparar contêiner Manjaro e ferramentas oficiais
         shell: bash
+        env:
+          PROJECT_COMMIT: ${{ github.sha }}
         run: |
           set -euo pipefail
-          printf '%s\n' "$GITHUB_WORKSPACE" > "$HOME/venom-workspace/source/repository-path.txt"
+          docker pull manjarolinux/base:latest
+          docker run --rm \
+            --volume "$GITHUB_WORKSPACE:/project:ro" \
+            --volume "$RUNNER_TEMP/venom-workspace:/venom-workspace" \
+            --env PROJECT_COMMIT="$PROJECT_COMMIT" \
+            manjarolinux/base:latest \
+            /bin/bash -lc '
+              set -euo pipefail
 
-      # BLOQUEIO DESTA ETAPA:
-      # Não instalar nem executar ferramentas de construção do Manjaro.
+              # Preparação de ambiente apenas. Instalar ferramentas não
+              # autoriza nem inicia build, teste ou validação.
+              pacman -Syu --noconfirm --needed git manjaro-tools-iso-git
+
+              mkdir -p /venom-workspace/{source,cache,chroots,logs,output,profiles,config}
+              cp /project/manjaro-tools/config/manjaro-tools.conf.example \
+                /venom-workspace/config/manjaro-tools.conf
+              cp /project/manjaro-tools/config/iso-profiles.conf.example \
+                /venom-workspace/config/iso-profiles.conf
+
+              # Checkout de referência dos perfis oficiais Manjaro.
+              git clone --depth=1 \
+                https://code.manjaro.org/profiles-and-settings/iso-profiles.git \
+                /venom-workspace/profiles
+
+              # Ajusta somente o caminho local no modelo de configuração.
+              sed -i "s|^# run_dir=.*|run_dir=/venom-workspace/profiles|" \
+                /venom-workspace/config/iso-profiles.conf
+
+              printf "Projeto: VENOM OS\\nCommit: %s\\n" "$PROJECT_COMMIT" \
+                > /venom-workspace/AMBIENTE-PREPARADO.txt
+              printf "Base do contêiner: manjarolinux/base:latest\\n" \
+                >> /venom-workspace/AMBIENTE-PREPARADO.txt
+              printf "Ferramentas instaladas: git, manjaro-tools-iso-git\\n" \
+                >> /venom-workspace/AMBIENTE-PREPARADO.txt
+              printf "Perfis oficiais: checkout em /venom-workspace/profiles\\n" \
+                >> /venom-workspace/AMBIENTE-PREPARADO.txt
+              printf "Estado: preparação somente; nenhuma compilação, ISO, teste ou validação executada.\\n" \
+                >> /venom-workspace/AMBIENTE-PREPARADO.txt
+            '
+
+      - name: Guardar os arquivos de preparação
+        uses: actions/upload-artifact@v4
+        with:
+          name: venom-ambiente-virtual-manjaro
+          path: ${{ runner.temp }}/venom-workspace/
+          if-no-files-found: error
+          retention-days: 14
+
+      # BLOQUEIO PERMANENTE DESTA FASE:
       # Não executar buildiso, buildpkg, buildtree ou check-yaml.
-      # Não criar chroots, gerar ISO, executar testes ou validações.
-      # O ambiente Ubuntu hospedado pelo GitHub é temporário e não equivale
-      # a uma máquina Manjaro persistente.
+      # Não criar/iniciar chroots, compilar, gerar ISO, testar ou validar.
+      # QEMU e OVMF são apenas instalados para uma futura fase autorizada.
+      # Este workflow prepara o ambiente e arquiva seus arquivos; não testa.
