@@ -8,7 +8,21 @@ case "$mode" in
   packages)
     for f in Packages-Desktop Packages-Live Packages-Root Packages-Mhwd; do
       [[ -s "$PROFILE/$f" ]] || fail "manifesto ausente: $f"
-      awk 'NF && $1 !~ /^#/ { if (seen[$1]++) { print "duplicado: " $1 > "/dev/stderr"; bad=1 } } END { exit bad }' "$PROFILE/$f" || fail "duplicatas em $f"
+      awk '
+        {
+          line=$0
+          sub(/^[[:space:]]+/, "", line)
+          if (line == "" || line ~ /^#/) next
+          count=split(line, fields, /[[:space:]]+/)
+          package=(fields[1] ~ /^>/ ? fields[2] : fields[1])
+          if (package == "") next
+          if (seen[package]++) {
+            print "duplicado: " package > "/dev/stderr"
+            bad=1
+          }
+        }
+        END { exit bad }
+      ' "$PROFILE/$f" || fail "duplicatas em $f"
     done
     grep -Fxq calamares "$PROFILE/Packages-Live" || fail "Calamares ausente"
     ! grep -Eiq 'calamares-(git|bin)' "$PROFILE/Packages-Live" || fail "Calamares alternativo detectado"
