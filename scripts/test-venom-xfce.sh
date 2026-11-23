@@ -4,14 +4,15 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 PROFILE="$ROOT/manjaro/venom-xfce"
 fail(){ printf 'FALHA: %s\n' "$*" >&2; exit 1; }
 for f in profile.conf Packages-Desktop Packages-Live Packages-Root Packages-Mhwd; do
-  [[ -e "$PROFILE/$f" ]] || fail "arquivo ausente: $f"
-done
-for f in Packages-Live Packages-Root Packages-Mhwd; do
-  [[ -L "$PROFILE/$f" ]] || fail "$f precisa apontar para shared oficial"
+  [[ -s "$PROFILE/$f" ]] || fail "arquivo ausente ou vazio: $f"
 done
 for pkg in xfce4-session xfce4-panel xfwm4 xfdesktop thunar xfce4-whiskermenu-plugin lightdm lightdm-gtk-greeter pamac-gtk; do
   grep -Fxq "$pkg" "$PROFILE/Packages-Desktop" || fail "pacote obrigatório ausente: $pkg"
 done
+grep -Fxq calamares "$PROFILE/Packages-Live" || fail "Calamares oficial ausente da lista Live"
+grep -Fxq base "$PROFILE/Packages-Root" || fail "pacote base ausente da lista Root"
+grep -Fxq KERNEL "$PROFILE/Packages-Root" || fail "marcador de kernel ausente da lista Root"
+grep -Fxq KERNEL-headers "$PROFILE/Packages-Mhwd" || fail "headers de kernel ausentes da lista MHWD"
 if grep -Eiq 'mate-panel|mate-session|marco|caja|brisk-menu|venom-mate' "$PROFILE/Packages-Desktop" "$PROFILE/profile.conf"; then
   fail "pacote/configuração MATE encontrado no perfil XFCE"
 fi
