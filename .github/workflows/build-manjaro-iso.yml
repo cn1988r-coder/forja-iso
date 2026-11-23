@@ -70,21 +70,33 @@ jobs:
               1,
           )
 
+          import_line = "from gi.repository import Adw, GObject, Gtk, Pango"
+          if source.count(import_line) != 1:
+              raise SystemExit("Esperada exatamente uma linha de imports GTK")
+          source = source.replace(import_line, "from gi.repository import Adw, GLib, GObject, Gtk, Pango", 1)
+
           callback_line = '            dialog.connect("closed", lambda _alert: self._apply_resolutions())'
           if source.count(callback_line) != 1:
               raise SystemExit("Esperado exatamente um callback upstream de confirmação")
+          source = source.replace(
+              callback_line,
+              '            GLib.idle_add(lambda: (self._apply_resolutions(), GLib.SOURCE_REMOVE)[1])',
+              1,
+          )
 
-          close_block = '        self.emit("conflicts-resolved", success)\n        self.close()'
+          close_block = '        self.emit("conflicts-resolved", success)\\n        self.close()'
           if source.count(close_block) != 1:
               raise SystemExit("Esperado exatamente um fechamento após resolver conflitos")
           source = source.replace(
               close_block,
-              '        self.emit("conflicts-resolved", success)\n        self.set_visible(False)',
+              '        self.emit("conflicts-resolved", success)\\n        self.close()\\n        self.set_visible(False)',
               1,
           )
           path.write_text(source)
           PY
           grep -Fq 'self.set_hide_on_close(True)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
+          grep -Fq 'GLib.idle_add' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
+          grep -Fq 'self.close()' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
           grep -Fq 'self.set_visible(False)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 
       - name: Formatação e análise estática do GitRepo
