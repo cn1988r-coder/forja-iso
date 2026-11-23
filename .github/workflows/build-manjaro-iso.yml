@@ -29,16 +29,16 @@ jobs:
       - name: Instalar dependências de teste GTK
         run: |
           sudo apt-get update
-          sudo apt-get install -y \\
-            gettext \\
-            python3-gi \\
-            python3-pytest \\
-            python3-requests \\
-            python3-rich \\
-            gir1.2-gtk-4.0 \\
-            gir1.2-adw-1 \\
-            gir1.2-secret-1 \\
-            xvfb \\
+          sudo apt-get install -y \
+            gettext \
+            python3-gi \
+            python3-pytest \
+            python3-requests \
+            python3-rich \
+            gir1.2-gtk-4.0 \
+            gir1.2-adw-1 \
+            gir1.2-secret-1 \
+            xvfb \
             pipx
 
       - name: Conferir versão upstream fixada
@@ -66,7 +66,7 @@ jobs:
               raise SystemExit("Esperada exatamente uma inicialização de ConflictDialog")
           source = source.replace(
               init_line,
-              init_line + "\\n        self.set_hide_on_close(True)",
+              init_line + "\n        self.set_hide_on_close(True)",
               1,
           )
 
@@ -74,12 +74,10 @@ jobs:
           if source.count(callback_line) != 1:
               raise SystemExit("Esperado exatamente um callback upstream de confirmação")
           callback_replacement = """            from gi.repository import GLib
-
-                      def _apply_after_alert():
-                          self._apply_resolutions()
-                          return GLib.SOURCE_REMOVE
-
-                      dialog.connect("closed", lambda _alert: GLib.idle_add(_apply_after_alert))"""
+            def _apply_after_alert():
+                self._apply_resolutions()
+                return GLib.SOURCE_REMOVE
+            dialog.connect("closed", lambda _alert: GLib.idle_add(_apply_after_alert))"""
           source = source.replace(callback_line, callback_replacement, 1)
           path.write_text(source)
           PY
