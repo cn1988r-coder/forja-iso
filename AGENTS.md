@@ -7,6 +7,14 @@
 - Não criar edições XFCE, Arch ou outras variantes.
 - O perfil Archiso antigo não pode ser usado para construir a VENOM.
 
+## Processo de qualidade obrigatório
+- Seguir integralmente, etapa por etapa, `docs/PROCESSO-COMPLETO-QUALIDADE.md`.
+- Esse processo é requisito de desenvolvimento e liberação, não apenas uma recomendação.
+- Não reduzir a validação a uma suíte de testes ou a uma única etapa.
+- Não declarar versão estável nem recomendar instalação cotidiana enquanto houver etapa obrigatória aplicável sem evidência de aprovação.
+- Testes ignorados, não executados ou sem logs/evidência não contam como aprovados.
+- O processo público BigLinux/BigCommunity deve ser estudado e adaptado quando compatível; não afirmar acesso a procedimentos internos não publicados.
+
 ## Construção
 - Usar os perfis oficiais Manjaro ISO Profiles e manjaro-tools/buildiso compatível com mt-0.15.
 - Perfil VENOM: manjaro/venom-mate.
