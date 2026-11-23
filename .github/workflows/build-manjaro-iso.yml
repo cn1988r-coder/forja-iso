@@ -73,18 +73,19 @@ jobs:
           callback_line = '            dialog.connect("closed", lambda _alert: self._apply_resolutions())'
           if source.count(callback_line) != 1:
               raise SystemExit("Esperado exatamente um callback upstream de confirmação")
-          callback_replacement = "\n".join([
-              "            from gi.repository import GLib",
-              "            def _apply_after_alert():",
-              "                self._apply_resolutions()",
-              "                return GLib.SOURCE_REMOVE",
-              '            dialog.connect("closed", lambda _alert: GLib.idle_add(_apply_after_alert))',
-          ])
-          source = source.replace(callback_line, callback_replacement, 1)
+
+          close_block = '        self.emit("conflicts-resolved", success)\n        self.close()'
+          if source.count(close_block) != 1:
+              raise SystemExit("Esperado exatamente um fechamento após resolver conflitos")
+          source = source.replace(
+              close_block,
+              '        self.emit("conflicts-resolved", success)\n        self.set_visible(False)',
+              1,
+          )
           path.write_text(source)
           PY
           grep -Fq 'self.set_hide_on_close(True)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
-          grep -Fq 'GLib.idle_add(_apply_after_alert)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
+          grep -Fq 'self.set_visible(False)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 
       - name: Formatação e análise estática do GitRepo
         working-directory: vendor/gitrepo
