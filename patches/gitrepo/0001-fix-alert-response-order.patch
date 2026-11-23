@@ -1,22 +1,10 @@
 diff --git a/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py b/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 --- a/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 +++ b/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
-@@ -805,12 +805,11 @@
-     def _on_deletion_confirmation(self, dialog, response):
--        """Continue only after the explicit file-deletion response.
--
--        The alert is still open while it emits its response, and closing this
--        window then only closes the alert: the files were deleted, the
--        operation went on, and this window stayed open as if nothing happened.
--        So the resolutions are applied once the alert is gone.
-+        """Continue after the explicit file-deletion response.
-+
-+        AdwAlertDialog emits "response" after it has closed itself. Apply the
-+        resolutions here instead of waiting for a "closed" signal that has
-+        already fired.
-         """
+@@ -13,1 +13,1 @@
+-from gi.repository import Adw, GObject, Gtk, Pango
++from gi.repository import Adw, GLib, GObject, Gtk, Pango
+@@ -813,2 +813,2 @@
          if response == "delete":
 -            dialog.connect("closed", lambda _alert: self._apply_resolutions())
-+            self._apply_resolutions()
- 
-     def _apply_resolutions(self):
++            GLib.idle_add(self._apply_resolutions)
