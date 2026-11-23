@@ -1,57 +1,49 @@
-# GitHub Actions: ambiente de preparação Manjaro
+# GitHub Actions: ambiente de preparação Ubuntu
 
 ## Objetivo
 
-Este documento descreve a preparação do ambiente de execução da VENOM OS no GitHub Actions. O workflow de preparação instala as ferramentas de trabalho do Manjaro e organiza os diretórios para uso futuro.
+A preparação inicial da VENOM OS foi direcionada para um runner Ubuntu hospedado pelo próprio GitHub Actions, sem depender de uma máquina Manjaro externa ou de um runner self-hosted.
 
-## Limitação da infraestrutura
+Workflow: `.github/workflows/venom-preparacao-manjaro.yml`
 
-O GitHub Actions não oferece um runner hospedado com Manjaro Linux como sistema operacional nativo. Para executar as ferramentas oficiais em um ambiente Manjaro real, o workflow foi direcionado a um runner próprio (self-hosted), instalado com Manjaro Linux e registrado no repositório com as etiquetas:
+## O que o workflow está configurado para fazer
 
-- `self-hosted`
-- `Linux`
-- `X64`
-- `manjaro`
+Quando for autorizado e iniciado manualmente, o workflow:
 
-O runner precisa estar disponível e ter o serviço do GitHub Actions configurado. O usuário de serviço deve ter permissão administrativa não interativa para executar a instalação via `sudo pacman`. Essa máquina/runner ainda precisa ser provisionada e registrada; criar o workflow no repositório não cria automaticamente o host.
+1. Utiliza o runner hospedado `ubuntu-24.04`.
+2. Obtém o código do repositório VENOM OS.
+3. Instala somente utilitários básicos disponíveis nos repositórios Ubuntu: Git, curl, wget, xz-utils, squashfs-tools, dosfstools e mtools.
+4. Cria diretórios de organização para fonte, cache, chroots, logs e saída. Criar o diretório chamado `chroots` não cria nem inicia um chroot.
+5. Registra o caminho do checkout do projeto no workspace.
 
-## Workflow criado
+## Limite importante do Ubuntu
 
-Arquivo: `.github/workflows/venom-preparacao-manjaro.yml`
+O runner Ubuntu não é uma instalação Manjaro. Esta preparação não instala `manjaro-tools`, não configura uma base Manjaro e não torna o ambiente pronto para construir uma ISO Manjaro.
 
-O workflow só pode ser iniciado manualmente por `workflow_dispatch`. Quando executado em um runner Manjaro devidamente registrado, ele:
+O runner hospedado pelo GitHub é temporário: o ambiente e os arquivos locais do job são descartados ao final da execução. Portanto, os diretórios criados não constituem armazenamento persistente entre execuções.
 
-1. Obtém o repositório VENOM OS.
-2. Atualiza o sistema e instala `git` e `manjaro-tools-iso-git`, conforme o guia oficial do Manjaro.
-3. Cria os diretórios de workspace para fonte, cache, chroots, logs e saída.
-4. Registra o caminho local do checkout do projeto no workspace.
+A Action oficial `manjaro-iso-action` não foi adicionada nem chamada. Ela contém etapas que compilam componentes e executam `buildiso`, operações que permanecem bloqueadas nesta etapa.
 
-## Bloqueio de construção
+## Bloqueios mantidos
 
-Este workflow não contém etapas de compilação ou construção. Não executar nem adicionar aqui:
+Este workflow não deve receber nem executar:
 
 - `buildiso`
 - `buildpkg`
 - `buildtree`
 - `check-yaml`
-- criação de chroot
+- criação ou inicialização de chroots
+- compilação de ferramentas ou pacotes
 - geração de ISO
 - testes ou validações técnicas
 - publicação ou upload de artefatos
 
-A preparação e a futura construção permanecem separadas. Qualquer workflow futuro de compilação/validação deverá ser criado somente após autorização explícita.
+Essas atividades continuam bloqueadas e exigem autorização explícita separada.
 
 ## Estado
 
-- Workflow de preparação: criado no repositório.
-- Execução do workflow: não iniciada.
-- Runner Manjaro self-hosted: ainda precisa ser provisionado e registrado.
-- Instalação das ferramentas: não executada.
+- Configuração do workflow para runner Ubuntu hospedado pelo GitHub: registrada no repositório.
+- Workflow executado: não.
+- Ferramentas básicas instaladas no runner: não, pois nenhuma execução foi iniciada.
+- Ambiente Manjaro de construção: não configurado por este workflow.
 - Compilação, ISO, testes e validações: bloqueados e não executados.
-
-## Referência oficial
-
-O guia do Manjaro para criação de imagens recomenda um sistema Manjaro atualizado e a instalação de `manjaro-tools-iso-git` e `git` antes do uso das ferramentas. O workflow segue apenas a parte de preparação, sem executar a construção.
-
-- https://wiki.manjaro.org/index.php?title=Build_Manjaro_ISOs_with_buildiso
-- https://code.manjaro.org/tools/manjaro-tools
