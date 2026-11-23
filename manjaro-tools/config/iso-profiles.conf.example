@@ -1,0 +1,12 @@
+# VENOM OS - caminho local do checkout iso-profiles
+#
+# Este arquivo será colocado futuramente em:
+# ~/.config/manjaro-tools/iso-profiles.conf
+#
+# Substituir o marcador pelo caminho REAL do checkout oficial
+# de iso-profiles no computador de preparação.
+#
+# Exemplo de formato:
+# run_dir=/home/USUARIO/iso-profiles
+#
+# Nenhum checkout será criado nesta etapa.
