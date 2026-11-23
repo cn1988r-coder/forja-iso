@@ -2,7 +2,7 @@
 
 ## Arquitetura do painel
 
-A configuração segue a arquitetura do painel XFCE usada pelo BigCommunity, adaptada à seleção de pacotes e à identidade própria da VENOM OS. A referência técnica é o projeto público comm-xfce-config, especialmente o arquivo xfce4-panel.xml e o docklike-2.rc.
+A configuração define um painel XFCE próprio da VENOM OS, com organização simples e foco no uso diário.
 
 - Um único painel horizontal inferior.
 - Largura de 100% da tela, com ajuste automático do comprimento.
@@ -45,7 +45,7 @@ A configuração segue a arquitetura do painel XFCE usada pelo BigCommunity, ada
 
 O Docklike é o único componente de lista de janelas e aplicativos. Ele fica logo após o Whisker Menu e usa o espaço restante do painel antes do separador expansível. Não adicionar Window Buttons, DockBarX ou outro tasklist junto dele.
 
-As preferências iniciais seguem o docklike-2.rc do BigCommunity: pré-visualizações ativadas, indicadores ativos/inativos no estilo 1, tamanho de ícone automático e atalhos de tecla desativados. A lista de aplicativos fixados começa vazia para não introduzir aplicativos exclusivos do BigCommunity na VENOM OS.
+Preferências planejadas: pré-visualizações ativadas, indicadores de aplicativos ativos/inativos, tamanho de ícone automático e atalhos de tecla desativados. A lista de aplicativos fixados começa vazia.
 
 ## Organização dos arquivos
 
@@ -59,6 +59,6 @@ A base `manjaro/base/` permanece separada e sem ambiente gráfico. A edição XF
 
 ## Estado do trabalho
 
-A configuração foi escrita nos arquivos do perfil XFCE. Ela reproduz a estrutura declarada pelo perfil do BigCommunity, com os ajustes de posição e de aplicativos próprios da VENOM OS. Isso não comprova o funcionamento visual dos plugins.
+A configuração foi escrita nos arquivos do perfil XFCE. Este documento descreve a organização pretendida, mas não comprova o funcionamento visual dos plugins.
 
 Não houve compilação de pacotes, construção de ISO, execução de testes, validação em sessão gráfica ou disparo de workflows. A aparência final e o comportamento dos indicadores permanecem sem comprovação prática.
