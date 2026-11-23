@@ -34,7 +34,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/venom-workspace"/{source,cache,chroots,logs,output,profiles,config}
+          mkdir -p "$RUNNER_TEMP/venom-workspace"/{source,cache,chroots,logs,output,profiles,config,home}
           printf '%s\n' "$GITHUB_WORKSPACE" > "$RUNNER_TEMP/venom-workspace/source/repository-path.txt"
 
       - name: Preparar contêiner Manjaro e ferramentas oficiais
@@ -47,6 +47,7 @@ jobs:
           docker run --rm \
             --volume "$GITHUB_WORKSPACE:/project:ro" \
             --volume "$RUNNER_TEMP/venom-workspace:/venom-workspace" \
+            --env HOME=/venom-workspace/home \
             --env PROJECT_COMMIT="$PROJECT_COMMIT" \
             manjarolinux/base:latest \
             /bin/bash -lc '
@@ -56,20 +57,21 @@ jobs:
               # autoriza nem inicia build, teste ou validação.
               pacman -Syu --noconfirm --needed git manjaro-tools-iso-git
 
-              mkdir -p /venom-workspace/{source,cache,chroots,logs,output,profiles,config}
+              mkdir -p /venom-workspace/{source,cache,chroots,logs,output,profiles}
+              mkdir -p "$HOME/.config/manjaro-tools"
               cp /project/manjaro-tools/config/manjaro-tools.conf.example \
-                /venom-workspace/config/manjaro-tools.conf
+                "$HOME/.config/manjaro-tools/manjaro-tools.conf"
               cp /project/manjaro-tools/config/iso-profiles.conf.example \
-                /venom-workspace/config/iso-profiles.conf
+                "$HOME/.config/manjaro-tools/iso-profiles.conf"
 
               # Checkout de referência dos perfis oficiais Manjaro.
               git clone --depth=1 \
                 https://code.manjaro.org/profiles-and-settings/iso-profiles.git \
                 /venom-workspace/profiles
 
-              # Ajusta somente o caminho local no modelo de configuração.
+              # Configura o caminho real do checkout no perfil deste runner.
               sed -i "s|^# run_dir=.*|run_dir=/venom-workspace/profiles|" \
-                /venom-workspace/config/iso-profiles.conf
+                "$HOME/.config/manjaro-tools/iso-profiles.conf"
 
               printf "Projeto: VENOM OS\\nCommit: %s\\n" "$PROJECT_COMMIT" \
                 > /venom-workspace/AMBIENTE-PREPARADO.txt
@@ -78,6 +80,8 @@ jobs:
               printf "Ferramentas instaladas: git, manjaro-tools-iso-git\\n" \
                 >> /venom-workspace/AMBIENTE-PREPARADO.txt
               printf "Perfis oficiais: checkout em /venom-workspace/profiles\\n" \
+                >> /venom-workspace/AMBIENTE-PREPARADO.txt
+              printf "Configuração local: ~/.config/manjaro-tools\\n" \
                 >> /venom-workspace/AMBIENTE-PREPARADO.txt
               printf "Estado: preparação somente; nenhuma compilação, ISO, teste ou validação executada.\\n" \
                 >> /venom-workspace/AMBIENTE-PREPARADO.txt
