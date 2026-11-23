@@ -50,12 +50,13 @@ jobs:
           git -C vendor/gitrepo rev-parse HEAD
           git -C vendor/gitrepo status --short
 
-      - name: Verificar tratamento upstream do fechamento do alerta
+      - name: Corrigir ordem do callback de confirmação no GitRepo fixado
         working-directory: vendor/gitrepo
         shell: bash
         run: |
           set -Eeuo pipefail
-          grep -Fq 'dialog.connect("closed", lambda _alert: self._apply_resolutions())' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
+          git apply ../patches/gitrepo/0001-fix-alert-response-order.patch
+          grep -Fq 'GLib.idle_add(self._apply_resolutions)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 
       - name: Formatação e análise estática do GitRepo
         working-directory: vendor/gitrepo
