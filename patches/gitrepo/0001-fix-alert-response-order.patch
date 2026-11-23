@@ -1,7 +1,7 @@
 diff --git a/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py b/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 --- a/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 +++ b/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
-@@ -805,11 +805,9 @@
+@@ -805,12 +805,10 @@
      def _on_deletion_confirmation(self, dialog, response):
 -        """Continue only after the explicit file-deletion response.
 -
