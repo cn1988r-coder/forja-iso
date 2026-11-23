@@ -1,6 +1,12 @@
 name: Construir e validar VENOM OS com ferramentas oficiais Manjaro
 
 on:
+  push:
+    branches:
+      - optimize/venom-iso-size
+  pull_request:
+    branches:
+      - optimize/venom-iso-size
   workflow_dispatch:
     inputs:
       build_iso:
@@ -42,9 +48,6 @@ jobs:
             xvfb \
             pipx
 
-      - name: Instalar Ruff
-        run: pipx install ruff
-
       - name: Conferir versão upstream fixada
         run: |
           set -Eeuo pipefail
@@ -58,8 +61,8 @@ jobs:
         working-directory: vendor/gitrepo
         run: |
           set -Eeuo pipefail
-          ruff format --check usr/share tests
-          ruff check usr/share tests
+          pipx run ruff format --check usr/share tests
+          pipx run ruff check usr/share tests
 
       - name: Suíte completa de testes do GitRepo
         working-directory: vendor/gitrepo
