@@ -1,47 +1,63 @@
-name: Validar perfil Manjaro MATE VENOM (runner Manjaro)
+name: Testes VENOM OS XFCE
 on:
+  push:
+    branches: [feature/venom-os-xfce-stable]
+  pull_request:
+    branches: [feature/venom-os-xfce-stable]
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: venom-manjaro-build-validation
+  group: venom-xfce-validation
   cancel-in-progress: false
 jobs:
-  validate:
+  static-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+      - name: Testes estruturais e sintaxe
+        run: |
+          set -Eeuo pipefail
+          shellcheck -S error scripts/test-venom-xfce.sh scripts/validate-manjaro-build.sh scripts/build-manjaro-iso.sh
+          bash scripts/test-venom-xfce.sh
+  manjaro-package-resolution:
+    needs: static-tests
     runs-on: [self-hosted, linux, manjaro, x64]
     timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Confirmar ferramentas upstream disponíveis
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          test -f vendor/gitrepo/LICENSE
-          test -f vendor/gitrepo/usr/bin/biso
-          test -f vendor/gitrepo/usr/share/gitrepo/build_iso/core/iso_builder.py
-          git -C vendor/gitrepo rev-parse HEAD
-      - name: Confirmar sistema e ferramentas oficiais Manjaro
-        shell: bash
+      - name: Confirmar ferramentas oficiais Manjaro
         run: |
           set -Eeuo pipefail
           source /etc/os-release
-          [[ "${ID:-}" == manjaro ]] || { echo "Este runner não é Manjaro." >&2; exit 1; }
+          [[ "${ID:-}" == manjaro ]]
           command -v pacman
           command -v buildiso
           pacman -Qo "$(command -v buildiso)"
           pacman -Q manjaro-tools-iso
           pacman -Q linux618
-      - name: Validar scripts e perfil
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          command -v shellcheck >/dev/null || { echo "Instale shellcheck pelo repositório oficial Manjaro." >&2; exit 1; }
-          shellcheck -S error scripts/prepare-manjaro-profile.sh scripts/validate-manjaro-profile.sh scripts/validate-manjaro-build.sh scripts/build-manjaro-iso.sh scripts/test-manjaro-profile-links.sh
-          scripts/prepare-manjaro-profile.sh
-          scripts/validate-manjaro-profile.sh
-          scripts/test-manjaro-profile-links.sh
-      - name: Resolver pacotes com buildiso oficial sem gerar ISO
-        shell: bash
-        run: scripts/validate-manjaro-build.sh
+          pacman -Si calamares
+      - name: Resolver pacotes e construir imagens sem ISO
+        run: bash scripts/validate-manjaro-build.sh
+  build-iso:
+    if: github.event_name == 'workflow_dispatch'
+    needs: manjaro-package-resolution
+    runs-on: [self-hosted, linux, manjaro, x64]
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construir ISO XFCE
+        env:
+          VENOM_ISO_APPROVED: YES
+          VENOM_ISO_OUTPUT_DIR: ${{ runner.temp }}/venom-xfce-iso
+        run: bash scripts/build-manjaro-iso.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: venom-os-xfce-iso
+          path: ${{ runner.temp }}/venom-xfce-iso/
+          if-no-files-found: error
+          retention-days: 14
