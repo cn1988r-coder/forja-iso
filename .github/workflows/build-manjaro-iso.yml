@@ -84,6 +84,15 @@ jobs:
           lines.insert(index + 9, indent + '        print(f"VENOM_DIAG: apply_resolutions raised {type(error).__name__}: {error}", flush=True)')
           lines.insert(index + 10, indent + "    return GLib.SOURCE_REMOVE")
           lines.insert(index + 11, indent + "GLib.idle_add(_apply_after_alert)")
+          for line_index, line in enumerate(lines):
+              if line.strip() == "if self.apply_resolution(filepath, action):":
+                  loop_indent = line[: len(line) - len(line.lstrip())]
+                  lines[line_index] = loop_indent + "resolved = self.apply_resolution(filepath, action)"
+                  lines.insert(line_index + 1, loop_indent + 'print(f"VENOM_DIAG: resolution {filepath!r} action={action!r} result={resolved}", flush=True)')
+                  lines.insert(line_index + 2, loop_indent + "if resolved:")
+                  break
+          else:
+              raise SystemExit("Não foi possível instrumentar o resultado de apply_resolution")
           path.write_text("\n".join(lines) + "\n")
           PY
           grep -Fq 'GLib.idle_add(_apply_after_alert)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
