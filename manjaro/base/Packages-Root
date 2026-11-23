@@ -1,0 +1,67 @@
+# Manjaro Linux base system package manifest.
+# Adapted from the official Manjaro ISO profile shared/Packages-Root.
+# No desktop environment, display server, display manager, themes or applications.
+
+# Core system
+base
+glibc-locales
+manjaro-release
+manjaro-system
+linux-firmware
+KERNEL
+mkinitcpio-openswap
+
+# Boot and storage
+grub
+install-grub
+efibootmgr
+os-prober
+cryptsetup
+device-mapper
+dosfstools
+e2fsprogs
+exfatprogs
+f2fs-progs
+btrfs-progs
+xfsprogs
+lvm2
+mdadm
+ntfs-3g
+jfsutils
+
+# Hardware and system management
+acpi
+acpid
+cpupower
+mhwd
+mhwd-db
+intel-ucode
+amd-ucode
+sof-firmware
+wireless-regdb
+usbutils
+sysfsutils
+udev-usb-sync
+
+# Networking
+networkmanager
+wpa_supplicant
+nfs-utils
+inetutils
+dnsmasq
+
+# Basic administration
+bash
+sudo
+less
+man-db
+man-pages
+nano
+vi
+wget
+which
+rsync
+diffutils
+perl
+logrotate
+cronie
