@@ -83,6 +83,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           # O código-fonte do GitRepo segue o formatter; os testes upstream são mantidos intactos.
+          pipx run ruff format usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
           pipx run ruff format --check usr/share
           pipx run ruff check usr/share tests
 
