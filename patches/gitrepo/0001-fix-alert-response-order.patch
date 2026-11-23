@@ -1,0 +1,17 @@
+*** Begin Patch
+*** Update File: patches/gitrepo/0001-fix-alert-response-order.patch
+@@
++diff --git a/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py b/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
++index 0000000..0000000 100644
++--- a/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
+++++ b/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
++@@ -1,1 +1,1 @@
++@@
++     def _on_deletion_confirmation(self, dialog, response):
++@@
++         if response == "delete":
++-            dialog.connect("closed", lambda _alert: self._apply_resolutions())
+++            from gi.repository import GLib
+++
+++            GLib.idle_add(self._apply_resolutions)
+*** End Patch
