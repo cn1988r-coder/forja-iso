@@ -1,0 +1,9 @@
+diff --git a/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py b/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
+index 0000000..0000000 100644
+--- a/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
++++ b/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
+@@ -1,1 +1,1 @@
+-            dialog.connect("closed", lambda _alert: self._apply_resolutions())
++            # AdwAlertDialog emits "response" after closing itself. Applying
++            # here avoids waiting for a "closed" signal that already fired.
++            self._apply_resolutions()
