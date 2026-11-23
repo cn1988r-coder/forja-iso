@@ -1,0 +1,151 @@
+name: VENOM OS XFCE - Gates 09 a 16 e liberacao stable
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_run_id:
+        description: "Run ID que gerou venom-os-xfce-candidate"
+        required: true
+        type: string
+permissions:
+  actions: read
+  contents: read
+concurrency:
+  group: venom-xfce-stable-release
+  cancel-in-progress: false
+jobs:
+  etapa-09-integridade:
+    name: "09 - Integridade e seguranca da imagem"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: venom-os-xfce-candidate
+          run-id: ${{ inputs.candidate_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: candidate
+      - name: Conferir checksum e manifesto
+        run: |
+          set -Eeuo pipefail
+          cd candidate
+          test -s SHA256SUMS
+          sha256sum -c SHA256SUMS
+          test -s CANDIDATE.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: venom-os-xfce-verified-candidate
+          path: candidate/
+          if-no-files-found: error
+          retention-days: 30
+
+  etapa-10-boot-hardware:
+    name: "10 - Boot e hardware"
+    needs: etapa-09-integridade
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: venom-os-xfce-verified-candidate
+          path: candidate
+      - run: |
+          ISO="$(find candidate -maxdepth 1 -name '*.iso' -print -quit)"
+          HASH="$(sha256sum "$ISO" | awk '{print $1}')"
+          bash scripts/validate-venom-release-evidence.sh 10 validation-evidence "$HASH"
+
+  etapa-11-instalacao:
+    name: "11 - Instalacao completa"
+    needs: etapa-10-boot-hardware
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: venom-os-xfce-verified-candidate
+          path: candidate
+      - run: |
+          ISO="$(find candidate -maxdepth 1 -name '*.iso' -print -quit)"
+          HASH="$(sha256sum "$ISO" | awk '{print $1}')"
+          bash scripts/validate-venom-release-evidence.sh 11 validation-evidence "$HASH"
+
+  etapa-12-primeiro-boot:
+    name: "12 - Primeiro boot e pos-instalacao"
+    needs: etapa-11-instalacao
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: venom-os-xfce-verified-candidate
+          path: candidate
+      - run: |
+          ISO="$(find candidate -maxdepth 1 -name '*.iso' -print -quit)"
+          HASH="$(sha256sum "$ISO" | awk '{print $1}')"
+          bash scripts/validate-venom-release-evidence.sh 12 validation-evidence "$HASH"
+
+  etapa-13-atualizacao-recuperacao:
+    name: "13 - Atualizacoes e recuperacao"
+    needs: etapa-12-primeiro-boot
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: venom-os-xfce-verified-candidate
+          path: candidate
+      - run: |
+          ISO="$(find candidate -maxdepth 1 -name '*.iso' -print -quit)"
+          HASH="$(sha256sum "$ISO" | awk '{print $1}')"
+          bash scripts/validate-venom-release-evidence.sh 13 validation-evidence "$HASH"
+
+  etapa-14-regressao:
+    name: "14 - Regressao e estabilidade"
+    needs: etapa-13-atualizacao-recuperacao
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: venom-os-xfce-verified-candidate
+          path: candidate
+      - run: |
+          ISO="$(find candidate -maxdepth 1 -name '*.iso' -print -quit)"
+          HASH="$(sha256sum "$ISO" | awk '{print $1}')"
+          bash scripts/validate-venom-release-evidence.sh 14 validation-evidence "$HASH"
+
+  etapa-15-suporte:
+    name: "15 - Prontidao operacional e suporte"
+    needs: etapa-14-regressao
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: venom-os-xfce-verified-candidate
+          path: candidate
+      - run: |
+          ISO="$(find candidate -maxdepth 1 -name '*.iso' -print -quit)"
+          HASH="$(sha256sum "$ISO" | awk '{print $1}')"
+          bash scripts/validate-venom-release-evidence.sh 15 validation-evidence "$HASH"
+
+  etapa-16-aprovacao:
+    name: "16 - Aprovacao final e publicacao"
+    needs: etapa-15-suporte
+    runs-on: ubuntu-24.04
+    environment: venom-xfce-stable-release
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: venom-os-xfce-verified-candidate
+          path: candidate
+      - name: Revalidar e publicar artefato stable
+        run: |
+          set -Eeuo pipefail
+          cd candidate
+          sha256sum -c SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: venom-os-xfce-stable
+          path: candidate/
+          if-no-files-found: error
+          retention-days: 90
