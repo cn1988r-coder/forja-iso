@@ -1,10 +1,10 @@
-name: Construir VENOM OS com ferramentas oficiais Manjaro
+name: Construir e validar VENOM OS com ferramentas oficiais Manjaro
 
 on:
   workflow_dispatch:
     inputs:
       build_iso:
-        description: "Gerar a ISO depois que a resolução de pacotes passar"
+        description: "Gerar uma ISO candidata depois que todas as validações passarem"
         required: true
         type: boolean
         default: false
@@ -17,8 +17,59 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
-    name: Preflight e compilação Manjaro
+  gitrepo-quality:
+    name: Testes upstream do GitRepo
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Baixar VENOM OS e GitRepo fixado
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Instalar dependências de teste GTK
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gettext \
+            python3-gi \
+            python3-pytest \
+            python3-requests \
+            python3-rich \
+            gir1.2-gtk-4.0 \
+            gir1.2-adw-1 \
+            gir1.2-secret-1 \
+            xvfb \
+            pipx
+
+      - name: Instalar Ruff
+        run: pipx install ruff
+
+      - name: Conferir versão upstream fixada
+        run: |
+          set -Eeuo pipefail
+          test -f vendor/gitrepo/LICENSE
+          test -f vendor/gitrepo/pyproject.toml
+          test -d vendor/gitrepo/tests
+          git -C vendor/gitrepo rev-parse HEAD
+          git -C vendor/gitrepo status --short
+
+      - name: Formatação e análise estática do GitRepo
+        working-directory: vendor/gitrepo
+        run: |
+          set -Eeuo pipefail
+          ruff format --check usr/share tests
+          ruff check usr/share tests
+
+      - name: Suíte completa de testes do GitRepo
+        working-directory: vendor/gitrepo
+        env:
+          PYTHONPATH: \${{ github.workspace }}/vendor/gitrepo/usr/share
+        run: xvfb-run -a python3 -m pytest -q
+
+  manjaro-preflight:
+    name: Pré-validação no Manjaro
+    needs: gitrepo-quality
     runs-on: [self-hosted, linux, manjaro, x64]
     timeout-minutes: 360
     steps:
@@ -41,7 +92,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           source /etc/os-release
-          [[ "${ID:-}" == manjaro ]] || {
+          [[ "\${ID:-}" == manjaro ]] || {
             echo "O runner precisa executar Manjaro Linux." >&2
             exit 1
           }
@@ -53,7 +104,7 @@ jobs:
           pacman -Q linux618
           pacman -Q manjaro-keyring
 
-      - name: Validar scripts e perfil
+      - name: Validar scripts e perfil MATE
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -62,8 +113,7 @@ jobs:
           scripts/validate-manjaro-profile.sh
           scripts/test-manjaro-profile-links.sh
 
-      - name: Resolver dependências com buildiso -x
-        id: resolve
+      - name: Resolver dependências sem compilar ISO
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -71,8 +121,8 @@ jobs:
           set -o pipefail
           scripts/validate-manjaro-build.sh 2>&1 | tee "$RUNNER_TEMP/venom-logs/package-resolution.log"
 
-      - name: Gerar ISO e manifesto
-        if: ${{ inputs.build_iso }}
+      - name: Gerar ISO candidata e manifesto
+        if: \${{ inputs.build_iso }}
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -84,22 +134,22 @@ jobs:
           sudo buildiso -p venom-mate -b stable -k linux618 -t "$OUT" -v 2>&1 | tee "$RUNNER_TEMP/venom-logs/iso-build.log"
 
           mapfile -t ISOS < <(find "$OUT" -maxdepth 1 -type f -name '*.iso' -print)
-          [[ "${#ISOS[@]}" -eq 1 ]] || {
-            printf 'Esperada exatamente uma ISO; encontradas: %s\n' "${#ISOS[@]}" >&2
+          [[ "\${#ISOS[@]}" -eq 1 ]] || {
+            printf 'Esperada exatamente uma ISO; encontradas: %s\n' "\${#ISOS[@]}" >&2
             find "$OUT" -maxdepth 2 -type f -printf '%p\n' >&2
             exit 1
           }
 
-          ISO="${ISOS[0]}"
+          ISO="\${ISOS[0]}"
           ISO_NAME="$(basename "$ISO")"
           cp -- "$ISO" "$ARTIFACTS/$ISO_NAME"
 
           mapfile -t PKG_MANIFESTS < <(find "$OUT" -maxdepth 1 -type f \( -name '*-pkgs.txt' -o -name '*.pkgs' \) -print)
-          [[ "${#PKG_MANIFESTS[@]}" -ge 1 ]] || {
+          [[ "\${#PKG_MANIFESTS[@]}" -ge 1 ]] || {
             echo "O buildiso não produziu o manifesto de pacotes esperado." >&2
             exit 1
           }
-          for manifest in "${PKG_MANIFESTS[@]}"; do
+          for manifest in "\${PKG_MANIFESTS[@]}"; do
             cp -- "$manifest" "$ARTIFACTS/"
           done
 
@@ -118,8 +168,10 @@ jobs:
             printf 'repository_branch=stable\n'
             printf 'kernel=linux618\n'
             printf 'manjaro_tools_iso=%s\n' "$(pacman -Q manjaro-tools-iso)"
+            printf 'gitrepo_commit=%s\n' "$(git -C "$GITHUB_WORKSPACE/vendor/gitrepo" rev-parse HEAD)"
             printf 'built_at_utc=%s\n' "$(date -u +%FT%TZ)"
             printf 'iso=%s\n' "$ISO_NAME"
+            printf 'status=candidate_not_release\n'
           } > "$ARTIFACTS/BUILD-MANIFEST.txt"
 
           cp -- "$RUNNER_TEMP/venom-logs/package-resolution.log" "$ARTIFACTS/"
@@ -129,16 +181,58 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: venom-build-logs
-          path: ${{ runner.temp }}/venom-logs/
+          name: venom-preflight-logs
+          path: \${{ runner.temp }}/venom-logs/
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Publicar artefatos da ISO
-        if: ${{ success() && inputs.build_iso }}
+      - name: Enviar ISO somente como candidata
+        if: \${{ success() && inputs.build_iso }}
         uses: actions/upload-artifact@v4
         with:
-          name: venom-os-manjaro-linux618
+          name: venom-os-candidate-manjaro-linux618
           path: venom-artifacts/
           if-no-files-found: error
           retention-days: 30
+
+  candidate-integrity:
+    name: Verificar integridade da ISO candidata
+    if: \${{ inputs.build_iso }}
+    needs: manjaro-preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Baixar artefato candidato
+        uses: actions/download-artifact@v4
+        with:
+          name: venom-os-candidate-manjaro-linux618
+          path: candidate
+
+      - name: Verificar manifesto, checksums e catálogo de boot
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          sudo apt-get update
+          sudo apt-get install -y xorriso
+          cd candidate
+
+          mapfile -t ISOS < <(find . -maxdepth 1 -type f -name '*.iso' -print)
+          [[ "\${#ISOS[@]}" -eq 1 ]] || {
+            echo "O artefato deve conter exatamente uma ISO." >&2
+            exit 1
+          }
+          ISO="\${ISOS[0]}"
+
+          test -s BUILD-MANIFEST.txt
+          grep -qx 'status=candidate_not_release' BUILD-MANIFEST.txt
+          grep -qx 'profile=venom-mate' BUILD-MANIFEST.txt
+          grep -qx 'kernel=linux618' BUILD-MANIFEST.txt
+
+          sha256sum -c "$(basename "$ISO").sha256"
+          sha512sum -c "$(basename "$ISO").sha512"
+          md5sum -c "$(basename "$ISO").md5"
+
+          xorriso -indev "$ISO" -report_el_torito plain 2>&1 | tee boot-catalog-report.txt
+          grep -qi 'El Torito' boot-catalog-report.txt
+
+          echo "Integridade e catálogo de boot verificados. A ISO continua sendo candidata; ainda exige teste real em máquina virtual antes de qualquer liberação."
