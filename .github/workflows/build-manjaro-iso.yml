@@ -84,12 +84,19 @@ jobs:
               1,
           )
 
-          close_block = '        self.emit("conflicts-resolved", success)\\n        self.close()'
+          close_block = "\n".join([
+              '        self.emit("conflicts-resolved", success)',
+              "        self.close()",
+          ])
           if source.count(close_block) != 1:
               raise SystemExit("Esperado exatamente um fechamento após resolver conflitos")
           source = source.replace(
               close_block,
-              '        self.emit("conflicts-resolved", success)\\n        self.close()\\n        self.set_visible(False)',
+              "\n".join([
+                  '        self.emit("conflicts-resolved", success)',
+                  "        self.close()",
+                  "        self.set_visible(False)",
+              ]),
               1,
           )
           path.write_text(source)
