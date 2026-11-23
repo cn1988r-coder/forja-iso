@@ -1,4 +1,4 @@
-# XFCE desktop
+# XFCE session and core desktop
 xfce4-session
 xfce4-panel
 xfce4-settings
@@ -11,16 +11,22 @@ xfwm4
 xfconf
 exo
 garcon
+
+# File manager
 thunar
 thunar-archive-plugin
 thunar-volman
 tumbler
+gvfs
+gvfs-mtp
+gvfs-smb
+udisks2
 
 # Display manager
 lightdm
 lightdm-gtk-greeter
 
-# Panel indicators and desktop essentials
+# Panel indicators and desktop utilities
 network-manager-applet
 xfce4-pulseaudio-plugin
 xfce4-power-manager
@@ -30,13 +36,18 @@ xfce4-taskmanager
 xfce4-screensaver
 pavucontrol
 blueman
+bluez
+bluez-utils
+
+# Audio stack
+pipewire
+pipewire-pulse
+wireplumber
 
 # Xorg session
 xorg-server
 xorg-xinit
 
-# File system integration
-gvfs
-gvfs-mtp
-gvfs-smb
-udisks2
+# Fonts and icon theme baseline
+noto-fonts
+noto-fonts-emoji
