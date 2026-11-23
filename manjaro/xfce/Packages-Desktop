@@ -12,6 +12,11 @@ xfconf
 exo
 garcon
 
+# Basic desktop applications
+xfce4-terminal
+mousepad
+xarchiver
+
 # File manager
 thunar
 thunar-archive-plugin
