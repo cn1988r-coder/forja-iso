@@ -37,12 +37,3 @@
 7. Só depois de aprovado e com autorização expressa, gerar a ISO.
 
 Perfil e validação estática não significam ISO pronta ou validada.
-
-## Processo completo de qualidade: regra permanente
-- Documento normativo: `docs/PROCESSO-COMPLETO-QUALIDADE.md`.
-- A VENOM deve cumprir as 17 etapas em ordem estrita, da etapa 1 à etapa 17, sem pular ou condensar etapas.
-- Só avançar após a etapa atual estar executada, aprovada e acompanhada de evidências; em caso de falha, parar, corrigir e repetir os testes afetados e regressões.
-- Itens condicionais exigem justificativa formal de “NÃO APLICÁVEL”; não podem ser omitidos silenciosamente.
-- Manter aqui o estado individual, data, commit, ambiente, workflow, logs e artefatos de cada etapa. O documento de processo define os critérios; este arquivo registra o andamento real.
-- A etapa 17 só pode aprovar a liberação depois que todas as anteriores estiverem aprovadas ou formalmente justificadas como não aplicáveis. Não recomendar instalação cotidiana antes disso.
-- A execução #79 do GitRepo (773 testes aprovados e 1 aviso de depreciação) representa somente evidência parcial da etapa de testes de código; não aprova as 17 etapas nem a ISO.
