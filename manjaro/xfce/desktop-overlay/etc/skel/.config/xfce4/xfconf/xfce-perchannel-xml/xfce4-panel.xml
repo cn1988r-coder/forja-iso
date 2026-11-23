@@ -31,7 +31,10 @@
     </property>
   </property>
   <property name="plugins" type="empty">
-    <property name="plugin-1" type="string" value="whiskermenu"/>
+    <property name="plugin-1" type="string" value="whiskermenu">
+      <property name="button-icon" type="string" value="venom-os"/>
+      <property name="button-title" type="string" value="VENOM OS"/>
+    </property>
     <property name="plugin-2" type="string" value="docklike"/>
     <property name="plugin-3" type="string" value="pulseaudio">
       <property name="enable-keyboard-shortcuts" type="bool" value="true"/>
