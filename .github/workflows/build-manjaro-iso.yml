@@ -81,7 +81,7 @@ jobs:
           lines.insert(index + 6, indent + "GLib.idle_add(_apply_after_alert)")
           path.write_text("\n".join(lines) + "\n")
           PY
-          grep -Fq 'GLib.idle_add(self._apply_resolutions)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
+          grep -Fq 'GLib.idle_add(_apply_after_alert)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 
       - name: Formatação e análise estática do GitRepo
         working-directory: vendor/gitrepo
