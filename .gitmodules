@@ -1,3 +1,0 @@
-[submodule "vendor/gitrepo"]
-	path = vendor/gitrepo
-	url = https://github.com/big-comm/gitrepo.git

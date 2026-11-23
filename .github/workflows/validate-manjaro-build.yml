@@ -8,12 +8,20 @@ concurrency:
   cancel-in-progress: false
 jobs:
   validate:
-    # Requer runner self-hosted registrado em uma máquina Manjaro atualizada.
-    # As ferramentas devem estar instaladas pelos repositórios oficiais Manjaro.
     runs-on: [self-hosted, linux, manjaro, x64]
     timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Confirmar ferramentas upstream disponíveis
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -f vendor/gitrepo/LICENSE
+          test -f vendor/gitrepo/usr/bin/biso
+          test -f vendor/gitrepo/usr/share/gitrepo/build_iso/core/iso_builder.py
+          git -C vendor/gitrepo rev-parse HEAD
       - name: Confirmar sistema e ferramentas oficiais Manjaro
         shell: bash
         run: |
