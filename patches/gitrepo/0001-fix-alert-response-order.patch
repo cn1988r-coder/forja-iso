@@ -1,7 +1,12 @@
 diff --git a/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py b/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 --- a/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 +++ b/usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
-@@ -813,2 +813,3 @@
+@@ -808,7 +808,8 @@
+         The alert is still open while it emits its response, and closing this
+         window then only closes the alert: the files were deleted, the
+         operation went on, and this window stayed open as if nothing happened.
+         So the resolutions are applied once the alert is gone.
+         """
          if response == "delete":
 -            dialog.connect("closed", lambda _alert: self._apply_resolutions())
 +            from gi.repository import GLib
