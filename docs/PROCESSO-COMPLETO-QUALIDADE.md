@@ -18,6 +18,18 @@ O objetivo é adotar, adaptar e executar as práticas públicas verificáveis do
 
 A documentação pública não revela necessariamente todos os procedimentos internos, critérios privados, infraestrutura ou testes executados pela equipe BigLinux. Portanto, este plano não afirma conhecer etapas internas não publicadas nem promete equivalência integral sem evidência. A cada descoberta pública, registrar a fonte, a versão/revisão examinada e como a prática foi adaptada para Manjaro e MATE.
 
+## Execução sequencial obrigatória: do início até a etapa 17
+
+As 17 etapas formam **um único processo completo, sequencial e obrigatório**. A execução começa na etapa 1 e avança na ordem numérica até a etapa 17. Não é permitido escolher apenas algumas etapas, pular etapas, tratar este documento como uma lista opcional ou declarar o processo concluído antecipadamente.
+
+**Regra de avanço:** cada etapa deve ser executada por inteiro, produzir as evidências exigidas e receber estado explícito de APROVADA antes de iniciar a etapa seguinte. Se uma etapa falhar, o trabalho para nela: investigar a causa, corrigir, repetir os testes necessários e os testes de regressão, anexar evidências e só então avançar. Etapas dependentes podem exigir repetir validações anteriores após mudanças.
+
+**Registro de andamento:** manter para cada etapa: estado (PENDENTE, EM ANDAMENTO, REPROVADA ou APROVADA), data, commit/versão, ambiente, comandos/workflows executados, logs/artefatos e resultado. Não marcar APROVADA com base em intenção, inspeção superficial, teste ignorado ou resultado de outra etapa.
+
+**Etapas condicionais:** quando uma etapa disser “quando aplicável” ou “quando existirem”, a decisão de aplicabilidade deve ser documentada e justificada. A etapa não pode simplesmente desaparecer do processo. Se não houver componente próprio, registrar formalmente “NÃO APLICÁVEL”, com justificativa e evidência, antes de avançar.
+
+**Critério de conclusão:** somente quando as etapas 1 a 17 estiverem APROVADAS ou formalmente justificadas como NÃO APLICÁVEIS, com evidências revisadas, a VENOM poderá ser considerada candidata a lançamento estável. A etapa 17 ainda exige aprovação final e autorização de publicação. Até lá, não recomendar a ISO para instalação cotidiana.
+
 ## Processo obrigatório, etapa por etapa
 
 ### 1. Governança, escopo e rastreabilidade
