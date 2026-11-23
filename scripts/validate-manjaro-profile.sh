@@ -45,9 +45,10 @@ grep -Fq '[Toplevel top]' "$LAYOUT" || fail "painel superior ausente"
 grep -Fq '[Toplevel bottom]' "$LAYOUT" || fail "painel inferior ausente"
 grep -Fq "icon-theme='VENOM'" "$PROFILE/overlay-common/etc/dconf/db/local.d/00-venom" || fail "tema de ícones VENOM ausente"
 grep -Fq 'group-windows' "$PROFILE/overlay-common/etc/dconf/db/local.d/00-venom" || fail "agrupamento de janelas ausente"
-[[ -f "$PROFILE/desktop-overlay/etc/dconf/db/local.d/00-venom" ]] || fail "overlay instalado não preparado"
+[[ -f "$PROFILE/root-overlay/etc/dconf/db/local.d/00-venom" ]] || fail "root-overlay do sistema instalado não preparado"
+[[ -f "$PROFILE/desktop-overlay/etc/dconf/db/local.d/00-venom" ]] || fail "desktop-overlay não preparado"
 [[ -f "$PROFILE/live-overlay/etc/dconf/db/local.d/00-venom" ]] || fail "overlay live não preparado"
-for overlay in desktop-overlay live-overlay; do
+for overlay in root-overlay desktop-overlay live-overlay; do
   cmp -s "$PROFILE/overlay-common/etc/dconf/db/local.d/00-venom" "$PROFILE/$overlay/etc/dconf/db/local.d/00-venom" || fail "preferências MATE divergentes no overlay $overlay"
   [[ -s "$PROFILE/$overlay$WALLPAPER" ]] || fail "wallpaper VENOM não foi copiado para $overlay"
   cmp -s "$WALLPAPER_FILE" "$PROFILE/$overlay$WALLPAPER" || fail "wallpaper VENOM divergente no overlay $overlay"
@@ -61,4 +62,4 @@ grep -Fq -- '-k linux618' "$ROOT/scripts/validate-manjaro-build.sh" || fail "bui
 grep -Fq -- '-k linux618' "$ROOT/scripts/build-manjaro-iso.sh" || fail "build final não seleciona linux618 LTS"
 bash -n "$ROOT/scripts/prepare-manjaro-profile.sh" "$ROOT/scripts/validate-manjaro-profile.sh" "$ROOT/scripts/validate-manjaro-build.sh" "$ROOT/scripts/build-manjaro-iso.sh"
 echo "Validação estrutural estática: APROVADA."
-echo "A resolução de brisk-menu no Manjaro Stable, Calamares, boot e instalação exige ambiente Manjaro/VM."
+echo "A resolução de pacotes, a incorporação real na ISO, o boot e a instalação ainda exigem ambiente Manjaro/VM."

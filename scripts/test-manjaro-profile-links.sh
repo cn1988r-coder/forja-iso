@@ -11,6 +11,9 @@ grep -Fxq 'calamares' "$TMP/iso-profiles/shared/Packages-Live"
 for path in Packages-Root Packages-Live Packages-Mhwd; do
   [[ -e "$TMP/iso-profiles/manjaro/venom-mate/$path" ]] || { echo "Symlink oficial quebrado: $path" >&2; exit 1; }
 done
+[[ -d "$TMP/iso-profiles/manjaro/venom-mate/root-overlay" ]]
+[[ -e "$TMP/iso-profiles/manjaro/venom-mate/root-overlay/etc/dconf/db/local.d/00-venom" ]]
+[[ -e "$TMP/iso-profiles/manjaro/venom-mate/desktop-overlay/etc/dconf/db/local.d/00-venom" ]]
 [[ -e "$TMP/iso-profiles/manjaro/venom-mate/live-overlay/etc/pam.d" ]]
 [[ -e "$TMP/iso-profiles/manjaro/venom-mate/live-overlay/etc/skel/.config/manjaro" ]]
 echo "Integração estrutural com iso-profiles oficial Manjaro: APROVADA."
