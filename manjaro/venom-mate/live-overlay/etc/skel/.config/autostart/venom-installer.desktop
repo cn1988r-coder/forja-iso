@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Instalador VENOM OS
-Comment=Inicia o instalador oficial Calamares do Manjaro
-Exec=calamares
-OnlyShowIn=MATE;
-X-MATE-Autostart-enabled=true
-NoDisplay=true

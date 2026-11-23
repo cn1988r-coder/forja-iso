@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Gerenciador de aplicativos Pamac
-Comment=Instalar, remover e atualizar programas
-Exec=pamac-manager
-Icon=system-software-install
-Terminal=false
-Categories=System;Settings;
-StartupNotify=true
