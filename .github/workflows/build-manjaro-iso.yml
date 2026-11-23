@@ -50,15 +50,12 @@ jobs:
           git -C vendor/gitrepo rev-parse HEAD
           git -C vendor/gitrepo status --short
 
-      - name: Aplicar correções downstream documentadas do GitRepo
+      - name: Verificar tratamento upstream do fechamento do alerta
         working-directory: vendor/gitrepo
         shell: bash
         run: |
           set -Eeuo pipefail
-          git apply --check "$GITHUB_WORKSPACE/patches/gitrepo/0001-fix-alert-response-order.patch"
-          git apply "$GITHUB_WORKSPACE/patches/gitrepo/0001-fix-alert-response-order.patch"
-          git diff --check
-          grep -Fq 'GLib.idle_add(self._apply_resolutions)' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
+          grep -Fq 'dialog.connect("closed", lambda _alert: self._apply_resolutions())' usr/share/gitrepo/build_package/gui/dialogs/conflict_dialog.py
 
       - name: Formatação e análise estática do GitRepo
         working-directory: vendor/gitrepo
