@@ -44,8 +44,8 @@ def run():
         return ("fstab ausente", "A configuração de montagem precisa ser gerada antes da instalação VENOM.")
     with open(fstab_path, encoding="utf-8") as stream:
         fstab_text = stream.read()
-    root_btrfs = re.search(r"^\\S+\\s+/\\s+btrfs\\s+[^\\n]*subvol=/@(?:,|\\s|$)", fstab_text, re.MULTILINE)
-    home_btrfs = re.search(r"^\\S+\\s+/home\\s+btrfs\\s+[^\\n]*subvol=/@home(?:,|\\s|$)", fstab_text, re.MULTILINE)
+    root_btrfs = re.search(r"^\S+\s+/\s+btrfs\s+[^\n]*subvol=/@(?:,|\s|$)", fstab_text, re.MULTILINE)
+    home_btrfs = re.search(r"^\S+\s+/home\s+btrfs\s+[^\n]*subvol=/@home(?:,|\s|$)", fstab_text, re.MULTILINE)
     if not root_btrfs or not home_btrfs or "subvolid=" in fstab_text:
         return (
             "Layout Btrfs incompatível",
