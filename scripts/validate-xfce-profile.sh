@@ -20,8 +20,12 @@ required=(
   build/airootfs/etc/systemd/system/venom-live-ready.service
   build/airootfs/etc/lightdm/lightdm.conf.d/50-venom-live.conf
   build/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
+  build/airootfs/etc/skel/.config/fastfetch/config.jsonc
+  build/airootfs/etc/skel/.config/fastfetch/logo.txt
   build/airootfs/usr/share/icons/hicolor/scalable/apps/venom-menu.svg
   build/install-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
+  build/install-overlay/etc/skel/.config/fastfetch/config.jsonc
+  build/install-overlay/etc/skel/.config/fastfetch/logo.txt
   build/install-overlay/usr/share/icons/hicolor/scalable/apps/venom-menu.svg
   build/install-overlay/usr/local/lib/venom/configure-recovery
   build/install-overlay/etc/systemd/system/venom-recovery-setup.service
@@ -59,6 +63,9 @@ for manifest in "$B/packages.x86_64" "$B/install-packages.x86_64"; do
     inotify-tools cronie; do
     grep -Fxq "$package" "$manifest" || fail "$package ausente de $manifest"
   done
+done
+for manifest in "$B/packages.x86_64" "$B/install-packages.x86_64"; do
+  grep -Fxq fastfetch "$manifest" || fail "Fastfetch ausente de $manifest"
 done
 for package in libpamac-aur pamac-aur bibata-cursor-theme papirus-folders-git; do
   grep -Fxq "$package" "$B/aur-packages.x86_64" || fail "Pacote AUR ausente: $package"
@@ -125,11 +132,28 @@ fi
 
 python - <<'PY'
 import ast
+import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
 import yaml
 
 root = Path(".")
+for p in [
+    Path("build/airootfs/etc/skel/.config/fastfetch/config.jsonc"),
+    Path("build/install-overlay/etc/skel/.config/fastfetch/config.jsonc"),
+]:
+    config = json.loads(p.read_text(encoding="utf-8"))
+    assert config["logo"]["source"] == "~/.config/fastfetch/logo.txt"
+    assert config["logo"]["color"] == {"1": "#2588ff", "2": "#ffffff"}
+    assert config["display"]["color"]["keys"] == "#2588ff"
+    assert config["display"]["color"]["output"] == "#ffffff"
+    assert len(config["modules"]) >= 15
+for p in [
+    Path("build/airootfs/etc/skel/.config/fastfetch/logo.txt"),
+    Path("build/install-overlay/etc/skel/.config/fastfetch/logo.txt"),
+]:
+    logo = p.read_text(encoding="utf-8")
+    assert "$1" in logo and "$2" in logo and "\\\\_/" in logo
 for p in [Path("installer/modules/venominstall/main.py")]:
     ast.parse(p.read_text(encoding="utf-8"), filename=str(p))
 for p in [Path("installer/settings.conf"), *Path("installer/modules").rglob("*.conf"), Path("installer/branding/branding.desc")]:
