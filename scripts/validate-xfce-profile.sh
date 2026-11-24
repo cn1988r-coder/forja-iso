@@ -25,13 +25,13 @@ required=(
   build/install-overlay/usr/local/lib/venom/configure-recovery
   build/install-overlay/etc/systemd/system/venom-recovery-setup.service
   build/install-overlay/etc/systemd/system/grub-btrfsd.service.d/override.conf
-  build/install-overlay/etc/mkinitcpio.conf.d/venom-btrfs.conf
+  build/install-overlay/etc/mkinitcpio.conf.d/venom-btrfs.conf\n  build/install-overlay/etc/default/grub
   installer/settings.conf installer/modules/partition/partition.conf
   installer/modules/mount/mount.conf installer/modules/fstab/fstab.conf
   installer/modules/venominstall/main.py installer/modules/venominstall/venominstall.conf
   installer/modules/services-systemd/services-systemd.conf
   installer/branding/branding.desc installer/venom-installer.desktop
-  scripts/build-venom-iso.sh scripts/build-aur-packages.sh scripts/stage-installer-payload.sh
+  scripts/build-venom-iso.sh scripts/build-aur-packages.sh scripts/stage-installer-payload.sh scripts/setup-xfce-windows-dark.sh
 )
 for f in "${required[@]}"; do need "$ROOT/$f"; done
 
