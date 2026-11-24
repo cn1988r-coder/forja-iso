@@ -14,7 +14,8 @@ if ! command -v pacman >/dev/null 2>&1; then
   exit 1
 fi
 
-pacman -Sy --needed --noconfirm papirus-icon-theme papirus-folders
+pacman -S --needed --noconfirm papirus-icon-theme
+command -v papirus-folders >/dev/null 2>&1 || { echo 'Instale papirus-folders-git do AUR antes de aplicar as pastas azuis.' >&2; exit 1; }
 
 install -d -m 0755 /etc/skel/.config/gtk-3.0
 install -d -m 0755 /etc/skel/.config/gtk-4.0
