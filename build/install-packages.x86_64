@@ -75,6 +75,7 @@ polkit
 # Desktop VENOM XFCE.
 xfce4
 xfce4-goodies
+xfce4-whiskermenu-plugin
 xfce4-docklike-plugin
 thunar
 thunar-archive-plugin
@@ -99,4 +100,5 @@ materia-gtk-theme
 papirus-icon-theme
 bibata-cursor-theme
 papirus-folders
+
 
