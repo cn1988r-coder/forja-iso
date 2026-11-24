@@ -25,6 +25,7 @@ grep -Eq '[[:space:]]/home[[:space:]].*subvol=/?@home([,[:space:]]|$)' "$FSTAB" 
 }
 
 install -d -m 0755 /etc/timeshift /etc/mkinitcpio.conf.d
+gtk-update-icon-cache -f /usr/share/icons/hicolor || true
 papirus-folders -C blue --theme Papirus-Dark
 cat >/etc/timeshift/timeshift.json <<EOF
 {
