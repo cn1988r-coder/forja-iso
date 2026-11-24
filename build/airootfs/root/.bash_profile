@@ -1,0 +1,1 @@
+# VENOM installer media boots directly into the TUI on tty1.\n# No automatic graphical session or live desktop is started.\n
