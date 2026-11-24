@@ -46,7 +46,6 @@ RUN pacman -Syu --noconfirm && \
       yaml-cpp \
       python-yaml \
       python-jsonschema \
-      python-pybind11 \
       libpwquality \
       hwinfo \
       polkit-qt6 \
