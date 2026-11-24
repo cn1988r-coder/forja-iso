@@ -85,10 +85,7 @@ gvfs-mtp
 udisks2
 pavucontrol
 playerctl
-adw-gtk-theme
-gnome-themes-extra
 adwaita-icon-theme
-adwaita-cursors
 noto-fonts
 ttf-dejavu
 ttf-roboto
@@ -97,9 +94,9 @@ fastfetch
 # Pamac packages built from Arch AUR PKGBUILDs.
 libpamac-aur
 pamac-aur
-base-devel
 
 materia-gtk-theme
 papirus-icon-theme
 bibata-cursor-theme
 papirus-folders
+
