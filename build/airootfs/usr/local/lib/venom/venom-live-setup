@@ -3,10 +3,15 @@ set -Eeuo pipefail
 LOG=/var/log/venom-live-setup.log
 install -d -m 0755 /var/log
 touch "$LOG"
-exec > >(tee -a "$LOG" /dev/ttyS0) 2>&1
+exec > >(tee -a "$LOG") 2>&1
 trap 'rc=$?; printf "[VENOM] Setup falhou status=%s comando=%s\n" "$rc" "$BASH_COMMAND" | tee -a "$LOG" /dev/ttyS0; exit "$rc"' ERR
 
-serial_marker() { printf '%s %s\n' "$(date -Is)" "$1" | tee -a "$LOG" /dev/ttyS0; }
+serial_marker() {
+  local line
+  line="$(date -Is) $1"
+  printf '%s\n' "$line" | tee -a "$LOG"
+  printf '%s\n' "$line" >/dev/ttyS0 2>/dev/null || true
+}
 serial_marker VENOM_LIVE_SETUP_STARTED
 printf '[VENOM] Configurando ambiente live...\n'
 
