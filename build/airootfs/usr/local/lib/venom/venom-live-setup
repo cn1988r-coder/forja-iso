@@ -4,7 +4,7 @@ LOG=/var/log/venom-live-setup.log
 install -d -m 0755 /var/log
 touch "$LOG"
 exec > >(tee -a "$LOG") 2>&1
-trap 'rc=$?; printf "[VENOM] Setup falhou status=%s comando=%s\n" "$rc" "$BASH_COMMAND" | tee -a "$LOG" /dev/ttyS0; exit "$rc"' ERR
+trap 'rc=$?; printf "[VENOM] Setup falhou status=%s comando=%s\n" "$rc" "$BASH_COMMAND" | tee -a "$LOG"; printf "[VENOM] Setup falhou status=%s\n" "$rc" >/dev/ttyS0 2>/dev/null || true; exit "$rc"' ERR
 
 serial_marker() {
   local line
