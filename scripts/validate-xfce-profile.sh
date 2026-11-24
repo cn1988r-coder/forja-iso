@@ -4,7 +4,8 @@
 set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 B="$ROOT/build"
-fail(){ printf 'FALHA: %s\n' "$*" >&2; exit 1; }
+fail(){ printf 'FALHA: %s
+' "$*" >&2; exit 1; }
 need(){ [[ -s "$1" ]] || fail "Arquivo ausente/vazio: ${1#"$ROOT"/}"; }
 
 required=(
@@ -25,7 +26,8 @@ required=(
   build/install-overlay/usr/local/lib/venom/configure-recovery
   build/install-overlay/etc/systemd/system/venom-recovery-setup.service
   build/install-overlay/etc/systemd/system/grub-btrfsd.service.d/override.conf
-  build/install-overlay/etc/mkinitcpio.conf.d/venom-btrfs.conf\n  build/install-overlay/etc/default/grub
+  build/install-overlay/etc/mkinitcpio.conf.d/venom-btrfs.conf
+  build/install-overlay/etc/default/grub
   installer/settings.conf installer/modules/partition/partition.conf
   installer/modules/mount/mount.conf installer/modules/fstab/fstab.conf
   installer/modules/venominstall/main.py installer/modules/venominstall/venominstall.conf
@@ -107,4 +109,5 @@ for p in list(Path("build/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel
 print("VENOM: arquivos, sintaxe e configurações estáticas aprovados.")
 PY
 
-printf '[VENOM] Validação estática concluída. Nenhuma compilação ou ISO foi iniciada.\n'
+printf '[VENOM] Validação estática concluída. Nenhuma compilação ou ISO foi iniciada.
+'
