@@ -5,6 +5,7 @@ set -Eeuo pipefail
 # or Manjaro-built binary packages are used.
 WORK="${RUNNER_TEMP:-/tmp}/venom-pamac-build"
 REPO=/tmp/venom-aur-repo
+rm -rf "$WORK" "$REPO"
 mkdir -p "$WORK" "$REPO"
 
 pacman -S --needed --noconfirm sudo
