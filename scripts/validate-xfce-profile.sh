@@ -31,7 +31,7 @@ required=(
   installer/modules/venominstall/main.py installer/modules/venominstall/venominstall.conf
   installer/modules/services-systemd/services-systemd.conf
   installer/branding/branding.desc installer/venom-installer.desktop
-  scripts/build-venom-iso.sh scripts/build-aur-packages.sh
+  scripts/build-venom-iso.sh scripts/build-aur-packages.sh scripts/stage-installer-payload.sh
 )
 for f in "${required[@]}"; do need "$ROOT/$f"; done
 
@@ -39,7 +39,7 @@ for f in build/profiledef.sh build/airootfs/root/.bash_profile \
   build/airootfs/usr/local/lib/venom/venom-live-setup \
   build/airootfs/usr/local/lib/venom/venom-live-ready \
   build/install-overlay/usr/local/lib/venom/configure-recovery \
-  scripts/build-venom-iso.sh scripts/build-aur-packages.sh; do
+  scripts/build-venom-iso.sh scripts/build-aur-packages.sh scripts/stage-installer-payload.sh; do
   bash -n "$ROOT/$f" || fail "Sintaxe Bash inválida: $f"
 done
 
@@ -87,7 +87,7 @@ grep -Fq 'include_btrfs_home_for_backup": "true"' "$B/install-overlay/usr/local/
 grep -Fq 'grub-btrfsd.service' "$B/install-overlay/usr/local/lib/venom/configure-recovery" || fail "grub-btrfsd não é ativado."
 
 if grep -R -Eiq 'manjaro|endeavouros|biglinux|mhwd|Kora|Coral|Yaru-blue|adw-gtk3-dark' \
-  "$B/packages.x86_64" "$B/install-packages.x86_64" "$B/airootfs/etc/skel" "$ROOT/installer"; then
+  "$B/packages.x86_64" "$B/install-packages.x86_64" "$B/airootfs/etc/skel" "$B/install-overlay" "$ROOT/installer"; then
   fail "Resíduo de outra base/tema não aprovado encontrado."
 fi
 
