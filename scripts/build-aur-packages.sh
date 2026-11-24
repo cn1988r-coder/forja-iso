@@ -26,7 +26,7 @@ build_aur_package() {
 
 # Build every explicitly declared AUR package from the pinned manifest.
 while IFS= read -r package; do
-  [[ -z "$package" || "$package" == #* ]] && continue
+  [[ -z "$package" || "$package" == \#* ]] && continue
   build_aur_package "$package"
   if [[ "$package" == "libpamac-aur" ]]; then
     pacman -U --noconfirm "$REPO"/libpamac-aur-*.pkg.tar.zst
