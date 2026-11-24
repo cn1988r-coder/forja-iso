@@ -1,0 +1,48 @@
+name: VENOM OS XFCE | Build ISO (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_iso_build:
+        description: Confirmar a compilação da ISO VENOM OS XFCE
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: venom-iso-build-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: inputs.confirm_iso_build == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Arch build container
+        run: |
+          docker build --pull -t venom-os-arch-builder:latest .
+
+      - name: Build VENOM ISO
+        run: |
+          docker run --rm --privileged \
+            --volume "$GITHUB_WORKSPACE:/workspace" \
+            --workdir /workspace \
+            venom-os-arch-builder:latest \
+            /bin/bash -lc 'sudo -E bash scripts/build-venom-iso.sh'
+
+      - name: Upload ISO and checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: venom-os-xfce-arch-iso
+          path: |
+            out/*.iso
+            out/*.sha256
+          if-no-files-found: error
+          retention-days: 14
