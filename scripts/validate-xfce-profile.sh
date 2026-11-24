@@ -71,9 +71,39 @@ for panel in \
   grep -Fq 'value="venom-menu"' "$panel" || fail "Ícone VENOM ausente: $panel"
   grep -Fq 'value="11"' "$panel" || fail "Docklike ausente: $panel"
   grep -Fq 'name="size" type="uint" value="40"' "$panel" || fail "Painel de 40 px ausente: $panel"
-  whisker_line="$(grep -n 'value="whiskermenu"' "$panel" | head -n1 | cut -d: -f1)"
-  dock_line="$(grep -n 'value="docklike"' "$panel" | head -n1 | cut -d: -f1)"
-  [[ -n "$whisker_line" && -n "$dock_line" && "$dock_line" -gt "$whisker_line" ]] || fail "Docklike não está depois do Iniciar."
+  PANEL_FILE="$panel" python - <<'PY'
+import os
+import sys
+import xml.etree.ElementTree as ET
+
+path = os.environ["PANEL_FILE"]
+root = ET.parse(path).getroot()
+panel = root.find("./property[@name='panels']/property[@name='panel-1']")
+plugins = root.find("./property[@name='plugins']")
+if panel is None or plugins is None:
+    sys.exit("Painel ou lista de plugins ausente: " + path)
+
+ids_node = panel.find("./property[@name='plugin-ids']")
+if ids_node is None:
+    sys.exit("Ordem dos plugins não definida: " + path)
+
+ordered_ids = [int(node.attrib["value"]) for node in ids_node.findall("value")]
+plugin_types = {}
+for node in plugins.findall("property"):
+    name = node.attrib.get("name", "")
+    if name.startswith("plugin-"):
+        plugin_types[name.removeprefix("plugin-")] = node.attrib.get("value", "")
+
+if len(ordered_ids) < 2:
+    sys.exit("Painel não tem dois plugins iniciais: " + path)
+first_two = [plugin_types.get(str(plugin_id)) for plugin_id in ordered_ids[:2]]
+if first_two != ["whiskermenu", "docklike"]:
+    sys.exit(
+        "Docklike precisa estar imediatamente à direita do menu Iniciar. "
+        f"Ordem encontrada: {first_two!r} em {path}"
+    )
+print(f"OK: Whisker Menu seguido imediatamente por Docklike em {path}")
+PY
 done
 
 grep -Fq 'Materia-dark' "$B/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml" || fail "Materia Dark não definido."
