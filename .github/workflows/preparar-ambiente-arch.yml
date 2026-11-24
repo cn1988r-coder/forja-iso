@@ -8,6 +8,9 @@ on:
     paths:
       - ".github/workflows/preparar-ambiente-arch.yml"
       - "Dockerfile"
+      - "scripts/validate-xfce-profile.sh"
+      - "build/**"
+      - "installer/**"
 
 permissions:
   contents: read
@@ -32,6 +35,13 @@ jobs:
           df -h "$GITHUB_WORKSPACE"
           nproc
           free -h
+
+      - name: Validar perfil VENOM sem compilar ISO
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check PyYAML
+          bash -n scripts/validate-xfce-profile.sh
+          bash scripts/validate-xfce-profile.sh
 
       - name: Construir imagem de ferramentas Arch Linux
         run: |
