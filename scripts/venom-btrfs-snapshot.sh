@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# VENOM OS: criação e consulta de snapshots usando EXCLUSIVAMENTE Timeshift.
-# O Timeshift deve estar previamente configurado em modo BTRFS.
-# Este script não cria snapshots Btrfs manualmente nem altera partições.
+# VENOM OS: snapshots e restauração integral pelo Timeshift em BTRFS.
+# A restauração usa o fluxo nativo do Timeshift e NÃO ignora a reinstalação do GRUB.
+# O Timeshift deve estar configurado em BTRFS e o sistema deve usar GRUB2.
 
 die() { echo "ERRO: $*" >&2; exit 1; }
 
@@ -26,10 +26,18 @@ case "$ACTION" in
   list)
     timeshift --list
     ;;
+  restore)
+    echo "RESTAURAÇÃO INTEGRAL: selecione o snapshot desejado no Timeshift."
+    echo "Não use a opção de ignorar a reinstalação do GRUB."
+    echo "Em sistemas UEFI, confirme que a partição EFI (/boot/efi) está mapeada."
+    echo "O Timeshift executará a restauração BTRFS e o procedimento de reinstalação do GRUB2."
+    timeshift --restore
+    ;;
   *)
     echo "Uso:"
     echo "  sudo $0 create [comentário]"
     echo "  sudo $0 list"
+    echo "  sudo $0 restore"
     exit 2
     ;;
 esac
