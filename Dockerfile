@@ -29,6 +29,37 @@ RUN pacman -Syu --noconfirm && \
       python-pip \
       sudo \
       shadow \
+      cmake \
+      ninja \
+      extra-cmake-modules \
+      qt6-base \
+      qt6-declarative \
+      qt6-svg \
+      qt6-tools \
+      kconfig \
+      kcoreaddons \
+      kcrash \
+      kparts \
+      kirigami \
+      kpackage \
+      kpmcore \
+      yaml-cpp \
+      python-yaml \
+      python-jsonschema \
+      python-pybind11 \
+      libpwquality \
+      hwinfo \
+      polkit-qt6 \
+      appstream-qt \
+      pybind11 \
+      meson \
+      glib2 \
+      json-glib \
+      ncurses \
+      pkgconf \
+      shellcheck \
+      qemu-system-x86 \
+      edk2-ovmf \
     && pacman -Scc --noconfirm
 
 ARG BUILD_UID=1001
