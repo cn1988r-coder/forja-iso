@@ -25,6 +25,7 @@ grep -Eq '[[:space:]]/home[[:space:]].*subvol=/?@home([,[:space:]]|$)' "$FSTAB" 
 }
 
 install -d -m 0755 /etc/timeshift /etc/mkinitcpio.conf.d
+papirus-folders -C blue --theme Papirus-Dark
 cat >/etc/timeshift/timeshift.json <<EOF
 {
   "backup_device_uuid": "$ROOT_UUID",
