@@ -131,3 +131,8 @@ appstream-qt
 # Pamac packages built from Arch AUR recipes.
 libpamac-aur
 pamac-aur
+
+materia-gtk-theme
+papirus-icon-theme
+bibata-cursor-theme
+papirus-folders
