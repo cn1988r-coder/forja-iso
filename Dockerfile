@@ -19,6 +19,11 @@ RUN pacman -Syu --noconfirm && \
       curl \
       wget \
       arch-install-scripts \
+      btrfs-progs \
+      mkinitcpio \
+      inotify-tools \
+      cronie \
+      jq \
       xorriso \
       python \
       python-pip \
