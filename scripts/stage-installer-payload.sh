@@ -10,6 +10,10 @@ for tool in git cmake ninja; do
   command -v "$tool" >/dev/null 2>&1 || { echo "Ferramenta ausente: $tool" >&2; exit 1; }
 done
 
+# Apply the approved XFCE visual profile to both live and installed systems.
+bash scripts/setup-xfce-windows-dark.sh --root build/airootfs
+bash scripts/setup-xfce-windows-dark.sh --root build/install-overlay
+
 AUR_REPO="${AUR_REPO:-/tmp/venom-aur-repo}"
 [[ -s "$AUR_REPO/venom-aur.db" ]] || { echo "Repositório AUR local não preparado." >&2; exit 1; }
 
