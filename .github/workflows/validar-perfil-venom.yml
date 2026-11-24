@@ -1,0 +1,52 @@
+name: VENOM OS XFCE | Validacao estatica
+
+on:
+  push:
+    branches:
+      - feature/venom-os-xfce-stable
+    paths:
+      - "build/**"
+      - "installer/**"
+      - "scripts/**"
+      - ".github/workflows/validar-perfil-venom.yml"
+      - "Dockerfile"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    name: Verificar perfil, scripts e configuracoes
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Baixar repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Python para validacao YAML
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Instalar validador YAML
+        run: python -m pip install --disable-pip-version-check PyYAML
+
+      - name: Verificar sintaxe dos scripts
+        run: |
+          set -euo pipefail
+          bash -n scripts/validate-xfce-profile.sh
+          bash -n scripts/build-venom-iso.sh
+          bash -n scripts/build-aur-packages.sh
+          bash -n scripts/stage-installer-payload.sh
+
+      - name: Validar perfil VENOM sem compilar ISO
+        run: |
+          set -euo pipefail
+          bash scripts/validate-xfce-profile.sh
+
+      - name: Registrar resultado
+        if: always()
+        run: |
+          echo "Esta workflow executa somente verificacoes estaticas."
+          echo "Nao compila pacotes, nao gera ISO e nao inicia instalacao."
