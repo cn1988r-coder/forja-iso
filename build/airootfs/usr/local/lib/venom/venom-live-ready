@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+LOG=/var/log/venom-live-setup.log
+install -d -m 0755 /var/log
+touch "$LOG"
+
+serial_marker() {
+  local line
+  line="$(date -Is) $1"
+  printf '%s\n' "$line" | tee -a "$LOG"
+  printf '%s\n' "$line" >/dev/ttyS0 2>/dev/null || true
+}
+
+# LightDM becoming active is not enough: the live desktop must actually
+# launch the XFCE session, panel and desktop process for user venom.
+for ((attempt = 0; attempt < 120; attempt++)); do
+  if systemctl is-active --quiet lightdm.service \
+    && pgrep -u venom -x xfce4-session >/dev/null \
+    && pgrep -u venom -x xfce4-panel >/dev/null \
+    && pgrep -u venom -x xfdesktop >/dev/null; then
+    serial_marker VENOM_LIVE_READY
+    printf '[VENOM] Sessão XFCE, painel e desktop ativos; ambiente live pronto.\n'
+    exit 0
+  fi
+  sleep 1
+done
+
+serial_marker VENOM_LIVE_XFCE_FAILED
+systemctl --no-pager --full status lightdm.service || true
+printf '[VENOM] Processos XFCE encontrados:\n'
+pgrep -a -u venom -f 'xfce4-session|xfce4-panel|xfdesktop' || true
+journalctl -b -u lightdm.service --no-pager || true
+exit 1
