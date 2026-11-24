@@ -37,6 +37,50 @@ jobs:
             venom-os-arch-builder:latest \
             /bin/bash -lc 'sudo -E bash scripts/build-venom-iso.sh'
 
+      - name: BIOS boot smoke test
+        run: |
+          docker run --rm --privileged \
+            --volume "$GITHUB_WORKSPACE:/workspace" \
+            --workdir /workspace \
+            venom-os-arch-builder:latest \
+            /bin/bash -lc '
+              ISO="$(find out -maxdepth 1 -type f -name "*.iso" -print -quit)"
+              set +e
+              timeout 240s qemu-system-x86_64 -machine accel=tcg -m 4096 -smp 2 -vga std \
+                -cdrom "$ISO" -boot d -display none -serial file:bios-serial.log \
+                -monitor none -no-reboot -no-shutdown
+              STATUS=$?
+              set -e
+              test "$STATUS" -eq 124
+              grep -Fq VENOM_LIVE_SETUP_STARTED bios-serial.log
+              grep -Fq VENOM_LIVE_READY bios-serial.log
+            '
+
+      - name: UEFI boot smoke test
+        run: |
+          docker run --rm --privileged \
+            --volume "$GITHUB_WORKSPACE:/workspace" \
+            --workdir /workspace \
+            venom-os-arch-builder:latest \
+            /bin/bash -lc '
+              ISO="$(find out -maxdepth 1 -type f -name "*.iso" -print -quit)"
+              OVMF_CODE="$(find /usr/share/edk2 -type f -iname "OVMF_CODE*.fd" | head -n 1)"
+              OVMF_VARS="$(find /usr/share/edk2 -type f -iname "OVMF_VARS*.fd" | head -n 1)"
+              test -n "$OVMF_CODE" && test -n "$OVMF_VARS"
+              cp "$OVMF_VARS" /tmp/OVMF_VARS.fd
+              set +e
+              timeout 240s qemu-system-x86_64 -machine q35,accel=tcg -m 4096 -smp 2 -vga std \
+                -drive if=pflash,format=raw,readonly=on,file="$OVMF_CODE" \
+                -drive if=pflash,format=raw,file=/tmp/OVMF_VARS.fd \
+                -cdrom "$ISO" -boot d -display none -serial file:uefi-serial.log \
+                -monitor none -no-reboot -no-shutdown
+              STATUS=$?
+              set -e
+              test "$STATUS" -eq 124
+              grep -Fq VENOM_LIVE_SETUP_STARTED uefi-serial.log
+              grep -Fq VENOM_LIVE_READY uefi-serial.log
+            '
+
       - name: Upload ISO and checksum
         uses: actions/upload-artifact@v4
         with:
