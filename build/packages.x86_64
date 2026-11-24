@@ -1,6 +1,5 @@
 # VENOM XFCE installer media: official Arch packages plus declared AUR Pamac packages.
 base
-base-devel
 ncurses
 json-glib
 archlinux-keyring
@@ -97,10 +96,7 @@ libsoup3
 archlinux-appstream-data
 appstream-glib
 appstream
-adw-gtk-theme
-gnome-themes-extra
 adwaita-icon-theme
-adwaita-cursors
 noto-fonts
 ttf-dejavu
 ttf-roboto
@@ -136,3 +132,4 @@ materia-gtk-theme
 papirus-icon-theme
 bibata-cursor-theme
 papirus-folders
+
