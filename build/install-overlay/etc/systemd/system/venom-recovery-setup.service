@@ -1,0 +1,15 @@
+[Unit]
+Description=VENOM OS first-boot Btrfs and Timeshift recovery setup
+After=local-fs.target
+Wants=local-fs.target
+ConditionPathExists=!/var/lib/venom-os/recovery-configured
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash /usr/local/lib/venom/configure-recovery
+RemainAfterExit=yes
+StandardOutput=journal+console
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target
