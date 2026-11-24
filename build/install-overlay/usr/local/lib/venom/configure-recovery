@@ -68,6 +68,6 @@ grub-mkconfig -o /boot/grub/grub.cfg
 systemctl enable cronie.service grub-btrfsd.service
 systemctl start cronie.service
 systemctl start grub-btrfsd.service
-timeshift --create --comments "VENOM OS primeiro snapshot" --tags O
+timeshift --create --comments "VENOM OS primeiro snapshot" --tags O --scripted
 touch "$MARKER"
 echo "[VENOM] Timeshift Btrfs e integração GRUB configurados."
