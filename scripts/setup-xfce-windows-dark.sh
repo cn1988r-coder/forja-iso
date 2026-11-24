@@ -32,8 +32,8 @@ cat >"$XFCE/xsettings.xml" <<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="xsettings" version="1.0">
   <property name="Net" type="empty">
-    <property name="ThemeName" type="string" value="adw-gtk3-dark"/>
-    <property name="IconThemeName" type="string" value="Yaru-blue"/>
+    <property name="ThemeName" type="string" value="Materia-dark"/>
+    <property name="IconThemeName" type="string" value="Papirus-Dark"/>
   </property>
   <property name="Xft" type="empty">
     <property name="Hinting" type="int" value="1"/>
@@ -43,7 +43,7 @@ cat >"$XFCE/xsettings.xml" <<'XML'
   <property name="Gtk" type="empty">
     <property name="FontName" type="string" value="Noto Sans 10"/>
     <property name="MonospaceFontName" type="string" value="Noto Sans Mono 10"/>
-    <property name="CursorThemeName" type="string" value="Bibata-Modern-Ice"/>
+    <property name="CursorThemeName" type="string" value="Bibata-Modern-Classic"/>
     <property name="CursorThemeSize" type="int" value="24"/>
     <property name="DecorationLayout" type="string" value=":minimize,maximize,close"/>
     <property name="DialogsUseHeader" type="bool" value="true"/>
@@ -59,9 +59,9 @@ XML
 for gtk in "$GTK3" "$GTK4"; do
   cat >"$gtk/settings.ini" <<'GTK'
 [Settings]
-gtk-theme-name=adw-gtk3-dark
-gtk-icon-theme-name=Yaru-blue
-gtk-cursor-theme-name=Bibata-Modern-Ice
+gtk-theme-name=Materia-dark
+gtk-icon-theme-name=Papirus-Dark
+gtk-cursor-theme-name=Bibata-Modern-Classic
 gtk-cursor-theme-size=24
 gtk-font-name=Noto Sans 10
 gtk-application-prefer-dark-theme=true
@@ -232,16 +232,16 @@ RC
 # Preserve the existing XFWM behavior and only select the matching window theme.
 if [[ -f "$XFCE/xfwm4.xml" ]]; then
   if grep -q 'property name="theme"' "$XFCE/xfwm4.xml"; then
-    sed -i 's#<property name="theme" type="string" value="[^"]*"/>#<property name="theme" type="string" value="adw-gtk3-dark"/>#' "$XFCE/xfwm4.xml"
+    sed -i 's#<property name="theme" type="string" value="[^"]*"/>#<property name="theme" type="string" value="Materia-dark"/>#' "$XFCE/xfwm4.xml"
   else
-    sed -i 's#<property name="general" type="empty">#<property name="general" type="empty"><property name="theme" type="string" value="adw-gtk3-dark"/>#' "$XFCE/xfwm4.xml"
+    sed -i 's#<property name="general" type="empty">#<property name="general" type="empty"><property name="theme" type="string" value="Materia-dark"/>#' "$XFCE/xfwm4.xml"
   fi
 else
   cat >"$XFCE/xfwm4.xml" <<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="xfwm4" version="1.0">
   <property name="general" type="empty">
-    <property name="theme" type="string" value="adw-gtk3-dark"/>
+    <property name="theme" type="string" value="Materia-dark"/>
     <property name="button_layout" type="string" value="|HMC"/>
     <property name="use_compositing" type="bool" value="true"/>
     <property name="snap_to_border" type="bool" value="true"/>
@@ -253,13 +253,14 @@ XML
 fi
 
 cat >"$ROOT/usr/share/icons/hicolor/scalable/apps/venom-menu.svg" <<'SVG'
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
- <defs><linearGradient id="v" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b7efff"/><stop offset=".5" stop-color="#168bff"/><stop offset="1" stop-color="#0649ad"/></linearGradient><filter id="g"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
- <circle cx="64" cy="64" r="59" fill="#10151d" stroke="#26394e" stroke-width="3"/>
- <path d="M24 32h23l17 51 17-51h23L75 101q-11 17-22 0z" fill="url(#v)" filter="url(#g)"/>
- <path d="M39 42h13l12 36 12-36h13" fill="none" stroke="#e2f8ff" stroke-width="3" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <circle cx="64" cy="64" r="59" fill="#1685F8"/>
+  <circle cx="64" cy="64" r="53" fill="none" stroke="#69B5FF" stroke-width="2.5"/>
+  <path d="M31 35 L50 35 L65 78 L82 35 L101 35 L74 98 L57 98 Z" fill="#111318" stroke="#080A0E" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M39 41 L49 41 L64 82 L59 94 Z" fill="#FFFFFF" opacity=".96"/>
+  <path d="M88 41 L95 41 L73 92 L68 92 Z" fill="#FFFFFF" opacity=".88"/>
+  <path d="M31 35 L50 35 L65 78 L82 35 L101 35" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
 </svg>
-SVG
 
 cat >"$ROOT/usr/share/backgrounds/venom/venom-serpent.svg" <<'SVG'
 <svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1440" viewBox="0 0 2560 1440">
