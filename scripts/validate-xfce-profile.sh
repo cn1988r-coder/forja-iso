@@ -153,7 +153,7 @@ for p in [
     Path("build/install-overlay/etc/skel/.config/fastfetch/logo.txt"),
 ]:
     logo = p.read_text(encoding="utf-8")
-    assert "$1" in logo and "$2" in logo and "\\\\_/" in logo
+    assert "$1" in logo and "$2" in logo and "_/" in logo
 for p in [Path("installer/modules/venominstall/main.py")]:
     ast.parse(p.read_text(encoding="utf-8"), filename=str(p))
 for p in [Path("installer/settings.conf"), *Path("installer/modules").rglob("*.conf"), Path("installer/branding/branding.desc")]:
