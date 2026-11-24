@@ -1,51 +1,35 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# VENOM OS: snapshots nativos Btrfs.
-# Requer /.snapshots montado como subvolume Btrfs separado, no mesmo filesystem
-# do sistema. Nunca formata discos nem altera partições.
-
-SNAPSHOT_DIR="${SNAPSHOT_DIR:-/.snapshots}"
-KEEP="${KEEP:-10}"
+# VENOM OS: criação e consulta de snapshots usando EXCLUSIVAMENTE Timeshift.
+# O Timeshift deve estar previamente configurado em modo BTRFS.
+# Este script não cria snapshots Btrfs manualmente nem altera partições.
 
 die() { echo "ERRO: $*" >&2; exit 1; }
 
 [[ $EUID -eq 0 ]] || die "Execute com sudo."
-command -v btrfs >/dev/null 2>&1 || die "Instale btrfs-progs."
-command -v findmnt >/dev/null 2>&1 || die "findmnt não encontrado."
-[[ "$(findmnt -n -o FSTYPE /)" == "btrfs" ]] || die "A raiz do sistema não está em Btrfs."
-mountpoint -q "$SNAPSHOT_DIR" || die "$SNAPSHOT_DIR precisa ser um ponto de montagem separado."
-[[ "$(findmnt -n -o FSTYPE "$SNAPSHOT_DIR")" == "btrfs" ]] || die "$SNAPSHOT_DIR não está em Btrfs."
-[[ "$(findmnt -n -o SOURCE / | sed 's/\[.*\]$//')" == "$(findmnt -n -o SOURCE "$SNAPSHOT_DIR" | sed 's/\[.*\]$//')" ]] || die "A pasta de snapshots precisa estar no mesmo filesystem Btrfs da raiz."
+command -v timeshift >/dev/null 2>&1 || die "Timeshift não está instalado."
+command -v jq >/dev/null 2>&1 || die "Instale jq."
 
-ROOT_ID="$(btrfs subvolume show / | awk '/Subvolume ID:/ {print $3; exit}')"
-DEST_ID="$(btrfs subvolume show "$SNAPSHOT_DIR" | awk '/Subvolume ID:/ {print $3; exit}')"
-[[ -n "$ROOT_ID" && -n "$DEST_ID" ]] || die "Não foi possível identificar os subvolumes."
-[[ "$ROOT_ID" != "$DEST_ID" ]] || die "$SNAPSHOT_DIR não pode estar dentro do subvolume raiz. Monte um subvolume separado."
+CONFIG="/etc/timeshift/timeshift.json"
+[[ -r "$CONFIG" ]] || die "Configure o Timeshift primeiro e selecione BTRFS como tipo de snapshot."
+
+MODE="$(jq -r '.btrfs_mode // false' "$CONFIG")"
+[[ "$MODE" == "true" ]] || die "O Timeshift não está configurado em modo BTRFS. Abra sudo timeshift-gtk, selecione BTRFS e conclua a configuração."
 
 ACTION="${1:-create}"
 case "$ACTION" in
   create)
-    NAME="venom-root-$(date +%Y%m%d-%H%M%S)"
-    btrfs subvolume snapshot -r / "$SNAPSHOT_DIR/$NAME"
-    echo "Snapshot Btrfs criado: $SNAPSHOT_DIR/$NAME"
+    COMMENT="${2:-Snapshot do sistema VENOM OS}"
+    timeshift --create --comments "$COMMENT" --tags O
     ;;
   list)
-    btrfs subvolume list "$SNAPSHOT_DIR"
-    ;;
-  cleanup)
-    [[ "$KEEP" =~ ^[0-9]+$ ]] || die "KEEP precisa ser um número."
-    mapfile -t SNAPSHOTS < <(find "$SNAPSHOT_DIR" -mindepth 1 -maxdepth 1 -type d -name 'venom-root-*' -printf '%f\n' | sort)
-    COUNT="${#SNAPSHOTS[@]}"
-    REMOVE=$(( COUNT > KEEP ? COUNT - KEEP : 0 ))
-    for ((i=0; i<REMOVE; i++)); do
-      btrfs subvolume delete "$SNAPSHOT_DIR/${SNAPSHOTS[$i]}"
-    done
-    echo "Limpeza concluída. Mantidos: $((COUNT-REMOVE)) snapshots."
+    timeshift --list
     ;;
   *)
-    echo "Uso: $0 {create|list|cleanup}"
-    echo "Limpeza: KEEP=10 sudo $0 cleanup"
+    echo "Uso:"
+    echo "  sudo $0 create [comentário]"
+    echo "  sudo $0 list"
     exit 2
     ;;
 esac
