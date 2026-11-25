@@ -1,6 +1,15 @@
-name: VENOM OS XFCE | Build ISO (manual)
+name: VENOM OS | Build Arch ISO
 
 on:
+  push:
+    branches:
+      - feature/venom-os-xfce-stable
+    paths:
+      - "build/**"
+      - "installer/**"
+      - "scripts/**"
+      - "Dockerfile"
+      - ".github/workflows/build-venom-arch-iso.yml"
   workflow_dispatch:
     inputs:
       confirm_iso_build:
@@ -18,7 +27,7 @@ concurrency:
 
 jobs:
   build:
-    if: inputs.confirm_iso_build == true
+    if: github.event_name == 'push' || inputs.confirm_iso_build == true
     runs-on: ubuntu-latest
     timeout-minutes: 240
     steps:
@@ -84,7 +93,7 @@ jobs:
       - name: Upload ISO and checksum
         uses: actions/upload-artifact@v4
         with:
-          name: venom-os-xfce-arch-iso
+          name: venom-os-arch-iso
           path: |
             out/*.iso
             out/*.sha256
