@@ -93,6 +93,7 @@ fastfetch
 
 # Pamac packages built from Arch AUR PKGBUILDs.
 libpamac-aur
+grub-btrfs
 pamac-aur
 
 materia-gtk-theme
