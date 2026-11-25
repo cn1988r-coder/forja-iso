@@ -13,7 +13,7 @@ required=(
   build/install-packages.x86_64 build/aur-packages.x86_64
   build/airootfs/etc/mkinitcpio.conf.d/archiso.conf
   build/airootfs/etc/locale.conf build/airootfs/etc/locale.gen
-  build/airootfs/etc/vconsole.conf build/airootfs/root/.bash_profile
+  build/airootfs/etc/vconsole.conf
   build/airootfs/usr/local/lib/venom/venom-live-setup
   build/airootfs/usr/local/lib/venom/venom-live-ready
   build/airootfs/etc/systemd/system/venom-live-setup.service
@@ -42,7 +42,7 @@ required=(
 )
 for f in "${required[@]}"; do need "$ROOT/$f"; done
 
-for f in build/profiledef.sh build/airootfs/root/.bash_profile \
+for f in build/profiledef.sh \
   build/airootfs/usr/local/lib/venom/venom-live-setup \
   build/airootfs/usr/local/lib/venom/venom-live-ready \
   build/install-overlay/usr/local/lib/venom/configure-recovery \
@@ -53,7 +53,10 @@ done
 grep -Fxq 'LANG=pt_BR.UTF-8' "$B/airootfs/etc/locale.conf" || fail "Locale pt_BR ausente."
 grep -Fxq 'pt_BR.UTF-8 UTF-8' "$B/airootfs/etc/locale.gen" || fail "Locale pt_BR não habilitado."
 grep -Fxq 'KEYMAP=br-abnt2' "$B/airootfs/etc/vconsole.conf" || fail "Teclado ABNT2 ausente."
-grep -Fq 'systemctl start venom-live-setup.service' "$B/airootfs/root/.bash_profile" || fail "Inicialização Live não chama o setup."
+grep -Fq 'WantedBy=multi-user.target' "$B/airootfs/etc/systemd/system/venom-live-setup.service" || fail "Setup Live não está vinculado ao multi-user.target."
+grep -Fq 'multi-user.target.wants/venom-live-setup.service' "$ROOT/scripts/build-venom-iso.sh" || fail "Build não habilita o setup Live no multi-user.target."
+grep -Fq 'ln -sfn ../venom-live-setup.service' "$ROOT/scripts/build-venom-iso.sh" || fail "Link de inicialização do setup Live não é criado."
+grep -Fq 'VENOM_LIVE_SETUP_STARTED' "$B/airootfs/usr/local/lib/venom/venom-live-setup" || fail "Marcador de início do setup Live ausente."
 grep -Fq 'autologin root' "$B/airootfs/etc/systemd/system/getty@tty1.service.d/autologin.conf" || fail "Autologin tty1 ausente."
 grep -Fq 'user-session=xfce' "$B/airootfs/etc/lightdm/lightdm.conf.d/50-venom-live.conf" || fail "LightDM não inicia XFCE."
 
