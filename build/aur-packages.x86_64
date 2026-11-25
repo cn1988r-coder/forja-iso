@@ -1,6 +1,7 @@
 # Pacotes AUR compilados a partir de PKGBUILDs do Arch User Repository.
 libpamac-aur
 pamac-aur
+grub-btrfs
 
 bibata-cursor-theme
 papirus-folders-git
