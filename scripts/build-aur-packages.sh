@@ -28,8 +28,8 @@ build_aur_package() {
 while IFS= read -r package; do
   [[ -z "$package" || "$package" == \#* ]] && continue
   build_aur_package "$package"
-  if [[ "$package" == "libpamac-aur" ]]; then
-    pacman -U --noconfirm "$REPO"/libpamac-aur-*.pkg.tar.zst
+  if [[ "$package" == "libpamac-aur" || "$package" == "python-clickgen" ]]; then
+    pacman -U --noconfirm "$REPO"/"$package"-*.pkg.tar.zst
   fi
 done < "$(dirname "$0")/../build/aur-packages.x86_64"
 
