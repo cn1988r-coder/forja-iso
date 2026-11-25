@@ -7,7 +7,7 @@ set -Eeuo pipefail
 
 ROOT_DIR=${1:?Uso: $0 ROOT_DIR ROOT_DEVICE}
 ROOT_DEVICE=${2:?Uso: $0 ROOT_DIR ROOT_DEVICE}
-fail() { printf '[VENOM BTRFS] ERRO: %s\\n' "$*" >&2; exit 1; }
+fail() { printf '[VENOM BTRFS] ERRO: %s\n' "$*" >&2; exit 1; }
 
 [[ $EUID -eq 0 ]] || fail "execute como root"
 [[ -d "$ROOT_DIR/etc" && -d "$ROOT_DIR/boot" ]] || fail "raiz de destino inválida"
@@ -94,5 +94,5 @@ arch-chroot "$ROOT_DIR" grub-mkconfig -o /boot/grub/grub.cfg
 arch-chroot "$ROOT_DIR" systemctl enable cronie.service
 arch-chroot "$ROOT_DIR" systemctl enable grub-btrfsd.service
 
-printf '[VENOM BTRFS] Integração configurada: Timeshift + BTRFS + GRUB.\\n'
-printf '[VENOM BTRFS] Firefox, Pamac e Timeshift conferidos no sistema instalado.\\n'
+printf '[VENOM BTRFS] Integração configurada: Timeshift + BTRFS + GRUB.\n'
+printf '[VENOM BTRFS] Firefox, Pamac e Timeshift conferidos no sistema instalado.\n'
