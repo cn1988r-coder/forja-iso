@@ -2,6 +2,11 @@ name: Preparar ambiente Arch Linux
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/venom-os-xfce-stable
+    paths:
+      - ".github/workflows/preparar-ambiente-arch.yml"
 
 permissions:
   contents: read
