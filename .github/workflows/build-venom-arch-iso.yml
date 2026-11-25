@@ -53,7 +53,7 @@ jobs:
             --workdir /workspace \
             venom-os-arch-builder:latest \
             /bin/bash -lc '
-              ISO="$(find out -maxdepth 1 -type f -name "*.iso" -print -quit)"
+              ISO="$(find out -type f -name "*.iso" -print -quit)"
               set +e
               timeout 240s qemu-system-x86_64 -machine accel=tcg -m 4096 -smp 2 -vga std \
                 -cdrom "$ISO" -boot d -display none -serial file:bios-serial.log \
@@ -109,7 +109,7 @@ jobs:
         with:
           name: venom-os-arch-iso
           path: |
-            out/*.iso
-            out/*.sha256
+            out/**/*.iso
+            out/**/*.sha256
           if-no-files-found: error
           retention-days: 14
