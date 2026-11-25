@@ -59,9 +59,19 @@ def run():
     overlay_dir = config.get(
         "installOverlay", "/usr/share/venom/install-overlay"
     )
+    aur_packages_file = config.get(
+        "aurPackagesFile", "/usr/share/venom/aur-packages.x86_64"
+    )
+    pacman_config = config.get(
+        "pacmanConfig", "/usr/share/venom/pacman-install.conf"
+    )
     executable_files = config.get("executableFiles", [])
     if not os.path.isfile(packages_file):
         return ("Manifesto ausente", "Não foi encontrado o manifesto de instalação VENOM.")
+    if not os.path.isfile(aur_packages_file):
+        return ("Manifesto AUR ausente", "Não foi encontrado o manifesto de pacotes AUR.")
+    if not os.path.isfile(pacman_config):
+        return ("Configuração Pacman ausente", "Não foi encontrada a configuração do repositório AUR local.")
     if not os.path.isdir(overlay_dir):
         return ("Configuração ausente", "Não foi encontrado o overlay de instalação VENOM.")
 
@@ -86,13 +96,25 @@ def run():
             for line in stream
             if line.strip() and not line.lstrip().startswith("#")
         ]
+    with open(aur_packages_file, encoding="utf-8") as stream:
+        aur_packages = [
+            line.strip()
+            for line in stream
+            if line.strip() and not line.lstrip().startswith("#")
+        ]
     if not packages:
-        return ("Manifesto vazio", "A lista de pacotes de instalação VENOM está vazia.")
+        return ("Manifesto vazio", "A lista de pacotes oficiais VENOM está vazia.")
+    if not aur_packages:
+        return ("Manifesto AUR vazio", "A lista de pacotes AUR VENOM está vazia.")
 
+    # The temporary pacman configuration resolves the local AUR repository.
+    # It is not copied into the installed system's permanent pacman.conf.
     try:
-        libcalamares.utils.debug("VENOM: instalando pacotes oficiais com pacstrap em " + root)
+        libcalamares.utils.debug(
+            "VENOM: instalando pacotes oficiais e AUR locais com pacstrap em " + root
+        )
         subprocess.run(
-            ["pacstrap", "-K", "-C", "/usr/share/venom/pacman-install.conf", root, *packages],
+            ["pacstrap", "-K", "-C", pacman_config, root, *packages, *aur_packages],
             check=True,
         )
         os.makedirs(os.path.join(root, "etc"), exist_ok=True)
