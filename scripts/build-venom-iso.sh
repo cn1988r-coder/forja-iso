@@ -30,7 +30,7 @@ bash scripts/build-aur-packages.sh
 printf '[VENOM] Etapa 3/4: preparação do instalador Calamares e payload.\n'
 bash scripts/stage-installer-payload.sh
 
-printf '[VENOM] Etapa 4/5: teste gráfico do Calamares em Xvfb.\n'
+printf '[VENOM] Etapa 4/5: validação do payload Calamares antes do Archiso.\n'
 bash scripts/test-calamares-ui.sh
 
 printf '[VENOM] Etapa 5/5: geração da ISO com Archiso oficial.\n'
