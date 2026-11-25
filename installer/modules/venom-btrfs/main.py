@@ -8,6 +8,36 @@ import subprocess
 import libcalamares
 
 
+def resolve_block_device(source):
+    """Resolve UUID/LABEL specifications and accepts an existing /dev node."""
+    if source.startswith("/dev/"):
+        device = os.path.realpath(source)
+        if os.path.exists(device):
+            return device
+        raise RuntimeError("Dispositivo da raiz não existe: " + source)
+
+    if source.startswith("UUID="):
+        command = ["blkid", "-U", source[5:]]
+    elif source.startswith("LABEL="):
+        command = ["blkid", "-L", source[6:]]
+    elif source.startswith("PARTUUID="):
+        command = ["blkid", "-t", source, "-o", "device"]
+    elif source.startswith("PARTLABEL="):
+        command = ["blkid", "-t", source, "-o", "device"]
+    else:
+        raise RuntimeError("Identificador de dispositivo não reconhecido: " + source)
+
+    result = subprocess.run(
+        command, check=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    ).stdout.strip().splitlines()
+    if not result:
+        raise RuntimeError("Não foi possível resolver o dispositivo: " + source)
+    device = os.path.realpath(result[0])
+    if not os.path.exists(device):
+        raise RuntimeError("Dispositivo resolvido não existe: " + device)
+    return device
+
+
 def run():
     config = libcalamares.job.configuration
     root = libcalamares.globalstorage.value("rootMountPoint")
@@ -46,16 +76,7 @@ def run():
         return ("Script ausente", "O script de integração BTRFS não foi incluído na mídia live.")
 
     try:
-        device = subprocess.run(
-            ["findfs", root_source],
-            check=True,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        ).stdout.strip()
-        if not device:
-            raise RuntimeError("findfs não retornou o dispositivo da raiz BTRFS.")
-
+        device = resolve_block_device(root_source)
         libcalamares.utils.debug(
             "VENOM: aplicando integração BTRFS + Timeshift + GRUB ao Arch instalado."
         )
