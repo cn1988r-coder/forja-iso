@@ -35,6 +35,7 @@ required=(
   installer/settings.conf installer/modules/partition/partition.conf
   installer/modules/mount/mount.conf installer/modules/fstab/fstab.conf
   installer/modules/venominstall/main.py installer/modules/venominstall/venominstall.conf
+  installer/pacman-install.conf
   installer/modules/services-systemd/services-systemd.conf
   installer/branding/branding.desc installer/venom-installer.desktop
   scripts/build-venom-iso.sh scripts/build-aur-packages.sh scripts/stage-installer-payload.sh scripts/setup-xfce-windows-dark.sh
@@ -59,15 +60,14 @@ grep -Fq 'user-session=xfce' "$B/airootfs/etc/lightdm/lightdm.conf.d/50-venom-li
 for manifest in "$B/packages.x86_64" "$B/install-packages.x86_64"; do
   for package in xfce4 xfce4-whiskermenu-plugin xfce4-docklike-plugin \
     lightdm lightdm-gtk-greeter materia-gtk-theme papirus-icon-theme \
-    bibata-cursor-theme papirus-folders-git timeshift btrfs-progs grub-btrfs \
-    inotify-tools cronie; do
+    timeshift btrfs-progs inotify-tools cronie; do
     grep -Fxq "$package" "$manifest" || fail "$package ausente de $manifest"
   done
 done
 for manifest in "$B/packages.x86_64" "$B/install-packages.x86_64"; do
   grep -Fxq fastfetch "$manifest" || fail "Fastfetch ausente de $manifest"
 done
-for package in libpamac-aur pamac-aur bibata-cursor-theme papirus-folders-git; do
+for package in libpamac-aur pamac-aur grub-btrfs bibata-cursor-theme papirus-folders-git; do
   grep -Fxq "$package" "$B/aur-packages.x86_64" || fail "Pacote AUR ausente: $package"
 done
 
