@@ -59,6 +59,9 @@ RUN pacman -Syu --noconfirm && \
       shellcheck \
       qemu-system-x86 \
       edk2-ovmf \
+      xorg-server-xvfb \
+      xorg-xwininfo \
+      dbus \
     && pacman -Scc --noconfirm
 
 ARG BUILD_UID=1001
