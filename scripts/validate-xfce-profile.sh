@@ -5,6 +5,9 @@ set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 B="$ROOT/build"
 cd "$ROOT"
+
+PY_BIN="${PY_BIN:-$(command -v python3 || command -v python || true)}"
+[[ -n "$PY_BIN" ]] || { printf 'FALHA: Python não encontrado.\\n' >&2; exit 1; }
 fail(){ printf 'FALHA: %s
 ' "$*" >&2; exit 1; }
 need(){ [[ -s "$1" ]] || fail "Arquivo ausente/vazio: ${1#"$ROOT"/}"; }
