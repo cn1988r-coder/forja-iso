@@ -1,25 +1,32 @@
 # Instalador VENOM OS
 
-## Estado: protótipo de interface, não instalador funcional
+## Instalador utilizado
 
-A primeira estrutura GTK4 foi iniciada em C. Ela apresenta:
-- janela gráfica em Português do Brasil;
-- enumeração informativa de discos por `lsblk`;
-- seleção visual de disco;
-- escolha entre modo automático e personalizado;
-- aviso sobre operações destrutivas.
+A VENOM OS utiliza o **Calamares** como instalador gráfico. O payload é preparado por
+`scripts/stage-installer-payload.sh`, que compila uma versão fixada do Calamares,
+instala os módulos oficiais necessários e adiciona os módulos próprios da VENOM:
 
-## Bloqueios deliberados
+- `venominstall`: instalação do sistema e aplicação do overlay;
+- `venom-btrfs`: integração da configuração BTRFS e recuperação.
 
-O botão de instalação permanece sem operações de escrita. Não há backend de particionamento, formatação, cópia offline do sistema, criação de usuário, configuração de bootloader ou recuperação transacional. Nenhum disco pode ser alterado por esta versão.
+A configuração principal fica em `installer/settings.conf`, os módulos em
+`installer/modules/` e a identidade visual em `installer/branding/`.
 
-## Próximas etapas obrigatórias
+## Limites de validação
 
-1. Implementar backend privilegiado separado, com validação estrita dos dispositivos e argumentos.
-2. Definir e testar particionamento UEFI/BIOS e instalação automática/personalizada usando somente discos virtuais descartáveis.
-3. Implementar cópia offline do sistema da mídia para o destino, configuração de fstab, locale, ABNT2, MATE, LightDM, rede e GRUB.
-4. Adicionar progresso baseado em etapas reais, logs persistentes e tratamento de falhas.
-5. Criar testes unitários e de integração com mocks e loop devices/VM descartável.
-6. Integrar o aplicativo à sessão live e validar em VM antes de habilitar qualquer ação destrutiva.
+A validação do payload antes do Archiso verifica a presença do executável, do
+arquivo de configuração, do branding e dos módulos essenciais. Essa etapa não
+substitui um teste gráfico do Calamares no ambiente Live completo.
 
-Não habilitar instalação real nem declarar o instalador pronto antes de concluir e testar todas as etapas.
+Antes de declarar o instalador pronto, ainda é necessário testar em máquinas
+virtuais descartáveis, tanto em BIOS quanto em UEFI:
+
+1. abertura da interface gráfica;
+2. carregamento de todos os módulos e da identidade VENOM;
+3. particionamento e montagem BTRFS;
+4. instalação do sistema e criação do usuário;
+5. instalação e inicialização do GRUB;
+6. primeiro boot do sistema instalado.
+
+Nenhum teste deve usar discos com dados reais. A ISO só deve ser considerada
+aprovada para instalação depois que esses testes forem concluídos.

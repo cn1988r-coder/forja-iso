@@ -1,4 +1,4 @@
-name: VENOM OS XFCE | Validacao estatica
+name: VENOM OS | Validacao estatica
 
 on:
   push:
@@ -39,6 +39,7 @@ jobs:
           bash -n scripts/build-venom-iso.sh
           bash -n scripts/build-aur-packages.sh
           bash -n scripts/stage-installer-payload.sh
+          bash -n scripts/test-calamares-ui.sh
 
       - name: Validar perfil VENOM sem compilar ISO
         run: |
