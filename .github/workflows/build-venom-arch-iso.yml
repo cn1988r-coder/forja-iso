@@ -60,9 +60,16 @@ jobs:
                 -monitor none -no-reboot -no-shutdown
               STATUS=$?
               set -e
-              test "$STATUS" -eq 124
-              grep -Fq VENOM_LIVE_SETUP_STARTED bios-serial.log
-              grep -Fq VENOM_LIVE_READY bios-serial.log
+              if [[ "$STATUS" -ne 124 ]]; then
+                echo "[BIOS] QEMU terminou inesperadamente: status=$STATUS"
+                cat bios-serial.log || true
+                exit 1
+              fi
+              if ! grep -Fq VENOM_LIVE_SETUP_STARTED bios-serial.log || ! grep -Fq VENOM_LIVE_READY bios-serial.log; then
+                echo "[BIOS] Marcadores do ambiente Live ausentes. Log serial completo:"
+                cat bios-serial.log || true
+                exit 1
+              fi
             '
 
       - name: UEFI boot smoke test
@@ -85,9 +92,16 @@ jobs:
                 -monitor none -no-reboot -no-shutdown
               STATUS=$?
               set -e
-              test "$STATUS" -eq 124
-              grep -Fq VENOM_LIVE_SETUP_STARTED uefi-serial.log
-              grep -Fq VENOM_LIVE_READY uefi-serial.log
+              if [[ "$STATUS" -ne 124 ]]; then
+                echo "[UEFI] QEMU terminou inesperadamente: status=$STATUS"
+                cat uefi-serial.log || true
+                exit 1
+              fi
+              if ! grep -Fq VENOM_LIVE_SETUP_STARTED uefi-serial.log || ! grep -Fq VENOM_LIVE_READY uefi-serial.log; then
+                echo "[UEFI] Marcadores do ambiente Live ausentes. Log serial completo:"
+                cat uefi-serial.log || true
+                exit 1
+              fi
             '
 
       - name: Upload ISO and checksum
