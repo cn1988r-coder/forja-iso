@@ -12,6 +12,11 @@ for tool in xvfb-run dbus-run-session xwininfo timeout; do
   command -v "$tool" >/dev/null 2>&1 || { echo "Ferramenta de teste ausente: $tool" >&2; exit 1; }
 done
 
+# Ensure every mount target exists in the staged rootfs before mounting.
+# Minimal airootfs trees may not contain /tmp yet, which would make mount fail.
+install -d -m 1777 "$ROOTFS/tmp"
+install -d "$ROOTFS/dev" "$ROOTFS/proc" "$ROOTFS/sys" "$ROOTFS/run"
+
 # The chroot must see devices, procfs, sysfs, runtime sockets and the X11 socket.
 mount --bind /tmp "$ROOTFS/tmp"
 mount --rbind /dev "$ROOTFS/dev"
