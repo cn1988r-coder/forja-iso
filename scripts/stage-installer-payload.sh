@@ -21,6 +21,8 @@ install -d build/airootfs/usr/share/venom/aur-repo
 install -Dm755 installer/scripts/setup-arch-btrfs-timeshift-grub.sh build/airootfs/usr/share/venom/setup-arch-btrfs-timeshift-grub.sh
 cp -a "$AUR_REPO/." build/airootfs/usr/share/venom/aur-repo/
 install -Dm644 build/install-packages.x86_64 build/airootfs/usr/share/venom/install-packages.x86_64
+install -Dm644 build/aur-packages.x86_64 build/airootfs/usr/share/venom/aur-packages.x86_64
+install -Dm644 installer/pacman-install.conf build/airootfs/usr/share/venom/pacman-install.conf
 install -d build/airootfs/usr/share/venom/install-overlay
 cp -a build/install-overlay/. build/airootfs/usr/share/venom/install-overlay/
 
