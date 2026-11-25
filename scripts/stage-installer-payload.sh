@@ -18,6 +18,7 @@ AUR_REPO="${AUR_REPO:-/tmp/venom-aur-repo}"
 [[ -s "$AUR_REPO/venom-aur.db" ]] || { echo "Repositório AUR local não preparado." >&2; exit 1; }
 
 install -d build/airootfs/usr/share/venom/aur-repo
+install -Dm755 installer/scripts/setup-arch-btrfs-timeshift-grub.sh build/airootfs/usr/share/venom/setup-arch-btrfs-timeshift-grub.sh
 cp -a "$AUR_REPO/." build/airootfs/usr/share/venom/aur-repo/
 install -Dm644 build/install-packages.x86_64 build/airootfs/usr/share/venom/install-packages.x86_64
 install -d build/airootfs/usr/share/venom/install-overlay
@@ -45,10 +46,11 @@ install -Dm644 installer/settings.conf build/airootfs/etc/calamares/settings.con
 install -Dm644 installer/branding/branding.desc build/airootfs/usr/share/calamares/branding/venom/branding.desc
 install -d build/airootfs/usr/lib/calamares/modules
 cp -a installer/modules/venominstall build/airootfs/usr/lib/calamares/modules/
+cp -a installer/modules/venom-btrfs build/airootfs/usr/lib/calamares/modules/
 install -Dm644 installer/venom-installer.desktop build/airootfs/usr/share/applications/venom-installer.desktop
 
 install -d build/airootfs/etc/calamares/modules
-for module in bootloader displaymanager fstab grubcfg initcpiocfg keyboard locale localecfg mount partition services-systemd users venominstall; do
+for module in bootloader displaymanager fstab grubcfg initcpiocfg keyboard locale localecfg mount partition services-systemd users venominstall venom-btrfs; do
   install -Dm644 "installer/modules/$module/$module.conf" "build/airootfs/etc/calamares/modules/$module.conf"
 done
 
