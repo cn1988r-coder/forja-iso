@@ -90,15 +90,5 @@ noto-fonts
 ttf-dejavu
 ttf-roboto
 fastfetch
-
-# Pamac packages built from Arch AUR PKGBUILDs.
-libpamac-aur
-grub-btrfs
-pamac-aur
-
 materia-gtk-theme
 papirus-icon-theme
-bibata-cursor-theme
-papirus-folders-git
-
-
