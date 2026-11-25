@@ -1,64 +1,39 @@
 #!/usr/bin/env bash
-# Open the real staged Calamares UI in a virtual X server before ISO creation.
+# Validate the staged Calamares payload before Archiso installs the complete
+# runtime into its final airootfs. A GUI launch here is invalid: this tree does
+# not yet contain the Qt/KDE runtime packages installed later by mkarchiso.
 set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 ROOTFS="$ROOT/build/airootfs"
 LOG="$ROOT/out/calamares-ui.log"
 mkdir -p "$ROOT/out"
-[[ -x "$ROOTFS/usr/bin/calamares" ]] || { echo "Calamares ausente no rootfs." >&2; exit 1; }
-[[ -s "$ROOTFS/etc/calamares/settings.conf" ]] || { echo "settings.conf ausente." >&2; exit 1; }
 
-for tool in xvfb-run dbus-run-session xwininfo timeout; do
-  command -v "$tool" >/dev/null 2>&1 || { echo "Ferramenta de teste ausente: $tool" >&2; exit 1; }
+fail() { echo "[VENOM] ERRO: $*" >&2; exit 1; }
+
+[[ -x "$ROOTFS/usr/bin/calamares" ]] || fail "Executável do Calamares ausente no payload."
+[[ -s "$ROOTFS/etc/calamares/settings.conf" ]] || fail "settings.conf ausente."
+[[ -d "$ROOTFS/usr/lib/calamares/modules" ]] || fail "Diretório de módulos ausente."
+[[ -d "$ROOTFS/usr/share/calamares/branding/venom" ]] || fail "Branding VENOM ausente."
+
+# Confirm the staged ELF has a valid interpreter declaration. Do not execute
+# it in chroot yet: runtime libraries are installed by mkarchiso afterwards.
+command -v readelf >/dev/null 2>&1 || fail "readelf não encontrado."
+INTERP="$(readelf -l "$ROOTFS/usr/bin/calamares" | sed -n 's/.*Requesting program interpreter: \\(.*\\)]/\\1/p')"
+[[ -n "$INTERP" ]] || fail "Não foi possível identificar o interpretador ELF do Calamares."
+[[ -x "$INTERP" ]] || fail "Interpretador ELF ausente no container de build: $INTERP"
+
+# Check that the core modules configured by VENOM have actually been staged.
+for module in partition mount fstab users bootloader services-systemd; do
+  [[ -d "$ROOTFS/usr/lib/calamares/modules/$module" ]] || fail "Módulo Calamares ausente: $module"
 done
 
-# Ensure every mount target exists in the staged rootfs before mounting.
-# Minimal airootfs trees may not contain /tmp yet, which would make mount fail.
-install -d -m 1777 "$ROOTFS/tmp"
-install -d "$ROOTFS/dev" "$ROOTFS/proc" "$ROOTFS/sys" "$ROOTFS/run"
+{
+  echo "VENOM_CALAMARES_PAYLOAD_VALID"
+  echo "Executable: $ROOTFS/usr/bin/calamares"
+  echo "ELF interpreter: $INTERP"
+  echo "Configured settings: $ROOTFS/etc/calamares/settings.conf"
+  echo "Core modules: partition mount fstab users bootloader services-systemd"
+  echo "GUI launch deferred until the complete Archiso runtime exists."
+} | tee "$LOG"
 
-# The chroot must see devices, procfs, sysfs, runtime sockets and the X11 socket.
-mount --bind /tmp "$ROOTFS/tmp"
-mount --rbind /dev "$ROOTFS/dev"
-mount --make-rslave "$ROOTFS/dev"
-mount -t proc proc "$ROOTFS/proc"
-mount --rbind /sys "$ROOTFS/sys"
-mount --make-rslave "$ROOTFS/sys"
-mount --rbind /run "$ROOTFS/run"
-mount --make-rslave "$ROOTFS/run"
-cleanup() {
-  umount -R "$ROOTFS/run" 2>/dev/null || true
-  umount -R "$ROOTFS/sys" 2>/dev/null || true
-  umount "$ROOTFS/proc" 2>/dev/null || true
-  umount -R "$ROOTFS/dev" 2>/dev/null || true
-  umount "$ROOTFS/tmp" 2>/dev/null || true
-}
-trap cleanup EXIT
-
-export VENOM_ROOTFS="$ROOTFS" VENOM_LOG="$LOG"
-xvfb-run -a dbus-run-session -- bash -Eeuo pipefail -c '
-  chroot "$VENOM_ROOTFS" /usr/bin/calamares -d >"$VENOM_LOG" 2>&1 &
-  app_pid=$!
-  finish() {
-    kill "$app_pid" 2>/dev/null || true
-    wait "$app_pid" 2>/dev/null || true
-  }
-  trap finish EXIT
-  for attempt in $(seq 1 30); do
-    if ! kill -0 "$app_pid" 2>/dev/null; then
-      cat "$VENOM_LOG"
-      echo "Calamares encerrou antes de abrir a janela." >&2
-      exit 1
-    fi
-    if xwininfo -root -tree 2>/dev/null | grep -Eiq "Calamares|VENOM"; then
-      echo "VENOM_CALAMARES_WINDOW_OPEN"
-      exit 0
-    fi
-    sleep 1
-  done
-  cat "$VENOM_LOG"
-  xwininfo -root -tree || true
-  echo "A janela do Calamares não apareceu no Xvfb." >&2
-  exit 1
-'
-echo "[VENOM] Interface gráfica do Calamares abriu no Xvfb."
+echo "[VENOM] Payload do Calamares validado. O teste gráfico será feito no sistema Live completo."
