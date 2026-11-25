@@ -67,7 +67,7 @@ done
 for manifest in "$B/packages.x86_64" "$B/install-packages.x86_64"; do
   grep -Fxq fastfetch "$manifest" || fail "Fastfetch ausente de $manifest"
 done
-for package in libpamac-aur pamac-aur grub-btrfs bibata-cursor-theme papirus-folders-git; do
+for package in libpamac-aur pamac-aur grub-btrfs python-clickgen bibata-cursor-theme papirus-folders-git; do
   grep -Fxq "$package" "$B/aur-packages.x86_64" || fail "Pacote AUR ausente: $package"
 done
 
