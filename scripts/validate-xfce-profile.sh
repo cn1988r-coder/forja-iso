@@ -4,6 +4,7 @@
 set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 B="$ROOT/build"
+cd "$ROOT"
 fail(){ printf 'FALHA: %s
 ' "$*" >&2; exit 1; }
 need(){ [[ -s "$1" ]] || fail "Arquivo ausente/vazio: ${1#"$ROOT"/}"; }
@@ -14,16 +15,19 @@ required=(
   build/airootfs/etc/mkinitcpio.conf.d/archiso.conf
   build/airootfs/etc/locale.conf build/airootfs/etc/locale.gen
   build/airootfs/etc/vconsole.conf
+  build/airootfs/etc/systemd/system/getty@tty1.service.d/autologin.conf
   build/airootfs/usr/local/lib/venom/venom-live-setup
   build/airootfs/usr/local/lib/venom/venom-live-ready
   build/airootfs/etc/systemd/system/venom-live-setup.service
   build/airootfs/etc/systemd/system/venom-live-ready.service
   build/airootfs/etc/lightdm/lightdm.conf.d/50-venom-live.conf
   build/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
+  build/airootfs/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
   build/airootfs/etc/skel/.config/fastfetch/config.jsonc
   build/airootfs/etc/skel/.config/fastfetch/logo.txt
   build/airootfs/usr/share/icons/hicolor/scalable/apps/venom-menu.svg
   build/install-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
+  build/install-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
   build/install-overlay/etc/skel/.config/fastfetch/config.jsonc
   build/install-overlay/etc/skel/.config/fastfetch/logo.txt
   build/install-overlay/usr/share/icons/hicolor/scalable/apps/venom-menu.svg
@@ -46,7 +50,7 @@ for f in build/profiledef.sh \
   build/airootfs/usr/local/lib/venom/venom-live-setup \
   build/airootfs/usr/local/lib/venom/venom-live-ready \
   build/install-overlay/usr/local/lib/venom/configure-recovery \
-  scripts/build-venom-iso.sh scripts/build-aur-packages.sh scripts/stage-installer-payload.sh; do
+  scripts/build-venom-iso.sh scripts/build-aur-packages.sh scripts/stage-installer-payload.sh scripts/setup-xfce-windows-dark.sh; do
   bash -n "$ROOT/$f" || fail "Sintaxe Bash inválida: $f"
 done
 
@@ -81,7 +85,7 @@ for panel in \
   grep -Fq 'value="venom-menu"' "$panel" || fail "Ícone VENOM ausente: $panel"
   grep -Fq 'value="11"' "$panel" || fail "Docklike ausente: $panel"
   grep -Fq 'name="size" type="uint" value="40"' "$panel" || fail "Painel de 40 px ausente: $panel"
-  PANEL_FILE="$panel" python - <<'PY'
+  PANEL_FILE="$panel" "$PY_BIN" - <<'PY'
 import os
 import sys
 import xml.etree.ElementTree as ET
@@ -133,7 +137,7 @@ if grep -R -Eiq 'manjaro|endeavouros|biglinux|mhwd|Kora|Coral|Yaru-blue|adw-gtk3
   fail "Resíduo de outra base/tema não aprovado encontrado."
 fi
 
-python - <<'PY'
+"$PY_BIN" - <<'PY'
 import ast
 import json
 import xml.etree.ElementTree as ET
