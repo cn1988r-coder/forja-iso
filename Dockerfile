@@ -69,7 +69,7 @@ ARG BUILD_GID=1001
 
 RUN getent group "${BUILD_GID}" >/dev/null || groupadd --gid "${BUILD_GID}" builder; \
     useradd --create-home --uid "${BUILD_UID}" --gid "${BUILD_GID}" --groups wheel builder && \
-    printf 'builder ALL=(ALL) NOPASSWD: ALL\\n' > /etc/sudoers.d/builder && \
+    echo 'builder ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder && \
     chmod 0440 /etc/sudoers.d/builder
 
 WORKDIR /workspace
