@@ -33,6 +33,10 @@ bash scripts/stage-installer-payload.sh
 printf '[VENOM] Etapa 4/5: validação do payload Calamares antes do Archiso.\n'
 bash scripts/test-calamares-ui.sh
 
+printf '[VENOM] Ativando o serviço de preparação do ambiente Live no multi-user.target.\n'
+install -d -m 0755 build/airootfs/etc/systemd/system/multi-user.target.wants
+ln -sfn ../venom-live-setup.service build/airootfs/etc/systemd/system/multi-user.target.wants/venom-live-setup.service
+
 printf '[VENOM] Etapa 5/5: geração da ISO com Archiso oficial.\n'
 rm -rf out work
 mkdir -p out work
