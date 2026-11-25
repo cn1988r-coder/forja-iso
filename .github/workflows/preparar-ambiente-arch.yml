@@ -1,49 +1,26 @@
-name: Preparar máquina de compilação Arch Linux
+name: Preparar ambiente Arch Linux
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/venom-os-xfce-stable
-    paths:
-      - ".github/workflows/preparar-ambiente-arch.yml"
-      - "Dockerfile"
-      - "scripts/validate-xfce-profile.sh"
-      - "build/**"
-      - "installer/**"
 
 permissions:
   contents: read
 
 concurrency:
-  group: venom-arch-build-machine
+  group: venom-arch-environment
   cancel-in-progress: false
 
 jobs:
-  preparar-arch-docker:
-    name: Preparar ambiente Arch Linux para futura ISO
+  preparar-arch:
+    name: Criar ambiente temporário Arch Linux
     runs-on: ubuntu-latest
     timeout-minutes: 45
+
     steps:
       - name: Baixar repositório VENOM OS
         uses: actions/checkout@v4
 
-      - name: Verificar recursos do runner
-        run: |
-          set -euo pipefail
-          docker version
-          df -h "$GITHUB_WORKSPACE"
-          nproc
-          free -h
-
-      - name: Validar perfil VENOM sem compilar ISO
-        run: |
-          set -euo pipefail
-          python -m pip install --disable-pip-version-check PyYAML
-          bash -n scripts/validate-xfce-profile.sh
-          bash scripts/validate-xfce-profile.sh
-
-      - name: Construir imagem de ferramentas Arch Linux
+      - name: Preparar imagem Arch Linux
         run: |
           set -euo pipefail
           docker build --pull \
@@ -51,7 +28,7 @@ jobs:
             --build-arg BUILD_GID="$(id -g)" \
             -t venom-os-arch-builder:latest .
 
-      - name: Preparar e verificar ferramentas do ambiente
+      - name: Iniciar ambiente Arch Linux
         run: |
           set -euo pipefail
           docker run --rm \
@@ -59,11 +36,12 @@ jobs:
             --workdir /workspace \
             venom-os-arch-builder:latest \
             /bin/bash -lc '
-              set -euo pipefail
-              printf "VENOM OS: ambiente Arch Linux preparado.\\n"
-              pacman -Q archiso base-devel git squashfs-tools dosfstools libisoburn mtools grub efibootmgr rsync curl wget arch-install-scripts xorriso python python-pip btrfs-progs
-              printf "Arquitetura: "; uname -m
-              printf "Espaço disponível: "; df -h /workspace | tail -n 1
-              printf "Ambiente pronto para receber o perfil Arch da VENOM OS.\\n"
-              printf "Esta etapa NÃO compila nem gera a ISO.\\n"
+              printf "Ambiente Arch Linux da VENOM OS iniciado.\\n"
+              printf "Arquitetura: "
+              uname -m
+              printf "Diretório de trabalho: "
+              pwd
+              printf "Usuário do ambiente: "
+              whoami
+              printf "Ambiente temporário pronto. Nenhuma ISO será compilada.\\n"
             '
