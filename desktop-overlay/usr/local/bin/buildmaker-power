@@ -1,0 +1,10 @@
+#!/bin/sh
+# Accessible graphical power menu. Actions are confirmed by the desktop session.
+choice=$(zenity --list --title="Energia do sistema" --text="Escolha uma ação" --radiolist --column="" --column="Ação" TRUE "Cancelar" FALSE "Suspender" FALSE "Hibernar" FALSE "Reiniciar" FALSE "Desligar" 2>/dev/null) || exit 0
+case "$choice" in
+  "Suspender") systemctl suspend ;;
+  "Hibernar") systemctl hibernate ;;
+  "Reiniciar") systemctl reboot ;;
+  "Desligar") systemctl poweroff ;;
+  *) exit 0 ;;
+esac
