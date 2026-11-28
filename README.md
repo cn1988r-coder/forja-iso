@@ -1,21 +1,21 @@
-# BuildMaker - perfil Manjaro com Window Maker
+# BuildMaker
 
-Perfil de sistema Manjaro com Window Maker como gerenciador de janelas. A interface preserva o dock clássico em quadrados e acrescenta controles por mouse, painel inferior e monitoramento real.
+Perfil Manjaro com **Window Maker como gerenciador de janelas principal**. XFCE fornece apenas aplicativos auxiliares (terminal e monitor de processos), não é o ambiente de trabalho nem o gerenciador de janelas.
 
-## Escopo
-- Base Manjaro, Pamac, Firefox e Calamares.
-- Window Maker como sessão principal.
-- Dock nativo do Window Maker em quadrados; a configuração dos ícones ainda precisa ser concluída.
-- Painel inferior clicável para alternar janelas.
-- Controles de janela por mouse: pendentes de configuração e teste.
-- Paleta grafite/chumbo com azul elétrico, sem aparência metálica exagerada.
-- Configuração de acessibilidade para canhotos: pendente de implementação e teste.
+## Interface prevista
+- Identidade BuildMaker, sem marcas ou elementos visuais do Manjaro.
+- Window Maker como WM principal, preservando o dock nativo em quadrados.
+- Barra Tint2 inferior com botão V clicável, lista de janelas e bandeja do sistema.
+- Menu jgmenu categorizado, com aplicativos, configurações e energia.
+- Relógio digital e data no topo, com monitor Conky à direita (CPU, RAM, armazenamento, rede e processos).
+- Tema grafite com azul elétrico e prata, sem efeitos pesados.
+- Ação gráfica para energia e opção para habilitar mouse para canhotos.
 
-## Estrutura
-- `Packages-Desktop`: pacotes da sessão e aplicativos.
-- `profile.conf`: metadados do perfil Manjaro.
-- `desktop-overlay/`: configurações padrão da sessão live.
-- `scripts/`: configuração idempotente do desktop.
+## Arquivos principais
+- `Packages-Desktop`: dependências da sessão.
+- `profile.conf`: metadados do perfil.
+- `desktop-overlay/`: configurações padrão copiadas para o usuário live/instalado.
+- `scripts/`: preparação idempotente da sessão.
 
-## Limite importante
-Este commit prepara o perfil e os arquivos-base. A geração de uma ISO Manjaro exige um runner Linux com os Manjaro Tools, repositórios acessíveis e espaço de build. Não declare uma ISO compilada até o workflow terminar com sucesso e publicar o artefato.
+## Estado de validação
+As configurações e os lançadores estão preparados no perfil. Ainda é necessário testar a sessão em um servidor gráfico real: dock nativo e botões de janela do Window Maker, execução do jgmenu pelo botão V, bandeja, ações de energia, detecção de dispositivos de entrada e inicialização automática. Nenhuma ISO é declarada compilada ou testada neste estágio.
