@@ -19,7 +19,8 @@ PACKAGES=(
   lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings
   network-manager-applet pavucontrol blueman pipewire-pulse polkit-gnome
   pamac-gtk firefox calamares fastfetch
-  materia-gtk-theme papirus-icon-theme bibata-cursor-theme noto-fonts htop
+  papirus-icon-theme bibata-cursor-theme noto-fonts htop
+  git gtk-engine-murrine gnome-themes-extra sassc
 )
 pacman -Syu --needed --noconfirm "${PACKAGES[@]}"
 
@@ -29,7 +30,7 @@ mkdir -p "$CFG/gtk-3.0" "$CFG/gtk-4.0" "$CFG/xfce4/xfconf/xfce-perchannel-xml" /
 
 cat > "$CFG/gtk-3.0/settings.ini" <<'EOF'
 [Settings]
-gtk-theme-name=Materia-dark
+gtk-theme-name=Orchis-Dark
 gtk-icon-theme-name=Papirus-Dark
 gtk-cursor-theme-name=Bibata-Modern-Ice
 gtk-cursor-theme-size=24
@@ -140,7 +141,7 @@ cat > "$CFG/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" <<'EOF'
 EOF
 
 # Compact CPU/RAM monitor for the panel, refreshed every 3 seconds.
-install -d /usr/local/bin /usr/share/icons/hicolor/scalable/apps
+install -d /usr/local/bin /usr/share/icons/hicolor/scalable/apps /usr/share/themes
 cat > /usr/share/icons/hicolor/scalable/apps/buildmaker-v.svg <<'SVG'
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <defs>
@@ -158,6 +159,13 @@ cat > /usr/share/icons/hicolor/scalable/apps/buildmaker-v.svg <<'SVG'
   <path d="M27 34h19l18 43 18-43h19L71 98H57Z" fill="url(#blue)" stroke="#8bc8ff" stroke-width="2" stroke-linejoin="round"/>
   <path d="M27 34h19l18 43 18-43h19L71 98H57Z" fill="url(#shine)"/>
 SVG
+# Install the maintained Orchis theme in dark blue, with a compact, solid finish.
+if [[ ! -d /tmp/Orchis-theme/.git ]]; then
+  rm -rf /tmp/Orchis-theme
+  git clone --depth 1 https://github.com/vinceliuice/Orchis-theme.git /tmp/Orchis-theme
+fi
+/tmp/Orchis-theme/install.sh --dest /usr/share/themes --theme default --color dark --size standard --tweaks black primary submenu --round 8
+
 if command -v gtk-update-icon-cache >/dev/null 2>&1; then
   gtk-update-icon-cache -f /usr/share/icons/hicolor >/dev/null 2>&1 || true
 fi
@@ -191,6 +199,8 @@ set_prop() {
   xfconf-query -c "$channel" -p "$property" --create -t "$type" -s "$value" >/dev/null 2>&1 || true
 }
 # Branded launcher, comfortable menu size and readable icons.
+set_prop xsettings /Net/ThemeName string "Orchis-Dark"
+set_prop xfwm4 /general/theme string "Orchis-Dark"
 set_prop xfce4-panel /plugins/plugin-1/button-title string "BuildMaker"
 set_prop xfce4-panel /plugins/plugin-1/button-icon string "buildmaker-v"
 set_prop xfce4-panel /plugins/plugin-1/show-button-title bool false
@@ -222,7 +232,7 @@ EOF
 cat > /etc/lightdm/lightdm-gtk-greeter.conf <<'EOF'
 [greeter]
 background=#101216
-theme-name=Materia-dark
+theme-name=Orchis-Dark
 icon-theme-name=Papirus-Dark
 cursor-theme-name=Bibata-Modern-Ice
 font-name=Noto Sans 10
@@ -235,7 +245,7 @@ user-session=xfce
 EOF
 
 cat > /etc/profile.d/buildmaker-dark-theme.sh <<'EOF'
-export GTK_THEME=Materia-dark
+export GTK_THEME=Orchis-Dark
 export XCURSOR_THEME=Bibata-Modern-Ice
 export XCURSOR_SIZE=24
 EOF
