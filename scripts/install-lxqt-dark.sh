@@ -11,9 +11,9 @@ fi
 PACKAGES=(
   lxqt lxqt-panel lxqt-runner lxqt-session lxqt-config lxqt-about
   lxqt-powermanagement lxqt-policykit lxqt-notificationd lxqt-sudo
-  lxqt-archiver openbox pcmanfm-qt qterminal
+  lxqt-archiver lxqt-panel-profiles openbox pcmanfm-qt qterminal
   lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings
-  network-manager-applet pavucontrol-qt blueman pipewire-pulse polkit-gnome
+  network-manager-applet pavucontrol-qt blueman pipewire-pulse polkit-gnome libstatgrab
   pamac-gtk firefox calamares fastfetch
   materia-gtk-theme papirus-icon-theme bibata-cursor-theme kvantum qt5ct qt6ct noto-fonts
 )
@@ -54,7 +54,7 @@ cat > "$ROOT/.config/lxqt/panel.conf" <<'EOF'
 panels=panel1
 
 [panel1]
-plugins=fancymenu,taskbar,statusnotifier,tray,volume,networkmonitor,worldclock,showdesktop
+plugins=fancymenu,desktopswitch,quicklaunch,taskbar,sysstat,statusnotifier,tray,volume,networkmonitor,worldclock,showdesktop
 position=Bottom
 alignment=Left
 size=40
@@ -73,12 +73,24 @@ filterClear=true
 autoSel=true
 autoSelDelay=150
 
+[desktopswitch]
+type=desktopswitch
+alignment=Left
+
+[quicklaunch]
+type=quicklaunch
+alignment=Left
+
 [taskbar]
 type=taskbar
 alignment=Left
 buttonWidth=180
 closeOnMiddleClick=true
 groupingEnabled=true
+
+[sysstat]
+type=sysstat
+alignment=Right
 
 [statusnotifier]
 type=statusnotifier
