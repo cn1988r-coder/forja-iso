@@ -8,10 +8,10 @@ xfce4-terminal
 thunar
 zenity
 lxappearance
-obconf
 xorg-xinit
 xorg-server
 xorg-xrandr
+xorg-xinput
 xf86-input-libinput
 # System tray and desktop integration
 network-manager-applet
@@ -20,7 +20,7 @@ blueman
 xfce4-power-manager
 xfce4-notifyd
 polkit-gnome
-# Required Manjaro applications
+# Required applications
 pamac-gtk
 firefox
 calamares
