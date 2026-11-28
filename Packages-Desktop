@@ -1,37 +1,39 @@
-# Window Maker session and mouse-first desktop
-windowmaker
-wmakerconf
-tint2
-jgmenu
-conky
-xfce4-terminal
-thunar
-zenity
-lxappearance
-xorg-xinit
-xorg-server
-xorg-xrandr
-xorg-xinput
-xf86-input-libinput
-# System tray and desktop integration
+# LXQt desktop: light session, custom dark identity
+lxqt
+lxqt-panel
+lxqt-runner
+lxqt-session
+lxqt-config
+lxqt-about
+lxqt-powermanagement
+lxqt-policykit
+lxqt-notificationd
+lxqt-sudo
+lxqt-archiver
+openbox
+pcmanfm-qt
+qterminal
+# Display manager: XFCE-style GTK greeter, never SDDM
+lightdm
+lightdm-gtk-greeter
+lightdm-gtk-greeter-settings
+# System tray and hardware integration
 network-manager-applet
-pavucontrol
-volumeicon
+pavucontrol-qt
 blueman
-xfce4-power-manager
-xfce4-notifyd
+pipewire-pulse
 polkit-gnome
 # Required applications
 pamac-gtk
 firefox
 calamares
 fastfetch
-xfce4-taskmanager
-# System monitoring
-htop
-lm_sensors
-sysstat
-# Theme and icons
+# Modern dark visual system
 materia-gtk-theme
 papirus-icon-theme
 bibata-cursor-theme
+kvantum
+qt5ct
+qt6ct
+# Utilities
+htop
