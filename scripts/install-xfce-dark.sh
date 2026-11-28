@@ -168,6 +168,18 @@ set_prop xfwm4 /general/use_compositing bool false
 EOF
 chmod 0755 /usr/local/bin/buildmaker-xfce-first-login
 
+mkdir -p /etc/xdg/autostart
+cat > /etc/xdg/autostart/buildmaker-xfce-first-login.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=BuildMaker XFCE session setup
+Comment=Apply BuildMaker panel and menu preferences
+Exec=/usr/local/bin/buildmaker-xfce-first-login
+OnlyShowIn=XFCE;
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
+EOF
+
 cat > /etc/lightdm/lightdm-gtk-greeter.conf <<'EOF'
 [greeter]
 background=#101216
