@@ -10,6 +10,7 @@ lxqt-policykit
 lxqt-notificationd
 lxqt-sudo
 lxqt-archiver
+lxqt-panel-profiles
 openbox
 pcmanfm-qt
 qterminal
