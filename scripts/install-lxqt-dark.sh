@@ -227,17 +227,4 @@ if [[ -n "${SUDO_USER:-}" && "${SUDO_USER}" != root ]]; then
   fi
 fi
 
-# Add a visible shortcut to the native LXQt panel editor for easy customization.
-mkdir -p "$ROOT/.local/share/applications"
-cat > "$ROOT/.local/share/applications/buildmaker-panel-editor.desktop" <<'EOF'
-[Desktop Entry]
-Type=Application
-Name=Personalizar barra
-Comment=Adicionar, remover e reorganizar itens do painel LXQt
-Exec=lxqt-config-panel
-Icon=preferences-desktop
-Categories=Settings;DesktopSettings;
-Terminal=false
-EOF
-
 echo "BuildMaker LXQt Dark installed. Log out and select the LXQt session."
