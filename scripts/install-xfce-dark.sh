@@ -18,9 +18,11 @@ PACKAGES=(
   xfce4-docklike-plugin thunar thunar-archive-plugin thunar-volman
   lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings
   network-manager-applet pavucontrol blueman pipewire-pulse polkit-gnome
-  pamac-gtk firefox calamares fastfetch
-  papirus-icon-theme bibata-cursor-theme noto-fonts htop
-  git gtk-engine-murrine gnome-themes-extra sassc
+  pamac-gtk firefox calamares fastfetch htop git
+  networkmanager network-manager-applet bluez bluez-utils blueman
+  pipewire pipewire-alsa pipewire-pulse wireplumber
+  papirus-icon-theme bibata-cursor-theme noto-fonts
+  gtk-engine-murrine gnome-themes-extra sassc
 )
 pacman -Syu --needed --noconfirm "${PACKAGES[@]}"
 
@@ -258,6 +260,8 @@ chmod 0644 /etc/profile.d/buildmaker-dark-theme.sh
 
 systemctl disable sddm.service 2>/dev/null || true
 systemctl enable lightdm.service
+systemctl enable NetworkManager.service
+systemctl enable bluetooth.service
 
 # Seed the invoking desktop user's configuration when run through sudo.
 if [[ -n "${SUDO_USER:-}" && "${SUDO_USER}" != root ]]; then
