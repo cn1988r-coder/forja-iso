@@ -4,8 +4,8 @@ wmakerconf
 tint2
 jgmenu
 conky
+xfce4-terminal
 thunar
-xterm
 zenity
 lxappearance
 obconf
