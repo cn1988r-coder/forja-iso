@@ -1,33 +1,33 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# BuildMaker XFCE Dark. Idempotent profile setup for Manjaro/Arch.
+# BuildMaker XFCE Dark: install and seed a modern, lightweight XFCE desktop.
 if [[ $EUID -ne 0 ]]; then
   echo "Execute: sudo bash $0" >&2
   exit 1
 fi
+command -v pacman >/dev/null 2>&1 || {
+  echo "Este perfil requer Manjaro/Arch com pacman." >&2
+  exit 2
+}
 
 PACKAGES=(
   xfce4 xfce4-goodies xfce4-panel xfce4-session xfce4-settings
   xfce4-whiskermenu-plugin xfce4-pulseaudio-plugin xfce4-clipman-plugin
-  xfce4-notifyd xfce4-power-manager xfce4-taskmanager xfce4-panel-profiles
+  xfce4-notifyd xfce4-power-manager xfce4-taskmanager xfce4-genmon-plugin
   xfce4-docklike-plugin thunar thunar-archive-plugin thunar-volman
   lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings
   network-manager-applet pavucontrol blueman pipewire-pulse polkit-gnome
   pamac-gtk firefox calamares fastfetch
   materia-gtk-theme papirus-icon-theme bibata-cursor-theme noto-fonts htop
 )
-
-command -v pacman >/dev/null 2>&1 || {
-  echo "Este perfil requer Manjaro/Arch com pacman." >&2
-  exit 2
-}
 pacman -Syu --needed --noconfirm "${PACKAGES[@]}"
 
 SKEL=/etc/skel
-mkdir -p "$SKEL/.config/gtk-3.0" "$SKEL/.config/gtk-4.0" "$SKEL/.config/xfce4/xfconf/xfce-perchannel-xml" /etc/lightdm/lightdm.conf.d
+CFG="$SKEL/.config"
+mkdir -p "$CFG/gtk-3.0" "$CFG/gtk-4.0" "$CFG/xfce4/xfconf/xfce-perchannel-xml" /etc/lightdm/lightdm.conf.d
 
-cat > "$SKEL/.config/gtk-3.0/settings.ini" <<'EOF'
+cat > "$CFG/gtk-3.0/settings.ini" <<'EOF'
 [Settings]
 gtk-theme-name=Materia-dark
 gtk-icon-theme-name=Papirus-Dark
@@ -36,70 +36,63 @@ gtk-cursor-theme-size=24
 gtk-font-name=Noto Sans 10
 gtk-application-prefer-dark-theme=1
 EOF
-install -m 0644 "$SKEL/.config/gtk-3.0/settings.ini" "$SKEL/.config/gtk-4.0/settings.ini"
+install -m 0644 "$CFG/gtk-3.0/settings.ini" "$CFG/gtk-4.0/settings.ini"
 
-# A complete visual restyle for Whisker: dark floating surface, clear spacing,
-# blue selection and legible typography. This changes appearance, not the menu engine.
-cat > "$SKEL/.config/gtk-3.0/gtk.css" <<'EOF'
-/* BuildMaker application menu */
+# Modern, restrained styling for the launcher, panel and task buttons.
+cat > "$CFG/gtk-3.0/gtk.css" <<'EOF'
+/* BuildMaker XFCE Dark */
 #whiskermenu-window {
-  background-color: #11151c;
-  color: #e8edf5;
-  border: 1px solid #303b4b;
+  background: #111720;
+  color: #eaf0f8;
+  border: 1px solid #344256;
   border-radius: 12px;
 }
-#whiskermenu-window > box {
-  padding: 10px;
-  background-color: #11151c;
-}
+#whiskermenu-window > box { padding: 10px; background: #111720; }
 #whiskermenu-window entry {
-  color: #f2f5fa;
-  background-color: #1b222d;
-  border: 1px solid #354255;
-  border-radius: 8px;
-  min-height: 34px;
-  padding: 4px 10px;
+  color: #f4f7fb; background: #1b2634;
+  border: 1px solid #34465d; border-radius: 8px;
+  min-height: 36px; padding: 4px 10px;
 }
-#whiskermenu-window entry:focus {
-  border-color: #2583ff;
-  box-shadow: 0 0 0 1px #2583ff;
-}
+#whiskermenu-window entry:focus { border-color: #2583ff; }
 #whiskermenu-window treeview {
-  color: #dce5f2;
-  background-color: transparent;
-  border-radius: 7px;
+  color: #dce6f3; background: transparent; border-radius: 7px;
 }
 #whiskermenu-window treeview:hover,
 #whiskermenu-window treeview:selected {
-  color: #ffffff;
-  background-color: #1769d2;
+  color: #fff; background: #1769d2;
 }
 #whiskermenu-window button {
-  color: #dce5f2;
-  background-color: transparent;
+  color: #dce6f3; background: transparent;
+  border: 0; border-radius: 7px; padding: 7px;
+}
+#whiskermenu-window button:hover { color: #fff; background: #202e40; }
+#whiskermenu-window separator { background: #2c3a4d; }
+
+/* XFCE panel: dark glass-free surface, clear active-app highlight. */
+.xfce4-panel, #XfcePanelWindow {
+  background-color: #10151d;
+  color: #e7edf6;
+}
+.xfce4-panel button, #XfcePanelWindow button {
+  color: #dce5f1;
   border: 0;
   border-radius: 7px;
-  padding: 6px;
+  background-image: none;
+  box-shadow: none;
 }
-#whiskermenu-window button:hover {
-  color: #ffffff;
-  background-color: #202c3d;
+.xfce4-panel button:hover, #XfcePanelWindow button:hover {
+  background-color: #202c3b;
 }
-#whiskermenu-window separator {
-  background-color: #2a3544;
+.xfce4-panel button:checked, #XfcePanelWindow button:checked {
+  color: #fff;
+  background-color: #1a3556;
+  border-bottom: 2px solid #2583ff;
 }
 EOF
 
-cat > /etc/profile.d/buildmaker-dark-theme.sh <<'EOF'
-export GTK_THEME=Materia-dark
-export XCURSOR_THEME=Bibata-Modern-Ice
-export XCURSOR_SIZE=24
-EOF
-chmod 0644 /etc/profile.d/buildmaker-dark-theme.sh
-
-# XFCE panel: one full-width bottom panel, grouped application buttons.
-# xfconf settings are seeded for the live user's default profile.
-cat > "$SKEL/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" <<'EOF'
+# XFCE panel configuration: exactly one bottom panel, 46 px high.
+# Tasklist grouping keeps multiple Firefox windows under one application button.
+cat > "$CFG/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="xfce4-panel" version="1.0">
   <property name="panels" type="array">
@@ -112,11 +105,12 @@ cat > "$SKEL/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" <<'EOF'
       <property name="length-adjust" type="bool" value="false"/>
       <property name="position-locked" type="bool" value="true"/>
       <property name="size" type="uint" value="46"/>
+      <property name="icon-size" type="uint" value="22"/>
       <property name="background-style" type="uint" value="1"/>
       <property name="background-rgba" type="array">
         <value type="double" value="0.063"/>
-        <value type="double" value="0.071"/>
-        <value type="double" value="0.086"/>
+        <value type="double" value="0.082"/>
+        <value type="double" value="0.114"/>
         <value type="double" value="1.0"/>
       </property>
       <property name="plugin-ids" type="array">
@@ -136,15 +130,36 @@ cat > "$SKEL/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" <<'EOF'
     <property name="plugin-5" type="string" value="systray"/>
     <property name="plugin-6" type="string" value="pulseaudio"/>
     <property name="plugin-7" type="string" value="power-manager-plugin"/>
-    <property name="plugin-8" type="string" value="notification-plugin"/>
+    <property name="plugin-8" type="string" value="genmon"/>
     <property name="plugin-9" type="string" value="clock"/>
     <property name="plugin-10" type="string" value="showdesktop"/>
   </property>
 </channel>
 EOF
 
-# Configure Whisker as a branded, compact application launcher, not its stock look.
-# The GTK stylesheet above supplies the custom visual identity.
+# Compact CPU/RAM monitor for the panel, refreshed every 3 seconds.
+install -d /usr/local/bin
+cat > /usr/local/bin/buildmaker-system-monitor <<'EOF'
+#!/usr/bin/env bash
+set -eu
+read -r _ user nice system idle iowait irq softirq steal _ < /proc/stat
+total1=$((user+nice+system+idle+iowait+irq+softirq+steal))
+sleep 0.25
+read -r _ user nice system idle iowait irq softirq steal _ < /proc/stat
+total2=$((user+nice+system+idle+iowait+irq+softirq+steal))
+dt=$((total2-total1))
+di=$((idle+iowait))
+# Calculate utilization from the two snapshots.
+cpu=$(( dt > 0 ? 100 - ( ( (idle+iowait) - 0 ) * 100 / dt ) : 0 ))
+# Prefer a stable RAM percentage from /proc/meminfo.
+mem_total=$(awk '/MemTotal:/ {print $2}' /proc/meminfo)
+mem_avail=$(awk '/MemAvailable:/ {print $2}' /proc/meminfo)
+mem=$(( mem_total > 0 ? (mem_total-mem_avail)*100/mem_total : 0 ))
+printf 'CPU %s%%  RAM %s%%\n' "$cpu" "$mem"
+EOF
+chmod 0755 /usr/local/bin/buildmaker-system-monitor
+
+# Apply all first-login settings to the real XFCE session.
 cat > /usr/local/bin/buildmaker-xfce-first-login <<'EOF'
 #!/usr/bin/env bash
 set -eu
@@ -153,27 +168,32 @@ set_prop() {
   local channel="$1" property="$2" type="$3" value="$4"
   xfconf-query -c "$channel" -p "$property" --create -t "$type" -s "$value" >/dev/null 2>&1 || true
 }
-# Whisker button branding and proportions.
-set_prop xfce4-panel /plugins/plugin-1/button-title string "Aplicativos"
+# Branded launcher, comfortable menu size and readable icons.
+set_prop xfce4-panel /plugins/plugin-1/button-title string "BuildMaker"
 set_prop xfce4-panel /plugins/plugin-1/button-icon string "view-app-grid-symbolic"
 set_prop xfce4-panel /plugins/plugin-1/show-button-title bool false
 set_prop xfce4-panel /plugins/plugin-1/menu-width uint 560
 set_prop xfce4-panel /plugins/plugin-1/menu-height uint 520
 set_prop xfce4-panel /plugins/plugin-1/item-icon-size uint 2
 set_prop xfce4-panel /plugins/plugin-1/category-icon-size uint 2
-# One grouped task button per application; disable compositor/effects.
+# Group windows from the same application in one task button.
 set_prop xfce4-panel /plugins/plugin-3/grouping uint 1
 set_prop xfce4-panel /plugins/plugin-3/show-labels bool true
+# genmon presents live CPU and RAM figures in the panel.
+set_prop xfce4-panel /plugins/plugin-8/command string "/usr/local/bin/buildmaker-system-monitor"
+set_prop xfce4-panel /plugins/plugin-8/interval uint 3
+set_prop xfce4-panel /plugins/plugin-8/enable-single-row bool true
+# No compositor, shadows or desktop effects.
 set_prop xfwm4 /general/use_compositing bool false
 EOF
 chmod 0755 /usr/local/bin/buildmaker-xfce-first-login
 
-mkdir -p /etc/xdg/autostart
+install -d /etc/xdg/autostart
 cat > /etc/xdg/autostart/buildmaker-xfce-first-login.desktop <<'EOF'
 [Desktop Entry]
 Type=Application
 Name=BuildMaker XFCE session setup
-Comment=Apply BuildMaker panel and menu preferences
+Comment=Apply BuildMaker desktop preferences
 Exec=/usr/local/bin/buildmaker-xfce-first-login
 OnlyShowIn=XFCE;
 NoDisplay=true
@@ -195,17 +215,24 @@ greeter-session=lightdm-gtk-greeter
 user-session=xfce
 EOF
 
+cat > /etc/profile.d/buildmaker-dark-theme.sh <<'EOF'
+export GTK_THEME=Materia-dark
+export XCURSOR_THEME=Bibata-Modern-Ice
+export XCURSOR_SIZE=24
+EOF
+chmod 0644 /etc/profile.d/buildmaker-dark-theme.sh
+
 systemctl disable sddm.service 2>/dev/null || true
 systemctl enable lightdm.service
 
-# Seed GTK/XFCE defaults for the invoking desktop user, if any.
+# Seed the invoking desktop user's configuration when run through sudo.
 if [[ -n "${SUDO_USER:-}" && "${SUDO_USER}" != root ]]; then
   HOME_DIR="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
   if [[ -n "$HOME_DIR" && -d "$HOME_DIR" ]]; then
     mkdir -p "$HOME_DIR/.config"
-    cp -a "$SKEL/.config/." "$HOME_DIR/.config/"
+    cp -a "$CFG/." "$HOME_DIR/.config/"
     chown -R "$SUDO_USER:$SUDO_USER" "$HOME_DIR/.config"
   fi
 fi
 
-echo "BuildMaker XFCE Dark configurado. A sessão gráfica ainda precisa ser validada."
+echo "BuildMaker XFCE Dark instalado. Validar a sessão gráfica e a ISO antes de aprovar o visual."
