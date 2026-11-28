@@ -1,11 +1,11 @@
 # BuildMaker: bottom panel with a visible V menu button
-# Background 1: graphite panel and inactive task buttons
+# Background 1
 rounded = 5
 border_width = 1
 background_color = #111923 96
 border_color = #315a78 90
 
-# Background 2: active controls and selected window
+# Background 2
 rounded = 5
 border_width = 1
 background_color = #174D70 100
