@@ -1,21 +1,22 @@
-# BuildMaker
+# BuildMaker LXQt Dark
 
-Perfil Manjaro com **Window Maker como gerenciador de janelas principal**. XFCE fornece apenas aplicativos auxiliares (terminal e monitor de processos), não é o ambiente de trabalho nem o gerenciador de janelas.
+Perfil Manjaro/Arch com **LXQt** como ambiente principal e Openbox como gerenciador de janelas leve. Não instala KDE Plasma, SDDM, XFCE ou MATE como ambientes.
 
-## Interface prevista
-- Identidade BuildMaker, sem marcas ou elementos visuais do Manjaro.
-- Window Maker como WM principal, preservando o dock nativo em quadrados.
-- Barra Tint2 inferior com botão V clicável, lista de janelas e bandeja do sistema.
-- Menu jgmenu categorizado, com aplicativos, configurações e energia.
-- Relógio digital e data no topo, com monitor Conky à direita (CPU, RAM, armazenamento, rede e processos).
-- Tema grafite com azul elétrico e prata, sem efeitos pesados.
-- Ação gráfica para energia e opção para habilitar mouse para canhotos.
+## Interface pronta no perfil
+- Painel LXQt inferior, largura total e 40 px, com Fancy Menu, lista de janelas, bandeja, volume, rede, relógio e mostrar área de trabalho.
+- Menu nativo Fancy Menu com pesquisa, categorias e favoritos, usando os lançadores .desktop instalados.
+- Tema GTK Materia-dark, estilo Qt Kvantum/KvArcDark, ícones Papirus-Dark e cursor Bibata-Modern-Ice.
+- LightDM com LightDM GTK Greeter, fundo grafite escuro. SDDM desabilitado.
+- Sem compositor, blur, transparência ou animações pesadas.
+- Pamac, Firefox e Calamares incluídos no perfil.
 
-## Arquivos principais
-- `Packages-Desktop`: dependências da sessão.
-- `profile.conf`: metadados do perfil.
-- `desktop-overlay/`: configurações padrão copiadas para o usuário live/instalado.
-- `scripts/`: preparação idempotente da sessão.
+## Arquivos
+- `Packages-Desktop`: dependências do desktop.
+- `profile.conf`: metadados LXQt.
+- `desktop-overlay/etc/skel/`: configurações padrão da sessão live e de novos usuários.
+- `scripts/install-lxqt-dark.sh`: aplicação idempotente do perfil em Manjaro/Arch.
 
-## Estado de validação
-As configurações e os lançadores estão preparados no perfil. Ainda é necessário testar a sessão em um servidor gráfico real: dock nativo e botões de janela do Window Maker, execução do jgmenu pelo botão V, bandeja, ações de energia, detecção de dispositivos de entrada e inicialização automática. Nenhuma ISO é declarada compilada ou testada neste estágio.
+## Aplicar
+`sudo bash scripts/install-lxqt-dark.sh`
+
+O script instala os pacotes, configura o LightDM GTK Greeter e semeia as configurações do desktop. A ISO ainda precisa ser compilada e a sessão precisa passar por teste gráfico real antes de ser declarada validada.
