@@ -42,13 +42,69 @@ EOF
 install -m 0644 "$ROOT/.config/gtk-3.0/settings.ini" "$ROOT/.config/gtk-4.0/settings.ini"
 
 cat > "$ROOT/.config/lxqt/session.conf" <<'EOF'
-[Session]
+[General]
 window_manager=openbox
+EOF
+
+cat > "$ROOT/.config/lxqt/panel.conf" <<'EOF'
+panels=panel1
+
+[panel1]
+plugins=fancymenu,taskbar,statusnotifier,tray,volume,networkmonitor,worldclock,showdesktop
+position=Bottom
+alignment=Left
+size=40
+length=100
+desktop=0
+opacity=100
+background-color=#101216
+font-color=#e8edf5
+hidable=false
+animation-duration=0
+
+[fancymenu]
+type=fancymenu
+alignment=Left
+filterClear=true
+autoSel=true
+autoSelDelay=150
+
+[taskbar]
+type=taskbar
+alignment=Left
+buttonWidth=180
+closeOnMiddleClick=true
+groupingEnabled=true
+
+[statusnotifier]
+type=statusnotifier
+alignment=Right
+
+[tray]
+type=tray
+alignment=Right
+
+[volume]
+type=volume
+device=0
+alignment=Right
+
+[networkmonitor]
+type=networkmonitor
+alignment=Right
+
+[worldclock]
+type=worldclock
+alignment=Right
+
+[showdesktop]
+type=showdesktop
+alignment=Right
 EOF
 # LXQt session environment: force consistent dark Qt and GTK appearance.
 cat > /etc/profile.d/buildmaker-dark-theme.sh <<'EOF'
 export GTK_THEME=Materia-dark
-export QT_QPA_PLATFORMTHEME=qt5ct
+export QT_QPA_PLATFORMTHEME=qt6ct
 export QT_STYLE_OVERRIDE=kvantum
 export XCURSOR_THEME=Bibata-Modern-Ice
 export XCURSOR_SIZE=24
@@ -68,7 +124,7 @@ install -m 0644 "$ROOT/.config/qt5ct/qt5ct.conf" "$ROOT/.config/qt6ct/qt6ct.conf
 
 cat > "$ROOT/.config/Kvantum/kvantum.kvconfig" <<'EOF'
 [General]
-theme=MateriaDark
+theme=KvArcDark
 EOF
 
 cat > "$ROOT/.config/openbox/rc.xml" <<'EOF'
