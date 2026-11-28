@@ -57,7 +57,7 @@ panels=panel1
 plugins=fancymenu,desktopswitch,quicklaunch,taskbar,sysstat,statusnotifier,tray,volume,networkmonitor,worldclock,showdesktop
 position=Bottom
 alignment=Left
-size=40
+size=46
 length=100
 desktop=0
 opacity=100
@@ -84,9 +84,11 @@ alignment=Left
 [taskbar]
 type=taskbar
 alignment=Left
-buttonWidth=180
+buttonWidth=190
+buttonStyle=IconText
 closeOnMiddleClick=true
 groupingEnabled=true
+showGroupOnHover=true
 
 [sysstat]
 type=sysstat
