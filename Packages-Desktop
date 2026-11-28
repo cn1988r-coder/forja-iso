@@ -21,6 +21,8 @@ polkit-gnome
 pamac-gtk
 firefox
 calamares
+fastfetch
+xfce4-taskmanager
 # System monitoring
 htop
 lm_sensors
