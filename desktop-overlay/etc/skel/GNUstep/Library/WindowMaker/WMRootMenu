@@ -1,0 +1,25 @@
+"BuildMaker" MENU
+  "Aplicativos" MENU
+    "Firefox" EXEC firefox
+    "Pamac" EXEC pamac-manager
+    "Monitor do sistema" EXEC xfce4-taskmanager
+    "Configurações" MENU
+      "Aparência" EXEC lxappearance
+      "Áudio" EXEC pavucontrol
+      "Rede" EXEC nm-connection-editor
+      "Bluetooth" EXEC blueman-manager
+      "Gerenciador de janelas" EXEC wmaker
+    "Configurações" END
+  "Aplicativos" END
+  "Sistema" MENU
+    "Informações do sistema" EXEC xterm -e fastfetch
+    "Processos" EXEC xterm -e htop
+    "Atualizações / Pamac" EXEC pamac-manager
+  "Sistema" END
+  "Energia" MENU
+    "Suspender" EXEC systemctl suspend
+    "Hibernar" EXEC systemctl hibernate
+    "Reiniciar" EXEC systemctl reboot
+    "Desligar" EXEC systemctl poweroff
+  "Energia" END
+"BuildMaker" END
