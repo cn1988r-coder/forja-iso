@@ -1,2 +1,0 @@
-#!/bin/sh
-wbar -above-desk -pos left -isize 48 -zoomf 1.15 -balfa 65 -falfa 100 -vbar -nanim 3 -j 1 -idist 8 -jumpf 1.5 -config "$HOME/.config/wbar/wbar.cfg"
