@@ -20,7 +20,7 @@
     "Rede" EXEC nm-connection-editor
     "Bluetooth" EXEC blueman-manager
     "Mouse para canhotos" EXEC /usr/local/bin/buildmaker-mouse
-    "Gerenciador de janelas" EXEC wmaker
+    "Preferências do Window Maker" EXEC WPrefs
   "Configurações" END
   "Energia" EXEC /usr/local/bin/buildmaker-power
   "Sair da sessão" EXIT
