@@ -1,23 +1,51 @@
-# BuildMaker bottom taskbar: mouse-operated window list and system tray
-panel_items = TSC
+# BuildMaker: mouse-first bottom panel with a visible V menu button
+# P=launcher button, T=window taskbar, S=system tray
+panel_items = PTS
 panel_monitor = all
 panel_position = bottom center horizontal
-panel_size = 100% 38
+panel_size = 100% 40
 panel_margin = 0 0
 panel_padding = 6 3 6
-font_shadow = 0
+panel_background_id = 1
+panel_dock = 0
+panel_layer = top
+panel_shrink = 0
+autohide = 0
+strut_policy = follow_size
+
+# V launcher opens the categorized application menu
+button = new
+button_text = V
+button_tooltip = Menu BuildMaker
+button_font = DejaVu Sans:bold 16
+button_font_color = #65C8FF 100
+button_background_id = 2
+button_centered = 1
+button_padding = 10 2 8
+button_max_icon_size = 24
+button_lclick_command = jgmenu_run
+button_rclick_command = /usr/local/bin/buildmaker-power
+
+# Panel palette: graphite with restrained electric-blue accents
 rounded = 5
 border_width = 1
-background_color = #111923 92
-border_color = #315a78 85
+background_color = #111923 96
+border_color = #315a78 90
+font_shadow = 0
+
+# Window list: left aligned immediately after the V button
 taskbar_mode = multi_desktop
 taskbar_padding = 4 2 4
+taskbar_background_id = 1
+taskbar_active_background_id = 2
 task_icon_size = 22
 task_text = 1
 task_centered = 0
-task_maximum_size = 220 32
-task_background_id = 1
-task_active_background_id = 2
+task_maximum_size = 220 34
 mouse_left = toggle
 mouse_middle = close
 mouse_right = none
+
+# System tray
+systray_padding = 5 2 5
+systray_icon_size = 22
