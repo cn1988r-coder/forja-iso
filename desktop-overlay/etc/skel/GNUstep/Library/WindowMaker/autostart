@@ -1,6 +1,17 @@
 #!/bin/sh
-# Window Maker session startup. Commands are optional and start only once.
-command -v tint2 >/dev/null 2>&1 && (pgrep -x tint2 >/dev/null || tint2) &
-command -v conky >/dev/null 2>&1 && (pgrep -x conky >/dev/null || conky -c "$HOME/.config/conky/conky.conf") &
-command -v conky >/dev/null 2>&1 && (pgrep -f 'conky -c .*clock.conf' >/dev/null || conky -c "$HOME/.config/conky/clock.conf") &
+# Start the lightweight panel, system monitors and tray applets once per session.
+start_once() {
+  command -v "$1" >/dev/null 2>&1 || return 0
+  process="$1"
+  shift
+  pgrep -x "$process" >/dev/null 2>&1 || "$@" >/dev/null 2>&1 &
+}
+start_once tint2 tint2
+start_once conky conky -c "$HOME/.config/conky/conky.conf"
+pgrep -f 'conky -c .*clock.conf' >/dev/null 2>&1 || conky -c "$HOME/.config/conky/clock.conf" >/dev/null 2>&1 &
+start_once nm-applet nm-applet
+start_once blueman-applet blueman-applet
+start_once volumeicon volumeicon
+start_once xfce4-power-manager xfce4-power-manager
+start_once polkit-gnome-authentication-agent-1 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 exit 0
