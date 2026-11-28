@@ -1,34 +1,53 @@
 # BuildMaker XFCE Dark
+# Desktop, session, panel and dock
 xfce4
 xfce4-goodies
 xfce4-panel
 xfce4-session
 xfce4-settings
 xfce4-whiskermenu-plugin
+xfce4-docklike-plugin
+xfce4-genmon-plugin
 xfce4-pulseaudio-plugin
 xfce4-clipman-plugin
 xfce4-notifyd
 xfce4-power-manager
 xfce4-taskmanager
 xfce4-panel-profiles
-xfce4-docklike-plugin
 thunar
 thunar-archive-plugin
 thunar-volman
+
+# Login and hardware integration
 lightdm
 lightdm-gtk-greeter
 lightdm-gtk-greeter-settings
+networkmanager
 network-manager-applet
-pavucontrol
+bluez
+bluez-utils
 blueman
+
+# Audio
+pipewire
+pipewire-alsa
 pipewire-pulse
+wireplumber
+pavucontrol
+
+# System and applications
 polkit-gnome
 pamac-gtk
 firefox
 calamares
 fastfetch
-materia-gtk-theme
+htop
+git
+
+# Theme dependencies and assets
+gtk-engine-murrine
+gnome-themes-extra
+sassc
 papirus-icon-theme
 bibata-cursor-theme
 noto-fonts
-htop
