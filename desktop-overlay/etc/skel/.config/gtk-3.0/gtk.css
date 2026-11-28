@@ -1,0 +1,39 @@
+/* BuildMaker XFCE Dark */
+#whiskermenu-window {
+  background: #111720;
+  color: #eaf0f8;
+  border: 1px solid #344256;
+  border-radius: 12px;
+}
+#whiskermenu-window > box { padding: 10px; background: #111720; }
+#whiskermenu-window entry {
+  color: #f4f7fb; background: #1b2634;
+  border: 1px solid #34465d; border-radius: 8px;
+  min-height: 36px; padding: 4px 10px;
+}
+#whiskermenu-window entry:focus { border-color: #2583ff; }
+#whiskermenu-window treeview { color: #dce6f3; background: transparent; }
+#whiskermenu-window treeview:hover,
+#whiskermenu-window treeview:selected {
+  color: #fff; background: #1769d2;
+}
+#whiskermenu-window button {
+  color: #dce6f3; background: transparent;
+  border: 0; border-radius: 7px; padding: 7px;
+}
+#whiskermenu-window button:hover { color: #fff; background: #202e40; }
+.xfce4-panel, #XfcePanelWindow {
+  background-color: #10151d;
+  color: #e7edf6;
+}
+.xfce4-panel button, #XfcePanelWindow button {
+  color: #dce5f1; border: 0; border-radius: 7px;
+  background-image: none; box-shadow: none;
+}
+.xfce4-panel button:hover, #XfcePanelWindow button:hover {
+  background-color: #202c3b;
+}
+.xfce4-panel button:checked, #XfcePanelWindow button:checked {
+  color: #fff; background-color: #1a3556;
+  border-bottom: 2px solid #2583ff;
+}
