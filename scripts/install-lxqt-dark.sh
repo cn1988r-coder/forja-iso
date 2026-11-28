@@ -184,7 +184,7 @@ EOF
 # Set LightDM GTK Greeter as the only display manager; never enable SDDM.
 mkdir -p /etc/lightdm
 cat > /etc/lightdm/lightdm-gtk-greeter.conf <<'EOF'
-[ greeter ]
+[greeter]
 background=#101216
 theme-name=Materia-dark
 icon-theme-name=Papirus-Dark
