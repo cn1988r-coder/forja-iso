@@ -16,6 +16,7 @@ xf86-input-libinput
 # System tray and desktop integration
 network-manager-applet
 pavucontrol
+volumeicon
 blueman
 xfce4-power-manager
 xfce4-notifyd
