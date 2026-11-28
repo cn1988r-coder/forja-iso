@@ -1,22 +1,22 @@
-# BuildMaker LXQt Dark
+# BuildMaker XFCE Dark
 
-Perfil Manjaro/Arch com **LXQt** como ambiente principal e Openbox como gerenciador de janelas leve. Não instala KDE Plasma, SDDM, XFCE ou MATE como ambientes.
+Perfil Manjaro/Arch com **XFCE** como ambiente principal e LightDM GTK Greeter para a tela de login.
 
-## Interface pronta no perfil
-- Painel LXQt inferior, largura total e 40 px, com Fancy Menu, lista de janelas, bandeja, volume, rede, relógio e mostrar área de trabalho.
-- Menu nativo Fancy Menu com pesquisa, categorias e favoritos, usando os lançadores .desktop instalados.
-- Tema GTK Materia-dark, estilo Qt Kvantum/KvArcDark, ícones Papirus-Dark e cursor Bibata-Modern-Ice.
-- LightDM com LightDM GTK Greeter, fundo grafite escuro. SDDM desabilitado.
-- Sem compositor, blur, transparência ou animações pesadas.
+## Interface
+- Painel único inferior, largura total, 46 px de altura, fundo grafite e detalhes azul elétrico.
+- Menu Whisker à esquerda, lançadores rápidos e lista de janelas agrupada por aplicativo. Duas janelas do mesmo programa ficam em um único botão agrupado.
+- Monitor do sistema, bandeja, volume, rede, Bluetooth, energia, relógio e mostrar área de trabalho.
+- Tema Materia-dark, ícones Papirus-Dark e cursor Bibata-Modern-Ice tamanho 24.
+- Sem transparências, blur ou animações pesadas.
 - Pamac, Firefox e Calamares incluídos no perfil.
 
+## Personalização
+Use o botão direito na barra para abrir **Painel > Adicionar novos itens**, remover itens ou abrir **Painel > Preferências do painel**. Os itens podem ser movidos e reorganizados graficamente. A lista de janelas usa agrupamento por aplicativo.
+
 ## Arquivos
-- `Packages-Desktop`: dependências do desktop.
-- `profile.conf`: metadados LXQt.
-- `desktop-overlay/etc/skel/`: configurações padrão da sessão live e de novos usuários.
-- `scripts/install-lxqt-dark.sh`: aplicação idempotente do perfil em Manjaro/Arch.
+- `Packages-Desktop`: dependências.
+- `profile.conf`: metadados do perfil XFCE.
+- `scripts/install-xfce-dark.sh`: instalação e configuração padrão.
+- `desktop-overlay/etc/skel/`: preferências iniciais de novos usuários.
 
-## Aplicar
-`sudo bash scripts/install-lxqt-dark.sh`
-
-O script instala os pacotes, configura o LightDM GTK Greeter e semeia as configurações do desktop. A ISO ainda precisa ser compilada e a sessão precisa passar por teste gráfico real antes de ser declarada validada.
+A ISO ainda precisa ser compilada e testada em sessão gráfica real antes de ser declarada validada.
