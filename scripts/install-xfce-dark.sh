@@ -91,7 +91,7 @@ cat > "$CFG/gtk-3.0/gtk.css" <<'EOF'
 EOF
 
 # XFCE panel configuration: exactly one bottom panel, 46 px high.
-# Tasklist grouping keeps multiple Firefox windows under one application button.
+# Docklike keeps windows from the same application under one task button.
 cat > "$CFG/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="xfce4-panel" version="1.0">
@@ -176,8 +176,6 @@ set_prop xfce4-panel /plugins/plugin-1/menu-width uint 560
 set_prop xfce4-panel /plugins/plugin-1/menu-height uint 520
 set_prop xfce4-panel /plugins/plugin-1/item-icon-size uint 2
 set_prop xfce4-panel /plugins/plugin-1/category-icon-size uint 2
-# Docklike groups windows from the same application into one task button.
-set_prop xfce4-panel /plugins/plugin-3/grouping uint 1
 # genmon presents live CPU and RAM figures in the panel.
 set_prop xfce4-panel /plugins/plugin-8/command string "/usr/local/bin/buildmaker-system-monitor"
 set_prop xfce4-panel /plugins/plugin-8/period uint 3
