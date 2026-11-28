@@ -5,11 +5,11 @@ Perfil de sistema Manjaro com Window Maker como gerenciador de janelas. A interf
 ## Escopo
 - Base Manjaro, Pamac, Firefox e Calamares.
 - Window Maker como sessão principal.
-- Dock lateral com lançadores e indicadores de CPU, RAM, disco e rede.
+- Dock nativo do Window Maker em quadrados; a configuração dos ícones ainda precisa ser concluída.
 - Painel inferior clicável para alternar janelas.
-- Controles de janela por mouse: minimizar, maximizar/restaurar e fechar.
+- Controles de janela por mouse: pendentes de configuração e teste.
 - Paleta grafite/chumbo com azul elétrico, sem aparência metálica exagerada.
-- Configuração de acessibilidade para canhotos, com dock e controles reposicionados.
+- Configuração de acessibilidade para canhotos: pendente de implementação e teste.
 
 ## Estrutura
 - `Packages-Desktop`: pacotes da sessão e aplicativos.
