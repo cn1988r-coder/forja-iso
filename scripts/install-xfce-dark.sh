@@ -142,16 +142,16 @@ install -d /usr/local/bin
 cat > /usr/local/bin/buildmaker-system-monitor <<'EOF'
 #!/usr/bin/env bash
 set -eu
-read -r _ user nice system idle iowait irq softirq steal _ < /proc/stat
-total1=$((user+nice+system+idle+iowait+irq+softirq+steal))
+read -r _ u1 n1 s1 i1 w1 q1 sq1 st1 _ < /proc/stat
+total1=$((u1+n1+s1+i1+w1+q1+sq1+st1))
+idle1=$((i1+w1))
 sleep 0.25
-read -r _ user nice system idle iowait irq softirq steal _ < /proc/stat
-total2=$((user+nice+system+idle+iowait+irq+softirq+steal))
+read -r _ u2 n2 s2 i2 w2 q2 sq2 st2 _ < /proc/stat
+total2=$((u2+n2+s2+i2+w2+q2+sq2+st2))
+idle2=$((i2+w2))
 dt=$((total2-total1))
-di=$((idle+iowait))
-# Calculate utilization from the two snapshots.
-cpu=$(( dt > 0 ? 100 - ( ( (idle+iowait) - 0 ) * 100 / dt ) : 0 ))
-# Prefer a stable RAM percentage from /proc/meminfo.
+di=$((idle2-idle1))
+cpu=$(( dt > 0 ? 100-(di*100/dt) : 0 ))
 mem_total=$(awk '/MemTotal:/ {print $2}' /proc/meminfo)
 mem_avail=$(awk '/MemAvailable:/ {print $2}' /proc/meminfo)
 mem=$(( mem_total > 0 ? (mem_total-mem_avail)*100/mem_total : 0 ))
