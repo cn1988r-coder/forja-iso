@@ -125,7 +125,7 @@ cat > "$CFG/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" <<'EOF'
   <property name="plugins" type="empty">
     <property name="plugin-1" type="string" value="whiskermenu"/>
     <property name="plugin-2" type="string" value="separator"/>
-    <property name="plugin-3" type="string" value="tasklist"/>
+    <property name="plugin-3" type="string" value="docklike"/>
     <property name="plugin-4" type="string" value="separator"/>
     <property name="plugin-5" type="string" value="systray"/>
     <property name="plugin-6" type="string" value="pulseaudio"/>
@@ -176,13 +176,12 @@ set_prop xfce4-panel /plugins/plugin-1/menu-width uint 560
 set_prop xfce4-panel /plugins/plugin-1/menu-height uint 520
 set_prop xfce4-panel /plugins/plugin-1/item-icon-size uint 2
 set_prop xfce4-panel /plugins/plugin-1/category-icon-size uint 2
-# Group windows from the same application in one task button.
+# Docklike groups windows from the same application into one task button.
 set_prop xfce4-panel /plugins/plugin-3/grouping uint 1
-set_prop xfce4-panel /plugins/plugin-3/show-labels bool true
 # genmon presents live CPU and RAM figures in the panel.
 set_prop xfce4-panel /plugins/plugin-8/command string "/usr/local/bin/buildmaker-system-monitor"
-set_prop xfce4-panel /plugins/plugin-8/interval uint 3
-set_prop xfce4-panel /plugins/plugin-8/enable-single-row bool true
+set_prop xfce4-panel /plugins/plugin-8/period uint 3
+set_prop xfce4-panel /plugins/plugin-8/use-label bool false
 # No compositor, shadows or desktop effects.
 set_prop xfwm4 /general/use_compositing bool false
 EOF
