@@ -1,0 +1,34 @@
+name: Validate BuildMaker XFCE
+
+on:
+  push:
+    branches:
+      - buildmaker-xfce-dark-ui
+  pull_request:
+    branches:
+      - buildmaker-xfce-dark-ui
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install validators
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxml2-utils
+      - name: Check installer shell syntax
+        run: bash -n scripts/install-xfce-dark.sh
+      - name: Validate XFCE XML and V icon
+        run: |
+          xmllint --noout desktop-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
+          xmllint --noout desktop-overlay/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
+          xmllint --noout desktop-overlay/usr/share/icons/hicolor/scalable/apps/buildmaker-v.svg
+      - name: Check required desktop components
+        run: |
+          grep -q 'xfce4-docklike-plugin' Packages-Desktop
+          grep -q 'lightdm' Packages-Desktop
+          grep -q 'Orchis-Dark' desktop-overlay/etc/skel/.config/gtk-3.0/settings.ini
+          grep -q 'buildmaker-v' scripts/install-xfce-dark.sh
