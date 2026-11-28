@@ -158,13 +158,14 @@ cat > /usr/share/icons/hicolor/scalable/apps/buildmaker-v.svg <<'SVG'
   <path d="M64 5 122 35v58L64 123 6 93V35Z" fill="#111a27" stroke="#3d526d" stroke-width="3"/>
   <path d="M27 34h19l18 43 18-43h19L71 98H57Z" fill="url(#blue)" stroke="#8bc8ff" stroke-width="2" stroke-linejoin="round"/>
   <path d="M27 34h19l18 43 18-43h19L71 98H57Z" fill="url(#shine)"/>
+</svg>
 SVG
 # Install the maintained Orchis theme in dark blue, with a compact, solid finish.
 if [[ ! -d /tmp/Orchis-theme/.git ]]; then
   rm -rf /tmp/Orchis-theme
   git clone --depth 1 https://github.com/vinceliuice/Orchis-theme.git /tmp/Orchis-theme
 fi
-/tmp/Orchis-theme/install.sh --dest /usr/share/themes --theme default --color dark --size standard --tweaks black primary submenu --round 8
+/tmp/Orchis-theme/install.sh --dest /usr/share/themes --name Orchis-Dark --theme default --color dark --size standard --tweaks solid black primary submenu --round 8
 
 if command -v gtk-update-icon-cache >/dev/null 2>&1; then
   gtk-update-icon-cache -f /usr/share/icons/hicolor >/dev/null 2>&1 || true
@@ -200,6 +201,10 @@ set_prop() {
 }
 # Branded launcher, comfortable menu size and readable icons.
 set_prop xsettings /Net/ThemeName string "Orchis-Dark"
+set_prop xsettings /Net/IconThemeName string "Papirus-Dark"
+set_prop xsettings /Gtk/CursorThemeName string "Bibata-Modern-Ice"
+set_prop xsettings /Gtk/CursorThemeSize int 24
+set_prop xsettings /Gtk/FontName string "Noto Sans 10"
 set_prop xfwm4 /general/theme string "Orchis-Dark"
 set_prop xfce4-panel /plugins/plugin-1/button-title string "BuildMaker"
 set_prop xfce4-panel /plugins/plugin-1/button-icon string "buildmaker-v"
