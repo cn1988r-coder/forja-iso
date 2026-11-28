@@ -38,6 +38,58 @@ gtk-application-prefer-dark-theme=1
 EOF
 install -m 0644 "$SKEL/.config/gtk-3.0/settings.ini" "$SKEL/.config/gtk-4.0/settings.ini"
 
+# A complete visual restyle for Whisker: dark floating surface, clear spacing,
+# blue selection and legible typography. This changes appearance, not the menu engine.
+cat > "$SKEL/.config/gtk-3.0/gtk.css" <<'EOF'
+/* BuildMaker application menu */
+#whiskermenu-window {
+  background-color: #11151c;
+  color: #e8edf5;
+  border: 1px solid #303b4b;
+  border-radius: 12px;
+}
+#whiskermenu-window > box {
+  padding: 10px;
+  background-color: #11151c;
+}
+#whiskermenu-window entry {
+  color: #f2f5fa;
+  background-color: #1b222d;
+  border: 1px solid #354255;
+  border-radius: 8px;
+  min-height: 34px;
+  padding: 4px 10px;
+}
+#whiskermenu-window entry:focus {
+  border-color: #2583ff;
+  box-shadow: 0 0 0 1px #2583ff;
+}
+#whiskermenu-window treeview {
+  color: #dce5f2;
+  background-color: transparent;
+  border-radius: 7px;
+}
+#whiskermenu-window treeview:hover,
+#whiskermenu-window treeview:selected {
+  color: #ffffff;
+  background-color: #1769d2;
+}
+#whiskermenu-window button {
+  color: #dce5f2;
+  background-color: transparent;
+  border: 0;
+  border-radius: 7px;
+  padding: 6px;
+}
+#whiskermenu-window button:hover {
+  color: #ffffff;
+  background-color: #202c3d;
+}
+#whiskermenu-window separator {
+  background-color: #2a3544;
+}
+EOF
+
 cat > /etc/profile.d/buildmaker-dark-theme.sh <<'EOF'
 export GTK_THEME=Materia-dark
 export XCURSOR_THEME=Bibata-Modern-Ice
@@ -91,14 +143,28 @@ cat > "$SKEL/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" <<'EOF'
 </channel>
 EOF
 
-# Configure tasklist grouping and restrained desktop effects after XFCE first login.
+# Configure Whisker as a branded, compact application launcher, not its stock look.
+# The GTK stylesheet above supplies the custom visual identity.
 cat > /usr/local/bin/buildmaker-xfce-first-login <<'EOF'
 #!/usr/bin/env bash
 set -eu
 command -v xfconf-query >/dev/null 2>&1 || exit 0
-xfconf-query -c xfce4-panel -p /plugins/plugin-3/grouping -n -t uint -s 1 2>/dev/null || xfconf-query -c xfce4-panel -p /plugins/plugin-3/grouping -t uint -s 1
-xfconf-query -c xfce4-panel -p /plugins/plugin-3/show-labels -n -t bool -s true 2>/dev/null || true
-xfconf-query -c xfwm4 -p /general/use_compositing -n -t bool -s false 2>/dev/null || true
+set_prop() {
+  local channel="$1" property="$2" type="$3" value="$4"
+  xfconf-query -c "$channel" -p "$property" --create -t "$type" -s "$value" >/dev/null 2>&1 || true
+}
+# Whisker button branding and proportions.
+set_prop xfce4-panel /plugins/plugin-1/button-title string "Aplicativos"
+set_prop xfce4-panel /plugins/plugin-1/button-icon string "view-app-grid-symbolic"
+set_prop xfce4-panel /plugins/plugin-1/show-button-title bool false
+set_prop xfce4-panel /plugins/plugin-1/menu-width uint 560
+set_prop xfce4-panel /plugins/plugin-1/menu-height uint 520
+set_prop xfce4-panel /plugins/plugin-1/item-icon-size uint 2
+set_prop xfce4-panel /plugins/plugin-1/category-icon-size uint 2
+# One grouped task button per application; disable compositor/effects.
+set_prop xfce4-panel /plugins/plugin-3/grouping uint 1
+set_prop xfce4-panel /plugins/plugin-3/show-labels bool true
+set_prop xfwm4 /general/use_compositing bool false
 EOF
 chmod 0755 /usr/local/bin/buildmaker-xfce-first-login
 
