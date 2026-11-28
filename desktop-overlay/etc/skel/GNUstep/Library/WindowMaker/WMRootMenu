@@ -3,7 +3,7 @@
     "Navegador  |  Firefox" EXEC firefox
     "Loja de aplicativos  |  Pamac" EXEC pamac-manager
     "Monitor do sistema" EXEC xfce4-taskmanager
-    "Terminal" EXEC xterm
+    "Terminal" EXEC xfce4-terminal
     "Gerenciador de arquivos" EXEC thunar
   "Aplicativos" END
   "Configurações" MENU
@@ -14,8 +14,8 @@
     "Gerenciador de janelas" EXEC wmaker
   "Configurações" END
   "Sistema" MENU
-    "Visão geral do sistema" EXEC xterm -e fastfetch
-    "Processos em execução" EXEC xterm -e htop
+    "Visão geral do sistema" EXEC xfce4-terminal --command=fastfetch
+    "Processos em execução" EXEC xfce4-terminal --command=htop
     "Atualizações e programas" EXEC pamac-manager
   "Sistema" END
   "Energia" MENU
