@@ -1,40 +1,34 @@
-# LXQt desktop: light session, custom dark identity
-lxqt
-lxqt-panel
-lxqt-runner
-lxqt-session
-lxqt-config
-lxqt-about
-lxqt-powermanagement
-lxqt-policykit
-lxqt-notificationd
-lxqt-sudo
-lxqt-archiver
-lxqt-panel-profiles
-openbox
-pcmanfm-qt
-qterminal
-# Display manager: XFCE-style GTK greeter, never SDDM
+# BuildMaker XFCE Dark
+xfce4
+xfce4-goodies
+xfce4-panel
+xfce4-session
+xfce4-settings
+xfce4-whiskermenu-plugin
+xfce4-pulseaudio-plugin
+xfce4-clipman-plugin
+xfce4-notifyd
+xfce4-power-manager
+xfce4-taskmanager
+xfce4-panel-profiles
+xfce4-docklike-plugin
+thunar
+thunar-archive-plugin
+thunar-volman
 lightdm
 lightdm-gtk-greeter
 lightdm-gtk-greeter-settings
-# System tray and hardware integration
 network-manager-applet
-pavucontrol-qt
+pavucontrol
 blueman
 pipewire-pulse
 polkit-gnome
-# Required applications
 pamac-gtk
 firefox
 calamares
 fastfetch
-# Modern dark visual system
 materia-gtk-theme
 papirus-icon-theme
 bibata-cursor-theme
-kvantum
-qt5ct
-qt6ct
-# Utilities
+noto-fonts
 htop
