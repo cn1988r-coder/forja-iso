@@ -19,7 +19,7 @@ PACKAGES=(
 )
 
 if command -v pacman >/dev/null 2>&1; then
-  pacman -Sy --needed --noconfirm "${PACKAGES[@]}"
+  pacman -Syu --needed --noconfirm "${PACKAGES[@]}"
 else
   echo "This profile currently targets Manjaro/Arch (pacman)." >&2
   exit 2
@@ -44,8 +44,6 @@ install -m 0644 "$ROOT/.config/gtk-3.0/settings.ini" "$ROOT/.config/gtk-4.0/sett
 cat > "$ROOT/.config/lxqt/session.conf" <<'EOF'
 [Session]
 window_manager=openbox
-lock_command=loginctl lock-session
-quit לח
 EOF
 # LXQt session environment: force consistent dark Qt and GTK appearance.
 cat > /etc/profile.d/buildmaker-dark-theme.sh <<'EOF'
