@@ -1,0 +1,23 @@
+#!/bin/sh
+# Enable libinput left-handed mode for all pointing devices that expose it.
+set -eu
+command -v xinput >/dev/null 2>&1 || {
+  zenity --error --title="BuildMaker" --text="O utilitário xinput não está instalado."
+  exit 1
+}
+changed=0
+while IFS= read -r device; do
+  [ -n "$device" ] || continue
+  if xinput list-props "$device" 2>/dev/null | grep -Fq "libinput Left Handed Enabled ("; then
+    if xinput set-prop "$device" "libinput Left Handed Enabled" 1 2>/dev/null; then
+      changed=$((changed + 1))
+    fi
+  fi
+done <<EOF
+$(xinput --list --name-only 2>/dev/null || true)
+EOF
+if [ "$changed" -gt 0 ]; then
+  zenity --info --title="BuildMaker" --text="Modo para canhotos ativado em $changed dispositivo(s). A alteração vale para esta sessão."
+else
+  zenity --warning --title="BuildMaker" --text="Nenhum dispositivo compatível com a opção de canhotos foi encontrado nesta sessão."
+fi
