@@ -37,3 +37,14 @@
   color: #fff; background-color: #1a3556;
   border-bottom: 2px solid #2583ff;
 }
+
+
+/* Docklike: breathing room between each application button. */
+#docklike-3 button,
+#docklike-3 > button,
+.docklike button {
+  margin-left: 4px;
+  margin-right: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
