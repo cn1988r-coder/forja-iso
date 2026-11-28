@@ -4,6 +4,9 @@ wmakerconf
 tint2
 jgmenu
 conky
+thunar
+xterm
+zenity
 lxappearance
 obconf
 xorg-xinit
