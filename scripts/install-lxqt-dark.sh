@@ -15,7 +15,7 @@ PACKAGES=(
   lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings
   network-manager-applet pavucontrol-qt blueman pipewire-pulse polkit-gnome
   pamac-gtk firefox calamares fastfetch
-  materia-gtk-theme papirus-icon-theme bibata-cursor-theme kvantum qt5ct qt6ct
+  materia-gtk-theme papirus-icon-theme bibata-cursor-theme kvantum qt5ct qt6ct noto-fonts
 )
 
 if command -v pacman >/dev/null 2>&1; then
@@ -26,7 +26,7 @@ else
 fi
 
 ROOT=/etc/skel
-mkdir -p "$ROOT/.config/gtk-3.0" "$ROOT/.config/gtk-4.0" "$ROOT/.config/lxqt" \
+mkdir -p "$ROOT/.themes/BuildMaker-Dark/openbox-3" "$ROOT/.config/gtk-3.0" "$ROOT/.config/gtk-4.0" "$ROOT/.config/lxqt" \
   "$ROOT/.config/openbox" "$ROOT/.config/qt5ct" "$ROOT/.config/qt6ct" \
   "$ROOT/.config/Kvantum" "$ROOT/.config/qterminal.org"
 
@@ -133,7 +133,7 @@ cat > "$ROOT/.config/openbox/rc.xml" <<'EOF'
   <resistance><strength>10</strength><screen_edge_strength>20</screen_edge_strength></resistance>
   <focus><focusNew>yes</focusNew><followMouse>no</followMouse><raiseOnFocus>no</raiseOnFocus></focus>
   <placement><policy>Smart</policy><center>yes</center></placement>
-  <theme><name>Materia-dark</name><titleLayout>NLIMC</titleLayout><keepBorder>yes</keepBorder><animateIconify>no</animateIconify></theme>
+  <theme><name>BuildMaker-Dark</name><titleLayout>NLIMC</titleLayout><keepBorder>yes</keepBorder><animateIconify>no</animateIconify></theme>
   <desktops><number>4</number><firstdesk>1</firstdesk><names><name>Workspace 1</name><name>Workspace 2</name><name>Workspace 3</name><name>Workspace 4</name></names></desktops>
   <keyboard><keybind key="W-space"><action name="Execute"><command>lxqt-runner</command></action></keybind><keybind key="W-e"><action name="Execute"><command>pcmanfm-qt</command></action></keybind><keybind key="W-t"><action name="Execute"><command>qterminal</command></action></keybind></keyboard>
 </openbox_config>
