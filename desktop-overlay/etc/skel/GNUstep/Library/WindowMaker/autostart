@@ -1,0 +1,5 @@
+#!/bin/sh
+# Window Maker session startup. Commands are optional and start only once.
+command -v tint2 >/dev/null 2>&1 && (pgrep -x tint2 >/dev/null || tint2) &
+command -v conky >/dev/null 2>&1 && (pgrep -x conky >/dev/null || conky -c "$HOME/.config/conky/conky.conf") &
+exit 0
