@@ -140,7 +140,27 @@ cat > "$CFG/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml" <<'EOF'
 EOF
 
 # Compact CPU/RAM monitor for the panel, refreshed every 3 seconds.
-install -d /usr/local/bin
+install -d /usr/local/bin /usr/share/icons/hicolor/scalable/apps
+cat > /usr/share/icons/hicolor/scalable/apps/buildmaker-v.svg <<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="blue" x1="18" y1="12" x2="110" y2="116" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#63b5ff"/>
+      <stop offset="0.52" stop-color="#2583ff"/>
+      <stop offset="1" stop-color="#0751c8"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="30" y1="22" x2="98" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".32"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <path d="M64 5 122 35v58L64 123 6 93V35Z" fill="#111a27" stroke="#3d526d" stroke-width="3"/>
+  <path d="M27 34h19l18 43 18-43h19L71 98H57Z" fill="url(#blue)" stroke="#8bc8ff" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M27 34h19l18 43 18-43h19L71 98H57Z" fill="url(#shine)"/>
+SVG
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+  gtk-update-icon-cache -f /usr/share/icons/hicolor >/dev/null 2>&1 || true
+fi
 cat > /usr/local/bin/buildmaker-system-monitor <<'EOF'
 #!/usr/bin/env bash
 set -eu
@@ -172,7 +192,7 @@ set_prop() {
 }
 # Branded launcher, comfortable menu size and readable icons.
 set_prop xfce4-panel /plugins/plugin-1/button-title string "BuildMaker"
-set_prop xfce4-panel /plugins/plugin-1/button-icon string "view-app-grid-symbolic"
+set_prop xfce4-panel /plugins/plugin-1/button-icon string "buildmaker-v"
 set_prop xfce4-panel /plugins/plugin-1/show-button-title bool false
 set_prop xfce4-panel /plugins/plugin-1/menu-width uint 560
 set_prop xfce4-panel /plugins/plugin-1/menu-height uint 520
