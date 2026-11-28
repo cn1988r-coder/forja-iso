@@ -1,0 +1,31 @@
+# Window Maker session and mouse-first desktop
+windowmaker
+wmakerconf
+tint2
+jgmenu
+conky
+lxappearance
+obconf
+xorg-xinit
+xorg-server
+xorg-xrandr
+xf86-input-libinput
+# System tray and desktop integration
+network-manager-applet
+pavucontrol
+blueman
+xfce4-power-manager
+xfce4-notifyd
+polkit-gnome
+# Required Manjaro applications
+pamac-gtk
+firefox
+calamares
+# System monitoring
+htop
+lm_sensors
+sysstat
+# Theme and icons
+materia-gtk-theme
+papirus-icon-theme
+bibata-cursor-theme
